@@ -10,6 +10,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.os.Build;
+import android.widget.CompoundButton;
+import android.widget.TextView;
+import android.widget.ToggleButton;
 
 
 public class Record extends ActionBarActivity {
@@ -47,7 +50,6 @@ public class Record extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
-
     /**
      * A placeholder fragment containing a simple view.
      */
@@ -60,7 +62,23 @@ public class Record extends ActionBarActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_record, container, false);
+            ToggleButton toggleButton = (ToggleButton) rootView.findViewById(R.id.toggleRecordButton);
+            toggleButton.setOnCheckedChangeListener(new RecordButtonListener(rootView));
             return rootView;
+        }
+    }
+
+    private static class RecordButtonListener implements CompoundButton.OnCheckedChangeListener {
+        private View rootView;
+
+        private RecordButtonListener(View rootView) {
+            this.rootView = rootView;
+        }
+
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            TextView textView = (TextView)rootView.findViewById(R.id.recordInfo);
+            textView.setText("Record "+(isChecked ? "starting" : "stop"));
         }
     }
 }

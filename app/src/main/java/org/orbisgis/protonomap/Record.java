@@ -1,8 +1,10 @@
 package org.orbisgis.protonomap;
 
+import android.content.Context;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v4.app.Fragment;
 import android.os.Bundle;
@@ -15,6 +17,10 @@ import android.widget.CompoundButton;
 import android.widget.TextView;
 import android.widget.ToggleButton;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -26,7 +32,7 @@ public class Record extends ActionBarActivity {
         setContentView(R.layout.activity_record);
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .add(R.id.container, new PlaceholderFragment())
+                    .add(R.id.container, new PlaceholderFragment(getApplicationContext()))
                     .commit();
         }
     }
@@ -58,8 +64,10 @@ public class Record extends ActionBarActivity {
      */
     public static class PlaceholderFragment extends Fragment {
         private AtomicBoolean recording = new AtomicBoolean(false);
+        private Context context;
 
-        public PlaceholderFragment() {
+        public PlaceholderFragment(Context context) {
+            this.context = context;
         }
 
         @Override
@@ -67,7 +75,7 @@ public class Record extends ActionBarActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_record, container, false);
             ToggleButton toggleButton = (ToggleButton) rootView.findViewById(R.id.toggleRecordButton);
-            toggleButton.setOnCheckedChangeListener(new RecordButtonListener(rootView, recording));
+            toggleButton.setOnCheckedChangeListener(new RecordButtonListener(rootView, recording, new File(Environment.getExternalStorageDirectory(),"record_test.ac3")));
             return rootView;
         }
 
@@ -84,10 +92,12 @@ public class Record extends ActionBarActivity {
         private AudioRecord audioRecord;
         private final int bufferSize;
         private final int encoding;
+        private File recordDestination;
 
-        private RecordButtonListener(View rootView, AtomicBoolean recording) {
+        private RecordButtonListener(View rootView, AtomicBoolean recording, File recordDestination) {
             this.rootView = rootView;
             this.recording = recording;
+            this.recordDestination = recordDestination;
             final int[] mSampleRates = new int[] { 8000, 11025, 22050, 44100 };
             final int[] encodings = new int[] { AudioFormat.ENCODING_PCM_16BIT , AudioFormat.ENCODING_PCM_8BIT };
             final short[] audioChannels = new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO };
@@ -116,10 +126,8 @@ public class Record extends ActionBarActivity {
             TextView textView = (TextView)rootView.findViewById(R.id.recordInfo);
             textView.setText("Record "+(isChecked ? "starting" : "stop"));
             if(isChecked) {
-                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-                audioRecord.startRecording();
                 recording.set(true);
-                AudioProcess audioProcess = new AudioProcess(recording, audioRecord,bufferSize);
+                AudioProcess audioProcess = new AudioProcess(recording, audioRecord,bufferSize, recordDestination);
                 new Thread(audioProcess).start();
             } else {
                 recording.set(false);
@@ -132,21 +140,41 @@ public class Record extends ActionBarActivity {
         private AtomicBoolean recording;
         private AudioRecord audioRecord;
         private int bufferSize;
+        private File recordDestination;
 
-        private AudioProcess(AtomicBoolean recording, AudioRecord audioRecord, int bufferSize) {
+        private AudioProcess(AtomicBoolean recording, AudioRecord audioRecord, int bufferSize, File recordDestination) {
             this.recording = recording;
             this.audioRecord = audioRecord;
             this.bufferSize = bufferSize;
+            this.recordDestination = recordDestination;
         }
 
         @Override
         public void run() {
-            short[] buffer = new short[bufferSize];
-            while (recording.get()) {
-                audioRecord.read(buffer, 0, buffer.length);
-
+            byte[] buffer = new byte[bufferSize];
+            if(recording.get()) {
+                try {
+                    FileOutputStream outputStream = new FileOutputStream(recordDestination);
+                    try {
+                        try {
+                            android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+                        } catch (IllegalArgumentException | SecurityException ex) {
+                            // Ignore
+                        }
+                        audioRecord.startRecording();
+                        while (recording.get()) {
+                            audioRecord.read(buffer, 0, buffer.length);
+                            outputStream.write(buffer);
+                        }
+                    } finally {
+                        outputStream.close();
+                    }
+                } catch (IOException ex) {
+                    // Ignore
+                } finally {
+                    audioRecord.stop();
+                }
             }
-            audioRecord.stop();
             audioRecord.release();
         }
     }

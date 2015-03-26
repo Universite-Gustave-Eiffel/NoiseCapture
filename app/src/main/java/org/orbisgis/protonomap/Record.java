@@ -80,21 +80,35 @@ public class Record extends ActionBarActivity {
 
     private static class RecordButtonListener implements CompoundButton.OnCheckedChangeListener {
         private View rootView;
-        private static final int RECORDER_SAMPLE_RATE = 8000;
-        private static final int RECORDER_CHANNELS = AudioFormat.CHANNEL_IN_MONO;
-        private static final int RECORDER_AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
         private AtomicBoolean recording;
         private AudioRecord audioRecord;
         private final int bufferSize;
+        private final int encoding;
 
         private RecordButtonListener(View rootView, AtomicBoolean recording) {
             this.rootView = rootView;
             this.recording = recording;
-            bufferSize = AudioRecord.getMinBufferSize(RECORDER_SAMPLE_RATE,
-                    RECORDER_CHANNELS, RECORDER_AUDIO_ENCODING);
-            audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
-                    RECORDER_SAMPLE_RATE, RECORDER_CHANNELS,
-                    RECORDER_AUDIO_ENCODING, bufferSize);
+            final int[] mSampleRates = new int[] { 8000, 11025, 22050, 44100 };
+            final int[] encodings = new int[] { AudioFormat.ENCODING_PCM_16BIT , AudioFormat.ENCODING_PCM_8BIT };
+            final short[] audioChannels = new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO };
+            for (int rate : mSampleRates) {
+                for (int tryEncoding : encodings) {
+                    for(short audioChannel : audioChannels) {
+                        int tryBufferSize = AudioRecord.getMinBufferSize(rate,
+                                audioChannel, tryEncoding);
+                        if (tryBufferSize != AudioRecord.ERROR_BAD_VALUE) {
+                            bufferSize = tryBufferSize;
+                            encoding = tryEncoding;
+                            audioRecord = new AudioRecord(MediaRecorder.AudioSource.MIC,
+                                    rate, audioChannel,
+                                    encoding, bufferSize);
+                            return;
+                        }
+                    }
+                }
+            }
+            bufferSize = -1;
+            encoding = -1;
         }
 
         @Override
@@ -102,10 +116,11 @@ public class Record extends ActionBarActivity {
             TextView textView = (TextView)rootView.findViewById(R.id.recordInfo);
             textView.setText("Record "+(isChecked ? "starting" : "stop"));
             if(isChecked) {
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
                 audioRecord.startRecording();
                 recording.set(true);
                 AudioProcess audioProcess = new AudioProcess(recording, audioRecord,bufferSize);
-                new Thread(audioProcess).run();
+                new Thread(audioProcess).start();
             } else {
                 recording.set(false);
             }

@@ -3,4 +3,6 @@
     <string name="record_message">Press the button in order to start the recording</string>
     <string name="action_settings">Settings</string>
     <string name="record_button_string">Start record</string>
+    <string name="title_activity_signal_processing">SignalProcessing</string>
+    <string name="hello_world">Hello world!</string>
 </resources>

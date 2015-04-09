@@ -1,11 +1,14 @@
 package org.orbisgis.protonomap;
 
+import android.util.Log;
+
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.DoubleBuffer;
+import java.nio.ShortBuffer;
 import java.util.Arrays;
 
 /**
@@ -34,12 +37,18 @@ public class CoreSignalProcessing {
         int secondCursor = 0;
         byte[] buffer = new byte[4096];
         int read = 0;
+        int totalRead = 0;
         // Read input signal up to buffer.length
         while ((read = inputStream.read(buffer)) != -1) {
+            totalRead += read;
             // Convert bytes into double values. Samples array size is 8 times inferior than buffer size
-            DoubleBuffer byteBuffer = ByteBuffer.wrap(buffer, 0, read).asDoubleBuffer();
-            double[] samples = new double[byteBuffer.capacity()];
-            byteBuffer.get(samples);
+            ShortBuffer byteBuffer = ByteBuffer.wrap(buffer, 0, read).asShortBuffer();
+            short[] samplesShort = new short[byteBuffer.capacity()];
+            double[] samples = new double[samplesShort.length];
+            byteBuffer.get(samplesShort);
+            for(int i = 0; i < samplesShort.length; i++) {
+                samples[i] = samplesShort[i] / 32768d;
+            }
             int lengthRead = Math.min(samples.length, rate - secondCursor);
             // Copy sample fragment into second array
             System.arraycopy(samples, 0, secondSample, secondCursor, lengthRead);
@@ -57,6 +66,7 @@ public class CoreSignalProcessing {
                 secondCursor = 0;
             }
         }
+        Log.i("Debug","Total read:" + totalRead);
     }
 
     /**

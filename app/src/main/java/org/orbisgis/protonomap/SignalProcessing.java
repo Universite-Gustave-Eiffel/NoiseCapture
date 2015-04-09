@@ -2,6 +2,7 @@ package org.orbisgis.protonomap;
 
 import android.app.Activity;
 import android.content.Context;
+import android.os.Looper;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.ActionBar;
 import android.support.v4.app.Fragment;
@@ -54,7 +55,6 @@ public class SignalProcessing extends ActionBarActivity {
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-
         //noinspection SimplifiableIfStatement
         if (id == R.id.action_settings) {
             return true;
@@ -78,7 +78,7 @@ public class SignalProcessing extends ActionBarActivity {
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_signal_processing, container, false);
             Button button = (Button) rootView.findViewById(R.id.doprocess);
-            button.setOnClickListener(new DoProcessing((TextView)rootView.findViewById(R.id.textView), context));
+            button.setOnClickListener(new DoProcessing((TextView)rootView.findViewById(R.id.textView), context, getActivity()));
             return rootView;
         }
     }
@@ -86,36 +86,39 @@ public class SignalProcessing extends ActionBarActivity {
     private static class DoProcessing implements CompoundButton.OnClickListener {
         private TextView textView;
         private Context context;
+        private Activity activity;
 
 
-        private DoProcessing(TextView textView, Context context) {
+        private DoProcessing(TextView textView, Context context, Activity activity) {
             this.textView = textView;
             this.context = context;
+            this.activity = activity;
         }
 
         @Override
         public void onClick(View v) {
-            new Thread(new ProcessThread(textView, context)).start();
+            new Thread(new ProcessThread(textView, context, activity)).start();
         }
     }
 
     private static class ProcessThread implements Runnable {
         private TextView textView;
         private Context context;
+        private Activity activity;
 
-        private ProcessThread(TextView textView, Context context) {
+        private ProcessThread(TextView textView, Context context, Activity activity) {
             this.textView = textView;
             this.context = context;
+            this.activity = activity;
         }
 
         @Override
         public void run() {
-
             InputStream inputStream = context.getResources().openRawResource(R.raw.record_test);
             try {
                 final int rate = 16000;
                 CoreSignalProcessing signalProcessing = new CoreSignalProcessing(rate);
-                signalProcessing.addPropertyChangeListener(CoreSignalProcessing.PROP_SPECTRUM ,new RenderSpectrum(textView, signalProcessing));
+                signalProcessing.addPropertyChangeListener(CoreSignalProcessing.PROP_SPECTRUM ,new RenderSpectrum(textView, signalProcessing, activity));
                 signalProcessing.processAudio(16, rate, inputStream);
             } catch (IOException ex) {
                 Log.e(ex.getLocalizedMessage(),"Processing failed", ex);
@@ -132,10 +135,12 @@ public class SignalProcessing extends ActionBarActivity {
     private static class RenderSpectrum implements PropertyChangeListener {
         private TextView textView;
         private CoreSignalProcessing signalProcessing;
+        private Activity activity;
 
-        private RenderSpectrum(TextView textView, CoreSignalProcessing signalProcessing) {
+        private RenderSpectrum(TextView textView, CoreSignalProcessing signalProcessing, Activity activity) {
             this.textView = textView;
             this.signalProcessing = signalProcessing;
+            this.activity = activity;
         }
 
         @Override
@@ -147,8 +152,27 @@ public class SignalProcessing extends ActionBarActivity {
                 }
                 stringBuffer.append(level);
             }
+            activity.runOnUiThread(new UpdateText(textView, stringBuffer.toString()));
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException ex) {
+                // Ignore
+            }
+        }
+    }
 
-            textView.setText(stringBuffer.toString());
+    private static class UpdateText implements Runnable {
+        private TextView textView;
+        private String text;
+
+        private UpdateText(TextView textView, String text) {
+            this.textView = textView;
+            this.text = text;
+        }
+
+        @Override
+        public void run() {
+            textView.setText(text);
         }
     }
 }

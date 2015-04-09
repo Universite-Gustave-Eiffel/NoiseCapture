@@ -46,6 +46,7 @@ public class Measurement extends ActionBarActivity {
         mChart.setPinchZoom(false);
         mChart.setDrawGridBackground(false);
         mChart.setMaxVisibleValueCount(0);
+        mChart.setScaleXEnabled(false); // Disable scaling on the X-axis
         // XAxis parameters: hide all
         XAxis xlv = mChart.getXAxis();
         xlv.setPosition(XAxisPosition.BOTTOM);
@@ -70,12 +71,14 @@ public class Measurement extends ActionBarActivity {
 
 
         // Instantaneous spectrum
+        // Stacked bars are used for represented Min, Current and Max values
         sChart = (BarChart) findViewById(R.id.spectrumChart);
         sChart.setDrawBarShadow(false);
         sChart.setDescription("");
         sChart.setPinchZoom(false);
         sChart.setDrawGridBackground(false);
         sChart.setMaxVisibleValueCount(0);
+        sChart.setDrawValuesForWholeStack(true); // Stacked
         // XAxis parameters: hide all
         XAxis xls = sChart.getXAxis();
         xls.setPosition(XAxisPosition.BOTTOM);
@@ -91,7 +94,7 @@ public class Measurement extends ActionBarActivity {
         yls.setStartAtZero(true);
         yls.setTextColor(Color.WHITE);
         yls.setGridColor(Color.WHITE);
-        setDataS(30, 135);
+        setDataS(30, 115);
         // YAxis parameters (right): no axis, hide all
         YAxis yrs = sChart.getAxisRight();
         yrs.setEnabled(false);
@@ -101,6 +104,7 @@ public class Measurement extends ActionBarActivity {
 
     }
 
+    // Generate artificial data for vumeter representation
     private void setData(int count, float range) {
 
         ArrayList<String> xVals = new ArrayList<String>();
@@ -130,6 +134,7 @@ public class Measurement extends ActionBarActivity {
         mChart.setData(data);
     }
 
+    // Generate artificial data for spectrum representation
     private void setDataS(int count, float range) {
 
         ArrayList<String> xVals = new ArrayList<String>();
@@ -141,13 +146,19 @@ public class Measurement extends ActionBarActivity {
 
         for (int i = 0; i < count; i++) {
             float mult = (range + 1);
-            float val = (float) (Math.random() * mult);
-            yVals1.add(new BarEntry(val, i));
+            float val = (float) (20f+Math.random() * mult);
+            //yVals1.add(new BarEntry(val, i));
+            yVals1.add(new BarEntry(new float[] {40f,30f,val-30f}, i));
         }
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
-        set1.setBarSpacePercent(35f);
-        set1.setColor(Color.rgb(0, 153, 204));
+        //set1.setBarSpacePercent(35f);
+        //set1.setColors(new int[] {Color.rgb(0, 153, 204), Color.rgb(0, 153, 204), Color.rgb(0, 153, 204),
+        //        Color.rgb(51, 181, 229), Color.rgb(51, 181, 229), Color.rgb(51, 181, 229)});
+        set1.setColors(getColors());
+        set1.setStackLabels(new String[] {
+                "Min", "SL", "Max"
+        });
 
         ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
         dataSets.add(set1);
@@ -156,6 +167,25 @@ public class Measurement extends ActionBarActivity {
         data.setValueTextSize(10f);
 
         sChart.setData(data);
+    }
+
+    // Color for spectrum representation (min, mean, max)
+    public static final int[] SPECTRUM_COLORS = {
+            Color.rgb(0, 128, 255), Color.rgb(102, 178, 255), Color.rgb(204, 229, 255),
+    };
+
+    private int[] getColors() {
+
+        int stacksize = 3;
+
+        // have as many colors as stack-values per entry
+        int []colors = new int[stacksize];
+
+        for(int i = 0; i < stacksize; i++) {
+            colors[i] = SPECTRUM_COLORS[i];
+        }
+
+        return colors;
     }
 
     @Override

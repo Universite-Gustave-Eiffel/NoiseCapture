@@ -7,6 +7,7 @@ import android.view.MenuItem;
 import android.graphics.Color;
 
 import com.github.mikephil.charting.charts.HorizontalBarChart;
+import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.Legend.LegendPosition;
 import com.github.mikephil.charting.components.XAxis;
@@ -26,9 +27,12 @@ import java.util.ArrayList;
 
 public class Measurement extends ActionBarActivity {
 
-    protected HorizontalBarChart mChart;
-    protected String[] mMonths = new String[] {
-            "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dec"  };
+    protected HorizontalBarChart mChart; // VUMETER representation
+    protected BarChart sChart; // Spectrum representation
+    protected String[] tob = new String[] {
+            "25", "31.5", "40", "50", "63", "80", "100", "125", "160", "200", "250", "315",
+            "400", "500", "630", "800", "1000", "1250", "1600", "2000", "2500", "3150", "4000", "5000",
+            "6300", "8000", "10000", "12500", "16000", "20000"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,25 +47,57 @@ public class Measurement extends ActionBarActivity {
         mChart.setDrawGridBackground(false);
         mChart.setMaxVisibleValueCount(0);
         // XAxis parameters: hide all
-        XAxis xl = mChart.getXAxis();
-        xl.setPosition(XAxisPosition.BOTTOM);
-        xl.setDrawAxisLine(false);
-        xl.setDrawGridLines(false);
-        xl.setDrawLabels(false);
+        XAxis xlv = mChart.getXAxis();
+        xlv.setPosition(XAxisPosition.BOTTOM);
+        xlv.setDrawAxisLine(false);
+        xlv.setDrawGridLines(false);
+        xlv.setDrawLabels(false);
         // YAxis parameters (left): main axis for dB values representation
-        YAxis yl = mChart.getAxisLeft();
-        yl.setDrawAxisLine(true);
-        yl.setDrawGridLines(true);
-        yl.setAxisMaxValue(141.f);
-        yl.setStartAtZero(true);
-        yl.setTextColor(Color.WHITE);
-        yl.setGridColor(Color.WHITE);
+        YAxis ylv = mChart.getAxisLeft();
+        ylv.setDrawAxisLine(true);
+        ylv.setDrawGridLines(true);
+        ylv.setAxisMaxValue(141.f);
+        ylv.setStartAtZero(true);
+        ylv.setTextColor(Color.WHITE);
+        ylv.setGridColor(Color.WHITE);
         setData(1, 135);
         // YAxis parameters (right): no axis, hide all
-        YAxis yr = mChart.getAxisRight();
-        yr.setEnabled(false);
-        Legend l = mChart.getLegend();
-        l.setEnabled(false); // Hide legend
+        YAxis yrv = mChart.getAxisRight();
+        yrv.setEnabled(false);
+        // Legend: hide all
+        Legend lv = mChart.getLegend();
+        lv.setEnabled(false); // Hide legend
+
+
+        // Instantaneous spectrum
+        sChart = (BarChart) findViewById(R.id.spectrumChart);
+        sChart.setDrawBarShadow(false);
+        sChart.setDescription("");
+        sChart.setPinchZoom(false);
+        sChart.setDrawGridBackground(false);
+        sChart.setMaxVisibleValueCount(0);
+        // XAxis parameters: hide all
+        XAxis xls = sChart.getXAxis();
+        xls.setPosition(XAxisPosition.BOTTOM);
+        xls.setDrawAxisLine(true);
+        xls.setDrawGridLines(false);
+        xls.setDrawLabels(true);
+        xls.setTextColor(Color.WHITE);
+        // YAxis parameters (left): main axis for dB values representation
+        YAxis yls = sChart.getAxisLeft();
+        yls.setDrawAxisLine(true);
+        yls.setDrawGridLines(true);
+        yls.setAxisMaxValue(141.f);
+        yls.setStartAtZero(true);
+        yls.setTextColor(Color.WHITE);
+        yls.setGridColor(Color.WHITE);
+        setDataS(30, 135);
+        // YAxis parameters (right): no axis, hide all
+        YAxis yrs = sChart.getAxisRight();
+        yrs.setEnabled(false);
+        // Legend: hide all
+        Legend ls = sChart.getLegend();
+        ls.setEnabled(false); // Hide legend
 
     }
 
@@ -92,6 +128,34 @@ public class Measurement extends ActionBarActivity {
         data.setValueTextSize(10f);
 
         mChart.setData(data);
+    }
+
+    private void setDataS(int count, float range) {
+
+        ArrayList<String> xVals = new ArrayList<String>();
+        for (int i = 0; i < count; i++) {
+            xVals.add(tob[i % 30]);
+        }
+
+        ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
+
+        for (int i = 0; i < count; i++) {
+            float mult = (range + 1);
+            float val = (float) (Math.random() * mult);
+            yVals1.add(new BarEntry(val, i));
+        }
+
+        BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
+        set1.setBarSpacePercent(35f);
+        set1.setColor(Color.rgb(0, 153, 204));
+
+        ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
+        dataSets.add(set1);
+
+        BarData data = new BarData(xVals, dataSets);
+        data.setValueTextSize(10f);
+
+        sChart.setData(data);
     }
 
     @Override

@@ -211,11 +211,11 @@
         android:gravity="right"
         android:text="00:00:00"
         android:format="00:00:00"
-        android:textSize="25dp"
+        android:textSize="30dp"
         android:textColor="#0099CC"
         android:textStyle="bold"
         android:layout_alignTop="@+id/textView_SLtitle"
-        android:paddingTop="10dp" />
+        android:paddingTop="5dp" />
 
 </RelativeLayout>
 

@@ -4,6 +4,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.graphics.Color;
 
 import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.components.Legend;
@@ -34,38 +35,33 @@ public class Measurement extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_measurement);
 
-        // Instantaneous sound level vumeter
+        // Instantaneous sound level VUMETER
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
         mChart.setDrawBarShadow(false);
-        //mChart.setDrawValueAboveBar(false); // Draw value on bar or above
         mChart.setDescription("");
-        //mChart.setMaxVisibleValueCount(60);
         mChart.setPinchZoom(false);
         mChart.setDrawGridBackground(false);
+        mChart.setMaxVisibleValueCount(0);
+        // XAxis parameters: hide all
         XAxis xl = mChart.getXAxis();
         xl.setPosition(XAxisPosition.BOTTOM);
         xl.setDrawAxisLine(false);
         xl.setDrawGridLines(false);
         xl.setDrawLabels(false);
-        //xl.setGridLineWidth(0.3f);
+        // YAxis parameters (left): main axis for dB values representation
         YAxis yl = mChart.getAxisLeft();
         yl.setDrawAxisLine(true);
         yl.setDrawGridLines(true);
-        yl.setAxisMaxValue(135.f);
+        yl.setAxisMaxValue(141.f);
         yl.setStartAtZero(true);
+        yl.setTextColor(Color.WHITE);
+        yl.setGridColor(Color.WHITE);
         setData(1, 135);
-        //yl.setGridLineWidth(0.3f);
+        // YAxis parameters (right): no axis, hide all
         YAxis yr = mChart.getAxisRight();
         yr.setEnabled(false);
-        //yr.setDrawAxisLine(false);
-        //yr.setDrawGridLines(false);
-        //mChart.animateY(2500);
         Legend l = mChart.getLegend();
         l.setEnabled(false); // Hide legend
-        //l.setPosition(LegendPosition.BELOW_CHART_LEFT);
-        //l.setFormSize(8f);
-        //l.setXEntrySpace(4f);
-
 
     }
 
@@ -87,6 +83,7 @@ public class Measurement extends ActionBarActivity {
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
         set1.setBarSpacePercent(35f);
+        set1.setColor(Color.rgb(0, 153, 204));
 
         ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
         dataSets.add(set1);

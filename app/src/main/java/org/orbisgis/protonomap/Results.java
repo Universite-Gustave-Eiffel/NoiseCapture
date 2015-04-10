@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
@@ -30,7 +31,9 @@ import java.util.ArrayList;
 
 public class Results extends ActionBarActivity {
 
-    private PieChart rneChart;
+    static float Leqi;
+    public PieChart rneChart;
+    public PieChart neiChart;
     protected BarChart sChart; // Spectrum representation
     protected String[] tob = new String[] {
             "25", "31.5", "40", "50", "63", "80", "100", "125", "160", "200", "250", "315",
@@ -48,7 +51,7 @@ public class Results extends ActionBarActivity {
         rneChart.setHoleColorTransparent(true);
         rneChart.setHoleRadius(40f);
         rneChart.setDescription("");
-        rneChart.setDrawCenterText(false);
+        rneChart.setDrawCenterText(true);
         rneChart.setDrawHoleEnabled(true);
         rneChart.setRotationAngle(0);
         rneChart.setRotationEnabled(true);
@@ -58,12 +61,46 @@ public class Results extends ActionBarActivity {
         // rneChart.setOnChartValueSelectedListener((OnChartValueSelectedListener) this);
         // mChart.setTouchEnabled(false);
         rneChart.setCenterText("RNE");
+        rneChart.setCenterTextColor(Color.WHITE);
         setRNEData(4, 100);
         //rneChart.animateXY(1500, 1500, EasingFunction.EaseInOutQuad, EasingFunction.EaseInOutQuad);
         //rneChart.spin(2000, 0, 360);
-        Legend l = rneChart.getLegend();
+        Legend lrne = rneChart.getLegend();
         //l.setPosition(rneChart.RIGHT_OF_CHART);
-        l.setEnabled(false); // Hide legend
+        lrne.setEnabled(false); // Hide legend
+
+
+
+        // NEI PieChart
+        neiChart = (PieChart) findViewById(R.id.NEIChart);
+        neiChart.setUsePercentValues(true);
+        neiChart.setHoleColorTransparent(true);
+        neiChart.setHoleRadius(0f);
+        neiChart.setDescription("");
+        neiChart.setDrawCenterText(true);
+        neiChart.setDrawHoleEnabled(true);
+        neiChart.setRotationAngle(90);
+        neiChart.setRotationEnabled(true);
+        neiChart.setDrawSliceText(false);
+        // mChart.setUnit(" €");
+        // mChart.setDrawUnitsInChart(true);
+        // rneChart.setOnChartValueSelectedListener((OnChartValueSelectedListener) this);
+        // mChart.setTouchEnabled(false);
+        setNEIData(100);
+        neiChart.setCenterText("SEL=".concat(String.format("%.1f", Leqi)).concat(" dB(A)"));
+        neiChart.setCenterTextSize(14);
+        neiChart.setCenterTextColor(Color.WHITE);
+        //rneChart.animateXY(1500, 1500, EasingFunction.EaseInOutQuad, EasingFunction.EaseInOutQuad);
+        //rneChart.spin(2000, 0, 360);
+        Legend lnei = neiChart.getLegend();
+        //l.setPosition(rneChart.RIGHT_OF_CHART);
+        lnei.setEnabled(false); // Hide legend
+
+        // Change the text and the textcolor in the corresponding textview
+        // for the Leqi value
+        final TextView mTextView = (TextView) findViewById(R.id.textView_value_SEL);
+        mTextView.setText(String.format("%.1f", Leqi));
+
 
         // Cumulate spectrum
         sChart = (BarChart) findViewById(R.id.spectrumChart);
@@ -149,7 +186,39 @@ public class Results extends ActionBarActivity {
         for (int i = 0; i < count + 1; i++)
             xVals.add(catNE[i % catNE.length]);
 
-        PieDataSet dataSet = new PieDataSet(yVals1, "Election Results");
+        PieDataSet dataSet = new PieDataSet(yVals1, "RNE");
+        dataSet.setSliceSpace(3f);
+        dataSet.setColors(NE_COLORS);
+
+        PieData data = new PieData(xVals, dataSet);
+        data.setValueFormatter(new PercentFormatter());
+        data.setValueTextSize(8f);
+        data.setValueTextColor(Color.BLACK);
+        rneChart.setData(data);
+
+        // undo all highlights
+        //rneChart.highlightValues(null);
+        //rneChart.invalidate();
+    }
+
+    // Generate artificial data for NEI
+    private void setNEIData(float range) {
+
+        float mult5 = range;
+
+        ArrayList<Entry> yVals1 = new ArrayList<Entry>();
+
+        // IMPORTANT: In a PieChart, no values (Entry) should have the same
+        // xIndex (even if from different DataSets), since no values can be
+        // drawn above each other.
+        Leqi = (float) Math.random() * mult5;
+        yVals1.add(new Entry( Leqi, 0));
+
+        ArrayList<String> xVals = new ArrayList<String>();
+
+        xVals.add(catNE[0 % catNE.length]);
+
+        PieDataSet dataSet = new PieDataSet(yVals1, "NEI");
         dataSet.setSliceSpace(3f);
         dataSet.setColors(NE_COLORS);
 
@@ -157,7 +226,8 @@ public class Results extends ActionBarActivity {
         data.setValueFormatter(new PercentFormatter());
         data.setValueTextSize(11f);
         data.setValueTextColor(Color.BLACK);
-        rneChart.setData(data);
+        data.setDrawValues(false);
+        neiChart.setData(data);
 
         // undo all highlights
         //rneChart.highlightValues(null);

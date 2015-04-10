@@ -32,7 +32,6 @@ import java.util.ArrayList;
 public class Measurement extends ActionBarActivity {
 
     public ImageButton button;
-
     static float Leqi;
 
     protected HorizontalBarChart mChart; // VUMETER representation
@@ -154,7 +153,7 @@ public class Measurement extends ActionBarActivity {
     }
 
     // Generate artificial data (sound level for each 1/3 octave band) for spectrum representation
-        private void setDataS(int count, float range) {
+    private void setDataS(int count, float range) {
 
         ArrayList<String> xVals = new ArrayList<String>();
         for (int i = 0; i < count; i++) {
@@ -192,7 +191,7 @@ public class Measurement extends ActionBarActivity {
             Color.rgb(0, 128, 255), Color.rgb(102, 178, 255), Color.rgb(204, 229, 255),
     };
 
-    private int[] getColors() {
+    public int[] getColors() {
 
         int stacksize = 3;
 

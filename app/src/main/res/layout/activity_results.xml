@@ -204,7 +204,7 @@
 
 
     <com.github.mikephil.charting.charts.PieChart
-        android:id="@+id/RNEChart"
+        android:id="@+id/NEIChart"
         android:layout_width="125dp"
         android:layout_height="125dp"
         android:layout_alignRight="@+id/textView_value_iSL"
@@ -214,7 +214,7 @@
         android:layout_marginRight="20dp" />
 
     <com.github.mikephil.charting.charts.PieChart
-        android:id="@+id/NEIChart"
+        android:id="@+id/RNEChart"
         android:layout_width="125dp"
         android:layout_height="125dp"
         android:layout_above="@+id/spectrumChart"

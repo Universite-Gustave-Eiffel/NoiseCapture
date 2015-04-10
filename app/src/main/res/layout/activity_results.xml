@@ -26,12 +26,12 @@
         android:id="@+id/textView_value_SEL"
         android:textSize="60dp"
         android:elegantTextHeight="false"
-        android:layout_below="@+id/textView6"
+        android:layout_below="@+id/textView_title_NE"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignBottom="@+id/textView_value_Min_r"
         android:layout_alignParentTop="false"
-        android:layout_marginTop="0dp" />
+        android:layout_marginTop="-10dp" />
 
     <TextView
         android:layout_width="wrap_content"
@@ -176,10 +176,10 @@
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="@string/SEL_dBA"
-        android:id="@+id/textView6"
+        android:id="@+id/textView_title_NE"
         android:paddingLeft="0sp"
         android:textSize="15sp"
-        android:paddingTop="4sp"
+        android:paddingTop="10dp"
         android:paddingRight="0sp"
         android:gravity="center|center_horizontal"
         android:textColor="#0099CC"
@@ -187,7 +187,8 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignRight="@+id/textView_value_SEL"
-        android:layout_alignEnd="@+id/textView_value_SEL" />
+        android:layout_alignEnd="@+id/textView_value_SEL"
+        android:layout_marginTop="0dp" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="horizontal"

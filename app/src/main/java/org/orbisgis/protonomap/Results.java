@@ -58,7 +58,7 @@ public class Results extends ActionBarActivity {
         // rneChart.setOnChartValueSelectedListener((OnChartValueSelectedListener) this);
         // mChart.setTouchEnabled(false);
         rneChart.setCenterText("RNE");
-        setRNEData(3, 100);
+        setRNEData(4, 100);
         //rneChart.animateXY(1500, 1500, EasingFunction.EaseInOutQuad, EasingFunction.EaseInOutQuad);
         //rneChart.spin(2000, 0, 360);
         Legend l = rneChart.getLegend();
@@ -130,10 +130,6 @@ public class Results extends ActionBarActivity {
     }
 
 
-    private String[] mParties = new String[] {
-            "Party A", "Party B", "Party C", "Party D", "Party E", "Party F", "Party G", "Party H",
-            "Party I"
-    };
     // Generate artificial data for RNE
     private void setRNEData(int count, float range) {
 
@@ -151,7 +147,7 @@ public class Results extends ActionBarActivity {
         ArrayList<String> xVals = new ArrayList<String>();
 
         for (int i = 0; i < count + 1; i++)
-            xVals.add(mParties[i % mParties.length]);
+            xVals.add(catNE[i % catNE.length]);
 
         PieDataSet dataSet = new PieDataSet(yVals1, "Election Results");
         dataSet.setSliceSpace(3f);
@@ -160,6 +156,7 @@ public class Results extends ActionBarActivity {
 
         ArrayList<Integer> colors = new ArrayList<Integer>();
 
+        /*
         for (int c : ColorTemplate.VORDIPLOM_COLORS)
             colors.add(c);
 
@@ -176,8 +173,9 @@ public class Results extends ActionBarActivity {
             colors.add(c);
 
         colors.add(ColorTemplate.getHoloBlue());
+        */
 
-        dataSet.setColors(colors);
+        dataSet.setColors(NE_COLORS);
 
 
         PieData data = new PieData(xVals, dataSet);
@@ -190,6 +188,15 @@ public class Results extends ActionBarActivity {
         //rneChart.highlightValues(null);
         //rneChart.invalidate();
     }
+
+    // Noise exposition categories
+    private String[] catNE = new String[] {
+            ">75 dB(A)", "65-75 dB(A)", "55-65 dB(A)", "45-55 dB(A)", "<45 dB(A)"
+    };
+    // Color for noise exposition representation
+    public static final int[] NE_COLORS = {
+            Color.rgb(255, 0, 0), Color.rgb(255, 128, 0), Color.rgb(255, 255, 0), Color.rgb(128, 255, 0), Color.rgb(0, 255, 0)
+    };
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

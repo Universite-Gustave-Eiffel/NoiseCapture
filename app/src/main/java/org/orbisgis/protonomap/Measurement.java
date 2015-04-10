@@ -91,6 +91,9 @@ public class Measurement extends ActionBarActivity {
         // for the Leqi value
         final TextView mTextView = (TextView) findViewById(R.id.textView_value_SL_i);
         mTextView.setText(String.format("%.1f", Leqi));
+        int nc=getNEcatColors(Leqi);    // Choose the color category in function of the sound level
+        mTextView.setTextColor(NE_COLORS[nc]);
+
 
         // Instantaneous spectrum
         // Stacked bars are used for represented Min, Current and Max values
@@ -140,7 +143,9 @@ public class Measurement extends ActionBarActivity {
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
         set1.setBarSpacePercent(35f);
-        set1.setColor(Color.rgb(0, 153, 204));
+        //set1.setColor(Color.rgb(0, 153, 204));
+        int nc=getNEcatColors(Leqi);    // Choose the color category in function of the sound level
+        set1.setColor(NE_COLORS[nc]);
 
         ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
         dataSets.add(set1);
@@ -227,5 +232,40 @@ public class Measurement extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    // Noise exposition categories
+    private String[] catNE = new String[] {
+            ">75 dB(A)", "65-75 dB(A)", "55-65 dB(A)", "45-55 dB(A)", "<45 dB(A)"
+    };
+    // Color for noise exposition representation
+    public static final int[] NE_COLORS = {
+            Color.rgb(255, 0, 0), Color.rgb(255, 128, 0), Color.rgb(255, 255, 0), Color.rgb(128, 255, 0), Color.rgb(0, 255, 0)
+    };
+    // Choose color category in function of sound level
+    public int getNEcatColors(float SL) {
+
+        int NbNEcat;
+
+        if(SL > 75.)
+        {
+            NbNEcat=0;
+        }
+        else if( (SL<=75) & (SL>65))
+        {
+            NbNEcat=1;
+        }
+        else if( (SL<=65) & (SL>55))
+        {
+            NbNEcat=2;
+        }
+        else if( (SL<=55) & (SL>45))
+        {
+            NbNEcat=3;
+        }
+        else
+        {
+            NbNEcat=4;
+        }
+        return NbNEcat;
+    }
 
 }

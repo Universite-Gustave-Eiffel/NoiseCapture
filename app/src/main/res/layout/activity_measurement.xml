@@ -40,7 +40,7 @@
 
             <TextView
                 android:layout_width="170dp"
-                android:layout_height="fill_parent"
+                android:layout_height="match_parent"
                 android:text="100.0"
                 android:id="@+id/textView_value_SL_i"
                 android:textSize="60dp"
@@ -48,7 +48,8 @@
                 android:layout_marginBottom="0dp"
                 android:layout_marginTop="-5dp"
                 android:textStyle="normal"
-                android:gravity="left" />
+                android:layout_gravity="top|left"
+                android:gravity="top|right" />
 
             <FrameLayout
                 android:layout_width="183dp"

@@ -75,7 +75,7 @@ public class Results extends ActionBarActivity {
         neiChart = (PieChart) findViewById(R.id.NEIChart);
         neiChart.setUsePercentValues(true);
         neiChart.setHoleColorTransparent(true);
-        neiChart.setHoleRadius(0f);
+        neiChart.setHoleRadius(75f);
         neiChart.setDescription("");
         neiChart.setDrawCenterText(true);
         neiChart.setDrawHoleEnabled(true);
@@ -88,7 +88,7 @@ public class Results extends ActionBarActivity {
         // mChart.setTouchEnabled(false);
         setNEIData(100);
         neiChart.setCenterText(String.format("%.1f", Leqi).concat(" dB(A)"));
-        neiChart.setCenterTextSize(20);
+        neiChart.setCenterTextSize(15);
         neiChart.setCenterTextColor(Color.WHITE);
         //rneChart.animateXY(1500, 1500, EasingFunction.EaseInOutQuad, EasingFunction.EaseInOutQuad);
         //rneChart.spin(2000, 0, 360);

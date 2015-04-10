@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.graphics.Color;
+import android.content.Intent;
+import android.view.View;
+import android.widget.ImageButton;
 
 import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.charts.BarChart;
@@ -27,6 +30,7 @@ import java.util.ArrayList;
 
 public class Measurement extends ActionBarActivity {
 
+    public ImageButton button;
     protected HorizontalBarChart mChart; // VUMETER representation
     protected BarChart sChart; // Spectrum representation
     protected String[] tob = new String[] {
@@ -38,6 +42,17 @@ public class Measurement extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_measurement);
+
+        button=(ImageButton)findViewById(R.id.recordBtn);
+        button.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                Intent i = new Intent(getApplicationContext(),Results.class);
+                startActivity(i);
+            }
+        });
 
         // Instantaneous sound level VUMETER
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
@@ -55,7 +70,7 @@ public class Measurement extends ActionBarActivity {
         xlv.setDrawLabels(false);
         // YAxis parameters (left): main axis for dB values representation
         YAxis ylv = mChart.getAxisLeft();
-        ylv.setDrawAxisLine(true);
+        ylv.setDrawAxisLine(false);
         ylv.setDrawGridLines(true);
         ylv.setAxisMaxValue(141.f);
         ylv.setStartAtZero(true);
@@ -79,7 +94,7 @@ public class Measurement extends ActionBarActivity {
         sChart.setDrawGridBackground(false);
         sChart.setMaxVisibleValueCount(0);
         sChart.setDrawValuesForWholeStack(true); // Stacked
-        // XAxis parameters: hide all
+        // XAxis parameters:
         XAxis xls = sChart.getXAxis();
         xls.setPosition(XAxisPosition.BOTTOM);
         xls.setDrawAxisLine(true);
@@ -169,7 +184,7 @@ public class Measurement extends ActionBarActivity {
         sChart.setData(data);
     }
 
-    // Color for spectrum representation (min, mean, max)
+    // Color for spectrum representation (min, iSL, max)
     public static final int[] SPECTRUM_COLORS = {
             Color.rgb(0, 128, 255), Color.rgb(102, 178, 255), Color.rgb(204, 229, 255),
     };
@@ -209,4 +224,6 @@ public class Measurement extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+
 }

@@ -17,119 +17,142 @@
     android:layout_alignParentLeft="true"
     android:layout_alignParentStart="true">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/SL_dBA"
-        android:id="@+id/textView_SLtitle"
-        android:textAlignment="center"
-        android:textColor="#0099CC"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/textView_value_iSL"
-        android:paddingTop="15sp"
-        android:paddingLeft="20sp"
-        android:layout_toStartOf="@+id/textView_title_Mean_iSL"
-        android:layout_toLeftOf="@+id/textView_title_Mean_iSL" />
 
     <LinearLayout
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:layout_below="@+id/textView_value_iSL"
         android:layout_above="@+id/linearLayout"
-        android:id="@+id/linearLayout2">
+        android:id="@+id/linearLayout2"
+        android:weightSum="1"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="left|center_vertical"
+            android:id="@+id/linearLayout3"
+            android:weightSum="1">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="100.0"
+                android:id="@+id/textView_value_SL_i"
+                android:textSize="60dp"
+                android:paddingRight="20dp"
+                android:layout_marginBottom="0dp"
+                android:layout_marginTop="-5dp" />
+
+            <FrameLayout
+                android:layout_width="fill_parent"
+                android:layout_height="61dp">
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="100.0"
+                    android:id="@+id/textView_value_Min_i"
+                    android:layout_gravity="left|bottom"
+                    android:textSize="15dp"
+                    android:gravity="center"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="100.0"
+                    android:id="@+id/textView_value_Mean_i"
+                    android:layout_gravity="center_horizontal|bottom"
+                    android:textSize="15dp"
+                    android:gravity="center"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="100.0"
+                    android:id="@+id/textView_value_Max_i"
+                    android:layout_gravity="right|bottom"
+                    android:textSize="15sp"
+                    android:gravity="center"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="Max"
+                    android:id="@+id/textView_title_Max_i"
+                    android:layout_gravity="right|center_vertical"
+                    android:textSize="15sp"
+                    android:gravity="center"
+                    android:paddingTop="6dp" />
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="Mean"
+                    android:id="@+id/textView_title_Mean_i"
+                    android:layout_gravity="center"
+                    android:textSize="15dp"
+                    android:gravity="center"
+                    android:paddingTop="6dp" />
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="Min"
+                    android:id="@+id/textView_title_Min_i"
+                    android:layout_gravity="left|center_vertical"
+                    android:textSize="15dp"
+                    android:gravity="center"
+                    android:paddingTop="6dp" />
+
+                <Chronometer
+                    android:layout_width="120dp"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/chronometer_recording_time"
+                    android:layout_gravity="right|top"
+                    android:format="00:00:00"
+                    android:text="00:00:00"
+                    android:textColor="#0099CC"
+                    android:textStyle="bold"
+                    android:textSize="20dp"
+                    android:gravity="center" />
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="@string/SL_dBA"
+                    android:id="@+id/textView9"
+                    android:layout_gravity="left|top"
+                    android:textColor="#0099CC"
+                    android:textSize="15dp"
+                    android:gravity="center"
+                    android:paddingTop="4dp" />
+
+            </FrameLayout>
+
+        </LinearLayout>
 
         <com.github.mikephil.charting.charts.HorizontalBarChart
             android:id="@+id/vumeter"
             android:layout_width="wrap_content"
-            android:layout_height="61dp"
+            android:layout_height="57dp"
             android:layout_below="@+id/textView_value_iSL" />
 
         <com.github.mikephil.charting.charts.BarChart
             android:id="@+id/spectrumChart"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_above="@+id/linearLayout"
             android:layout_below="@+id/vumeter" />
 
-        </LinearLayout>
-
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="78,6"
-        android:id="@+id/textView_value_iSL"
-        android:textSize="80sp"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginTop="0sp"
-        android:elegantTextHeight="false"
-        android:paddingTop="0dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Min"
-        android:id="@+id/textView_title_Min_iSL"
-        android:layout_below="@+id/textView_SLtitle"
-        android:layout_toRightOf="@+id/textView_value_iSL"
-        android:paddingLeft="20sp"
-        android:layout_toStartOf="@+id/textView_value_Mean_iSL"
-        android:textSize="15sp"
-        android:paddingTop="4sp"
-        android:paddingRight="10sp"
-        android:gravity="left"
-        android:layout_toLeftOf="@+id/textView_value_Mean_iSL" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="40,3"
-        android:id="@+id/textView_value_Min_iSL"
-        android:paddingLeft="20sp"
-        android:layout_below="@+id/textView_title_Min_iSL"
-        android:layout_toRightOf="@+id/textView_value_iSL"
-        android:layout_toEndOf="@+id/textView_value_iSL"
-        android:textStyle="bold"
-        android:paddingRight="10sp"
-        android:gravity="left" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Mean"
-        android:id="@+id/textView_title_Mean_iSL"
-        android:paddingLeft="0dp"
-        android:layout_below="@+id/textView_SLtitle"
-        android:layout_toRightOf="@+id/textView_title_Min_iSL"
-        android:textSize="15sp"
-        android:paddingTop="4sp"
-        android:paddingRight="0dp"
-        android:gravity="center|center_horizontal"
-        android:layout_alignRight="@+id/textView_value_Mean_iSL"
-        android:layout_alignEnd="@+id/textView_value_Mean_iSL" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="50,4"
-        android:id="@+id/textView_value_Mean_iSL"
-        android:paddingLeft="0sp"
-        android:layout_below="@+id/textView_title_Mean_iSL"
-        android:layout_toRightOf="@+id/textView_value_Min_iSL"
-        android:textStyle="bold"
-        android:paddingRight="0sp"
-        android:gravity="center|center_horizontal"
-        android:layout_alignRight="@+id/linearLayout"
-        android:layout_alignEnd="@+id/linearLayout" />
+    </LinearLayout>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="horizontal"
@@ -159,7 +182,8 @@
             android:layout_height="64dip"
             android:src="@drawable/button_export_disabled"
             android:scaleType="fitCenter"
-            android:background="#00000000" />
+            android:background="#00000000"
+            android:visibility="invisible" />
 
         <ImageButton android:id="@+id/historyBtn"
             android:layout_width="64dip"
@@ -169,53 +193,6 @@
             android:background="#00000000" />
 
     </LinearLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Max"
-        android:id="@+id/textView_title_Max_iSL"
-        android:paddingLeft="20sp"
-        android:textSize="15sp"
-        android:paddingTop="4sp"
-        android:paddingRight="0dp"
-        android:gravity="right"
-        android:layout_alignTop="@+id/textView_title_Mean_iSL"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="60,7"
-        android:id="@+id/textView_value_Max_iSL"
-        android:paddingLeft="0sp"
-        android:textStyle="bold"
-        android:paddingRight="0sp"
-        android:layout_below="@+id/textView_title_Mean_iSL"
-        android:layout_alignRight="@+id/linearLayout2"
-        android:layout_alignEnd="@+id/linearLayout2"
-        android:gravity="right" />
-
-    <Chronometer
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/chronometer"
-        android:layout_alignBottom="@+id/textView_SLtitle"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_toRightOf="@+id/textView_SLtitle"
-        android:layout_toEndOf="@+id/textView_SLtitle"
-        android:gravity="right"
-        android:text="00:00:00"
-        android:format="00:00:00"
-        android:textSize="30dp"
-        android:textColor="#0099CC"
-        android:textStyle="bold"
-        android:layout_alignTop="@+id/textView_SLtitle"
-        android:paddingTop="4dp" />
 
 </RelativeLayout>
 

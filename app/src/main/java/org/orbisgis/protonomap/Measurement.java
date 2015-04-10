@@ -8,6 +8,7 @@ import android.graphics.Color;
 import android.content.Intent;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.charts.BarChart;
@@ -31,12 +32,15 @@ import java.util.ArrayList;
 public class Measurement extends ActionBarActivity {
 
     public ImageButton button;
+
+    static float Leqi;
+
     protected HorizontalBarChart mChart; // VUMETER representation
     protected BarChart sChart; // Spectrum representation
     protected String[] tob = new String[] {
             "25", "31.5", "40", "50", "63", "80", "100", "125", "160", "200", "250", "315",
             "400", "500", "630", "800", "1000", "1250", "1600", "2000", "2500", "3150", "4000", "5000",
-            "6300", "8000", "10000", "12500", "16000", "20000"};
+            "6300", "8000", "10000", "12500", "16000", "20000", "Global"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,7 +80,7 @@ public class Measurement extends ActionBarActivity {
         ylv.setStartAtZero(true);
         ylv.setTextColor(Color.WHITE);
         ylv.setGridColor(Color.WHITE);
-        setData(1, 135);
+        setData(135);
         // YAxis parameters (right): no axis, hide all
         YAxis yrv = mChart.getAxisRight();
         yrv.setEnabled(false);
@@ -84,6 +88,10 @@ public class Measurement extends ActionBarActivity {
         Legend lv = mChart.getLegend();
         lv.setEnabled(false); // Hide legend
 
+        // Change the text and the textcolor in the corresponding textview
+        // for the Leqi value
+        final TextView mTextView = (TextView) findViewById(R.id.textView_value_SL_i);
+        mTextView.setText(String.format("%.1f", Leqi));
 
         // Instantaneous spectrum
         // Stacked bars are used for represented Min, Current and Max values
@@ -109,7 +117,7 @@ public class Measurement extends ActionBarActivity {
         yls.setStartAtZero(true);
         yls.setTextColor(Color.WHITE);
         yls.setGridColor(Color.WHITE);
-        setDataS(30, 115);
+        setDataS(30, 115);  // 30 values for each third-octave band
         // YAxis parameters (right): no axis, hide all
         YAxis yrs = sChart.getAxisRight();
         yrs.setEnabled(false);
@@ -119,22 +127,17 @@ public class Measurement extends ActionBarActivity {
 
     }
 
-    // Generate artificial data for vumeter representation
-    private void setData(int count, float range) {
+    // Generate artificial 1 data (sound level) for vumeter representation
+    private void setData(float range) {
 
         ArrayList<String> xVals = new ArrayList<String>();
-        for (int i = 0; i < count; i++) {
-            //xVals.add(mMonths[i % 12]);
-            xVals.add("");
-        }
+        xVals.add("");
 
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
-
-        for (int i = 0; i < count; i++) {
-            float mult = (range + 1);
-            float val = (float) (Math.random() * mult);
-            yVals1.add(new BarEntry(val, i));
-        }
+        float mult = (range + 1);
+        float val = (float) (Math.random() * mult);
+        Leqi=val;
+        yVals1.add(new BarEntry(val, 0));
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
         set1.setBarSpacePercent(35f);
@@ -147,10 +150,11 @@ public class Measurement extends ActionBarActivity {
         data.setValueTextSize(10f);
 
         mChart.setData(data);
+        mChart.invalidate(); // refresh
     }
 
-    // Generate artificial data for spectrum representation
-    private void setDataS(int count, float range) {
+    // Generate artificial data (sound level for each 1/3 octave band) for spectrum representation
+        private void setDataS(int count, float range) {
 
         ArrayList<String> xVals = new ArrayList<String>();
         for (int i = 0; i < count; i++) {
@@ -159,6 +163,7 @@ public class Measurement extends ActionBarActivity {
 
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
 
+        // Value for each third-octave band
         for (int i = 0; i < count; i++) {
             float mult = (range + 1);
             float val = (float) (20f+Math.random() * mult);
@@ -167,9 +172,6 @@ public class Measurement extends ActionBarActivity {
         }
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
-        //set1.setBarSpacePercent(35f);
-        //set1.setColors(new int[] {Color.rgb(0, 153, 204), Color.rgb(0, 153, 204), Color.rgb(0, 153, 204),
-        //        Color.rgb(51, 181, 229), Color.rgb(51, 181, 229), Color.rgb(51, 181, 229)});
         set1.setColors(getColors());
         set1.setStackLabels(new String[] {
                 "Min", "SL", "Max"
@@ -182,6 +184,7 @@ public class Measurement extends ActionBarActivity {
         data.setValueTextSize(10f);
 
         sChart.setData(data);
+        sChart.invalidate(); // refresh
     }
 
     // Color for spectrum representation (min, iSL, max)

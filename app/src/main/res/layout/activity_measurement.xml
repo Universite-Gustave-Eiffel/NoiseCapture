@@ -32,7 +32,7 @@
 
         <LinearLayout
             android:orientation="horizontal"
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="left|center_vertical"
             android:id="@+id/linearLayout3"
@@ -46,10 +46,12 @@
                 android:textSize="60dp"
                 android:paddingRight="20dp"
                 android:layout_marginBottom="0dp"
-                android:layout_marginTop="-5dp" />
+                android:layout_marginTop="-5dp"
+                android:textStyle="normal"
+                android:gravity="left" />
 
             <FrameLayout
-                android:layout_width="fill_parent"
+                android:layout_width="183dp"
                 android:layout_height="61dp">
 
                 <TextView
@@ -59,8 +61,8 @@
                     android:id="@+id/textView_value_Min_i"
                     android:layout_gravity="left|bottom"
                     android:textSize="15dp"
-                    android:gravity="center"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:gravity="left" />
 
                 <TextView
                     android:layout_width="60dp"
@@ -69,8 +71,8 @@
                     android:id="@+id/textView_value_Mean_i"
                     android:layout_gravity="center_horizontal|bottom"
                     android:textSize="15dp"
-                    android:gravity="center"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:gravity="left" />
 
                 <TextView
                     android:layout_width="60dp"
@@ -79,8 +81,8 @@
                     android:id="@+id/textView_value_Max_i"
                     android:layout_gravity="right|bottom"
                     android:textSize="15sp"
-                    android:gravity="center"
-                    android:textStyle="bold" />
+                    android:textStyle="bold"
+                    android:gravity="left" />
 
                 <TextView
                     android:layout_width="60dp"
@@ -89,8 +91,8 @@
                     android:id="@+id/textView_title_Max_i"
                     android:layout_gravity="right|center_vertical"
                     android:textSize="15sp"
-                    android:gravity="center"
-                    android:paddingTop="6dp" />
+                    android:paddingTop="6dp"
+                    android:gravity="left" />
 
                 <TextView
                     android:layout_width="60dp"
@@ -99,8 +101,8 @@
                     android:id="@+id/textView_title_Mean_i"
                     android:layout_gravity="center"
                     android:textSize="15dp"
-                    android:gravity="center"
-                    android:paddingTop="6dp" />
+                    android:paddingTop="6dp"
+                    android:gravity="left" />
 
                 <TextView
                     android:layout_width="60dp"
@@ -109,8 +111,8 @@
                     android:id="@+id/textView_title_Min_i"
                     android:layout_gravity="left|center_vertical"
                     android:textSize="15dp"
-                    android:gravity="center"
-                    android:paddingTop="6dp" />
+                    android:paddingTop="6dp"
+                    android:gravity="left" />
 
                 <Chronometer
                     android:layout_width="120dp"
@@ -122,7 +124,7 @@
                     android:textColor="#0099CC"
                     android:textStyle="bold"
                     android:textSize="20dp"
-                    android:gravity="center" />
+                    android:gravity="left" />
 
                 <TextView
                     android:layout_width="60dp"
@@ -132,8 +134,8 @@
                     android:layout_gravity="left|top"
                     android:textColor="#0099CC"
                     android:textSize="15dp"
-                    android:gravity="center"
-                    android:paddingTop="4dp" />
+                    android:paddingTop="4dp"
+                    android:gravity="left" />
 
             </FrameLayout>
 

@@ -219,7 +219,8 @@ public class Results extends ActionBarActivity {
 
         PieDataSet dataSet = new PieDataSet(yVals1, "NEI");
         dataSet.setSliceSpace(3f);
-        dataSet.setColors(NE_COLORS);
+        int nc=getNEcatColors(Leqi);    // Choose the color category in function of the sound level
+        dataSet.setColor(NE_COLORS[nc]);   // Apply color category for the corresponding sound level
 
         PieData data = new PieData(xVals, dataSet);
         data.setValueFormatter(new PercentFormatter());
@@ -241,6 +242,33 @@ public class Results extends ActionBarActivity {
     public static final int[] NE_COLORS = {
             Color.rgb(255, 0, 0), Color.rgb(255, 128, 0), Color.rgb(255, 255, 0), Color.rgb(128, 255, 0), Color.rgb(0, 255, 0)
     };
+    // Choose color category in function of sound level
+    public int getNEcatColors(float SL) {
+
+        int NbNEcat;
+
+        if(SL > 75.)
+        {
+            NbNEcat=0;
+        }
+        else if( (SL<=75) & (SL>65))
+        {
+            NbNEcat=1;
+        }
+        else if( (SL<=65) & (SL>55))
+        {
+            NbNEcat=2;
+        }
+        else if( (SL<=55) & (SL>45))
+        {
+            NbNEcat=3;
+        }
+        else
+        {
+            NbNEcat=4;
+        }
+        return NbNEcat;
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

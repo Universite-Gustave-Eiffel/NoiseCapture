@@ -39,8 +39,8 @@
             android:weightSum="1">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="170dp"
+                android:layout_height="fill_parent"
                 android:text="100.0"
                 android:id="@+id/textView_value_SL_i"
                 android:textSize="60dp"

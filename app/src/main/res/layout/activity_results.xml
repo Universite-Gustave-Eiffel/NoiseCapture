@@ -18,220 +18,162 @@
     android:layout_alignParentStart="true">
 
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="100.0"
-        android:id="@+id/textView_value_SEL"
-        android:textSize="60dp"
-        android:elegantTextHeight="false"
-        android:layout_below="@+id/textView_title_NE"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignBottom="@+id/textView_value_Min_r"
-        android:layout_alignParentTop="false"
-        android:layout_marginTop="-10dp" />
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:weightSum="1"
+        android:layout_above="@+id/linearLayout">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="LA10"
-        android:id="@+id/textView_title_LA10"
-        android:paddingLeft="15dp"
-        android:textSize="15sp"
-        android:paddingTop="4dp"
-        android:paddingRight="10dp"
-        android:gravity="center"
-        android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/textView_value_SEL"
-        android:layout_toStartOf="@+id/textView_title_LA50"
-        android:layout_alignRight="@+id/textView_value_LA10"
-        android:layout_alignEnd="@+id/textView_value_LA10" />
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/linearLayout5"
+            android:weightSum="1"
+            android:gravity="center_horizontal" >
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="100.0"
-        android:id="@+id/textView_value_LA10"
-        android:paddingLeft="15sp"
-        android:textStyle="bold"
-        android:paddingRight="10dp"
-        android:gravity="center"
-        android:layout_below="@+id/textView_title_LA50"
-        android:layout_toRightOf="@+id/textView_value_SEL" />
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="LA10"
+                android:id="@+id/textView_title_LA10"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="LA50"
-        android:id="@+id/textView_title_LA50"
-        android:paddingLeft="0dp"
-        android:textSize="15sp"
-        android:paddingTop="4dp"
-        android:paddingRight="0dp"
-        android:gravity="center"
-        android:layout_alignParentTop="true"
-        android:layout_toRightOf="@+id/textView_value_LA10"
-        android:layout_toLeftOf="@+id/textView_value_LA90"
-        android:layout_toStartOf="@+id/textView_value_LA90" />
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="LA50"
+                android:id="@+id/textView_title_LA50"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="100.0"
-        android:id="@+id/textView_value_LA50"
-        android:paddingLeft="0dp"
-        android:textStyle="bold"
-        android:paddingRight="0dp"
-        android:gravity="center"
-        android:layout_below="@+id/textView_title_LA50"
-        android:layout_toRightOf="@+id/textView_value_LA10"
-        android:layout_toLeftOf="@+id/textView_value_LA90"
-        android:layout_toStartOf="@+id/textView_value_LA90" />
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="LA90"
+                android:id="@+id/textView_title_LA90"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="100.0"
-        android:id="@+id/textView_value_LA90"
-        android:paddingLeft="10sp"
-        android:textStyle="bold"
-        android:paddingRight="0sp"
-        android:gravity="center"
-        android:layout_above="@+id/textView_title_Max_r"
-        android:layout_alignRight="@+id/linearLayout2"
-        android:layout_alignEnd="@+id/linearLayout2" />
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="Min"
+                android:id="@+id/textView_title_Min_SL"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Min"
-        android:id="@+id/textView_title_Min_r"
-        android:layout_alignBottom="@+id/textView_title_Max_r"
-        android:layout_toLeftOf="@+id/textView_title_Max_r"
-        android:layout_alignLeft="@+id/textView_value_Min_r"
-        android:layout_alignStart="@+id/textView_value_Min_r"
-        android:layout_below="@+id/textView_value_LA10"
-        android:textSize="15sp"
-        android:paddingTop="4dp"
-        android:gravity="center_horizontal"
-        android:paddingLeft="15dp"
-        android:paddingRight="10dp" />
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="Max"
+                android:id="@+id/textView_title_Max_SL"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp" />
+        </LinearLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="100.0"
-        android:id="@+id/textView_value_Min_r"
-        android:paddingLeft="15dp"
-        android:textStyle="bold"
-        android:paddingRight="10dp"
-        android:gravity="center"
-        android:layout_alignTop="@+id/textView_value_Max_r"
-        android:layout_toLeftOf="@+id/textView_title_Max_r"
-        android:layout_toStartOf="@+id/textView_title_Max_r" />
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/linearLayout4"
+            android:weightSum="1"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Max"
-        android:id="@+id/textView_title_Max_r"
-        android:paddingLeft="0dp"
-        android:textSize="15sp"
-        android:paddingTop="4dp"
-        android:paddingRight="0dp"
-        android:gravity="center"
-        android:layout_below="@+id/textView_value_LA10"
-        android:layout_toRightOf="@+id/textView_value_LA10"
-        android:layout_alignRight="@+id/textView_value_LA50"
-        android:layout_alignEnd="@+id/textView_value_LA50" />
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="100.0"
+                android:id="@+id/textView_value_LA10"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="100.0"
-        android:id="@+id/textView_value_Max_r"
-        android:paddingLeft="0dp"
-        android:textStyle="bold"
-        android:paddingRight="0dp"
-        android:gravity="center"
-        android:layout_below="@+id/textView_title_Max_r"
-        android:layout_alignRight="@+id/textView_title_Max_r"
-        android:layout_alignEnd="@+id/textView_title_Max_r"
-        android:layout_toEndOf="@+id/textView_value_Min_r"
-        android:layout_alignLeft="@+id/textView_value_LA50"
-        android:layout_alignStart="@+id/textView_value_LA50" />
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="100.0"
+                android:id="@+id/textView_value_LA50"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="@string/SEL_dBA"
-        android:id="@+id/textView_title_NE"
-        android:paddingLeft="0sp"
-        android:textSize="15sp"
-        android:paddingTop="10dp"
-        android:paddingRight="0sp"
-        android:gravity="center|center_horizontal"
-        android:textColor="#0099CC"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignRight="@+id/textView_value_SEL"
-        android:layout_alignEnd="@+id/textView_value_SEL"
-        android:layout_marginTop="0dp" />
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="100.0"
+                android:id="@+id/textView_value_LA90"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        android:orientation="horizontal"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/linearLayout2"
-        android:layout_alignParentLeft="false"
-        android:layout_alignParentStart="true"
-        android:layout_below="@+id/textView_value_SEL"
-        android:layout_alignRight="@+id/spectrumChart"
-        android:layout_alignEnd="@+id/spectrumChart"
-        android:gravity="center_horizontal">
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="100.0"
+                android:id="@+id/textView_value_Min_SL"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="100.0"
+                android:id="@+id/textView_value_Max_SL"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp"
+                android:textStyle="bold" />
 
-    <com.github.mikephil.charting.charts.PieChart
-        android:id="@+id/NEIChart"
-        android:layout_width="125dp"
-        android:layout_height="125dp"
-        android:layout_alignRight="@+id/textView_value_iSL"
-        android:layout_alignEnd="@+id/textView_value_iSL"
-        android:layout_below="@+id/textView2"
-        android:layout_gravity="center"
-        android:layout_marginRight="20dp" />
+        </LinearLayout>
 
-    <com.github.mikephil.charting.charts.PieChart
-        android:id="@+id/RNEChart"
-        android:layout_width="125dp"
-        android:layout_height="125dp"
-        android:layout_above="@+id/spectrumChart"
-        android:layout_alignLeft="@+id/textView2"
-        android:layout_alignStart="@+id/textView2"
-        android:layout_gravity="center"
-        android:layout_marginLeft="20dp" />
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="143dp"
+            android:gravity="center_horizontal"
+            android:layout_gravity="center_horizontal">
+
+            <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/NEIChart"
+            android:layout_width="143dp"
+            android:layout_height="match_parent" />
+
+            <com.github.mikephil.charting.charts.PieChart
+            android:id="@+id/RNEChart"
+            android:layout_width="216dp"
+            android:layout_height="match_parent"
+                android:layout_gravity="left|top" />
+
+        </LinearLayout>
+
+        <com.github.mikephil.charting.charts.BarChart
+            android:id="@+id/spectrumChart"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent" />
 
     </LinearLayout>
-
-    <com.github.mikephil.charting.charts.BarChart
-        android:id="@+id/spectrumChart"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/linearLayout"
-        android:layout_weight="0.45"
-        android:layout_below="@+id/linearLayout2" />
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="horizontal"
@@ -272,20 +214,6 @@
             android:background="#00000000" />
 
     </LinearLayout>
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="LA90"
-        android:id="@+id/textView_title_LA90"
-        android:layout_above="@+id/textView_value_LA50"
-        android:layout_toRightOf="@+id/textView_title_LA50"
-        android:gravity="center"
-        android:paddingTop="4dp"
-        android:textSize="15dp"
-        android:layout_alignRight="@+id/textView_value_LA90"
-        android:layout_alignEnd="@+id/textView_value_LA90"
-        android:paddingLeft="10dp" />
 
 </RelativeLayout>
 

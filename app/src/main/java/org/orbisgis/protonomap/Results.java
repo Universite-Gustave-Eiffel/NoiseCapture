@@ -31,14 +31,14 @@ import java.util.ArrayList;
 
 public class Results extends ActionBarActivity {
 
-    static float Leqi;
+    static float Leqi; // for testing
     public PieChart rneChart;
     public PieChart neiChart;
     protected BarChart sChart; // Spectrum representation
     protected String[] tob = new String[] {
             "25", "31.5", "40", "50", "63", "80", "100", "125", "160", "200", "250", "315",
             "400", "500", "630", "800", "1000", "1250", "1600", "2000", "2500", "3150", "4000", "5000",
-            "6300", "8000", "10000", "12500", "16000", "20000"};
+            "6300", "8000", "10000", "12500", "16000", "20000","Global"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,10 +66,10 @@ public class Results extends ActionBarActivity {
         //rneChart.animateXY(1500, 1500, EasingFunction.EaseInOutQuad, EasingFunction.EaseInOutQuad);
         //rneChart.spin(2000, 0, 360);
         Legend lrne = rneChart.getLegend();
-        //l.setPosition(rneChart.RIGHT_OF_CHART);
-        lrne.setEnabled(false); // Hide legend
-
-
+        lrne.setTextColor(Color.WHITE);
+        lrne.setTextSize(8f);
+        lrne.setPosition(LegendPosition.RIGHT_OF_CHART_CENTER);
+        lrne.setEnabled(true); // Hide legend
 
         // NEI PieChart
         neiChart = (PieChart) findViewById(R.id.NEIChart);
@@ -87,22 +87,21 @@ public class Results extends ActionBarActivity {
         // rneChart.setOnChartValueSelectedListener((OnChartValueSelectedListener) this);
         // mChart.setTouchEnabled(false);
         setNEIData(100);
-        neiChart.setCenterText("SEL=".concat(String.format("%.1f", Leqi)).concat(" dB(A)"));
-        neiChart.setCenterTextSize(14);
+        neiChart.setCenterText(String.format("%.1f", Leqi).concat(" dB(A)"));
+        neiChart.setCenterTextSize(20);
         neiChart.setCenterTextColor(Color.WHITE);
         //rneChart.animateXY(1500, 1500, EasingFunction.EaseInOutQuad, EasingFunction.EaseInOutQuad);
         //rneChart.spin(2000, 0, 360);
         Legend lnei = neiChart.getLegend();
-        //l.setPosition(rneChart.RIGHT_OF_CHART);
+        //lnei.setPosition(LegendPosition.RIGHT_OF_CHART);
         lnei.setEnabled(false); // Hide legend
 
         // Change the text and the textcolor in the corresponding textview
         // for the Leqi value
-        final TextView mTextView = (TextView) findViewById(R.id.textView_value_SEL);
-        mTextView.setText(String.format("%.1f", Leqi));
+        //final TextView mTextView = (TextView) findViewById(R.id.textView_value_SEL);
+        //mTextView.setText(String.format("%.1f", Leqi));
 
-
-        // Cumulate spectrum
+        // Cumulated spectrum
         sChart = (BarChart) findViewById(R.id.spectrumChart);
         sChart.setDrawBarShadow(false);
         sChart.setDescription("");
@@ -186,7 +185,7 @@ public class Results extends ActionBarActivity {
         for (int i = 0; i < count + 1; i++)
             xVals.add(catNE[i % catNE.length]);
 
-        PieDataSet dataSet = new PieDataSet(yVals1, "RNE");
+        PieDataSet dataSet = new PieDataSet(yVals1, "Sound level");
         dataSet.setSliceSpace(3f);
         dataSet.setColors(NE_COLORS);
 

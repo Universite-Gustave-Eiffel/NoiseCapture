@@ -17,4 +17,55 @@
     <string name="SEL_dBA">Noise exposure dB(A)</string>
 
     <string name="hello_world">Hello world!</string>
+
+    <!--  Ressources for the Drawer menu !-->
+    <string-array name="dm_list_array">
+        <item>Calibration</item>
+        <item>Help</item>
+    </string-array>
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+
+    <string-array name="tob_list_array">
+        <item>25</item>
+        <item>31.5</item>
+        <item>40</item>
+        <item>50</item>
+        <item>63</item>
+        <item>80</item>
+        <item>100</item>
+        <item>125</item>
+        <item>160</item>
+        <item>200</item>
+        <item>250</item>
+        <item>315</item>
+        <item>400</item>
+        <item>500</item>
+        <item>630</item>
+        <item>800</item>
+        <item>1000</item>
+        <item>1250</item>
+        <item>1600</item>
+        <item>2000</item>
+        <item>2500</item>
+        <item>3150</item>
+        <item>4000</item>
+        <item>5000</item>
+        <item>6300</item>
+        <item>8000</item>
+        <item>10000</item>
+        <item>12500</item>
+        <item>16000</item>
+        <item>20000</item>
+        <item>Global</item>
+    </string-array>
+
+    <string-array name="catNE_list_array">
+        <item>Greater 75 dB(A)</item>
+        <item>65-75 dB(A)</item>
+        <item>55-65 dB(A)</item>
+        <item>45-55 dB(A)</item>
+        <item>Less 45 dB(A)</item>
+    </string-array>
+
 </resources>

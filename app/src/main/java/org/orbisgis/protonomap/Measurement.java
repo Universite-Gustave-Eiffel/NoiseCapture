@@ -1,5 +1,8 @@
 package org.orbisgis.protonomap;
 
+import android.content.res.Configuration;
+import android.support.v7.app.ActionBarDrawerToggle;
+import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
@@ -7,7 +10,9 @@ import android.view.MenuItem;
 import android.graphics.Color;
 import android.content.Intent;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.HorizontalBarChart;
@@ -36,12 +41,20 @@ public class Measurement extends ActionBarActivity {
     public ImageButton button;
     static float Leqi;
 
+    // For the list view
+    private ListView mDrawerList;
+    private ArrayAdapter<String> mAdapter;
+    private DrawerLayout mDrawerLayout;
+    private String[] mMenuLeft;
+    private ActionBarDrawerToggle mDrawerToggle;
+
+    // For the Charts
     protected HorizontalBarChart mChart; // VUMETER representation
     protected BarChart sChart; // Spectrum representation
-    protected String[] tob = new String[] {
-            "25", "31.5", "40", "50", "63", "80", "100", "125", "160", "200", "250", "315",
-            "400", "500", "630", "800", "1000", "1250", "1600", "2000", "2500", "3150", "4000", "5000",
-            "6300", "8000", "10000", "12500", "16000", "20000", "Global"};
+
+    // Other ressources
+    private String[] ltob;  // List of third-octave bands (defined as ressources)
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,6 +62,38 @@ public class Measurement extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_measurement);
 
+        // List view and action bar
+        mMenuLeft = getResources().getStringArray(R.array.dm_list_array);
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerList = (ListView) findViewById(R.id.left_drawer);
+        // Set the adapter for the list view
+        mDrawerList.setAdapter(new ArrayAdapter<String>(this,
+                R.layout.drawer_list_item, mMenuLeft));
+        // Display the List view into the action bar
+        mDrawerToggle = new ActionBarDrawerToggle(
+                this,                  /* host Activity */
+                mDrawerLayout,         /* DrawerLayout object */
+                R.string.drawer_open,  /* "open drawer" description */
+                R.string.drawer_close  /* "close drawer" description */
+        ) {
+            /** Called when a drawer has settled in a completely closed state. */
+            public void onDrawerClosed(View view) {
+                super.onDrawerClosed(view);
+                getSupportActionBar().setTitle(getTitle());
+            }
+            /** Called when a drawer has settled in a completely open state. */
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                getSupportActionBar().setTitle(getTitle());
+            }
+        };
+        // Set the drawer toggle as the DrawerListener
+        mDrawerLayout.setDrawerListener(mDrawerToggle);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setHomeButtonEnabled(true);
+
+
+        // To start a record (test mode)
         button=(ImageButton)findViewById(R.id.recordBtn);
         button.setOnClickListener(new View.OnClickListener() {
 
@@ -78,8 +123,8 @@ public class Measurement extends ActionBarActivity {
                         Thread.currentThread().interrupt();
                     }
                     */
-                    //Intent i = new Intent(getApplicationContext(),Results.class);
-                    //startActivity(i);
+                    Intent i = new Intent(getApplicationContext(),Results.class);
+                    startActivity(i);
                 //}
             }
         });
@@ -149,6 +194,7 @@ public class Measurement extends ActionBarActivity {
 
     }
 
+
     // Fix the format of the dB Axis of the vumeter
     public class dBValueFormatter implements ValueFormatter {
 
@@ -196,8 +242,9 @@ public class Measurement extends ActionBarActivity {
     private void setDataS(int count, float range) {
 
         ArrayList<String> xVals = new ArrayList<String>();
+        ltob= getResources().getStringArray(R.array.tob_list_array);
         for (int i = 0; i < count; i++) {
-            xVals.add(tob[i % 30]);
+            xVals.add(ltob[i % 30]);
         }
 
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
@@ -253,7 +300,27 @@ public class Measurement extends ActionBarActivity {
     }
 
     @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        // Sync the toggle state after onRestoreInstanceState has occurred.
+        mDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        mDrawerToggle.onConfigurationChanged(newConfig);
+    }
+
+    @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
+        // Pass the event to ActionBarDrawerToggle, if it returns
+        // true, then it has handled the app icon touch event
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -267,10 +334,6 @@ public class Measurement extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    // Noise exposition categories
-    private String[] catNE = new String[] {
-            ">75 dB(A)", "65-75 dB(A)", "55-65 dB(A)", "45-55 dB(A)", "<45 dB(A)"
-    };
     // Color for noise exposition representation
     public static final int[] NE_COLORS = {
             Color.rgb(255, 0, 0), Color.rgb(255, 128, 0), Color.rgb(255, 255, 0), Color.rgb(128, 255, 0), Color.rgb(0, 255, 0)

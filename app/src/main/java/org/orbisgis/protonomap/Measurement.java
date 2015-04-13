@@ -40,14 +40,14 @@ public class Measurement extends MainActivity {
 
     public ImageButton button;
     static float Leqi;
-
+/*
     // For the list view
     private ListView mDrawerList;
     private ArrayAdapter<String> mAdapter;
     private DrawerLayout mDrawerLayout;
     private String[] mMenuLeft;
    // private ActionBarDrawerToggle mDrawerToggle;
-
+*/
     // For the Charts
     protected HorizontalBarChart mChart; // VUMETER representation
     protected BarChart sChart; // Spectrum representation
@@ -61,37 +61,7 @@ public class Measurement extends MainActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_measurement);
-
-        // List view and action bar
-        mMenuLeft = getResources().getStringArray(R.array.dm_list_array);
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerList = (ListView) findViewById(R.id.left_drawer);
-        // Set the adapter for the list view
-        mDrawerList.setAdapter(new ArrayAdapter<String>(this,
-                R.layout.drawer_list_item, mMenuLeft));
-        // Display the List view into the action bar
-        mDrawerToggle = new ActionBarDrawerToggle(
-                this,                  /* host Activity */
-                mDrawerLayout,         /* DrawerLayout object */
-                R.string.drawer_open,  /* "open drawer" description */
-                R.string.drawer_close  /* "close drawer" description */
-        ) {
-            /** Called when a drawer has settled in a completely closed state. */
-            public void onDrawerClosed(View view) {
-                super.onDrawerClosed(view);
-                getSupportActionBar().setTitle(getTitle());
-            }
-            /** Called when a drawer has settled in a completely open state. */
-            public void onDrawerOpened(View drawerView) {
-                super.onDrawerOpened(drawerView);
-                getSupportActionBar().setTitle(getTitle());
-            }
-        };
-        // Set the drawer toggle as the DrawerListener
-        mDrawerLayout.setDrawerListener(mDrawerToggle);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        getSupportActionBar().setHomeButtonEnabled(true);
-
+        initDrawer();
 
         // To start a record (test mode)
         button=(ImageButton)findViewById(R.id.recordBtn);

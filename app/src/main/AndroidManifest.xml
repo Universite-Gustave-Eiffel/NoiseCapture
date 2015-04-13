@@ -7,13 +7,13 @@
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat" >
-
         <activity
             android:name=".Measurement"
             android:label="@string/title_activity_measurement"
             android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -21,6 +21,10 @@
             android:name=".Results"
             android:label="@string/title_activity_results"
             android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main" >
         </activity>
     </application>
 

@@ -36,7 +36,7 @@ import com.github.mikephil.charting.utils.ValueFormatter;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
-public class Measurement extends ActionBarActivity {
+public class Measurement extends MainActivity {
 
     public ImageButton button;
     static float Leqi;
@@ -46,7 +46,7 @@ public class Measurement extends ActionBarActivity {
     private ArrayAdapter<String> mAdapter;
     private DrawerLayout mDrawerLayout;
     private String[] mMenuLeft;
-    private ActionBarDrawerToggle mDrawerToggle;
+   // private ActionBarDrawerToggle mDrawerToggle;
 
     // For the Charts
     protected HorizontalBarChart mChart; // VUMETER representation
@@ -278,6 +278,7 @@ public class Measurement extends ActionBarActivity {
             Color.rgb(0, 128, 255), Color.rgb(102, 178, 255), Color.rgb(204, 229, 255),
     };
 
+    /*
     public int[] getColors() {
 
         int stacksize = 3;
@@ -365,5 +366,6 @@ public class Measurement extends ActionBarActivity {
         }
         return NbNEcat;
     }
+    */
 
 }

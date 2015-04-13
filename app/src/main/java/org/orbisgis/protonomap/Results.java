@@ -35,7 +35,7 @@ import com.github.mikephil.charting.utils.PercentFormatter;
 
 import java.util.ArrayList;
 
-public class Results extends ActionBarActivity {
+public class Results extends MainActivity {
 
     static float Leqi; // for testing
 
@@ -44,7 +44,7 @@ public class Results extends ActionBarActivity {
     private ArrayAdapter<String> mAdapter;
     private DrawerLayout mDrawerLayout;
     private String[] mMenuLeft;
-    private ActionBarDrawerToggle mDrawerToggle;
+    //private ActionBarDrawerToggle mDrawerToggle;
 
     // For the Charts
     public PieChart rneChart;
@@ -281,6 +281,7 @@ public class Results extends ActionBarActivity {
         //rneChart.invalidate();
     }
 
+    /*
     // Color for noise exposition representation
     public static final int[] NE_COLORS = {
             Color.rgb(255, 0, 0), Color.rgb(255, 128, 0), Color.rgb(255, 255, 0), Color.rgb(128, 255, 0), Color.rgb(0, 255, 0)
@@ -354,4 +355,5 @@ public class Results extends ActionBarActivity {
 
         return super.onOptionsItemSelected(item);
     }
+    */
 }

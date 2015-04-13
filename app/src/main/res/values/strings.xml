@@ -67,5 +67,6 @@
         <item>45-55 dB(A)</item>
         <item>Less 45 dB(A)</item>
     </string-array>
+    <string name="title_activity_main">MainActivity</string>
 
 </resources>

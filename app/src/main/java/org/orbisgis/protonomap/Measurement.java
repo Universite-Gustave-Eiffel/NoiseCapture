@@ -26,7 +26,9 @@ import com.github.mikephil.charting.data.filter.Approximator;
 import com.github.mikephil.charting.data.filter.Approximator.ApproximatorType;
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener;
 import com.github.mikephil.charting.utils.Highlight;
+import com.github.mikephil.charting.utils.ValueFormatter;
 
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 
 public class Measurement extends ActionBarActivity {
@@ -43,6 +45,7 @@ public class Measurement extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_measurement);
 
@@ -52,8 +55,32 @@ public class Measurement extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 // TODO Auto-generated method stub
-                Intent i = new Intent(getApplicationContext(),Results.class);
-                startActivity(i);
+
+                //int i;
+                //for (i=1; i<10; i++) {
+
+
+                    // Vumeter data
+                    setData(135);
+                    // Change the text and the textcolor in the corresponding textview
+                    // for the Leqi value
+                    final TextView mTextView = (TextView) findViewById(R.id.textView_value_SL_i);
+                    mTextView.setText(String.format("%.1f", Leqi));
+                    int nc=getNEcatColors(Leqi);    // Choose the color category in function of the sound level
+                    mTextView.setTextColor(NE_COLORS[nc]);
+
+                    // Spectrum data
+                    setDataS(30, 135);
+                /*
+                try {
+                        Thread.sleep(1000);                 //1000 milliseconds is one second.
+                    } catch (InterruptedException ex) {
+                        Thread.currentThread().interrupt();
+                    }
+                    */
+                    //Intent i = new Intent(getApplicationContext(),Results.class);
+                    //startActivity(i);
+                //}
             }
         });
 
@@ -75,25 +102,18 @@ public class Measurement extends ActionBarActivity {
         YAxis ylv = mChart.getAxisLeft();
         ylv.setDrawAxisLine(false);
         ylv.setDrawGridLines(true);
-        ylv.setAxisMaxValue(141.f);
+        ylv.setAxisMaxValue(141f);
         ylv.setStartAtZero(true);
         ylv.setTextColor(Color.WHITE);
         ylv.setGridColor(Color.WHITE);
-        setData(135);
+        ylv.setValueFormatter(new dBValueFormatter());
+        setData(0);
         // YAxis parameters (right): no axis, hide all
         YAxis yrv = mChart.getAxisRight();
         yrv.setEnabled(false);
         // Legend: hide all
         Legend lv = mChart.getLegend();
         lv.setEnabled(false); // Hide legend
-
-        // Change the text and the textcolor in the corresponding textview
-        // for the Leqi value
-        final TextView mTextView = (TextView) findViewById(R.id.textView_value_SL_i);
-        mTextView.setText(String.format("%.1f", Leqi));
-        int nc=getNEcatColors(Leqi);    // Choose the color category in function of the sound level
-        mTextView.setTextColor(NE_COLORS[nc]);
-
 
         // Instantaneous spectrum
         // Stacked bars are used for represented Min, Current and Max values
@@ -119,7 +139,7 @@ public class Measurement extends ActionBarActivity {
         yls.setStartAtZero(true);
         yls.setTextColor(Color.WHITE);
         yls.setGridColor(Color.WHITE);
-        setDataS(30, 115);  // 30 values for each third-octave band
+        setDataS(30, 0);  // 30 values for each third-octave band
         // YAxis parameters (right): no axis, hide all
         YAxis yrs = sChart.getAxisRight();
         yrs.setEnabled(false);
@@ -129,6 +149,21 @@ public class Measurement extends ActionBarActivity {
 
     }
 
+    // Fix the format of the dB Axis of the vumeter
+    public class dBValueFormatter implements ValueFormatter {
+
+        private DecimalFormat mFormat;
+
+        public dBValueFormatter() {
+            mFormat = new DecimalFormat("###,###,##0"); // use one decimal
+        }
+
+        @Override
+        public String getFormattedValue(float value) {
+            return mFormat.format(value);
+        }
+    }
+
     // Generate artificial 1 data (sound level) for vumeter representation
     private void setData(float range) {
 
@@ -136,13 +171,13 @@ public class Measurement extends ActionBarActivity {
         xVals.add("");
 
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
-        float mult = (range + 1);
+        float mult = (range + 1f);
         float val = (float) (Math.random() * mult);
         Leqi=val;
         yVals1.add(new BarEntry(val, 0));
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
-        set1.setBarSpacePercent(35f);
+        //set1.setBarSpacePercent(35f);
         //set1.setColor(Color.rgb(0, 153, 204));
         int nc=getNEcatColors(Leqi);    // Choose the color category in function of the sound level
         set1.setColor(NE_COLORS[nc]);
@@ -169,7 +204,7 @@ public class Measurement extends ActionBarActivity {
 
         // Value for each third-octave band
         for (int i = 0; i < count; i++) {
-            float mult = (range + 1);
+            float mult = (range + 1f);
             float val = (float) (20f+Math.random() * mult);
             //yVals1.add(new BarEntry(val, i));
             yVals1.add(new BarEntry(new float[] {40f,30f,val-30f}, i));

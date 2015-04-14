@@ -1,5 +1,6 @@
 package org.orbisgis.protonomap;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.support.v4.widget.DrawerLayout;
@@ -9,6 +10,8 @@ import android.support.v7.app.ActionBarDrawerToggle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.WebView;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -21,6 +24,10 @@ public class MainActivity extends ActionBarActivity {
     public DrawerLayout mDrawerLayout;
     public String[] mMenuLeft;
     public ActionBarDrawerToggle mDrawerToggle;
+    private CharSequence mTitle;
+
+    // For the menu option
+    public static String pagetosee;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -28,10 +35,9 @@ public class MainActivity extends ActionBarActivity {
         //setContentView(R.layout.activity_main);
     }
 
+    // Drawer navigation
     void initDrawer() {
-        // put everything you have in your onCreate in here:
         try {
-
             // List view
             mMenuLeft = getResources().getStringArray(R.array.dm_list_array);
             mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -39,6 +45,8 @@ public class MainActivity extends ActionBarActivity {
             // Set the adapter for the list view
             mDrawerList.setAdapter(new ArrayAdapter<String>(this,
                     R.layout.drawer_list_item, mMenuLeft));
+            // Set the list's click listener
+            mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
             // Display the List view into the action bar
             mDrawerToggle = new ActionBarDrawerToggle(
                     this,                  /* host Activity */
@@ -78,8 +86,34 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_measurement, menu);
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
+    }
+
+    private class DrawerItemClickListener implements ListView.OnItemClickListener {
+
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+            switch(position) {
+                case 0:
+                    //Toast.makeText(getApplicationContext(), "Some Activities MAY take time to load. Please be Patient.", Toast.LENGTH_LONG).show();
+                    //Intent a = new Intent(MainActivity.this, Dev_team.class);
+                    //startActivity(a);
+                    break;
+                case 1:
+                    Intent i = new Intent(getApplicationContext(),View_html_page.class);
+                    pagetosee=getString(R.string.url_help);
+                    startActivity(i);
+                    break;
+                default:
+            }
+        }
+    }
+
+    @Override
+    public void setTitle(CharSequence title) {
+        mTitle = title;
+        getActionBar().setTitle(mTitle);
     }
 
     @Override
@@ -109,13 +143,24 @@ public class MainActivity extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        // Handle presses on the action bar items
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                pagetosee="http://www.google.fr";
+                //startActivity(i);
             return true;
+            case R.id.action_about:
+                Intent i = new Intent(getApplicationContext(),View_html_page.class);
+                pagetosee=getString(R.string.url_about);
+                startActivity(i);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
 
-        return super.onOptionsItemSelected(item);
     }
+
+
 
     // Color for noise exposition representation
     public static final int[] NE_COLORS = {

@@ -16,6 +16,9 @@
     <string name="title_activity_about">About</string>
     <string name="title_activity_help">Help</string>
 
+    <string name="text_OK">True, I understand</string>
+    <string name="title_caution">Caution</string>
+    <string name="text_caution">Remember that this application will never replace a certified and calibrated sound level meter.</string>
     <string name="SL_dBA">dB(A)</string>
     <string name="SEL_dBA">Noise exposure dB(A)</string>
 

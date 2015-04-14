@@ -1,6 +1,8 @@
 package org.orbisgis.protonomap;
 
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.graphics.Color;
 import android.support.v4.widget.DrawerLayout;
@@ -34,6 +36,16 @@ public class MainActivity extends ActionBarActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
+
+        // Check if app starts for the first time and (if true)
+        // display a dialog box for caution
+        if (CheckNbRun()) {
+            // show dialog
+            new AlertDialog.Builder(this).setTitle(R.string.title_caution).
+                    setMessage(R.string.text_caution).
+                    setNeutralButton(R.string.text_OK, null).show();
+        }
+
     }
 
     // Drawer navigation
@@ -161,6 +173,36 @@ public class MainActivity extends ActionBarActivity {
                 return super.onOptionsItemSelected(item);
         }
 
+    }
+
+    /***
+     * Checks that application runs first time and write flags at SharedPreferences
+     * Need further codes for enhancing conditions
+     * @return true if 1st time
+     * see : http://stackoverflow.com/questions/9806791/showing-a-message-dialog-only-once-when-application-is-launched-for-the-first
+     * see also for checking version (later) : http://stackoverflow.com/questions/7562786/android-first-run-popup-dialog
+     * Can be used for checking new version
+     */
+    private boolean CheckNbRun() {
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        //boolean AlreadyRanBefore = preferences.getBoolean("AlreadyRanBefore", false);
+        SharedPreferences.Editor editor = preferences.edit();
+        Integer NbRun = preferences.getInt("NbRun", 1);
+        if (NbRun > 3) {
+                //AlreadyRanBefore=false;
+                //editor.putBoolean("AlreadyRanBefore", AlreadyRanBefore);
+                //editor.commit();
+                NbRun=1;
+                editor.putInt("NbRun", NbRun+1);
+                editor.commit();
+        }
+        else
+        {
+                editor.putInt("NbRun", NbRun+1);
+                editor.commit();
+                //AlreadyRanBefore = preferences.getBoolean("AlreadyRanBefore", false);
+        }
+        return (NbRun==1);
     }
 
     // Color for noise exposition representation

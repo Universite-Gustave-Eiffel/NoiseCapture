@@ -100,7 +100,7 @@
                     android:text="Mean"
                     android:id="@+id/textView_title_Mean_i"
                     android:layout_gravity="center"
-                    android:textSize="15dp"
+                    android:textSize="15sp"
                     android:paddingTop="6dp"
                     android:gravity="left" />
 
@@ -110,7 +110,7 @@
                     android:text="Min"
                     android:id="@+id/textView_title_Min_i"
                     android:layout_gravity="left|center_vertical"
-                    android:textSize="15dp"
+                    android:textSize="15sp"
                     android:paddingTop="6dp"
                     android:gravity="left" />
 
@@ -123,7 +123,7 @@
                     android:text="00:00:00"
                     android:textColor="#0099CC"
                     android:textStyle="bold"
-                    android:textSize="20dp"
+                    android:textSize="20sp"
                     android:gravity="left" />
 
                 <TextView
@@ -133,7 +133,7 @@
                     android:id="@+id/textView9"
                     android:layout_gravity="left|top"
                     android:textColor="#0099CC"
-                    android:textSize="15dp"
+                    android:textSize="15sp"
                     android:paddingTop="4dp"
                     android:gravity="left" />
 

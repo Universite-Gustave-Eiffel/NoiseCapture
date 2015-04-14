@@ -28,6 +28,7 @@ public class MainActivity extends ActionBarActivity {
 
     // For the menu option
     public static String pagetosee;
+    public static String titletosee;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,7 +68,7 @@ public class MainActivity extends ActionBarActivity {
                  */
                 public void onDrawerOpened(View drawerView) {
                     super.onDrawerOpened(drawerView);
-                    getSupportActionBar().setTitle(getTitle());
+                    getSupportActionBar().setTitle(getString(R.string.title_menu));
                 }
             };
             // Set the drawer toggle as the DrawerListener
@@ -103,6 +104,7 @@ public class MainActivity extends ActionBarActivity {
                 case 1:
                     Intent i = new Intent(getApplicationContext(),View_html_page.class);
                     pagetosee=getString(R.string.url_help);
+                    titletosee=getString((R.string.title_activity_help));
                     startActivity(i);
                     break;
                 default:
@@ -152,6 +154,7 @@ public class MainActivity extends ActionBarActivity {
             case R.id.action_about:
                 Intent i = new Intent(getApplicationContext(),View_html_page.class);
                 pagetosee=getString(R.string.url_about);
+                titletosee=getString((R.string.title_activity_about));
                 startActivity(i);
                 return true;
             default:
@@ -159,8 +162,6 @@ public class MainActivity extends ActionBarActivity {
         }
 
     }
-
-
 
     // Color for noise exposition representation
     public static final int[] NE_COLORS = {

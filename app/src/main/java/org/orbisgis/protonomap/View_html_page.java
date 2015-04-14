@@ -1,7 +1,5 @@
 package org.orbisgis.protonomap;
 
-import android.content.Intent;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -12,12 +10,14 @@ public class View_html_page extends MainActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_html_page);
         initDrawer();
 
         WebView myWebView = (WebView) findViewById(R.id.webview);
         myWebView.loadUrl(MainActivity.pagetosee);
+        getSupportActionBar().setTitle(MainActivity.titletosee);
 
     }
 

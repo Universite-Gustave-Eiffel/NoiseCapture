@@ -1,7 +1,7 @@
 package org.orbisgis.protonomap;
 
 /**
- * The frequencies of the third octave band.
+ * Calculation of the central and lateral frequencies of the third octave bands.
  */
 
 public class ThirdOctaveFrequencies {
@@ -13,18 +13,18 @@ public class ThirdOctaveFrequencies {
     /**
      * Standard center frequencies of third octave bands
      */
-    private static double[] stndCtrFrqs = new double[]{16, 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6000, 8000, 10000, 12500, 16000, 20000};
+    public static final double[] STANDARD_FREQUENCY = new double[]{16, 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6000, 8000, 10000, 12500, 16000, 20000};
 
 
     /**
      * Center frequency of the third octave band
      * @param idFreq center frequency index
      */
-    private double getCtrFreq(int idFreq) {
+    private static double getCtrFreq(int idFreq) {
         return Math.pow(10., 3.) * Math.pow(2., (idFreq-18) / 3.);
     }
 
-    public LowHigh getLatFreqs(int idFreq) {
+    public static LowHigh getLatFreqs(int idFreq) {
         double ctrFreq = getCtrFreq(idFreq);
         double lowFreq = getLowLatFreq(ctrFreq);
         double highFreq = getHighLatFreq(ctrFreq);

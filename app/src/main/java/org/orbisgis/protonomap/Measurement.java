@@ -1,5 +1,7 @@
 package org.orbisgis.protonomap;
 
+import android.app.AlertDialog;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
@@ -47,6 +49,15 @@ public class Measurement extends MainActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_measurement);
         initDrawer();
+
+        // Check if app starts for the first time and (if true)
+        // display a dialog box for caution
+        if (CheckNbRun()) {
+            // show dialog
+            new AlertDialog.Builder(this).setTitle(R.string.title_caution).
+                    setMessage(R.string.text_caution).
+                    setNeutralButton(R.string.text_OK, null).show();
+        }
 
         // To start a record (test mode)
         button=(ImageButton)findViewById(R.id.recordBtn);
@@ -147,6 +158,33 @@ public class Measurement extends MainActivity {
         Legend ls = sChart.getLegend();
         ls.setEnabled(false); // Hide legend
 
+    }
+
+    /***
+     * Checks that application runs first time and write flags at SharedPreferences
+     * Need further codes for enhancing conditions
+     * @return true if 1st time
+     * see : http://stackoverflow.com/questions/9806791/showing-a-message-dialog-only-once-when-application-is-launched-for-the-first
+     * see also for checking version (later) : http://stackoverflow.com/questions/7562786/android-first-run-popup-dialog
+     * Can be used for checking new version
+     */
+    private boolean CheckNbRun() {
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        //boolean AlreadyRanBefore = preferences.getBoolean("AlreadyRanBefore", false);
+        SharedPreferences.Editor editor = preferences.edit();
+        Integer NbRun = preferences.getInt("NbRun", 1);
+        if (NbRun > 3) {
+            NbRun=1;
+            editor.putInt("NbRun", NbRun+1);
+            editor.apply();
+        }
+        else
+        {
+            editor.putInt("NbRun", NbRun+1);
+            editor.apply();
+            //AlreadyRanBefore = preferences.getBoolean("AlreadyRanBefore", false);
+        }
+        return (NbRun==1);
     }
 
     // Fix the format of the dB Axis of the vumeter

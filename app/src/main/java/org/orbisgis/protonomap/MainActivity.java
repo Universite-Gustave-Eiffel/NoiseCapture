@@ -37,15 +37,6 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         //setContentView(R.layout.activity_main);
 
-        // Check if app starts for the first time and (if true)
-        // display a dialog box for caution
-        if (CheckNbRun()) {
-            // show dialog
-            new AlertDialog.Builder(this).setTitle(R.string.title_caution).
-                    setMessage(R.string.text_caution).
-                    setNeutralButton(R.string.text_OK, null).show();
-        }
-
     }
 
     // Drawer navigation
@@ -175,37 +166,7 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
-    /***
-     * Checks that application runs first time and write flags at SharedPreferences
-     * Need further codes for enhancing conditions
-     * @return true if 1st time
-     * see : http://stackoverflow.com/questions/9806791/showing-a-message-dialog-only-once-when-application-is-launched-for-the-first
-     * see also for checking version (later) : http://stackoverflow.com/questions/7562786/android-first-run-popup-dialog
-     * Can be used for checking new version
-     */
-    private boolean CheckNbRun() {
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        //boolean AlreadyRanBefore = preferences.getBoolean("AlreadyRanBefore", false);
-        SharedPreferences.Editor editor = preferences.edit();
-        Integer NbRun = preferences.getInt("NbRun", 1);
-        if (NbRun > 3) {
-                //AlreadyRanBefore=false;
-                //editor.putBoolean("AlreadyRanBefore", AlreadyRanBefore);
-                //editor.commit();
-                NbRun=1;
-                editor.putInt("NbRun", NbRun+1);
-                editor.commit();
-        }
-        else
-        {
-                editor.putInt("NbRun", NbRun+1);
-                editor.commit();
-                //AlreadyRanBefore = preferences.getBoolean("AlreadyRanBefore", false);
-        }
-        return (NbRun==1);
-    }
-
-    // Color for noise exposition representation
+     // Color for noise exposition representation
     public static final int[] NE_COLORS = {
             Color.rgb(255, 0, 0), Color.rgb(255, 128, 0), Color.rgb(255, 255, 0), Color.rgb(128, 255, 0), Color.rgb(0, 255, 0)
     };

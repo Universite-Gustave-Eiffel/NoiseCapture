@@ -59,9 +59,11 @@ public class Measurement extends MainActivity {
         if (CheckNbRun() & CheckNbRunSettings) {
 
             // show dialog
-            new AlertDialog.Builder(this).setTitle(R.string.title_caution).
-                    setMessage(R.string.text_caution).
-                    setNeutralButton(R.string.text_OK, null).show();
+            new AlertDialog.Builder(this).setTitle(R.string.title_caution)
+                    .setMessage(R.string.text_caution)
+                    .setNeutralButton(R.string.text_OK, null)
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
         }
 
         // To start a record (test mode)

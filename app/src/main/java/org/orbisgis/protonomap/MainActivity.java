@@ -1,6 +1,8 @@
 package org.orbisgis.protonomap;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -115,9 +117,17 @@ public class MainActivity extends ActionBarActivity {
                     // mDrawerLayout.closeDrawer(view);
                     break;
                 case 2:
-                    Intent imap = new Intent(getApplicationContext(),Map.class);
+                    // Show the map if data transfer settings is true
+                    // TODO: Check also if data transfer using wifi
+                    if (CheckDataTransfer()) {
+                        Intent imap = new Intent(getApplicationContext(), Map.class);
+                        //mDrawerLayout.closeDrawer(mDrawerList);
+                        startActivity(imap);
+                    }
+                    else {
+                        DialogBoxDataTransfer();
+                    }
                     mDrawerLayout.closeDrawer(mDrawerList);
-                    startActivity(imap);
                     break;
                 case 4:
                     Intent ih = new Intent(getApplicationContext(),View_html_page.class);
@@ -198,6 +208,29 @@ public class MainActivity extends ActionBarActivity {
         Boolean DataTransfer = sharedPref.getBoolean("settings_data_transfer", true);
         return DataTransfer;
     }
+
+    // Dialog box for activating data transfer
+    public boolean DialogBoxDataTransfer() {
+           new AlertDialog.Builder(this)
+                .setTitle(R.string.title_caution_data_transfer)
+                .setMessage(R.string.text_caution_data_transfer)
+                .setPositiveButton(R.string.text_OK_data_transfer, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Goto to the settings page
+                        Intent is = new Intent(getApplicationContext(),Settings.class);
+                        startActivity(is);
+                    }
+                })
+                .setNegativeButton(R.string.text_CANCEL_data_transfer, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int which) {
+                        // Nothing is done
+                    }
+                })
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
+        return true;
+    }
+
 
      // Color for noise exposition representation
     public static final int[] NE_COLORS = {

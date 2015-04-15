@@ -15,9 +15,16 @@
     <string name="title_activity_about">About</string>
     <string name="title_activity_help">Help</string>
 
+    <!-- Caution dialog box at app launch !-->
     <string name="text_OK">YES, I understand</string>
     <string name="title_caution">Caution</string>
     <string name="text_caution">Remember that this application will never replace a certified and calibrated sound level meter.</string>
+
+    <!-- Caution dialog box for data transfer !-->
+    <string name="text_OK_data_transfer">Activate</string>
+    <string name="text_CANCEL_data_transfer">Cancel</string>
+    <string name="title_caution_data_transfer">Caution</string>
+    <string name="text_caution_data_transfer">In order to load the map, you must enable the data transfer option in the user settings.</string>
 
     <string name="SL_dBA">dB(A)</string>
     <string name="SEL_dBA">Noise exposure dB(A)</string>
@@ -25,7 +32,7 @@
     <string name="hello_world">Hello world!</string>
 
     <string name="title_settings_data_transfer">Data transfer</string>
-    <string name="summary_settings_data_transfer">Accept transfer files only over Wi-Fi</string>
+    <string name="summary_settings_data_transfer">Accept data transfer</string>
     <string name="title_settings_recording">Recording</string>
     <string name="summary_settings_recording">Set default recording time</string>
     <string name="title_settings_caution">Caution message</string>

@@ -1,6 +1,6 @@
 <resources>
+
     <string name="app_name">NoiseCapture</string>
-    <string name="record_message">Press the button in order to start the recording</string>
 
     <string name="action_settings">Settings</string>
     <string name="action_about">About</string>
@@ -8,6 +8,7 @@
     <string name="action_exit">Exit</string>
 
     <string name="record_button_string">Start record</string>
+    <string name="record_message">Press the button in order to start the recording</string>
 
     <string name="title_menu">Menu</string>
     <string name="title_activity_measurement">Measurement</string>
@@ -16,7 +17,7 @@
     <string name="title_activity_about">About</string>
     <string name="title_activity_help">Help</string>
 
-    <string name="text_OK">True, I understand</string>
+    <string name="text_OK">YES, I understand</string>
     <string name="title_caution">Caution</string>
     <string name="text_caution">Remember that this application will never replace a certified and calibrated sound level meter.</string>
     <string name="SL_dBA">dB(A)</string>
@@ -24,8 +25,18 @@
 
     <string name="hello_world">Hello world!</string>
 
+    <string name="title_settings_data_transfer">Data transfer</string>
+    <string name="summary_settings_data_transfer">Transfer files only over Wi-Fi</string>
+    <string name="title_settings_recording">Recording</string>
+    <string name="summary_settings_recording">Set default recording time</string>
+    <string name="title_settings_caution">Caution message</string>
+    <string name="summary_settings_caution">Display the caution message during the launch of the application</string>
+    <string name="title_settings_recording_duration">Recording duration</string>
+    <string name="summary_settings_recording_duration">Set the recording duration (in second)</string>
+
     <!--  Ressources for the Drawer and option menu !-->
     <string-array name="dm_list_array">
+        <item>Measurement</item>
         <item>Calibration</item>
         <item>Help</item>
     </string-array>
@@ -83,5 +94,6 @@
     <string name="title_activity_web_view">WebView</string>
     <string name="title_activity_web_view_page">web_view_page</string>
     <string name="title_activity_view_html_page">View_html_page</string>
+    <string name="title_activity_settings">Settings</string>
 
 </resources>

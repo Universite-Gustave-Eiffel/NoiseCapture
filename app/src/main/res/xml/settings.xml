@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <CheckBoxPreference
+        android:key="settings_data_transfer"
+        android:title="@string/title_settings_data_transfer"
+        android:summary="@string/summary_settings_data_transfer"
+        android:defaultValue="false" />
+    <CheckBoxPreference
+        android:key="settings_recording"
+        android:title="@string/title_settings_recording"
+        android:summary="@string/summary_settings_recording"
+        android:defaultValue="false" />
+    <EditTextPreference
+        android:defaultValue="10"
+        android:key="settings_recording_duration"
+        android:title="@string/title_settings_recording_duration"
+        android:summary="@string/summary_settings_recording_duration"
+        android:dependency="settings_recording"
+        android:inputType="number"/>
+    <CheckBoxPreference
+        android:key="settings_caution"
+        android:title="@string/title_settings_caution"
+        android:summary="@string/summary_settings_caution"
+        android:defaultValue="true" />
+
+</PreferenceScreen>

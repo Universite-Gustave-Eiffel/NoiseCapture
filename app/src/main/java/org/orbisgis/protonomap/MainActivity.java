@@ -100,15 +100,26 @@ public class MainActivity extends ActionBarActivity {
 
             switch(position) {
                 case 0:
+                    Intent im = new Intent(getApplicationContext(),Measurement.class);
+                    pagetosee=getString(R.string.url_help);
+                    titletosee=getString((R.string.title_activity_help));
+                    //mDrawerLayout.closeDrawers();
+                    mDrawerLayout.closeDrawer(mDrawerList);
+                    startActivity(im);
+                    break;
+                case 1:
                     //Toast.makeText(getApplicationContext(), "Some Activities MAY take time to load. Please be Patient.", Toast.LENGTH_LONG).show();
                     //Intent a = new Intent(MainActivity.this, Dev_team.class);
                     //startActivity(a);
+                    // mDrawerLayout.closeDrawer(view);
                     break;
-                case 1:
-                    Intent i = new Intent(getApplicationContext(),View_html_page.class);
+                case 2:
+                    Intent ih = new Intent(getApplicationContext(),View_html_page.class);
                     pagetosee=getString(R.string.url_help);
                     titletosee=getString((R.string.title_activity_help));
-                    startActivity(i);
+                    //mDrawerLayout.closeDrawers();
+                    mDrawerLayout.closeDrawer(mDrawerList);
+                    startActivity(ih);
                     break;
                 default:
             }
@@ -137,6 +148,8 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
+        mDrawerLayout.closeDrawers();
+
         // Pass the event to ActionBarDrawerToggle, if it returns
         // true, then it has handled the app icon touch event
         if (mDrawerToggle.onOptionsItemSelected(item)) {
@@ -151,14 +164,14 @@ public class MainActivity extends ActionBarActivity {
         // Handle presses on the action bar items
         switch (item.getItemId()) {
             case R.id.action_settings:
-                pagetosee="http://www.google.fr";
-                //startActivity(i);
+                Intent is = new Intent(getApplicationContext(),Settings.class);
+                startActivity(is);
             return true;
             case R.id.action_about:
-                Intent i = new Intent(getApplicationContext(),View_html_page.class);
+                Intent ia = new Intent(getApplicationContext(),View_html_page.class);
                 pagetosee=getString(R.string.url_about);
                 titletosee=getString((R.string.title_activity_about));
-                startActivity(i);
+                startActivity(ia);
                 return true;
             default:
                 return super.onOptionsItemSelected(item);

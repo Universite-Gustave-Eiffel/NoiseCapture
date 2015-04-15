@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Number of applications launch before displaying the Caution message !-->
+    <integer name="NbRunMaxCaution">3</integer>
+
+</resources>

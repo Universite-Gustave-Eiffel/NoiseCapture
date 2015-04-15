@@ -121,6 +121,12 @@ public class MainActivity extends ActionBarActivity {
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ih);
                     break;
+                case 3:
+                    Intent ia = new Intent(getApplicationContext(),View_html_page.class);
+                    pagetosee=getString(R.string.url_about);
+                    titletosee=getString((R.string.title_activity_about));
+                    mDrawerLayout.closeDrawer(mDrawerList);
+                    startActivity(ia);
                 default:
             }
         }
@@ -167,12 +173,14 @@ public class MainActivity extends ActionBarActivity {
                 Intent is = new Intent(getApplicationContext(),Settings.class);
                 startActivity(is);
             return true;
+            /*
             case R.id.action_about:
                 Intent ia = new Intent(getApplicationContext(),View_html_page.class);
                 pagetosee=getString(R.string.url_about);
                 titletosee=getString((R.string.title_activity_about));
                 startActivity(ia);
                 return true;
+                */
             default:
                 return super.onOptionsItemSelected(item);
         }

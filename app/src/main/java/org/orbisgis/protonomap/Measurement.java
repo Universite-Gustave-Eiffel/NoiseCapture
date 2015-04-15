@@ -3,6 +3,8 @@ package org.orbisgis.protonomap;
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.content.res.Resources;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
@@ -50,9 +52,12 @@ public class Measurement extends MainActivity {
         setContentView(R.layout.activity_measurement);
         initDrawer();
 
-        // Check if app starts for the first time and (if true)
-        // display a dialog box for caution
-        if (CheckNbRun()) {
+        // Check if the dialog box (for caution) must be displayed
+        // Depending of the settings
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        Boolean CheckNbRunSettings = sharedPref.getBoolean("settings_caution",true);
+        if (CheckNbRun() & CheckNbRunSettings) {
+
             // show dialog
             new AlertDialog.Builder(this).setTitle(R.string.title_caution).
                     setMessage(R.string.text_caution).
@@ -169,11 +174,13 @@ public class Measurement extends MainActivity {
      * Can be used for checking new version
      */
     private boolean CheckNbRun() {
+        Resources res = getResources();
+        Integer NbRunMaxCaution=res.getInteger(R.integer.NbRunMaxCaution);
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         //boolean AlreadyRanBefore = preferences.getBoolean("AlreadyRanBefore", false);
         SharedPreferences.Editor editor = preferences.edit();
-        Integer NbRun = preferences.getInt("NbRun", 1);
-        if (NbRun > 3) {
+                Integer NbRun = preferences.getInt("NbRun", 1);
+        if (NbRun > NbRunMaxCaution) {
             NbRun=1;
             editor.putInt("NbRun", NbRun+1);
             editor.apply();

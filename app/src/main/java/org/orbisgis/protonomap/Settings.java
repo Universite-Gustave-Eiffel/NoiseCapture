@@ -9,12 +9,15 @@ import android.view.MenuItem;
 import android.widget.TextView;
 
 
+//
+// public class Settings extends MainActivity {
 public class Settings extends ActionBarActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+        //initDrawer();
 
         // Display the fragment as the main content.
         getFragmentManager().beginTransaction()

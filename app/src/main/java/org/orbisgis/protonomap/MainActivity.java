@@ -4,7 +4,9 @@ import android.app.AlertDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.content.res.Resources;
 import android.graphics.Color;
+import android.preference.PreferenceManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -103,7 +105,6 @@ public class MainActivity extends ActionBarActivity {
                     Intent im = new Intent(getApplicationContext(),Measurement.class);
                     pagetosee=getString(R.string.url_help);
                     titletosee=getString((R.string.title_activity_help));
-                    //mDrawerLayout.closeDrawers();
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(im);
                     break;
@@ -114,20 +115,25 @@ public class MainActivity extends ActionBarActivity {
                     // mDrawerLayout.closeDrawer(view);
                     break;
                 case 2:
+                    Intent imap = new Intent(getApplicationContext(),Map.class);
+                    mDrawerLayout.closeDrawer(mDrawerList);
+                    startActivity(imap);
+                    break;
+                case 4:
                     Intent ih = new Intent(getApplicationContext(),View_html_page.class);
                     pagetosee=getString(R.string.url_help);
                     titletosee=getString((R.string.title_activity_help));
-                    //mDrawerLayout.closeDrawers();
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ih);
                     break;
-                case 3:
+                case 5:
                     Intent ia = new Intent(getApplicationContext(),View_html_page.class);
                     pagetosee=getString(R.string.url_about);
                     titletosee=getString((R.string.title_activity_about));
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ia);
                 default:
+                    break;
             }
         }
     }
@@ -185,6 +191,12 @@ public class MainActivity extends ActionBarActivity {
                 return super.onOptionsItemSelected(item);
         }
 
+    }
+
+    private boolean CheckDataTransfer() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        Boolean DataTransfer = sharedPref.getBoolean("settings_data_transfer", true);
+        return DataTransfer;
     }
 
      // Color for noise exposition representation

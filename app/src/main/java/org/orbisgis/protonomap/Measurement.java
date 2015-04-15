@@ -177,7 +177,6 @@ public class Measurement extends MainActivity {
         Resources res = getResources();
         Integer NbRunMaxCaution=res.getInteger(R.integer.NbRunMaxCaution);
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        //boolean AlreadyRanBefore = preferences.getBoolean("AlreadyRanBefore", false);
         SharedPreferences.Editor editor = preferences.edit();
                 Integer NbRun = preferences.getInt("NbRun", 1);
         if (NbRun > NbRunMaxCaution) {

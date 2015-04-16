@@ -37,4 +37,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:22.0.0'
     compile 'com.github.PhilJay:MPAndroidChart:v2.0.8'
     compile 'uk.co.chrisjenx:calligraphy:2.0.2'
+    compile 'com.android.support:support-v4:22.0.0'
 }

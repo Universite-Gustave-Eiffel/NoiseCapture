@@ -2,6 +2,6 @@
 <resources>
 
     <!-- Number of applications launch before displaying the Caution message !-->
-    <integer name="NbRunMaxCaution">3</integer>
+    <integer name="NbRunMaxCaution">10</integer>
 
 </resources>

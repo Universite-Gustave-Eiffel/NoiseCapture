@@ -13,11 +13,6 @@
             android:name=".Measurement"
             android:label="@string/title_activity_measurement"
             android:screenOrientation="portrait" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".Results"
@@ -37,16 +32,24 @@
             android:label="@string/title_activity_settings" >
         </activity>
         <activity
-            android:name=".MainActivity2Activity"
-            android:label="@string/title_activity_main_activity2" >
-        </activity>
-        <activity
             android:name=".Map"
             android:label="@string/title_activity_map"
-            android:parentActivityName=".MainActivity" >
+            android:parentActivityName=".MainActivity"
+            android:screenOrientation="portrait" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="org.orbisgis.protonomap.MainActivity" />
+        </activity>
+        <activity
+            android:name=".Start"
+            android:screenOrientation="portrait"
+            android:label="@string/title_activity_start"
+            android:noHistory="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
         </activity>
     </application>
 

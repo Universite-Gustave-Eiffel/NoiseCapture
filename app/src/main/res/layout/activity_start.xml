@@ -1,0 +1,149 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    tools:context="org.orbisgis.protonomap.Start"
+    android:background="#ffffffff"
+    android:gravity="center_vertical|clip_vertical">
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:weightSum="1"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/fullscreen_text_title"
+            android:id="@+id/textView_title_start_activity"
+            android:textSize="50dp"
+            android:textColor="#0099CC"
+            android:layout_gravity="center_horizontal"
+            android:gravity="center_horizontal"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/fullscreen_text_subtitle"
+            android:id="@+id/textView_subtitle_start_activity"
+            android:gravity="center_horizontal"
+            android:layout_gravity="center_horizontal"
+            android:textColor="#0099CC"
+            android:textSize="20dp" />
+
+        <ProgressBar
+            style="?android:attr/progressBarStyleSmall"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:id="@+id/progressBar"
+            android:layout_marginTop="20dp" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/fullscreen_text_power_by"
+                android:id="@+id/textView_Power_by"
+                android:gravity="center_horizontal"
+                android:layout_gravity="center_horizontal"
+                android:textColor="#000"
+                android:textSize="15dp"
+                android:layout_marginTop="40dp"
+                android:textStyle="italic" />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center_vertical|center_horizontal"
+                android:weightSum="1">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/imageView_CNRS"
+                    android:src="@drawable/cnrs"
+                    android:layout_marginRight="10dp"
+                    android:scaleType="fitXY"
+                    android:minWidth="60dp"
+                    android:minHeight="60dp" />
+
+                <ImageView
+                    android:layout_width="131dp"
+                    android:layout_height="match_parent"
+                    android:id="@+id/imageView_Ifsttar"
+                    android:src="@drawable/ifsttar"
+                    android:layout_marginLeft="10dp"
+                    android:adjustViewBounds="true"
+                    android:scaleType="centerCrop"
+                    android:maxWidth="50dp"
+                    android:layout_marginTop="0dp" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="right"
+                android:id="@+id/LinearLayout"
+                android:weightSum="1">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fullscreen_text_support_by"
+                    android:id="@+id/textView_Support_by"
+                    android:gravity="center_horizontal"
+                    android:layout_gravity="center_horizontal"
+                    android:textColor="#000"
+                    android:textSize="15dp"
+                    android:layout_marginTop="40dp"
+                    android:layout_marginBottom="0dp"
+                    android:textStyle="italic" />
+
+                <LinearLayout
+                    android:orientation="horizontal"
+                    android:layout_width="fill_parent"
+                    android:layout_height="80dp"
+                    android:layout_gravity="center_horizontal"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:weightSum="1"
+                    android:layout_weight="0.55">
+
+                    <ImageView
+                        android:layout_width="wrap_content"
+                        android:layout_height="78dp"
+                        android:id="@+id/imageView_europe"
+                        android:src="@drawable/europe"
+                        android:layout_marginRight="10dp"
+                        android:layout_weight="0.12"
+                        android:scaleType="centerCrop" />
+
+                    <ImageView
+                        android:layout_width="80dp"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/imageView_geopal"
+                        android:src="@drawable/geopal"
+                        android:layout_marginLeft="10dp"
+                        android:scaleType="centerCrop"
+                        android:layout_weight="0.16" />
+                </LinearLayout>
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</RelativeLayout>

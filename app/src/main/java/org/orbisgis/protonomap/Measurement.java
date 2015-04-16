@@ -1,6 +1,8 @@
 package org.orbisgis.protonomap;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
@@ -14,6 +16,7 @@ import android.view.MenuItem;
 import android.graphics.Color;
 import android.content.Intent;
 import android.view.View;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
@@ -68,40 +71,7 @@ public class Measurement extends MainActivity {
 
         // To start a record (test mode)
         button=(ImageButton)findViewById(R.id.recordBtn);
-        button.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                // TODO Auto-generated method stub
-
-                //int i;
-                //for (i=1; i<10; i++) {
-
-
-                    // Vumeter data
-                    setData(135);
-                    // Change the text and the textcolor in the corresponding textview
-                    // for the Leqi value
-                    final TextView mTextView = (TextView) findViewById(R.id.textView_value_SL_i);
-                    mTextView.setText(String.format("%.1f", Leqi));
-                    int nc=getNEcatColors(Leqi);    // Choose the color category in function of the sound level
-                    int[] color_rep=NE_COLORS();
-                    mTextView.setTextColor(color_rep[nc]);
-
-                    // Spectrum data
-                    setDataS(30, 135);
-                /*
-                try {
-                        Thread.sleep(1000);                 //1000 milliseconds is one second.
-                    } catch (InterruptedException ex) {
-                        Thread.currentThread().interrupt();
-                    }
-                    */
-                    Intent i = new Intent(getApplicationContext(),Results.class);
-                    startActivity(i);
-                //}
-            }
-        });
+        button.setOnClickListener(new DoProcessing(getApplicationContext(), this));
 
         // Instantaneous sound level VUMETER
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
@@ -320,4 +290,70 @@ public class Measurement extends MainActivity {
             Color.rgb(0, 128, 255), Color.rgb(102, 178, 255), Color.rgb(204, 229, 255),
     };
 
+    private static class DoProcessing implements CompoundButton.OnClickListener {
+        private Context context;
+        private Measurement activity;
+
+
+        private DoProcessing(Context context, Measurement activity) {
+            this.context = context;
+            this.activity = activity;
+        }
+
+        @Override
+        public void onClick(View v) {
+            new Thread(new ProcessThread(context, activity)).start();
+        }
+    }
+
+    private static class ProcessThread implements Runnable {
+        private Context context;
+        private Measurement activity;
+
+        private ProcessThread(Context context, Measurement activity) {
+            this.context = context;
+            this.activity = activity;
+        }
+
+        @Override
+        public void run() {
+            for (int i = 1; i < 10; i++) {
+                activity.runOnUiThread(new UpdateText(activity));
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ex) {
+                    // Ignore
+                }
+
+            }
+            Intent ir = new Intent(context, Results.class);
+            activity.startActivity(ir);
+        }
+    }
+
+    private static class UpdateText implements Runnable {
+        Measurement activity;
+
+        private UpdateText(Measurement activity) {
+            this.activity = activity;
+        }
+
+        @Override
+        public void run() {
+            // Ui thing here
+            // Vumeter data
+            activity.setData(135);
+            // Change the text and the textcolor in the corresponding textview
+            // for the Leqi value
+            final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
+            mTextView.setText(String.format("%.1f", Leqi));
+            int nc=activity.getNEcatColors(Leqi);    // Choose the color category in function of the sound level
+            int[] color_rep=activity.NE_COLORS();
+            mTextView.setTextColor(color_rep[nc]);
+
+            // Spectrum data
+            activity.setDataSA(30, 135);
+        }
+    }
 }
+

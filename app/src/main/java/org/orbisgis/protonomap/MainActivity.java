@@ -111,12 +111,16 @@ public class MainActivity extends ActionBarActivity {
                     startActivity(im);
                     break;
                 case 1:
+                    // Results:
+                    // TODO : make visible only if there is a result
+                    break;
+                case 2:
                     //Toast.makeText(getApplicationContext(), "Some Activities MAY take time to load. Please be Patient.", Toast.LENGTH_LONG).show();
                     //Intent a = new Intent(MainActivity.this, Dev_team.class);
                     //startActivity(a);
                     // mDrawerLayout.closeDrawer(view);
                     break;
-                case 2:
+                case 3:
                     // Show the map if data transfer settings is true
                     // TODO: Check also if data transfer using wifi
                     if (CheckDataTransfer()) {
@@ -129,14 +133,14 @@ public class MainActivity extends ActionBarActivity {
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
                     break;
-                case 4:
+                case 5:
                     Intent ih = new Intent(getApplicationContext(),View_html_page.class);
                     pagetosee=getString(R.string.url_help);
-                    titletosee=getString((R.string.title_activity_help));
+                    titletosee=getString(R.string.title_activity_help);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ih);
                     break;
-                case 5:
+                case 6:
                     Intent ia = new Intent(getApplicationContext(),View_html_page.class);
                     pagetosee=getString(R.string.url_about);
                     titletosee=getString((R.string.title_activity_about));
@@ -233,8 +237,18 @@ public class MainActivity extends ActionBarActivity {
 
 
      // Color for noise exposition representation
-    public static final int[] NE_COLORS = {
-            Color.rgb(255, 0, 0), Color.rgb(255, 128, 0), Color.rgb(255, 255, 0), Color.rgb(128, 255, 0), Color.rgb(0, 255, 0)
+     //public static final int[] NE_COLORS = {
+     //        Color.rgb(255, 0, 0), Color.rgb(255, 128, 0), Color.rgb(255, 255, 0), Color.rgb(128, 255, 0), Color.rgb(0, 255, 0)
+    //};
+    public int[] NE_COLORS() {
+        Resources res = getResources();
+        int R1_SL_level = res.getColor(R.color.R1_SL_level);
+        int R2_SL_level = res.getColor(R.color.R2_SL_level);
+        int R3_SL_level = res.getColor(R.color.R3_SL_level);
+        int R4_SL_level = res.getColor(R.color.R4_SL_level);
+        int R5_SL_level = res.getColor(R.color.R5_SL_level);
+        int[] color_rep={R1_SL_level,R2_SL_level,R3_SL_level,R4_SL_level,R5_SL_level};
+        return color_rep;              //Color.rgb(255, 0, 0), Color.rgb(255, 128, 0), Color.rgb(255, 255, 0), Color.rgb(128, 255, 0), Color.rgb(0, 255, 0)
     };
     // Choose color category in function of sound level
     public int getNEcatColors(float SL) {

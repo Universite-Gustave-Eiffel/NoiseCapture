@@ -34,11 +34,7 @@
         <activity
             android:name=".Map"
             android:label="@string/title_activity_map"
-            android:parentActivityName=".MainActivity"
             android:screenOrientation="portrait" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="org.orbisgis.protonomap.MainActivity" />
         </activity>
         <activity
             android:name=".Start"

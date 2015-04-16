@@ -85,7 +85,8 @@ public class Measurement extends MainActivity {
                     final TextView mTextView = (TextView) findViewById(R.id.textView_value_SL_i);
                     mTextView.setText(String.format("%.1f", Leqi));
                     int nc=getNEcatColors(Leqi);    // Choose the color category in function of the sound level
-                    mTextView.setTextColor(NE_COLORS[nc]);
+                    int[] color_rep=NE_COLORS();
+                    mTextView.setTextColor(color_rep[nc]);
 
                     // Spectrum data
                     setDataS(30, 135);
@@ -125,10 +126,11 @@ public class Measurement extends MainActivity {
         ylv.setTextColor(Color.WHITE);
         ylv.setGridColor(Color.WHITE);
         ylv.setValueFormatter(new dBValueFormatter());
-        setData(0);
         // YAxis parameters (right): no axis, hide all
         YAxis yrv = mChart.getAxisRight();
         yrv.setEnabled(false);
+        // Data (before legend)
+        setData(0);
         // Legend: hide all
         Legend lv = mChart.getLegend();
         lv.setEnabled(false); // Hide legend
@@ -142,6 +144,7 @@ public class Measurement extends MainActivity {
         sChart.setDrawGridBackground(false);
         sChart.setMaxVisibleValueCount(0);
         sChart.setDrawValuesForWholeStack(true); // Stacked
+        sChart.setNoDataTextDescription("Start by pressing the record button");
         // XAxis parameters:
         XAxis xls = sChart.getXAxis();
         xls.setPosition(XAxisPosition.BOTTOM);
@@ -157,11 +160,12 @@ public class Measurement extends MainActivity {
         yls.setStartAtZero(true);
         yls.setTextColor(Color.WHITE);
         yls.setGridColor(Color.WHITE);
-        setDataS(30, 0);  // 30 values for each third-octave band
         // YAxis parameters (right): no axis, hide all
         YAxis yrs = sChart.getAxisRight();
         yrs.setEnabled(false);
-        // Legend: hide all
+        // Data (before legend)
+        setDataSA(30, 0);
+        // 30 values for each third-octave band// Legend: hide all
         Legend ls = sChart.getLegend();
         ls.setEnabled(false); // Hide legend
 
@@ -226,7 +230,8 @@ public class Measurement extends MainActivity {
         //set1.setBarSpacePercent(35f);
         //set1.setColor(Color.rgb(0, 153, 204));
         int nc=getNEcatColors(Leqi);    // Choose the color category in function of the sound level
-        set1.setColor(NE_COLORS[nc]);
+        int[] color_rep=NE_COLORS();
+        set1.setColor(color_rep[nc]);
 
         ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
         dataSets.add(set1);
@@ -238,7 +243,8 @@ public class Measurement extends MainActivity {
         mChart.invalidate(); // refresh
     }
 
-    // Generate artificial data (sound level for each 1/3 octave band) for spectrum representation
+    // Generate artificial data (sound level for each 1/3 octave band)
+    // for spectrum representation: SL, Min and Max
     private void setDataS(int count, float range) {
 
         ArrayList<String> xVals = new ArrayList<String>();
@@ -261,6 +267,42 @@ public class Measurement extends MainActivity {
         set1.setColors(getColors());
         set1.setStackLabels(new String[] {
                 "Min", "SL", "Max"
+        });
+
+        ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
+        dataSets.add(set1);
+
+        BarData data = new BarData(xVals, dataSets);
+        data.setValueTextSize(10f);
+
+        sChart.setData(data);
+        sChart.invalidate(); // refresh
+    }
+
+    // Generate artificial data (sound level for each 1/3 octave band)
+    // for spectrum representation: SL
+    private void setDataSA(int count, float range) {
+
+        ArrayList<String> xVals = new ArrayList<String>();
+        ltob= getResources().getStringArray(R.array.tob_list_array);
+        for (int i = 0; i < count; i++) {
+            xVals.add(ltob[i % 30]);
+        }
+
+        ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
+
+        // Value for each third-octave band
+        for (int i = 0; i < count; i++) {
+            float mult = (range);
+            float val = (float) (Math.random() * mult);
+            //yVals1.add(new BarEntry(val, i));
+            yVals1.add(new BarEntry(new float[] {val}, i));
+        }
+
+        BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
+        set1.setColor(Color.rgb(102, 178, 255));
+        set1.setStackLabels(new String[] {
+                "SL"
         });
 
         ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();

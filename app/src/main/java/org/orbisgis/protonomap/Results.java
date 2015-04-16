@@ -166,6 +166,7 @@ public class Results extends MainActivity {
     private void setRNEData(int count, float range) {
 
         float mult3 = range;
+        int[] color_rep=NE_COLORS();
 
         ArrayList<Entry> yVals1 = new ArrayList<Entry>();
 
@@ -184,7 +185,7 @@ public class Results extends MainActivity {
 
         PieDataSet dataSet = new PieDataSet(yVals1, "Sound level");
         dataSet.setSliceSpace(3f);
-        dataSet.setColors(NE_COLORS);
+        dataSet.setColors(color_rep);
 
         PieData data = new PieData(xVals, dataSet);
         data.setValueFormatter(new PercentFormatter());
@@ -201,6 +202,7 @@ public class Results extends MainActivity {
     private void setNEIData(float range) {
 
         float mult5 = range;
+        int[] color_rep=NE_COLORS();
 
         ArrayList<Entry> yVals1 = new ArrayList<Entry>();
 
@@ -217,7 +219,7 @@ public class Results extends MainActivity {
         PieDataSet dataSet = new PieDataSet(yVals1, "NEI");
         dataSet.setSliceSpace(3f);
         int nc=getNEcatColors(Leqi);    // Choose the color category in function of the sound level
-        dataSet.setColor(NE_COLORS[nc]);   // Apply color category for the corresponding sound level
+        dataSet.setColor(color_rep[nc]);   // Apply color category for the corresponding sound level
 
         PieData data = new PieData(xVals, dataSet);
         data.setValueFormatter(new PercentFormatter());

@@ -14,6 +14,7 @@
     <string name="title_activity_history">History</string>
     <string name="title_activity_about">About</string>
     <string name="title_activity_help">Help</string>
+    <string name="title_activity_Results">Results</string>
 
     <!-- Caution dialog box at app launch !-->
     <string name="text_OK">YES, I understand</string>
@@ -51,6 +52,7 @@
     <!--  Ressources for the Drawer and option menu !-->
     <string-array name="dm_list_array">
         <item>Measurement</item>
+        <item>Results</item>
         <item>History</item>
         <item>Map</item>
         <item>Calibration</item>

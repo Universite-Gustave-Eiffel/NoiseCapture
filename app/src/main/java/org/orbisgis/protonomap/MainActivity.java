@@ -115,10 +115,9 @@ public class MainActivity extends ActionBarActivity {
                     // TODO : make visible only if there is a result
                     break;
                 case 2:
-                    //Toast.makeText(getApplicationContext(), "Some Activities MAY take time to load. Please be Patient.", Toast.LENGTH_LONG).show();
-                    //Intent a = new Intent(MainActivity.this, Dev_team.class);
-                    //startActivity(a);
-                    // mDrawerLayout.closeDrawer(view);
+                    Intent a = new Intent(getApplicationContext(), History.class);
+                    startActivity(a);
+                    mDrawerLayout.closeDrawer(mDrawerList);
                     break;
                 case 3:
                     // Show the map if data transfer settings is true

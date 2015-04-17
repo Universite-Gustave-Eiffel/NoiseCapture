@@ -6,6 +6,12 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.media.AudioFormat;
+import android.media.AudioRecord;
+import android.media.MediaPlayer;
+import android.media.MediaRecorder;
+import android.media.audiofx.Equalizer;
+import android.media.audiofx.Visualizer;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
@@ -16,6 +22,7 @@ import android.view.MenuItem;
 import android.graphics.Color;
 import android.content.Intent;
 import android.view.View;
+import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -32,6 +39,7 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.utils.ValueFormatter;
 
+import java.io.DataOutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
@@ -316,16 +324,53 @@ public class Measurement extends MainActivity {
         }
 
         @Override
-        public void run() {
-            for (int i = 1; i < 10; i++) {
+        public void run(){
+
+            /*
+            int buffersize=0;
+            AudioRecord mRecord;
+            Equalizer mEqualizer;
+            int session_id;
+            int frequency;
+
+            buffersize = AudioRecord.getMinBufferSize(
+                    44100,
+                    AudioFormat.CHANNEL_IN_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT);
+            mRecord = new AudioRecord(
+                    MediaRecorder.AudioSource.MIC,
+                    44100,
+                    AudioFormat.CHANNEL_IN_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT,
+                    buffersize);
+            mRecord.startRecording();
+
+            session_id=mRecord.getAudioSessionId();
+
+
+            mEqualizer = new Equalizer(0,session_id);
+            //mEqualizer.setEnabled(true);
+            short bands=mEqualizer.getNumberOfBands();
+            final short min=mEqualizer.getBandLevelRange()[0];
+            final short max=mEqualizer.getBandLevelRange()[1];
+
+            for(short i=0;i<bands;i++)
+            {
+                frequency= mEqualizer.getCenterFreq(i)/1000;
+            }
+            */
+
+            for (int i = 1; i < 50; i++) {
+
                 activity.runOnUiThread(new UpdateText(activity));
                 try {
-                    Thread.sleep(1000);
+                    Thread.sleep(100);
                 } catch (InterruptedException ex) {
                     // Ignore
                 }
 
             }
+
             Intent ir = new Intent(context, Results.class);
             activity.startActivity(ir);
         }
@@ -334,13 +379,18 @@ public class Measurement extends MainActivity {
     private static class UpdateText implements Runnable {
         Measurement activity;
 
+        private Chronometer chronometer;
         private UpdateText(Measurement activity) {
             this.activity = activity;
         }
 
         @Override
         public void run() {
-            // Ui thing here
+
+            // Start chronometer
+            chronometer = (Chronometer) activity.findViewById(R.id.chronometer_recording_time);
+            chronometer.start();
+
             // Vumeter data
             activity.setData(135);
             // Change the text and the textcolor in the corresponding textview

@@ -152,8 +152,9 @@
             android:orientation="horizontal"
             android:layout_width="fill_parent"
             android:layout_height="143dp"
-            android:gravity="center_horizontal"
-            android:layout_gravity="center_horizontal">
+            android:gravity="center_vertical|center_horizontal"
+            android:layout_gravity="center_horizontal"
+            android:weightSum="1">
 
             <com.github.mikephil.charting.charts.PieChart
             android:id="@+id/NEIChart"

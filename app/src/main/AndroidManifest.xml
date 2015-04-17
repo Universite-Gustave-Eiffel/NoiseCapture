@@ -3,6 +3,8 @@
     package="org.orbisgis.protonomap" >
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
     <application
         android:allowBackup="true"
@@ -38,14 +40,18 @@
         </activity>
         <activity
             android:name=".Start"
-            android:screenOrientation="portrait"
             android:label="@string/title_activity_start"
-            android:noHistory="true">
+            android:noHistory="true"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".History"
+            android:label="@string/title_activity_history" >
         </activity>
     </application>
 

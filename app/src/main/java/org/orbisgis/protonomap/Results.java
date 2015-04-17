@@ -1,7 +1,11 @@
 package org.orbisgis.protonomap;
 
+import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
@@ -42,62 +46,31 @@ public class Results extends MainActivity {
 
         // RNE PieChart
         rneChart = (PieChart) findViewById(R.id.RNEChart);
-        rneChart.setUsePercentValues(true);
-        rneChart.setHoleColorTransparent(true);
-        rneChart.setHoleRadius(40f);
-        rneChart.setDescription("");
-        rneChart.setDrawCenterText(true);
-        rneChart.setDrawHoleEnabled(true);
-        rneChart.setRotationAngle(0);
-        rneChart.setRotationEnabled(true);
-        rneChart.setDrawSliceText(false);
-        // mChart.setUnit(" €");
-        // mChart.setDrawUnitsInChart(true);
-        // rneChart.setOnChartValueSelectedListener((OnChartValueSelectedListener) this);
-        // mChart.setTouchEnabled(false);
-        rneChart.setCenterText("RNE");
-        rneChart.setCenterTextColor(Color.WHITE);
+        initRNEChart();
         setRNEData(4, 100);
-        //rneChart.animateXY(1500, 1500, EasingFunction.EaseInOutQuad, EasingFunction.EaseInOutQuad);
-        //rneChart.spin(2000, 0, 360);
         Legend lrne = rneChart.getLegend();
         lrne.setTextColor(Color.WHITE);
         lrne.setTextSize(8f);
         lrne.setPosition(LegendPosition.RIGHT_OF_CHART_CENTER);
-        lrne.setEnabled(true); // Hide legend
+        lrne.setEnabled(true);
 
         // NEI PieChart
         neiChart = (PieChart) findViewById(R.id.NEIChart);
-        neiChart.setUsePercentValues(true);
-        neiChart.setHoleColorTransparent(true);
-        neiChart.setHoleRadius(75f);
-        neiChart.setDescription("");
-        neiChart.setDrawCenterText(true);
-        neiChart.setDrawHoleEnabled(true);
-        neiChart.setRotationAngle(90);
-        neiChart.setRotationEnabled(true);
-        neiChart.setDrawSliceText(false);
-        // mChart.setUnit(" €");
-        // mChart.setDrawUnitsInChart(true);
-        // rneChart.setOnChartValueSelectedListener((OnChartValueSelectedListener) this);
-        // mChart.setTouchEnabled(false);
+        initNEIChart();
         setNEIData(100);
-        neiChart.setCenterText(String.format("%.1f", Leqi).concat(" dB(A)"));
-        neiChart.setCenterTextSize(15);
-        neiChart.setCenterTextColor(Color.WHITE);
-        //rneChart.animateXY(1500, 1500, EasingFunction.EaseInOutQuad, EasingFunction.EaseInOutQuad);
-        //rneChart.spin(2000, 0, 360);
         Legend lnei = neiChart.getLegend();
-        //lnei.setPosition(LegendPosition.RIGHT_OF_CHART);
-        lnei.setEnabled(false); // Hide legend
-
-        // Change the text and the textcolor in the corresponding textview
-        // for the Leqi value
-        //final TextView mTextView = (TextView) findViewById(R.id.textView_value_SEL);
-        //mTextView.setText(String.format("%.1f", Leqi));
+        lnei.setEnabled(false);
 
         // Cumulated spectrum
         sChart = (BarChart) findViewById(R.id.spectrumChart);
+        initSpectrumChart();
+        setDataS(30, 115);
+        Legend ls = sChart.getLegend();
+        ls.setEnabled(false); // Hide legend
+
+    }
+
+    public void initSpectrumChart(){
         sChart.setDrawBarShadow(false);
         sChart.setDescription("");
         sChart.setPinchZoom(false);
@@ -118,14 +91,10 @@ public class Results extends MainActivity {
         yls.setStartAtZero(true);
         yls.setTextColor(Color.WHITE);
         yls.setGridColor(Color.WHITE);
-        setDataS(30, 115);
         // YAxis parameters (right): no axis, hide all
         YAxis yrs = sChart.getAxisRight();
         yrs.setEnabled(false);
-        // Legend: hide all
-        Legend ls = sChart.getLegend();
-        ls.setEnabled(false); // Hide legend
-
+        //return true;
     }
 
     // Generate artificial data for spectrum representation
@@ -159,6 +128,22 @@ public class Results extends MainActivity {
         data.setValueTextSize(10f);
 
         sChart.setData(data);
+    }
+
+    // Init RNE Pie Chart
+    public void initRNEChart(){
+        rneChart.setUsePercentValues(true);
+        rneChart.setHoleColorTransparent(true);
+        rneChart.setHoleRadius(40f);
+        rneChart.setDescription("");
+        rneChart.setDrawCenterText(true);
+        rneChart.setDrawHoleEnabled(true);
+        rneChart.setRotationAngle(0);
+        rneChart.setRotationEnabled(true);
+        rneChart.setDrawSliceText(false);
+        rneChart.setCenterText("RNE");
+        rneChart.setCenterTextColor(Color.WHITE);
+        //return true;
     }
 
 
@@ -198,6 +183,20 @@ public class Results extends MainActivity {
         //rneChart.invalidate();
     }
 
+    public void initNEIChart() {
+        // NEI PieChart
+        neiChart.setUsePercentValues(true);
+        neiChart.setHoleColorTransparent(true);
+        neiChart.setHoleRadius(75f);
+        neiChart.setDescription("");
+        neiChart.setDrawCenterText(true);
+        neiChart.setDrawHoleEnabled(true);
+        neiChart.setRotationAngle(90);
+        neiChart.setRotationEnabled(true);
+        neiChart.setDrawSliceText(false);
+        //return true;
+    }
+
     // Generate artificial data for NEI
     private void setNEIData(float range) {
 
@@ -228,9 +227,14 @@ public class Results extends MainActivity {
         data.setDrawValues(false);
         neiChart.setData(data);
 
+        neiChart.setCenterText(String.format("%.1f", Leqi).concat(" dB(A)"));
+        neiChart.setCenterTextSize(15);
+        neiChart.setCenterTextColor(Color.WHITE);
+
         // undo all highlights
         //rneChart.highlightValues(null);
         //rneChart.invalidate();
     }
+
 
 }

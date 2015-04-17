@@ -20,6 +20,7 @@ public class Start extends Activity {
 
     final Start myActivity = this;
 
+    /* TODO : check GPS, Data Transfer, microphone... */
     thread=  new Thread(){
         @Override
         public void run(){

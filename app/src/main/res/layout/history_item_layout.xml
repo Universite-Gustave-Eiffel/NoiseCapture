@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:gravity="left|center_vertical"
+        android:layout_gravity="center_horizontal"
+        android:weightSum="1">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="SEL dB(A)"
+            android:id="@+id/textView_SEL_item_history"
+            android:background="#888"
+            android:padding="10dp"
+            android:textStyle="bold"
+            android:textSize="14dp"
+            android:gravity="center_vertical|center_horizontal"
+            android:layout_margin="10dp" />
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="New Text"
+                android:id="@+id/textView_Date_item_history"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:textColor="#0099cc" />
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="New Text"
+                    android:id="@+id/textView_Id_item_history"
+                    android:textSize="12sp" />
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+</RelativeLayout>

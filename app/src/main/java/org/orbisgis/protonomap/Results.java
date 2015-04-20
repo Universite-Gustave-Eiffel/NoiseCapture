@@ -1,10 +1,13 @@
 package org.orbisgis.protonomap;
 
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.github.mikephil.charting.charts.BarChart;
@@ -67,6 +70,32 @@ public class Results extends MainActivity {
         setDataS(30, 115);
         Legend ls = sChart.getLegend();
         ls.setEnabled(false); // Hide legend
+
+        // Enabled/disabled history button if necessary
+        ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
+        checkHistoryButton();
+        // Action on History button
+        buttonhistory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Go to history page
+                gotoHistory();
+            }
+        });
+
+        // Action on record button
+        ImageButton buttonrecord= (ImageButton) findViewById(R.id.recordBtn);
+        buttonrecord.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Go to Measurement activity
+                Intent im = new Intent(getApplicationContext(),Measurement.class);
+                mDrawerLayout.closeDrawer(mDrawerList);
+                startActivity(im);
+                //buttonrecord.setOnClickListener(new Measurement.DoProcessing(getApplicationContext(), this));
+            }
+        });
+
 
     }
 

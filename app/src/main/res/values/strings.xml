@@ -6,7 +6,9 @@
     <string name="action_about">About</string>
 
     <string name="record_button_string">Start record</string>
-    <string name="record_message">Press the button in order to start the recording</string>
+    <string name="record_message">Press the record button to start</string>
+    <string name="no_results">There is no result. Start a record before.</string>
+    <string name="no_history">History is empty. Start a record before.</string>
 
     <string name="title_menu">Menu</string>
     <string name="title_activity_measurement">Measurement</string>

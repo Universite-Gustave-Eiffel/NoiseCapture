@@ -12,6 +12,7 @@ import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.media.audiofx.Equalizer;
 import android.media.audiofx.Visualizer;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v4.widget.DrawerLayout;
@@ -26,6 +27,7 @@ import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.charts.BarChart;
@@ -45,7 +47,8 @@ import java.util.ArrayList;
 
 public class Measurement extends MainActivity {
 
-    public ImageButton button;
+    //public ImageButton buttonrecord;
+    //public ImageButton buttoncancel;
     static float Leqi;
 
     // For the Charts
@@ -56,12 +59,17 @@ public class Measurement extends MainActivity {
     private String[] ltob;  // List of third-octave bands (defined as ressources)
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_measurement);
         initDrawer();
+
+        // Message for starting a record
+        Toast.makeText(getApplicationContext(),
+                getString(R.string.record_message), Toast.LENGTH_LONG).show();
 
         // Check if the dialog box (for caution) must be displayed
         // Depending of the settings
@@ -77,9 +85,62 @@ public class Measurement extends MainActivity {
                     .show();
         }
 
+        // Enabled/disabled buttons
+        // history disabled; cancel enabled; record button enabled
+        ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
+        checkHistoryButton();
+        ImageButton buttoncancel= (ImageButton) findViewById(R.id.cancelBtn);
+        buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
+        buttoncancel.setEnabled(false);
+
         // To start a record (test mode)
-        button=(ImageButton)findViewById(R.id.recordBtn);
-        button.setOnClickListener(new DoProcessing(getApplicationContext(), this));
+        ImageButton buttonrecord=(ImageButton)findViewById(R.id.recordBtn);
+        buttonrecord.setImageResource(R.drawable.button_record_normal);
+        buttonrecord.setEnabled(true);
+
+        // Actions on record button
+        buttonrecord.setOnClickListener(new DoProcessing(getApplicationContext(), this));
+
+        // Action on cancel button (during recording)
+        buttoncancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                // Stop measurement
+                isRecording=false;
+
+                // Stop and reset chronometer
+                Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer_recording_time);
+                chronometer.stop();
+                chronometer.setText("00:00");
+
+                // Stop measurement
+                isRecording=false;
+
+                // Enabled/disabled buttons after measurement
+                // history enabled or disabled (if isHistory); cancel disable; record button enabled
+                checkHistoryButton();
+                ImageButton buttoncancel= (ImageButton) findViewById(R.id.cancelBtn);
+                buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
+                buttoncancel.setEnabled(false);
+                ImageButton buttonrecord=(ImageButton)findViewById(R.id.recordBtn);
+                buttonrecord.setImageResource(R.drawable.button_record);
+                buttoncancel.setEnabled(true);
+
+                // Goto the Results activity
+                isResults = false;
+
+            }
+        });
+
+        // Action on History button
+        buttonhistory.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Go to history page
+                gotoHistory();
+            }
+        });
 
         // Instantaneous sound level VUMETER
         // Horizontal barchart
@@ -308,19 +369,74 @@ public class Measurement extends MainActivity {
             Color.rgb(0, 128, 255), Color.rgb(102, 178, 255), Color.rgb(204, 229, 255),
     };
 
-    private static class DoProcessing implements CompoundButton.OnClickListener {
+    public static class DoProcessing implements CompoundButton.OnClickListener {
         private Context context;
         private Measurement activity;
 
 
-        private DoProcessing(Context context, Measurement activity) {
+        public DoProcessing(Context context, Measurement activity) {
             this.context = context;
             this.activity = activity;
         }
 
         @Override
         public void onClick(View v) {
-            new Thread(new ProcessThread(context, activity)).start();
+
+            // Update buttons: history disabled; cancel enabled; record button to stop
+            ImageButton buttonhistory= (ImageButton) activity.findViewById(R.id.historyBtn);
+            buttonhistory.setImageResource(R.drawable.button_history_disabled);
+            buttonhistory.setEnabled(false);
+            ImageButton buttoncancel= (ImageButton) activity.findViewById(R.id.cancelBtn);
+            buttoncancel.setImageResource(R.drawable.button_cancel_normal);
+            buttoncancel.setEnabled(true);
+            ImageButton buttonrecord= (ImageButton) activity.findViewById(R.id.recordBtn);
+            buttonrecord.setImageResource(R.drawable.button_record_pressed);
+
+            if (!isRecording) {
+
+                // Start measurement
+                isRecording=true;
+
+                // Start chronometer
+                Chronometer chronometer = (Chronometer) activity.findViewById(R.id.chronometer_recording_time);
+                chronometer.setBase(SystemClock.elapsedRealtime());
+                chronometer.start();
+
+                // Start recording
+                new Thread(new ProcessThread(context, activity)).start();
+            }
+            else
+            {
+                // Stop measurement
+                isRecording=false;
+
+                // Enabled/disabled buttons after measurement
+                // history enabled or disabled (if isHistory); cancel disable; record button enabled
+                if (isHistory){
+                    buttonhistory.setImageResource(R.drawable.button_history_normal);
+                    buttonhistory.setEnabled(true);
+                }
+                else {
+                    buttonhistory.setImageResource(R.drawable.button_history_disabled);
+                    buttonhistory.setEnabled(false);
+                }
+                buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
+                buttoncancel.setEnabled(false);
+                buttonrecord.setImageResource(R.drawable.button_record);
+                buttoncancel.setEnabled(true);
+
+                // Goto the Results activity
+                isResults = true;
+                Intent ir = new Intent(context, Results.class);
+                activity.startActivity(ir);
+
+                // Stop and reset chronometer
+                Chronometer chronometer = (Chronometer) activity.findViewById(R.id.chronometer_recording_time);
+                chronometer.stop();
+                chronometer.setText("00:00");
+
+                // TODO save the results to the webphone storage and send data to the server (check if data transfer); add results to history change isHistory to true
+            }
         }
     }
 
@@ -370,7 +486,8 @@ public class Measurement extends MainActivity {
             }
             */
 
-            for (int i = 1; i < 50; i++) {
+            // TODO: check duration time in user preferences
+            while (isRecording) {
 
                 activity.runOnUiThread(new UpdateText(activity));
                 try {
@@ -381,8 +498,8 @@ public class Measurement extends MainActivity {
 
             }
 
-            Intent ir = new Intent(context, Results.class);
-            activity.startActivity(ir);
+            //Intent ir = new Intent(context, Results.class);
+            //activity.startActivity(ir);
         }
     }
 
@@ -397,10 +514,6 @@ public class Measurement extends MainActivity {
         @Override
         public void run() {
 
-            // Start chronometer
-            chronometer = (Chronometer) activity.findViewById(R.id.chronometer_recording_time);
-            chronometer.start();
-
             // Vumeter data
             activity.setData(135);
             // Change the text and the textcolor in the corresponding textview
@@ -414,6 +527,8 @@ public class Measurement extends MainActivity {
             // Spectrum data
             activity.setDataSA(30, 135);
         }
+
     }
+
 }
 

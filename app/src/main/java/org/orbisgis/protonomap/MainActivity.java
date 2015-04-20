@@ -19,7 +19,9 @@ import android.view.View;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Toast;
 
 
 public class MainActivity extends ActionBarActivity {
@@ -35,6 +37,10 @@ public class MainActivity extends ActionBarActivity {
     // For the menu option
     public static String pagetosee;
     public static String titletosee;
+
+    public static boolean isRecording=false;
+    public static boolean isResults=false;
+    public static boolean isHistory=true; // must be false but just for the testing
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,20 +110,18 @@ public class MainActivity extends ActionBarActivity {
 
             switch(position) {
                 case 0:
+                    // Measurement
                     Intent im = new Intent(getApplicationContext(),Measurement.class);
-                    pagetosee=getString(R.string.url_help);
-                    titletosee=getString((R.string.title_activity_help));
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(im);
                     break;
                 case 1:
-                    // Results:
-                    // TODO : make visible only if there is a result
+                    // Results
+                    gotoResults();
                     break;
                 case 2:
-                    Intent a = new Intent(getApplicationContext(), History.class);
-                    startActivity(a);
-                    mDrawerLayout.closeDrawer(mDrawerList);
+                    // History
+                    gotoHistory();
                     break;
                 case 3:
                     // Show the map if data transfer settings is true
@@ -294,6 +298,48 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return colors;
+    }
+
+    public final void gotoHistory(){
+
+        if (isHistory) {
+            Intent a = new Intent(getApplicationContext(), History.class);
+            startActivity(a);
+            mDrawerLayout.closeDrawer(mDrawerList);
+        }
+        else {
+            // Message for starting a record
+            Toast.makeText(getApplicationContext(),
+                    getString(R.string.no_history), Toast.LENGTH_LONG).show();
+        }
+
+    }
+
+    public final void gotoResults() {
+        if (isResults) {
+            Intent ir = new Intent(getApplicationContext(), Results.class);
+            mDrawerLayout.closeDrawer(mDrawerList);
+            startActivity(ir);
+        }
+        else {
+            // Message for starting a record
+            Toast.makeText(getApplicationContext(),
+                    getString(R.string.no_results), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public final void checkHistoryButton() {
+        // Enabled/disabled buttons
+        // history disabled; cancel enabled; record button enabled
+        ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
+        if (isHistory){
+            buttonhistory.setImageResource(R.drawable.button_history_normal);
+            buttonhistory.setEnabled(true);
+        }
+        else {
+            buttonhistory.setImageResource(R.drawable.button_history_disabled);
+            buttonhistory.setEnabled(false);
+        }
     }
 
 }

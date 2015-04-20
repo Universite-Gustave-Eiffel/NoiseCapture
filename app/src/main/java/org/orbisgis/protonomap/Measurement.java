@@ -82,7 +82,28 @@ public class Measurement extends MainActivity {
         button.setOnClickListener(new DoProcessing(getApplicationContext(), this));
 
         // Instantaneous sound level VUMETER
+        // Horizontal barchart
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
+        initVueMeter();
+        setData(0);
+        // Legend: hide all
+        Legend lv = mChart.getLegend();
+        lv.setEnabled(false); // Hide legend
+
+        // Instantaneous spectrum
+        // Stacked bars are used for represented Min, Current and Max values
+        sChart = (BarChart) findViewById(R.id.spectrumChart);
+        initSpectrum();
+        // Data (before legend)
+        setDataSA(30, 0);
+        // 30 values for each third-octave band// Legend: hide all
+        Legend ls = sChart.getLegend();
+        ls.setEnabled(false); // Hide legend
+
+    }
+
+    // Init RNE Pie Chart
+    public void initVueMeter(){
         mChart.setDrawBarShadow(false);
         mChart.setDescription("");
         mChart.setPinchZoom(false);
@@ -107,15 +128,10 @@ public class Measurement extends MainActivity {
         // YAxis parameters (right): no axis, hide all
         YAxis yrv = mChart.getAxisRight();
         yrv.setEnabled(false);
-        // Data (before legend)
-        setData(0);
-        // Legend: hide all
-        Legend lv = mChart.getLegend();
-        lv.setEnabled(false); // Hide legend
+        //return true;
+    }
 
-        // Instantaneous spectrum
-        // Stacked bars are used for represented Min, Current and Max values
-        sChart = (BarChart) findViewById(R.id.spectrumChart);
+    public void initSpectrum() {
         sChart.setDrawBarShadow(false);
         sChart.setDescription("");
         sChart.setPinchZoom(false);
@@ -141,13 +157,7 @@ public class Measurement extends MainActivity {
         // YAxis parameters (right): no axis, hide all
         YAxis yrs = sChart.getAxisRight();
         yrs.setEnabled(false);
-        // Data (before legend)
-        setDataSA(30, 0);
-        // 30 values for each third-octave band// Legend: hide all
-        Legend ls = sChart.getLegend();
-        ls.setEnabled(false); // Hide legend
-
-    }
+     }
 
     /***
      * Checks that application runs first time and write flags at SharedPreferences

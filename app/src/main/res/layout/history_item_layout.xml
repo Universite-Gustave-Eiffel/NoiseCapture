@@ -8,7 +8,8 @@
         android:layout_height="wrap_content"
         android:gravity="left|center_vertical"
         android:layout_gravity="center_horizontal"
-        android:weightSum="1">
+        android:weightSum="1"
+        android:id="@+id/linearLayout6">
 
         <TextView
             android:layout_width="wrap_content"
@@ -24,7 +25,7 @@
 
         <LinearLayout
             android:orientation="vertical"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
             <TextView

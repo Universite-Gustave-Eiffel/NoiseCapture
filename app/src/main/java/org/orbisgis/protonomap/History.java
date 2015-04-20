@@ -51,6 +51,7 @@ public class History extends MainActivity {
 
         ListView infohistory = (ListView)findViewById(R.id.listiew_history);
         infohistory.setAdapter(historyListAdapter);
+        infohistory.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
         infohistory.setOnItemClickListener(new OnItemClickListener() {
 
@@ -58,9 +59,9 @@ public class History extends MainActivity {
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
                                     long arg3) {
 
-                informationHistory chapter = historyListAdapter.getInformationHistory(arg2);
+                informationHistory history = historyListAdapter.getInformationHistory(arg2);
 
-                Toast.makeText(History.this, chapter.Id,Toast.LENGTH_LONG).show();
+                Toast.makeText(History.this, history.Id,Toast.LENGTH_LONG).show();
 
             }
         });

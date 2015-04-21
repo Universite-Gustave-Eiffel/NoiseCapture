@@ -18,7 +18,7 @@ public class Map extends MainActivity {
         setContentView(R.layout.activity_map);
         initDrawer();
 
-        // Fill the spinner__map
+        // Fill the spinner_map
         Spinner spinner = (Spinner) findViewById(R.id.spinner_map);
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
                 R.array.choice_user_map, android.R.layout.simple_spinner_item);

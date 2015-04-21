@@ -19,7 +19,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/fullscreen_text_title"
+            android:text="@string/start_text_title"
             android:id="@+id/textView_title_start_activity"
             android:textSize="50dp"
             android:textColor="#0099CC"
@@ -30,7 +30,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/fullscreen_text_subtitle"
+            android:text="@string/start_text_subtitle"
             android:id="@+id/textView_subtitle_start_activity"
             android:gravity="center_horizontal"
             android:layout_gravity="center_horizontal"
@@ -52,7 +52,7 @@
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/fullscreen_text_power_by"
+                android:text="@string/start_text_developed_by"
                 android:id="@+id/textView_Power_by"
                 android:gravity="center_horizontal"
                 android:layout_gravity="center_horizontal"
@@ -103,7 +103,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/fullscreen_text_support_by"
+                    android:text="@string/start_text_supported_by"
                     android:id="@+id/textView_Support_by"
                     android:gravity="center_horizontal"
                     android:layout_gravity="center_horizontal"

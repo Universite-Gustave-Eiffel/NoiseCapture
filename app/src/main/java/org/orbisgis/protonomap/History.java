@@ -12,9 +12,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -46,9 +48,15 @@ public class History extends MainActivity {
         setContentView(R.layout.activity_history);
         initDrawer();
 
+        // Fill the spinner_history
+        Spinner spinner = (Spinner) findViewById(R.id.spinner_history);
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.choice_user_history, android.R.layout.simple_spinner_item);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
 
+        // Fill the listview
         historyListAdapter = new InformationHistoryAdapter();
-
         ListView infohistory = (ListView)findViewById(R.id.listiew_history);
         infohistory.setAdapter(historyListAdapter);
         infohistory.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
@@ -60,8 +68,7 @@ public class History extends MainActivity {
                                     long arg3) {
 
                 informationHistory history = historyListAdapter.getInformationHistory(arg2);
-
-                Toast.makeText(History.this, history.Id,Toast.LENGTH_LONG).show();
+                //Toast.makeText(History.this, history.Id,Toast.LENGTH_LONG).show();
 
             }
         });

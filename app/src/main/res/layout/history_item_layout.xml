@@ -21,7 +21,10 @@
             android:textStyle="bold"
             android:textSize="14dp"
             android:gravity="center_vertical|center_horizontal"
-            android:layout_margin="10dp" />
+            android:layout_margin="10dp"
+            android:elegantTextHeight="false"
+            android:shadowColor="#000"
+            android:shadowRadius="10"/>
 
         <LinearLayout
             android:orientation="vertical"
@@ -35,7 +38,7 @@
                 android:id="@+id/textView_Date_item_history"
                 android:textSize="20sp"
                 android:textStyle="bold"
-                android:textColor="#0099cc" />
+                android:textColor="#fff" />
 
             <TextView
                     android:layout_width="wrap_content"

@@ -369,12 +369,12 @@ public class Measurement extends MainActivity {
             Color.rgb(0, 128, 255), Color.rgb(102, 178, 255), Color.rgb(204, 229, 255),
     };
 
-    public static class DoProcessing implements CompoundButton.OnClickListener {
+    private static class DoProcessing implements CompoundButton.OnClickListener {
         private Context context;
         private Measurement activity;
 
 
-        public DoProcessing(Context context, Measurement activity) {
+        private DoProcessing(Context context, Measurement activity) {
             this.context = context;
             this.activity = activity;
         }

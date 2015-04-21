@@ -23,6 +23,7 @@ import com.github.mikephil.charting.components.Legend.LegendPosition;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.utils.Highlight;
 import com.github.mikephil.charting.utils.PercentFormatter;
 
 import java.util.ArrayList;
@@ -50,7 +51,7 @@ public class Results extends MainActivity {
         // RNE PieChart
         rneChart = (PieChart) findViewById(R.id.RNEChart);
         initRNEChart();
-        setRNEData(4, 100);
+        setRNEData(5, 100);
         Legend lrne = rneChart.getLegend();
         lrne.setTextColor(Color.WHITE);
         lrne.setTextSize(8f);
@@ -92,7 +93,7 @@ public class Results extends MainActivity {
                 Intent im = new Intent(getApplicationContext(),Measurement.class);
                 mDrawerLayout.closeDrawer(mDrawerList);
                 startActivity(im);
-                //buttonrecord.setOnClickListener(new Measurement.DoProcessing(getApplicationContext(), this));
+                //DoProcessing(getApplicationContext(), this);
             }
         });
 
@@ -157,6 +158,7 @@ public class Results extends MainActivity {
         data.setValueTextSize(10f);
 
         sChart.setData(data);
+        sChart.invalidate();
     }
 
     // Init RNE Pie Chart
@@ -180,6 +182,7 @@ public class Results extends MainActivity {
     private void setRNEData(int count, float range) {
 
         float mult3 = range;
+        double[] tab = new double[count];
         int[] color_rep=NE_COLORS();
 
         ArrayList<Entry> yVals1 = new ArrayList<Entry>();
@@ -187,8 +190,10 @@ public class Results extends MainActivity {
         // IMPORTANT: In a PieChart, no values (Entry) should have the same
         // xIndex (even if from different DataSets), since no values can be
         // drawn above each other.
-        for (int i = 0; i < count + 1; i++) {
-            yVals1.add(new Entry((float) (Math.random() * mult3) + mult3 / 5, i));
+        for (int i = 0; i < count ; i++) {
+            double randomvalue=(Math.random() * mult3) + mult3 / 5;
+            yVals1.add(new Entry((float) randomvalue, i));
+            tab[i]=randomvalue;
         }
 
         ArrayList<String> xVals = new ArrayList<String>();
@@ -207,9 +212,30 @@ public class Results extends MainActivity {
         data.setValueTextColor(Color.BLACK);
         rneChart.setData(data);
 
-        // undo all highlights
-        //rneChart.highlightValues(null);
-        //rneChart.invalidate();
+        // highlight the maximum value of the RNE
+        // Find the maximum of the array, in order to be highlighted
+        int pos=posmax(tab, count);
+        Highlight h = new Highlight(pos, 0);
+        rneChart.highlightValues(new Highlight[] { h });
+        rneChart.invalidate();
+    }
+
+    // Find the position of the maximum of an array
+    public int posmax(double[] tab, int size){
+        {
+            int pos = 0;
+            int i = 0;
+
+            while (i < size)
+            {
+                if (tab[i] > tab[pos])
+                    pos = i;
+
+                i++;
+            }
+
+            return pos;
+        }
     }
 
     public void initNEIChart() {
@@ -223,6 +249,9 @@ public class Results extends MainActivity {
         neiChart.setRotationAngle(90);
         neiChart.setRotationEnabled(true);
         neiChart.setDrawSliceText(false);
+        neiChart.setTouchEnabled(false);
+        neiChart.setCenterTextSize(15);
+        neiChart.setCenterTextColor(Color.WHITE);
         //return true;
     }
 
@@ -254,15 +283,10 @@ public class Results extends MainActivity {
         data.setValueTextSize(11f);
         data.setValueTextColor(Color.BLACK);
         data.setDrawValues(false);
+
         neiChart.setData(data);
-
         neiChart.setCenterText(String.format("%.1f", Leqi).concat(" dB(A)"));
-        neiChart.setCenterTextSize(15);
-        neiChart.setCenterTextColor(Color.WHITE);
-
-        // undo all highlights
-        //rneChart.highlightValues(null);
-        //rneChart.invalidate();
+        rneChart.invalidate();
     }
 
 

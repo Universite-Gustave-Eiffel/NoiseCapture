@@ -116,7 +116,7 @@ public class SignalProcessing extends ActionBarActivity {
         public void run() {
             InputStream inputStream = context.getResources().openRawResource(R.raw.record_test);
             try {
-                final int rate = 44100;
+                final int rate = 48000;
                 CoreSignalProcessing signalProcessing = new CoreSignalProcessing(rate);
                 signalProcessing.addPropertyChangeListener(CoreSignalProcessing.PROP_SPECTRUM ,new RenderSpectrum(textView, signalProcessing, activity));
                 signalProcessing.processAudio(16, rate, inputStream);

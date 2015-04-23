@@ -105,7 +105,7 @@ public class Record extends ActionBarActivity {
             this.rootView = rootView;
             this.recording = recording;
             this.recordDestination = recordDestination;
-            final int[] mSampleRates = new int[] { 8000, 11025, 22050, 44100 };
+            final int[] mSampleRates = new int[] { 8000, 11025, 22050, 44100, 48000 };
             final int[] encodings = new int[] { AudioFormat.ENCODING_PCM_16BIT , AudioFormat.ENCODING_PCM_8BIT };
             final short[] audioChannels = new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO };
             for (int tryRate : mSampleRates) {

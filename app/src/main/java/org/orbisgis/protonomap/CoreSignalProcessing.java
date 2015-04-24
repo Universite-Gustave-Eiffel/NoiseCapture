@@ -28,6 +28,7 @@ public class CoreSignalProcessing {
     private double[] spectrum;
     public static String PROP_SPECTRUM = "PROP_SPECTRUM";
     private final ThirdOctaveFrequencies.LowHigh[] thrdOctFreqs;
+    private final ThirdOctaveFrequencies.BoundFrequenciesIndexes boundFrequencies;
     private IirFilterCoefficients[] freqFilter = new IirFilterCoefficients[ThirdOctaveFrequencies.STANDARD_FREQUENCIES.length];
     /*
     Filter function implemented as a direct form II transposed structure
@@ -63,11 +64,14 @@ public class CoreSignalProcessing {
     public CoreSignalProcessing(int sampleRate) {
         this.sampleRate = sampleRate;
         this.thrdOctFreqs = new ThirdOctaveFrequencies.LowHigh[ThirdOctaveFrequencies.STANDARD_FREQUENCIES.length];
+        double lowerFreq = 100.;
+        double higherFreq = 5000.;
         int filterOrder = 3;
+        this.boundFrequencies = ThirdOctaveFrequencies.getBoundFrequenciesIndexes(lowerFreq, higherFreq);
         /*
         Loop over third octave bands
          */
-        for (int idFreq = 0; idFreq < thrdOctFreqs.length; idFreq++) {
+        for (int idFreq = boundFrequencies.idLow; idFreq <= boundFrequencies.idHigh; idFreq++) {
             thrdOctFreqs[idFreq] = ThirdOctaveFrequencies.getLatFreqs(idFreq);
             double fCfLow = thrdOctFreqs[idFreq].low / sampleRate;
             double fCfHigh = thrdOctFreqs[idFreq].high / sampleRate;
@@ -132,14 +136,14 @@ public class CoreSignalProcessing {
         /*
         Loop over third octave bands frequencies
          */
-        for (int idFreq = 0; idFreq<freqFilter.length; idFreq++) {
+        for (int idFreq = boundFrequencies.idLow; idFreq <= boundFrequencies.idHigh; idFreq++) {
             ArrayList<Double> inputSignal = new ArrayList<Double>(samples.length);
             ArrayList<Double> outputSignal = new ArrayList<Double>(samples.length);
             for (double sample : samples) {
                 inputSignal.add(sample);
                 filter(freqFilter[idFreq].b, freqFilter[idFreq].a, inputSignal, outputSignal);
             }
-            for (int i = 0; i<samples.length; i++) {
+            for (int i = 0; i < samples.length; i++) {
                 filteredSignal[i] = outputSignal.get(i);
             }
             /*
@@ -147,7 +151,7 @@ public class CoreSignalProcessing {
              */
             spl[idFreq] = getLeq(filteredSignal, filteredSignal.length, pRef);
         }
-        setSpectrum(Arrays.copyOf(spl, 8));
+        setSpectrum(Arrays.copyOf(spl, 10));
     }
 
     public void addPropertyChangeListener(String property, PropertyChangeListener listener) {

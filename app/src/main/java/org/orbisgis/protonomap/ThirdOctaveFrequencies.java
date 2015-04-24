@@ -1,5 +1,7 @@
 package org.orbisgis.protonomap;
 
+import java.util.Arrays;
+
 /**
  * Calculation of the central and lateral frequencies of the third octave bands.
  */
@@ -35,7 +37,6 @@ public class ThirdOctaveFrequencies {
         return new LowHigh(ctrFreq, lowFreq, highFreq);
     }
 
-
     /** Low lateral frequency for the third octave band
      * @param fCtr center frequency (Hz)
      */
@@ -62,4 +63,21 @@ public class ThirdOctaveFrequencies {
             this.high = high;
         }
     }
+
+    public static BoundFrequenciesIndexes getBoundFrequenciesIndexes(double lowFreq, double highFreq) {
+        int idLow = Arrays.binarySearch(STANDARD_FREQUENCIES, lowFreq);
+        int idHigh = Arrays.binarySearch(STANDARD_FREQUENCIES, highFreq);
+        return new BoundFrequenciesIndexes(idLow, idHigh);
+    }
+
+    public static class BoundFrequenciesIndexes {
+        public final int idLow;
+        public final int idHigh;
+
+        public BoundFrequenciesIndexes(int idLow, int idHigh) {
+            this.idLow = idLow;
+            this.idHigh = idHigh;
+        }
+    }
+
 }

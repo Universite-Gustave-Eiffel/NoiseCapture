@@ -16,19 +16,11 @@
         android:layout_alignParentEnd="true">
 
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="SEL dB(A)"
-            android:id="@+id/textView_SEL_item_history"
-            android:background="#888"
-            android:padding="10dp"
-            android:textStyle="bold"
-            android:textSize="14sp"
-            android:gravity="center_vertical|center_horizontal"
-            android:layout_margin="10dp"
-            android:elegantTextHeight="false"
-            android:shadowColor="#000"
-            android:shadowRadius="10"/>
+            android:layout_width="12dp"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/textView_SEL_bar_item_history"
+            android:layout_marginRight="4dp" />
 
         <LinearLayout
             android:orientation="vertical"
@@ -39,9 +31,20 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:text="SEL dB(A)"
+                android:id="@+id/textView_SEL_item_history"
+                android:textStyle="bold"
+                android:textSize="12dp"
+                android:gravity="center_vertical|center_horizontal"
+                android:elegantTextHeight="false"
+                android:phoneNumber="false" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="New Text"
                 android:id="@+id/textView_Date_item_history"
-                android:textSize="20sp"
+                android:textSize="12dp"
                 android:textStyle="bold"
                 android:textColor="#fff" />
 

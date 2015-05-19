@@ -84,6 +84,19 @@ public class Results extends MainActivity {
             }
         });
 
+        // Action on Map button
+        ImageButton buttonmap=(ImageButton)findViewById(R.id.mapBtn);
+        buttonmap.setImageResource(R.drawable.button_map);
+        buttonmap.setEnabled(true);
+        buttonmap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Go to map page
+                Intent a = new Intent(getApplicationContext(), Map.class);
+                startActivity(a);;
+            }
+        });
+
         // Action on record button
         ImageButton buttonrecord= (ImageButton) findViewById(R.id.recordBtn);
         buttonrecord.setOnClickListener(new View.OnClickListener() {
@@ -106,6 +119,7 @@ public class Results extends MainActivity {
         sChart.setPinchZoom(false);
         sChart.setDrawGridBackground(false);
         sChart.setMaxVisibleValueCount(0);
+        sChart.setHighlightEnabled(false);
         // XAxis parameters: hide all
         XAxis xls = sChart.getXAxis();
         xls.setPosition(XAxisPosition.BOTTOM);

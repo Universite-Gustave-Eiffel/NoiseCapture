@@ -193,6 +193,13 @@
             android:scaleType="fitCenter"
             android:background="#00000000" />
 
+        <ImageButton android:id="@+id/mapBtn"
+            android:layout_width="64dip"
+            android:layout_height="64dip"
+            android:src="@drawable/button_map"
+            android:scaleType="fitCenter"
+            android:background="#00000000" />
+
     </LinearLayout>
 
 </RelativeLayout>

@@ -8,15 +8,15 @@ import java.io.*;
 import java.util.*;
 
 /**
- * Created by molene on 02/06/2015.
+ * Created by G. Guillaume on 02/06/2015.
  */
-public class SosFiltering {
-    private static final Logger LOGGER = LoggerFactory.getLogger(SosFiltering.class);
+public class ThirdOctaveBandsFiltering {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ThirdOctaveBandsFiltering.class);
     private List<FiltersParameters> filterParameters = new ArrayList<FiltersParameters>(STANDARD_FREQUENCIES.length);
 
-    public SosFiltering() {
+    public ThirdOctaveBandsFiltering() {
 
-        csvLoad(SosFiltering.class.getResourceAsStream("Third_oct_filters_coefts.csv"));
+        csvLoad(ThirdOctaveBandsFiltering.class.getResourceAsStream("Third_oct_filters_coefts.csv"));
 
     }
 
@@ -73,16 +73,28 @@ public class SosFiltering {
     }
 
 
+    public static final double[] getStandardFrequencies() {
+        return STANDARD_FREQUENCIES;
+    }
+
     /**
      * Standard center frequencies of third octave bands
      */
     public static final double[] STANDARD_FREQUENCIES = new double[]{16, 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6000, 8000, 10000, 12500, 16000, 20000};
 
     /**
-     * @return Parameters used to filter the signal.
+     * @return List of parameters used to filter the signal.
      */
     public List<FiltersParameters> getFilterParameters() {
         return filterParameters;
+    }
+
+    /**
+     * Center frequency of third octave bands
+     * @param idFreq center frequency index
+     */
+    private static double getCtrFreq(int idFreq) {
+        return Math.pow(10., 3.) * Math.pow(2., (idFreq-18) / 3.);
     }
 
     /**
@@ -155,28 +167,19 @@ public class SosFiltering {
     /**
      * Third octave filtering
      * @param signal Raw time input signal
-     * @param filterParameters Third octave band filter coefficients
      */
-    public void thirdOctaveFiltering(double [] signal, FiltersParameters[] filterParameters){
+    public double[][] thirdOctaveFiltering(double[] signal){
         int nsamp = signal.length;
         int nfreqs = STANDARD_FREQUENCIES.length;
         double [][] filtSigs = new double[nsamp][nfreqs];
-        double [] filtSig = new double[nsamp];
         for (int idf = 0; idf < nfreqs; idf++){
-            FiltersParameters filtParams = filterParameters[idf];
-            filtSig = applySosFilter(signal, filtParams);
+            FiltersParameters filtParams = filterParameters.get(idf);
+            double[] filtSig = applySosFilter(signal, filtParams);
             for (int it = 0; it<nsamp; it++){
                 filtSigs[it][idf] = filtSig[it];
             }
         }
-    }
-
-    /**
-     * Filter coefficients for a given third octave frequency
-     * @param
-     */
-    private static double getCtrFreq(int idFreq) {
-        return Math.pow(10., 3.) * Math.pow(2., (idFreq-18) / 3.);
+        return filtSigs;
     }
 
 

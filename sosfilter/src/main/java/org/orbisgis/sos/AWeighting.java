@@ -40,10 +40,13 @@ public class AWeighting {
         double[] weightedSignal = new double[nsamp];
         double[][] z = new double[order-1][nsamp];    // Filter delays
         for (int it = 0; it < nsamp; it++){
-            weightedSignal[it] = numerator[0]*inputSignal[it] + z[0][it-1];
-            z[0][it] = numerator[1]*inputSignal[it] + z[1][it-1] - denominator[1]*inputSignal[it];
+            // Avoid iteration it=0 exception (z[0][it-1]=0)
+            weightedSignal[it] = numerator[0]*inputSignal[it] + (it == 0 ? 0 : z[0][it-1]);
+            // Avoid iteration it=0 exception (z[1][it-1]=0)
+            z[0][it] = numerator[1]*inputSignal[it] + (it == 0 ? 0 : z[1][it-1]) - denominator[1]*inputSignal[it];
             for (int k = 0; k<order-2; k++){
-                z[k][it] = numerator[k+1]*inputSignal[it] + z[k+1][it-1] - denominator[k+1]*weightedSignal[it];
+                // Avoid iteration it=0 exception (z[k+1][it-1]=0)
+                z[k][it] = numerator[k+1]*inputSignal[it] + (it ==0 ? 0 : z[k+1][it-1]) - denominator[k+1]*weightedSignal[it];
             }
             z[order-2][it] = numerator[order-1]*inputSignal[it] - denominator[order-1]*weightedSignal[it];
         }

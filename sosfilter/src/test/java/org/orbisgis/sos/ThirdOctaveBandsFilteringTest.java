@@ -18,25 +18,17 @@ public class ThirdOctaveBandsFilteringTest {
     public void testReadCsv() {
         ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering();
         List<ThirdOctaveBandsFiltering.FiltersParameters> filtersCoefficients = thirdOctaveBandsFiltering.getFilterParameters();
-        assertEquals(128, filtersCoefficients.size());
+        assertEquals(32, filtersCoefficients.size());
     }
 
     @Test
-    public void testThirdOctaveBandsFiltering() {
+    public void testThirdOctaveBandsFiltering() throws IOException{
         InputStream inputStream = ThirdOctaveBandsFilteringTest.class.getResourceAsStream("pinknoise_44.1k_-6dBFS_5s_raw");
-        try {
-            final int rate = 44100;
-            CoreSignalProcessing signalProcessing = new CoreSignalProcessing(rate);
-            signalProcessing.processAudio(16, rate, inputStream);
-        } catch (IOException ex) {
-            Log.e(ex.getLocalizedMessage(),"Processing failed", ex);
-        } finally {
-            try {
-                inputStream.close();
-            } catch (IOException ex) {
-                Log.e(ex.getLocalizedMessage(),"Close file failed", ex);
-            }
-        }
+        final int rate = 44100;
+        CoreSignalProcessing signalProcessing = new CoreSignalProcessing(rate);
+        List<double[]> leqs = signalProcessing.processAudio(16, rate, inputStream, AcousticIndicators.TIMEPERIOD_SLOW);
+        inputStream.close();
+        assertEquals(5, leqs.size());
     }
 
 }

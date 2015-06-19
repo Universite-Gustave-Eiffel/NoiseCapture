@@ -1,8 +1,5 @@
 package org.orbisgis.sos;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -17,13 +14,15 @@ import java.util.List;
  */
 public class CoreSignalProcessing {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CoreSignalProcessing.class);
     private int sampleRate;
     private double[] sampleBuffer;
     // Compute buffer length in order to reduce the discrepancies
     private static final int MINIMUM_COMPLETE_PERIOD = 80/5;
 
     public CoreSignalProcessing(int sampleRate) {
+        if (sampleRate != 44100) {
+            throw new IllegalArgumentException("Sampling rate is different from 44100 Hz");
+        }
         this.sampleRate = sampleRate;
         this.sampleBuffer = new double[sampleRate * (MINIMUM_COMPLETE_PERIOD / (int)ThirdOctaveFrequencies.STANDARD_FREQUENCIES[0])];
         Arrays.fill(sampleBuffer, 0);
@@ -37,7 +36,12 @@ public class CoreSignalProcessing {
     }
 
 
-    public double[][] filterSignal(double[] samples) {
+    /**
+     *
+     * @param samples
+     * @return double[Freq][t]
+     */
+    public static double[][] filterSignal(double[] samples) {
 
         /**
          * Apply the A-weighting filter to the input signal
@@ -87,35 +91,41 @@ public class CoreSignalProcessing {
             }
             if (secondCursor == rate) {
                 addSample(secondSample);
+                allLeq.addAll(processSamples(leqPeriod));
                 secondCursor = 0;
             }
         }
-        LOGGER.debug("Total read:" + totalRead);
         return allLeq;
     }
 
     /**
      * @param leqPeriod {@link AcousticIndicators#TIMEPERIOD_FAST} or {@link AcousticIndicators#TIMEPERIOD_SLOW}
+     * @return List of
      */
     private List<double[]> processSamples(double leqPeriod) {
         int nbFrequencies = ThirdOctaveBandsFiltering.getStandardFrequencies().length;
         List<double[]> leq = new ArrayList<double[]>();
         int signalLength = sampleBuffer.length;
         double[][] filteredSignals;
+        final int subSamplesLength = (int)(leqPeriod * sampleRate);      // Sub-samples length
+        final int nbSubSamples = (int)(signalLength / subSamplesLength);
         /*
         A-weighting and third octave bands filtering
          */
-        CoreSignalProcessing coreSignalProcessing = new CoreSignalProcessing(sampleRate);
-        filteredSignals = coreSignalProcessing.filterSignal(sampleBuffer);
-
-        for (int idFreq = 0; idFreq <= nbFrequencies; idFreq++) {
+        filteredSignals = CoreSignalProcessing.filterSignal(sampleBuffer);
+        for(int idSample = 0; idSample < nbSubSamples; idSample++) {
+            leq.add(new double[nbFrequencies]);
+        }
+        for (int idFreq = 0; idFreq < nbFrequencies; idFreq++) {
             double[] filteredSignal = new double[filteredSignals[0].length];
             System.arraycopy(filteredSignals[idFreq], 0, filteredSignal, 0, signalLength);
-
+            double[] leqSamples = AcousticIndicators.getLeqT(filteredSignal, sampleRate, leqPeriod);
+            for(int idSample = 0; idSample < nbSubSamples; idSample++) {
+                leq.get(idSample)[idFreq] = leqSamples[idSample];
+            }
             /*
             Calculation of the equivalent sound pressure level per third octave bands
              */
-            leq.add(AcousticIndicators.getLeqT(filteredSignal, sampleRate, leqPeriod));
         }
         return leq;
     }

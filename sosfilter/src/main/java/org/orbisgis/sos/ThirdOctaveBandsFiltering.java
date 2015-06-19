@@ -58,21 +58,6 @@ public class ThirdOctaveBandsFiltering {
     }
 
 
-    public class ReturnFilterData
-    {
-        private double[] filtSig;
-        private double[][] states;
-        public ReturnFilterData(double[] filtSig, double[][] states)
-        {
-            this.filtSig = filtSig;
-            this.states = states;
-
-        }
-        public double[] getFilteredSig() { return filtSig; }
-        public double[][] getStates() { return states; }
-    }
-
-
     public static final double[] getStandardFrequencies() {
         return STANDARD_FREQUENCIES;
     }
@@ -133,7 +118,7 @@ public class ThirdOctaveBandsFiltering {
         return new ReturnFilterData(signal, states);
     }
 
-    public double[] reverse2dArray(double[] arr){
+    private double[] reverse2dArray(double[] arr){
         double[] reversedArray = new double[arr.length];
         for(int i = 0; i < arr.length; i++) {
             reversedArray[arr.length - i] = arr[i];
@@ -144,24 +129,23 @@ public class ThirdOctaveBandsFiltering {
     /**
      * applySosFilter(double[] signal, FiltersParameters coefficients)
      * @param signal Raw time input signal
-     * @param filterParams Third octave band filter coefficients (Array of size 4)
+     * @param idFreq Central frequency index
      * @return Third octave band filtered signal
      */
-    public double[] applySosFilter(double[] signal, FiltersParameters filterParams){
+    private double[] applySosFilter(double[] signal, int idFreq){
         double [][] states = new double [2][4];
         int nSamp = signal.length;
-        FiltersParameters filtParams = filterParams;
+        FiltersParameters filtParams = this.filterParameters.get(idFreq);
         Arrays.fill(states, 0.);
-        //Backward filtering
+        // Backward filtering
         double[] reversedSignal = reverse2dArray(signal);
         ReturnFilterData backwardFiltSig = sosfilter_double(reversedSignal, nSamp, filtParams, states);
         double[] backFiltSig = backwardFiltSig.getFilteredSig();
         double[][] backFiltStates = backwardFiltSig.getStates();
-        //Forward  filtering
+        // Forward  filtering
         double[] reversedFilteredSignal = reverse2dArray(backFiltSig);
         ReturnFilterData forwardFiltSig = sosfilter_double(reversedFilteredSignal, nSamp, filtParams, backFiltStates);
-        double[] forwFiltSig = forwardFiltSig.getFilteredSig();
-        return forwFiltSig;
+        return forwardFiltSig.getFilteredSig();
     }
 
     /**
@@ -171,12 +155,11 @@ public class ThirdOctaveBandsFiltering {
     public double[][] thirdOctaveFiltering(double[] signal){
         int nsamp = signal.length;
         int nfreqs = STANDARD_FREQUENCIES.length;
-        double [][] filtSigs = new double[nsamp][nfreqs];
+        double [][] filtSigs = new double[nfreqs][nsamp];
         for (int idf = 0; idf < nfreqs; idf++){
-            FiltersParameters filtParams = filterParameters.get(idf);
-            double[] filtSig = applySosFilter(signal, filtParams);
+            double[] filtSig = applySosFilter(signal, idf);
             for (int it = 0; it<nsamp; it++){
-                filtSigs[it][idf] = filtSig[it];
+                filtSigs[idf][it] = filtSig[it];
             }
         }
         return filtSigs;
@@ -199,5 +182,20 @@ public class ThirdOctaveBandsFiltering {
         public FiltersParameters(double frequency) {
             this.frequency = frequency;
         }
+    }
+
+
+    public static class ReturnFilterData
+    {
+        private double[] filtSig;
+        private double[][] states;
+        public ReturnFilterData(double[] filtSig, double[][] states)
+        {
+            this.filtSig = filtSig;
+            this.states = states;
+
+        }
+        public double[] getFilteredSig() { return filtSig; }
+        public double[][] getStates() { return states; }
     }
 }

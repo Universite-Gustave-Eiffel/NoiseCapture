@@ -28,9 +28,13 @@ public class CoreSignalProcessing {
         Arrays.fill(sampleBuffer, 0);
     }
 
+    public int getSampleRate() {
+        return sampleRate;
+    }
+
     public void addSample(double[] sample) {
         double[] newBuffer = new double[sampleBuffer.length];
-        System.arraycopy(sampleBuffer, sample.length, newBuffer, 0 ,sampleBuffer.length - sample.length);
+        System.arraycopy(sampleBuffer, sample.length, newBuffer, 0 , sampleBuffer.length - sample.length);
         System.arraycopy(sample, 0 , newBuffer, sampleBuffer.length - sample.length ,sample.length);
         sampleBuffer = newBuffer;
     }

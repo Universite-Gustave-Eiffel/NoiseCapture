@@ -15,8 +15,12 @@ public class ThirdOctaveBandsFiltering {
     private List<FiltersParameters> filterParameters = new ArrayList<FiltersParameters>(STANDARD_FREQUENCIES.length);
 
     public ThirdOctaveBandsFiltering() {
-
-        csvLoad(ThirdOctaveBandsFiltering.class.getResourceAsStream("Third_oct_filters_coefts.csv"));
+        int sampleRate = 44100;
+        String csvRootName = "Third_oct_filters_coefts";
+        String strSamplingFrequency = String.valueOf(sampleRate) + "Hz";
+        String strLenSecs = String.valueOf((int)AcousticIndicators.TIMEPERIOD_SLOW) + "s";
+        String csvFileName = csvRootName + "_" + strSamplingFrequency + "_" + strLenSecs + ".csv";
+        csvLoad(ThirdOctaveBandsFiltering.class.getResourceAsStream(csvFileName));
 
     }
 

@@ -33,7 +33,7 @@ public class AWeighting {
      * @param inputSignal Raw time signal
      * @return A-weighted time signal
      */
-    public static double[] aWeightingSignal(double[] inputSignal) {
+    public final static double[] aWeightingSignal(double[] inputSignal) {
 
         int nsamp = inputSignal.length;
         int order = Math.max(denominator.length, numerator.length);

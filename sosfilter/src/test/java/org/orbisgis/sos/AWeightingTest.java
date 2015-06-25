@@ -1,14 +1,16 @@
 package org.orbisgis.sos;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 import javax.sound.sampled.UnsupportedAudioFileException;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.*;
 
 
 
@@ -38,11 +40,11 @@ public class AWeightingTest {
         }
         scanRef.close();
         double[] aWeightedSigRef = new double[refData.size()];
-        for (int i = 0; i < aWeightedSigRef.length; i++) {
-            aWeightedSigRef[i] = refData.get(i).doubleValue();
+        for (int iter = 0; iter < aWeightedSigRef.length; iter++) {
+            aWeightedSigRef[iter] = refData.get(iter).doubleValue();
         }
 
-        // A-weigthing of the Audio (.wav) file signal (input is the file pinknoise_1s.txt that refers to pinknoise_1s.wav)
+        // A-weigthing of the audio file signal (i.e. the file pinknoise_1s.txt that refers to pinknoise_1s.wav)
         Scanner scanWav = new Scanner(new File("src/test/resources/org/orbisgis/sos/pinknoise_1s.txt"));
         List<Double> inputSig= new ArrayList();
         while (scanWav.hasNext()) {
@@ -50,13 +52,13 @@ public class AWeightingTest {
         }
         scanWav.close();
         double[] inputSigArr = new double[inputSig.size()];
-        for (int i = 0; i < inputSigArr.length; i++) {
-            inputSigArr[i] = inputSig.get(i);                // java 1.5+ style (outboxing)
+        for (int iter = 0; iter < inputSigArr.length; iter++) {
+            inputSigArr[iter] = inputSig.get(iter);
         }
         double[] aWeightedSig = AWeighting.aWeightingSignal(inputSigArr);
 
-        for (int id = 0; id < aWeightedSigRef.length; id++) {
-            assertEquals(aWeightedSigRef[id], aWeightedSig[id]);
-        }
+        // Comparison of expected and actual results
+        Assert.assertArrayEquals(aWeightedSigRef, aWeightedSig, 1e-10);
+
     }
 }

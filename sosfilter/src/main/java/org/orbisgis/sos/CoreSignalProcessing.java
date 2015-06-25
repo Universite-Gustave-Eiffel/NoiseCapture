@@ -14,7 +14,7 @@ import java.util.List;
  */
 public class CoreSignalProcessing {
 
-    private int sampleRate;
+    public int sampleRate;
     private double[] sampleBuffer;
     // Compute buffer length in order to reduce the discrepancies
     private static final int MINIMUM_COMPLETE_PERIOD = 80/5;

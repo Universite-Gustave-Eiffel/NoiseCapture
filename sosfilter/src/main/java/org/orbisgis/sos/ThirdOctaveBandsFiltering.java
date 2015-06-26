@@ -9,23 +9,33 @@ import java.util.*;
 
 /**
  * Created by G. Guillaume on 02/06/2015.
+ * Third octave bands filtering of a time signal
+ * This module applies an third octave bands filters according to the standard IEC-61260 "Electroacoustics - Octave-band and fractional-octave-band filters" (2001)
+ * @see <a href="http://siggigue.github.io/pyfilterbank/splweighting.html">http://siggigue.github.io/pyfilterbank/splweighting.html</a>
+ * @see <a href="http://www.mathworks.com/matlabcentral/fileexchange/69-octave/content//octave/oct3dsgn.m">http://www.mathworks.com/matlabcentral/fileexchange/69-octave/content//octave/oct3dsgn.m</a>
  */
 public class ThirdOctaveBandsFiltering {
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ThirdOctaveBandsFiltering.class);
     private List<FiltersParameters> filterParameters = new ArrayList<FiltersParameters>(STANDARD_FREQUENCIES.length);
 
+    /**
+     * Third octave bands filtering constructor
+     */
     public ThirdOctaveBandsFiltering() {
         int sampleRate = 44100;
         String csvRootName = "Third_oct_filters_coefts";
         String strSamplingFrequency = String.valueOf(sampleRate) + "Hz";
         String strLenSecs = String.valueOf((int)AcousticIndicators.TIMEPERIOD_SLOW) + "s";
         String csvFileName = csvRootName + "_" + strSamplingFrequency + "_" + strLenSecs + ".csv";
-        csvLoad(ThirdOctaveBandsFiltering.class.getResourceAsStream(csvFileName));
-
+        getFiltersParameters(ThirdOctaveBandsFiltering.class.getResourceAsStream(csvFileName));
     }
 
-    private void csvLoad(InputStream csvFile) {
-
+    /**
+     * Load the .csv file containing the third octave bands filters parameters
+     * @param csvFile input stream of the parameters file
+     */
+    private void getFiltersParameters(InputStream csvFile) {
         BufferedReader inputStream = new BufferedReader(new InputStreamReader(csvFile));
         try {
             String line;
@@ -61,59 +71,55 @@ public class ThirdOctaveBandsFiltering {
         }
     }
 
-
-    public static final double[] getStandardFrequencies() {
-        return STANDARD_FREQUENCIES;
-    }
-
     /**
      * Standard center frequencies of third octave bands
      */
     public static final double[] STANDARD_FREQUENCIES = new double[]{16, 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000};
 
+    public static final double[] getStandardFrequencies() { return STANDARD_FREQUENCIES; }
+
+    /**
+     * Exact nominal center frequencies of third octave bands
+     * @param idCtrFreq center frequency index
+     */
+    private static double getCtrFreq(int idCtrFreq) { return Math.pow(10., 3.) * Math.pow(2., (idCtrFreq -18) / 3.); }
+
     /**
      * @return List of parameters used to filter the signal.
      */
-    public List<FiltersParameters> getFilterParameters() {
-        return filterParameters;
-    }
+    public List<FiltersParameters> getFilterParameters() { return filterParameters; }
 
     /**
-     * Center frequency of third octave bands
-     * @param idFreq center frequency index
-     */
-    private static double getCtrFreq(int idFreq) {
-        return Math.pow(10., 3.) * Math.pow(2., (idFreq-18) / 3.);
-    }
-
-    /**
-     * sosfilter_double(double [] signal, int nsamp, FiltersParameters filterParams, double [][] states)
+     * Second-order recursive linear filtering
      * @param signal Raw time input signal
-     * @param nsamp Number of samples in the signal
      * @param filterParams Third octave band filter coefficients
      * @param states State variables array
      */
-    private ReturnFilterData sosfilter_double(double [] signal, int nsamp, FiltersParameters filterParams, double [][] states){
-        int k = 0;
+    private ReturnFilterData sosFiltering(double[] signal, FiltersParameters filterParams, double[][] states){
+
         // Loop on the cascaded filtering stages
+        int k = 0;
         for (StageParameters stage: filterParams.stages){
             double w1 = states[0][k];
             double w2 = states[1][k];
+
             // Feedforward coefficients
             double b0 = stage.coefficients[0];
             double b1 = stage.coefficients[1];
             double b2 = stage.coefficients[2];
+
             // Feedback coefficients
             double a1 = stage.coefficients[3];
             double a2 = stage.coefficients[4];
 
-            for (int n = 0; n < nsamp; ++n){
-                double w0 = signal[n];
+            // Second-order recursive linear filtering
+            for (int idT = 0; idT < signal.length; ++idT){
+                double w0 = signal[idT];
                 w0 = w0 - a1*w1 - a2*w2;
                 double yn = b0*w0 + b1*w1 + b2*w2;
                 w2 = w1;
                 w1 = w0;
-                signal[n] = yn;
+                signal[idT] = yn;
             }
             states[0][k] = w1;
             states[1][k] = w2;
@@ -122,37 +128,41 @@ public class ThirdOctaveBandsFiltering {
         return new ReturnFilterData(signal, states);
     }
 
+    /**
+     * Reverse a double 2D array
+     * @param arr double 2D array
+     * @return the reverses double 2D array
+     */
     private double[] reverse2dArray(double[] arr){
         double[] reversedArray = new double[arr.length];
-        for(int i = 0; i < arr.length; i++) {
-            reversedArray[arr.length - i - 1] = arr[i];
+        for(int id = 0; id < arr.length; id++) {
+            reversedArray[arr.length - id - 1] = arr[id];
         }
         return reversedArray;
     }
 
     /**
-     * applySosFilter(double[] signal, FiltersParameters coefficients)
+     * Signal backward and forward filtering by second-order recursive linear
      * @param signal Raw time input signal
-     * @param idFreq Central frequency index
+     * @param idFreq Index of the central frequency
      * @return Third octave band filtered signal
      */
     private double[] applySosFilter(double[] signal, int idFreq){
         double [][] states = new double [2][4];
-        int nSamp = signal.length;
         FiltersParameters filtParams = this.filterParameters.get(idFreq);
-        for (int idRow = 0; idRow < states.length; idRow++) {
-            Arrays.fill(states[idRow], 0.);
-        }
-//        Arrays.fill(states, (double)0);
+        for (int idRow = 0; idRow < states.length; idRow++) { Arrays.fill(states[idRow], 0.); }
+
         // Backward filtering
         double[] reversedSignal = reverse2dArray(signal);
-        ReturnFilterData backwardFiltSig = sosfilter_double(reversedSignal, nSamp, filtParams, states);
-        double[] backFiltSig = backwardFiltSig.getFilteredSig();
-        double[][] backFiltStates = backwardFiltSig.getStates();
+        ReturnFilterData backwardFiltering = sosFiltering(reversedSignal, filtParams, states);
+        double[] backFilteredSignal = backwardFiltering.getFilteredSig();
+        double[][] backFilteredStates = backwardFiltering.getStates();
+
         // Forward filtering
-        double[] reversedFilteredSignal = reverse2dArray(backFiltSig);
-        ReturnFilterData forwardFiltSig = sosfilter_double(reversedFilteredSignal, nSamp, filtParams, backFiltStates);
-        return forwardFiltSig.getFilteredSig();
+        double[] reversedBackFilteredSignal = reverse2dArray(backFilteredSignal);
+        ReturnFilterData forwardFilteredSignal = sosFiltering(reversedBackFilteredSignal, filtParams, backFilteredStates);
+
+        return forwardFilteredSignal.getFilteredSig();
     }
 
     /**
@@ -160,28 +170,33 @@ public class ThirdOctaveBandsFiltering {
      * @param signal Raw time input signal
      */
     public double[][] thirdOctaveFiltering(double[] signal){
-        int nsamp = signal.length;
-        int nfreqs = STANDARD_FREQUENCIES.length;
-        double [][] filtSigs = new double[nfreqs][nsamp];
-        for (int idf = 0; idf < nfreqs; idf++){
-            double[] filtSig = applySosFilter(signal, idf);
-            for (int it = 0; it<nsamp; it++){
-                filtSigs[idf][it] = filtSig[it];
-            }
+        int signalLength = signal.length;
+        int nbFreqs = STANDARD_FREQUENCIES.length;
+        double [][] filteredSignals = new double[nbFreqs][signalLength];
+        for (int idf = 0; idf < nbFreqs; idf++){
+            double[] filteredSignal = applySosFilter(signal, idf);
+            for (int idT = 0; idT< signalLength; idT++){ filteredSignals[idf][idT] = filteredSignal[idT]; }
         }
-        return filtSigs;
+        return filteredSignals;
     }
 
 
+    /**
+     * Cascade stage parameters
+     */
     public static class StageParameters {
 
-        public final double[] coefficients; // Filter coefficients for one frequency and one stage
+        // Filter coefficients for one frequency and one stage
+        public final double[] coefficients;
 
         public StageParameters(double[] coefficients) {
             this.coefficients = coefficients;
         }
     }
 
+    /**
+     * Third octave filters parameters
+     */
     public static class FiltersParameters {
         public final double frequency;
         public final List<StageParameters> stages = new ArrayList<StageParameters>();
@@ -191,18 +206,22 @@ public class ThirdOctaveBandsFiltering {
         }
     }
 
-
+    /**
+     * Return third octave filtered signals and states
+     */
     public static class ReturnFilterData
     {
-        private double[] filtSig;
+        private double[] filteredSignal;
         private double[][] states;
-        public ReturnFilterData(double[] filtSig, double[][] states)
+
+        public ReturnFilterData(double[] filteredSignal, double[][] states)
         {
-            this.filtSig = filtSig;
+            this.filteredSignal = filteredSignal;
             this.states = states;
 
         }
-        public double[] getFilteredSig() { return filtSig; }
+
+        public double[] getFilteredSig() { return filteredSignal; }
         public double[][] getStates() { return states; }
     }
 }

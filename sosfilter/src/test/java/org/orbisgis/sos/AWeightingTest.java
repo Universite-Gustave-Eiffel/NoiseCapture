@@ -10,55 +10,77 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-import static org.junit.Assert.*;
-
-
 
 /**
  * Created by G. Guillaume on 03/06/2015.
+ * Unit tests concerning the A-weighting of audio data
  */
 public class AWeightingTest {
 
+    /**
+     * Unit test on getting A-weighting coefficients
+     */
     @Test
     public void testGetAWeightingCoefficients() {
         AWeighting aWeighting = new AWeighting();
         double[] numerator = aWeighting.numerator;
         double[] denominator = aWeighting.denominator;
-        assertEquals(numerator.length, denominator.length);
+        Assert.assertEquals(numerator.length, denominator.length);
     }
 
+    /**
+     * Unit test on A-weighting a 1-second pink noise
+     * @throws IOException
+     * @throws UnsupportedAudioFileException
+     */
     @Test
     public void testAWeighting() throws IOException, UnsupportedAudioFileException {
 
-        final int rate = 44100;
+        /*
+        Reference data (i.e. expected results)
+         */
 
-        // Reference A-weighted signal
-        Scanner scanRef = new Scanner(new File("src/test/resources/org/orbisgis/sos/pinknoise_1s_A_weighted.txt"));
-        List<Double> refData= new ArrayList();
-        while (scanRef.hasNext()) {
-            refData.add(Double.parseDouble(scanRef.next()));
+        // Reference A-weighted signal (i.e. expected results)
+        Scanner scanExpectedData = new Scanner(new File("src/test/resources/org/orbisgis/sos/pinknoise_1s_A_weighted.txt"));
+        List<Double> expectedData = new ArrayList();
+        int nbExpectedSamples = 0;
+        while (scanExpectedData.hasNext()) {
+            expectedData.add(Double.parseDouble(scanExpectedData.next()));
+            nbExpectedSamples++;
         }
-        scanRef.close();
-        double[] aWeightedSigRef = new double[refData.size()];
-        for (int iter = 0; iter < aWeightedSigRef.length; iter++) {
-            aWeightedSigRef[iter] = refData.get(iter).doubleValue();
+        scanExpectedData.close();
+        double[] expectedAWeightedSignal = new double[nbExpectedSamples];
+        for (int idT = 0; idT < nbExpectedSamples; idT++) {
+            expectedAWeightedSignal[idT] = expectedData.get(idT).doubleValue();
         }
 
-        // A-weigthing of the audio file signal (i.e. the file pinknoise_1s.txt that refers to pinknoise_1s.wav)
-        Scanner scanWav = new Scanner(new File("src/test/resources/org/orbisgis/sos/pinknoise_1s.txt"));
-        List<Double> inputSig= new ArrayList();
-        while (scanWav.hasNext()) {
-            inputSig.add(Double.parseDouble(scanWav.next()));
-        }
-        scanWav.close();
-        double[] inputSigArr = new double[inputSig.size()];
-        for (int iter = 0; iter < inputSigArr.length; iter++) {
-            inputSigArr[iter] = inputSig.get(iter);
-        }
-        double[] aWeightedSig = AWeighting.aWeightingSignal(inputSigArr);
+        /*
+        Actual results
+         */
 
-        // Comparison of expected and actual results
-        Assert.assertArrayEquals(aWeightedSigRef, aWeightedSig, 1e-10);
+        // Loading of the audio signal (i.e. the file pinknoise_1s.txt that refers to pinknoise_1s.wav)
+        Scanner scanAudio = new Scanner(new File("src/test/resources/org/orbisgis/sos/pinknoise_1s.txt"));
+        List<Double> audioSignal = new ArrayList();
+        int nbActualSamples = 0;
+        while (scanAudio.hasNext()) {
+            audioSignal.add(Double.parseDouble(scanAudio.next()));
+            nbActualSamples++;
+        }
+        scanAudio.close();
+        double[] audioSignalArr = new double[nbActualSamples];
+        for (int idT = 0; idT < nbActualSamples; idT++) {
+            audioSignalArr[idT] = audioSignal.get(idT);
+        }
+
+        // A-weighting of the audio signal
+        double[] actualAWeightedSignal = AWeighting.aWeightingSignal(audioSignalArr);
+
+        /*
+        Comparisons of expected and actual results
+         */
+
+        Assert.assertEquals(expectedAWeightedSignal.length, actualAWeightedSignal.length);
+        Assert.assertArrayEquals(expectedAWeightedSignal, actualAWeightedSignal, 0);
 
     }
 }

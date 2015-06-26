@@ -14,24 +14,32 @@ import java.util.List;
  */
 public class CoreSignalProcessing {
 
-    public int sampleRate;
+    public int samplingRate;
     private double[] sampleBuffer;
     // Compute buffer length in order to reduce the discrepancies
     private static final int MINIMUM_COMPLETE_PERIOD = 80/5;
 
-    public CoreSignalProcessing(int sampleRate) {
-        if (sampleRate != 44100) {
+    public CoreSignalProcessing(int samplingRate) {
+        if (samplingRate != 44100) {
             throw new IllegalArgumentException("Sampling rate is different from 44100 Hz");
         }
-        this.sampleRate = sampleRate;
-        this.sampleBuffer = new double[sampleRate * (MINIMUM_COMPLETE_PERIOD / (int)ThirdOctaveFrequencies.STANDARD_FREQUENCIES[0])];
+        this.samplingRate = samplingRate;
+        this.sampleBuffer = new double[samplingRate * (MINIMUM_COMPLETE_PERIOD / (int)ThirdOctaveFrequencies.STANDARD_FREQUENCIES[0])];
         Arrays.fill(sampleBuffer, 0);
     }
 
-    public int getSampleRate() {
-        return sampleRate;
+    /**
+     * Get the sampling frequency
+     * @return sampling frequency [Hz]
+     */
+    public int getSamplingRate() {
+        return samplingRate;
     }
 
+    /**
+     * Add an audio sample to the buffer
+     * @param sample audio sample
+     */
     public void addSample(double[] sample) {
         double[] newBuffer = new double[sampleBuffer.length];
         System.arraycopy(sampleBuffer, sample.length, newBuffer, 0 , sampleBuffer.length - sample.length);
@@ -41,19 +49,19 @@ public class CoreSignalProcessing {
 
 
     /**
-     *
-     * @param samples
-     * @return double[Freq][t]
+     * A-weigthing and third octave bands filtering of the time signal
+     * @param signal time signal
+     * @return double[frequency][time] A-weighted and third octave bands filtered time signals for each nominal center frequency
      */
-    public static double[][] filterSignal(double[] samples) {
+    public static double[][] filterSignal(double[] signal) {
 
         /**
          * Apply the A-weighting filter to the input signal
          */
-        double[] aWeightedSignal = AWeighting.aWeightingSignal(samples);
+        double[] aWeightedSignal = AWeighting.aWeightingSignal(signal);
 
         /**
-         * Third octave filtering
+         * Third octave bands filtering of the A-weighted signal
          */
         ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering();
         double[][] filteredSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(aWeightedSignal);
@@ -61,7 +69,15 @@ public class CoreSignalProcessing {
         return filteredSignal;
     }
 
-
+    /**
+     * Process applied to the audio stream
+     * @param encoding encoding
+     * @param rate sampling [Hz]
+     * @param inputStream input audio stream
+     * @param leqPeriod time period over which the equivalent sound pressure level is computed over [s] {@link AcousticIndicators#TIMEPERIOD_FAST} or {@link AcousticIndicators#TIMEPERIOD_SLOW}
+     * @return list of double array of equivalent sound pressure levels
+     * @throws IOException
+     */
     public List<double[]> processAudio(int encoding, final int rate, InputStream inputStream, double leqPeriod) throws IOException {
         List<double[]> allLeq = new ArrayList<double[]>();
         double[] secondSample = new double[rate];
@@ -103,15 +119,16 @@ public class CoreSignalProcessing {
     }
 
     /**
-     * @param leqPeriod {@link AcousticIndicators#TIMEPERIOD_FAST} or {@link AcousticIndicators#TIMEPERIOD_SLOW}
-     * @return List of
+     * Calculation of the equivalent sound pressure level per third octave bands
+     * @param leqPeriod time period over which the equivalent sound pressure level is computed over [s] {@link AcousticIndicators#TIMEPERIOD_FAST} or {@link AcousticIndicators#TIMEPERIOD_SLOW}
+     * @return List of double array of equivalent sound pressure level per third octave bands
      */
     private List<double[]> processSamples(double leqPeriod) {
         int nbFrequencies = ThirdOctaveBandsFiltering.getStandardFrequencies().length;
         List<double[]> leq = new ArrayList<double[]>();
         int signalLength = sampleBuffer.length;
         double[][] filteredSignals;
-        final int subSamplesLength = (int)(leqPeriod * sampleRate);      // Sub-samples length
+        final int subSamplesLength = (int)(leqPeriod * samplingRate);      // Sub-samples length
         final int nbSubSamples = (int)(signalLength / subSamplesLength);
         /*
         A-weighting and third octave bands filtering
@@ -120,16 +137,16 @@ public class CoreSignalProcessing {
         for(int idSample = 0; idSample < nbSubSamples; idSample++) {
             leq.add(new double[nbFrequencies]);
         }
+        /*
+        Calculation of the equivalent sound pressure level per third octave bands
+         */
         for (int idFreq = 0; idFreq < nbFrequencies; idFreq++) {
             double[] filteredSignal = new double[filteredSignals[0].length];
             System.arraycopy(filteredSignals[idFreq], 0, filteredSignal, 0, signalLength);
-            double[] leqSamples = AcousticIndicators.getLeqT(filteredSignal, sampleRate, leqPeriod);
+            double[] leqSamples = AcousticIndicators.getLeqT(filteredSignal, samplingRate, leqPeriod);
             for(int idSample = 0; idSample < nbSubSamples; idSample++) {
                 leq.get(idSample)[idFreq] = leqSamples[idSample];
             }
-            /*
-            Calculation of the equivalent sound pressure level per third octave bands
-             */
         }
         return leq;
     }

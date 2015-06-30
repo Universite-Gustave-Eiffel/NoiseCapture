@@ -1,7 +1,6 @@
 package org.orbisgis.sos;
 
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.ShortBuffer;
 import java.util.ArrayList;
@@ -123,7 +122,7 @@ public class CoreSignalProcessing {
      * @param leqPeriod time period over which the equivalent sound pressure level is computed over [s] {@link AcousticIndicators#TIMEPERIOD_FAST} or {@link AcousticIndicators#TIMEPERIOD_SLOW}
      * @return List of double array of equivalent sound pressure level per third octave bands
      */
-    private List<double[]> processSamples(double leqPeriod) {
+    private List<double[]> processSamples(double leqPeriod) throws FileNotFoundException {
         int nbFrequencies = ThirdOctaveBandsFiltering.getStandardFrequencies().length;
         List<double[]> leq = new ArrayList<double[]>();
         int signalLength = sampleBuffer.length;
@@ -133,6 +132,11 @@ public class CoreSignalProcessing {
         /*
         A-weighting and third octave bands filtering
          */
+        try {
+            writeDoubleArrInCSVFile(sampleBuffer, "/home/gguillaume/sig.csv");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         filteredSignals = CoreSignalProcessing.filterSignal(sampleBuffer);
         for(int idSample = 0; idSample < nbSubSamples; idSample++) {
             leq.add(new double[nbFrequencies]);
@@ -149,6 +153,24 @@ public class CoreSignalProcessing {
             }
         }
         return leq;
+    }
+
+    public static void writeDoubleArrInCSVFile(double[] data, String fileName) throws IOException {
+        BufferedWriter br = null;
+        try {
+            br = new BufferedWriter(new FileWriter(fileName));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        StringBuilder sb = new StringBuilder();
+        for (Double element : data) {
+            sb.append(element.toString() + "\n");
+        }
+
+        if (br != null) {
+            br.write(sb.toString());
+            br.close();
+        }
     }
 
 }

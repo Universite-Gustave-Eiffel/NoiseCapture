@@ -20,8 +20,9 @@ public class AcousticIndicators {
      */
     public static double getLeq(double[] inputSignal) {
         double rms = 0.0;
+
         for (int idT = 1; idT < inputSignal.length; idT++) {
-            rms += inputSignal[idT] * inputSignal[idT];    // Math.pow(inputSignal[i], 2.);
+            rms += Math.pow(inputSignal[idT], 2);    // Math.pow(inputSignal[i], 2.);
         }
         return 10 * Math.log10(rms / (inputSignal.length* REF_SOUND_PRESSURE));
     }
@@ -41,9 +42,7 @@ public class AcousticIndicators {
         int idStartForSub = 0;
         for (int idSub = 0; idSub < nbSubSamples; idSub++) {
             double[] subSample = new double[subSamplesLength];
-            for (int idT = 0; idT < subSamplesLength; idT++) {
-                subSample[idT] = inputSignal[idStartForSub+idT];
-            }
+            System.arraycopy(inputSignal, idStartForSub + 0, subSample, 0, subSamplesLength);
             leqT[idSub] = getLeq(subSample);
             idStartForSub += subSamplesLength;
         }
@@ -64,4 +63,19 @@ public class AcousticIndicators {
         return Math.log10((1.0/splLength) * sumSpl);
     }
 
+    /**
+     * Apply a Hanning window to a signal
+     * @param signal time signal
+     * @return the windowed signal
+     */
+    public static double[] hanningWindow(double[] signal) {
+
+        // Iterate until the last line of the data buffer
+        for (int n = 1; n < signal.length; n++) {
+            // reduce unnecessarily performed frequency part of each and every frequency
+            signal[n] *= 0.5 * (1 - Math.cos((2 * Math.PI * n) / (signal.length - 1)));
+        }
+        // Return modified buffer
+        return signal;
+    }
 }

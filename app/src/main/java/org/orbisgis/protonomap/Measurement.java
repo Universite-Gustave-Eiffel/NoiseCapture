@@ -25,6 +25,7 @@ import android.content.Intent;
 import android.view.View;
 import android.widget.Chronometer;
 import android.widget.CompoundButton;
+import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -74,7 +75,7 @@ public class Measurement extends MainActivity {
         // Check if the dialog box (for caution) must be displayed
         // Depending of the settings
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        Boolean CheckNbRunSettings = sharedPref.getBoolean("settings_caution",true);
+        Boolean CheckNbRunSettings = sharedPref.getBoolean("settings_caution", true);
         if (CheckNbRun() & CheckNbRunSettings) {
 
             // show dialog
@@ -87,17 +88,36 @@ public class Measurement extends MainActivity {
 
         // Enabled/disabled buttons
         // history disabled; cancel enabled; record button enabled; map enabled
-        ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
+        ImageButton buttonhistory = (ImageButton) findViewById(R.id.historyBtn);
         checkHistoryButton();
-        ImageButton buttoncancel= (ImageButton) findViewById(R.id.cancelBtn);
+        ImageButton buttoncancel = (ImageButton) findViewById(R.id.cancelBtn);
         buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
         buttoncancel.setEnabled(false);
-        ImageButton buttonmap= (ImageButton) findViewById(R.id.mapBtn);
+        ImageButton buttonmap = (ImageButton) findViewById(R.id.mapBtn);
         buttonmap.setImageResource(R.drawable.button_map_normal);
         buttoncancel.setEnabled(true);
 
+        // Display element in expert mode or not
+        Boolean CheckViewModeSettings = sharedPref.getBoolean("settings_view_mode", true);
+        //FrameLayout Frame_Stat_SEL = (FrameLayout) findViewById(R.id.Frame_Stat_SEL);
+        TextView textView_value_Min_i = (TextView) findViewById(R.id.textView_value_Min_i);
+        TextView textView_value_Mean_i = (TextView) findViewById(R.id.textView_value_Mean_i);
+        TextView textView_value_Max_i = (TextView) findViewById(R.id.textView_value_Max_i);
+        TextView textView_title_Min_i = (TextView) findViewById(R.id.textView_title_Min_i);
+        TextView textView_title_Mean_i = (TextView) findViewById(R.id.textView_title_Mean_i);
+        TextView textView_title_Max_i = (TextView) findViewById(R.id.textView_title_Max_i);
+        if (!CheckViewModeSettings){
+            textView_value_Min_i.setVisibility(View.GONE);
+            textView_value_Mean_i.setVisibility(View.GONE);
+            textView_value_Max_i.setVisibility(View.GONE);
+            textView_title_Min_i.setVisibility(View.GONE);
+            textView_title_Mean_i.setVisibility(View.GONE);
+            textView_title_Max_i.setVisibility(View.GONE);
+        }
+
+
         // To start a record (test mode)
-        ImageButton buttonrecord=(ImageButton)findViewById(R.id.recordBtn);
+        ImageButton buttonrecord = (ImageButton) findViewById(R.id.recordBtn);
         buttonrecord.setImageResource(R.drawable.button_record_normal);
         buttonrecord.setEnabled(true);
 
@@ -110,7 +130,7 @@ public class Measurement extends MainActivity {
             public void onClick(View view) {
 
                 // Stop measurement
-                isRecording=false;
+                isRecording = false;
 
                 // Stop and reset chronometer
                 Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer_recording_time);
@@ -118,18 +138,18 @@ public class Measurement extends MainActivity {
                 chronometer.setText("00:00");
 
                 // Stop measurement
-                isRecording=false;
+                isRecording = false;
 
                 // Enabled/disabled buttons after measurement
                 // history enabled or disabled (if isHistory); cancel disable; record button enabled
                 checkHistoryButton();
-                ImageButton buttoncancel= (ImageButton) findViewById(R.id.cancelBtn);
+                ImageButton buttoncancel = (ImageButton) findViewById(R.id.cancelBtn);
                 buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
                 buttoncancel.setEnabled(false);
-                ImageButton buttonrecord=(ImageButton)findViewById(R.id.recordBtn);
+                ImageButton buttonrecord = (ImageButton) findViewById(R.id.recordBtn);
                 buttonrecord.setImageResource(R.drawable.button_record);
                 buttoncancel.setEnabled(true);
-                ImageButton buttonmap=(ImageButton)findViewById(R.id.mapBtn);
+                ImageButton buttonmap = (ImageButton) findViewById(R.id.mapBtn);
                 buttonmap.setImageResource(R.drawable.button_map);
                 buttonmap.setEnabled(true);
 
@@ -154,7 +174,8 @@ public class Measurement extends MainActivity {
             public void onClick(View view) {
                 // Go to map page
                 Intent a = new Intent(getApplicationContext(), Map.class);
-                startActivity(a);;
+                startActivity(a);
+                ;
             }
         });
 
@@ -170,6 +191,9 @@ public class Measurement extends MainActivity {
         // Instantaneous spectrum
         // Stacked bars are used for represented Min, Current and Max values
         sChart = (BarChart) findViewById(R.id.spectrumChart);
+        if (!CheckViewModeSettings){
+            sChart.setVisibility(View.GONE);
+        }
         initSpectrum();
         // Data (before legend)
         setDataSA(30, 0);

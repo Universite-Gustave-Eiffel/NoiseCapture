@@ -27,7 +27,8 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true">
+        android:layout_alignParentEnd="true"
+        android:gravity="center_vertical">
 
         <LinearLayout
             android:orientation="horizontal"
@@ -52,44 +53,27 @@
 
             <FrameLayout
                 android:layout_width="183dp"
-                android:layout_height="61dp">
+                android:layout_height="61dp"
+                android:id="@+id/Frame_Stat_SEL"
+                android:layout_gravity="bottom">
 
                 <TextView
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="100.0"
-                    android:id="@+id/textView_value_Min_i"
+                    android:text="@string/SL_dBA"
+                    android:id="@+id/textView9"
                     android:layout_gravity="left|bottom"
+                    android:textColor="#0099CC"
                     android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:gravity="left" />
+                    android:paddingTop="4dp"
+                    android:gravity="left|bottom" />
 
                 <TextView
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="100.0"
-                    android:id="@+id/textView_value_Mean_i"
-                    android:layout_gravity="center_horizontal|bottom"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:gravity="left" />
-
-                <TextView
-                    android:layout_width="60dp"
-                    android:layout_height="wrap_content"
-                    android:text="100.0"
-                    android:id="@+id/textView_value_Max_i"
-                    android:layout_gravity="right|bottom"
-                    android:textSize="15sp"
-                    android:textStyle="bold"
-                    android:gravity="left" />
-
-                <TextView
-                    android:layout_width="60dp"
-                    android:layout_height="wrap_content"
-                    android:text="Max"
-                    android:id="@+id/textView_title_Max_i"
-                    android:layout_gravity="right|center_vertical"
+                    android:text="Mean"
+                    android:id="@+id/textView_title_Mean_i"
+                    android:layout_gravity="center_horizontal|top"
                     android:textSize="15sp"
                     android:paddingTop="6dp"
                     android:gravity="left" />
@@ -97,9 +81,9 @@
                 <TextView
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="Mean"
-                    android:id="@+id/textView_title_Mean_i"
-                    android:layout_gravity="center"
+                    android:text="Max"
+                    android:id="@+id/textView_title_Max_i"
+                    android:layout_gravity="right|top"
                     android:textSize="15sp"
                     android:paddingTop="6dp"
                     android:gravity="left" />
@@ -109,32 +93,43 @@
                     android:layout_height="wrap_content"
                     android:text="Min"
                     android:id="@+id/textView_title_Min_i"
-                    android:layout_gravity="left|center_vertical"
+                    android:layout_gravity="left|top"
                     android:textSize="15sp"
                     android:paddingTop="6dp"
-                    android:gravity="left" />
-
-                <Chronometer
-                    android:layout_width="120dp"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/chronometer_recording_time"
-                    android:layout_gravity="right|top"
-                    android:format="%s"
-                    android:textColor="#0099CC"
-                    android:textStyle="bold"
-                    android:textSize="20sp"
                     android:gravity="left" />
 
                 <TextView
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/SL_dBA"
-                    android:id="@+id/textView9"
-                    android:layout_gravity="left|top"
-                    android:textColor="#0099CC"
+                    android:text="100.0"
+                    android:id="@+id/textView_value_Min_i"
+                    android:layout_gravity="left|center_vertical"
                     android:textSize="15sp"
-                    android:paddingTop="4dp"
-                    android:gravity="left" />
+                    android:textStyle="bold"
+                    android:gravity="left"
+                    android:paddingTop="4dp" />
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="100.0"
+                    android:id="@+id/textView_value_Max_i"
+                    android:layout_gravity="right|center_vertical"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:gravity="left"
+                    android:paddingTop="4dp" />
+
+                <TextView
+                    android:layout_width="60dp"
+                    android:layout_height="wrap_content"
+                    android:text="100.0"
+                    android:id="@+id/textView_value_Mean_i"
+                    android:layout_gravity="center"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    android:gravity="left"
+                    android:paddingTop="4dp" />
 
             </FrameLayout>
 
@@ -145,6 +140,19 @@
             android:layout_width="wrap_content"
             android:layout_height="57dp"
             android:layout_below="@+id/textView_value_iSL" />
+
+        <Chronometer
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/chronometer_recording_time"
+            android:layout_gravity="center_horizontal"
+            android:format="%s"
+            android:textColor="@color/R1_SL_level"
+            android:textStyle="bold"
+            android:textSize="20dp"
+            android:paddingTop="4dp"
+            android:gravity="center_horizontal"
+            android:paddingBottom="4dp" />
 
         <com.github.mikephil.charting.charts.BarChart
             android:id="@+id/spectrumChart"

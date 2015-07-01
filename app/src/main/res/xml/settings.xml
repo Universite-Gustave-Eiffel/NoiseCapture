@@ -23,5 +23,10 @@
         android:title="@string/title_settings_caution"
         android:summary="@string/summary_settings_caution"
         android:defaultValue="true" />
+    <CheckBoxPreference
+        android:key="settings_view_mode"
+        android:title="@string/title_settings_view_mode"
+        android:summary="@string/summary_settings_view_mode"
+        android:defaultValue="true" />
 
 </PreferenceScreen>

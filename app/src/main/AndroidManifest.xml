@@ -2,19 +2,56 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.orbisgis.protonomap" >
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/Theme.AppCompat" >
         <activity
-            android:name=".Record"
-            android:label="@string/app_name" >
+            android:name=".Measurement"
+            android:label="@string/title_activity_measurement"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".Results"
+            android:label="@string/title_activity_results"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main" >
+        </activity>
+        <activity
+            android:name=".View_html_page"
+            android:label="@string/title_activity_view_html_page" >
+        </activity>
+        <activity
+            android:name=".Settings"
+            android:label="@string/title_activity_settings" >
+        </activity>
+        <activity
+            android:name=".Map"
+            android:label="@string/title_activity_map"
+            android:screenOrientation="portrait" >
+        </activity>
+        <activity
+            android:name=".Start"
+            android:label="@string/title_activity_start"
+            android:noHistory="true"
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        <activity
+            android:name=".History"
+            android:label="@string/title_activity_history" >
         </activity>
     </application>
 

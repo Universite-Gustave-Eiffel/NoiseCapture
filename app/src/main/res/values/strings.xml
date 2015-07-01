@@ -1,6 +1,140 @@
 <resources>
-    <string name="app_name">Protonomap</string>
-    <string name="record_message">Press the button in order to start the recording</string>
+
+    <string name="app_name">NoiseCapture</string>
+
     <string name="action_settings">Settings</string>
+    <string name="action_about">About</string>
+
     <string name="record_button_string">Start record</string>
+    <string name="record_message">Press the record button to start</string>
+    <string name="no_results">There is no result. Start a record before.</string>
+    <string name="no_history">History is empty. Start a record before.</string>
+
+    <string name="title_menu">Menu</string>
+    <string name="title_activity_measurement">Measurement</string>
+    <string name="title_activity_results">Results</string>
+    <string name="title_activity_history">History</string>
+    <string name="title_activity_about">About</string>
+    <string name="title_activity_help">Help</string>
+    <string name="title_activity_Results">Results</string>
+
+    <!-- Caution dialog box at app launch !-->
+    <string name="text_OK">YES, I understand</string>
+    <string name="title_caution">Caution</string>
+    <string name="text_caution">Remember that this application will never replace a certified and calibrated sound level meter.</string>
+
+    <!-- Caution dialog box for data transfer !-->
+    <string name="text_OK_data_transfer">Activate</string>
+    <string name="text_CANCEL_data_transfer">Cancel</string>
+    <string name="title_caution_data_transfer">Caution</string>
+    <string name="text_caution_data_transfer">In order to load the map, you must enable the data transfer option in the user settings.</string>
+
+    <string name="SL_dBA">dB(A)</string>
+    <string name="SEL_dBA">Noise exposure dB(A)</string>
+
+    <string name="hello_world">Hello world!</string>
+
+    <string name="title_settings_data_transfer">Data transfer</string>
+    <string name="summary_settings_data_transfer">Accept data transfer</string>
+    <string name="title_settings_recording">Recording</string>
+    <string name="summary_settings_recording">Set default recording time</string>
+    <string name="title_settings_caution">Caution message</string>
+    <string name="summary_settings_caution">Check to display the caution message during the launch of the application</string>
+    <string name="title_settings_recording_duration">Recording duration</string>
+    <string name="summary_settings_recording_duration">Set the recording duration (in second)</string>
+    <string name="title_settings_view_mode">Display</string>
+    <string name="summary_settings_view_mode">Check to display in the expert mode</string>
+
+    <!--  Ressources for the spinner map !-->
+    <string name="title_choice_data_map">Choose data:</string>
+    <string-array name="choice_user_map">
+        <item>Last one</item>
+        <item>Own from server</item>
+        <item>All from server</item>
+    </string-array>
+
+    <!--  Ressources for the spinner history !-->
+    <string name="title_choice_history_action">Choose action:</string>
+    <string-array name="choice_user_history">
+        <item>Remove</item>
+        <item>Show on map</item>
+        <item>Show results</item>
+    </string-array>
+
+    <!--  Ressources for the Drawer and option menu !-->
+    <string-array name="dm_list_array">
+        <item>Measurement</item>
+        <item>Results</item>
+        <item>History</item>
+        <item>Map</item>
+        <item>Calibration</item>
+        <item>Help</item>
+        <item>About</item>
+    </string-array>
+    <string name="drawer_open">Open navigation drawer</string>
+    <string name="drawer_close">Close navigation drawer</string>
+    <string name="url_about">file:///android_asset/html/about.html</string>
+    <string name="url_help">file:///android_asset/html/help.html</string>
+
+    <!--  Ressources for acoustics !-->
+    <string-array name="tob_list_array">
+        <item>25</item>
+        <item>31.5</item>
+        <item>40</item>
+        <item>50</item>
+        <item>63</item>
+        <item>80</item>
+        <item>100</item>
+        <item>125</item>
+        <item>160</item>
+        <item>200</item>
+        <item>250</item>
+        <item>315</item>
+        <item>400</item>
+        <item>500</item>
+        <item>630</item>
+        <item>800</item>
+        <item>1000</item>
+        <item>1250</item>
+        <item>1600</item>
+        <item>2000</item>
+        <item>2500</item>
+        <item>3150</item>
+        <item>4000</item>
+        <item>5000</item>
+        <item>6300</item>
+        <item>8000</item>
+        <item>10000</item>
+        <item>12500</item>
+        <item>16000</item>
+        <item>20000</item>
+        <item>Global</item>
+    </string-array>
+
+    <string-array name="catNE_list_array">
+        <item>Greater 75 dB(A)</item>
+        <item>65-75 dB(A)</item>
+        <item>55-65 dB(A)</item>
+        <item>45-55 dB(A)</item>
+        <item>Less 45 dB(A)</item>
+    </string-array>
+
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_webview">webview</string>
+
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="title_activity_web_view">WebView</string>
+    <string name="title_activity_web_view_page">web_view_page</string>
+    <string name="title_activity_view_html_page">View_html_page</string>
+    <string name="title_activity_settings">Settings</string>
+    <string name="title_activity_main_activity2">MainActivity2Activity</string>
+    <string name="title_activity_map">Map</string>
+    <string name="title_activity_start">Start</string>
+
+    <string name="start_text_title">NoiseCapture</string>
+    <string name="start_text_subtitle">Measuring your sound environment</string>
+    <string name="start_text_developed_by">Developed by</string>
+    <string name="start_text_supported_by">Supported by</string>
+
+
 </resources>

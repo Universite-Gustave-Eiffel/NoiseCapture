@@ -1,0 +1,13 @@
+<resources>
+
+    <color name="black_overlay">#66000000</color>
+
+    <!-- Color for sound level representation !-->
+    <color name="R1_SL_level">#FF0000</color>
+    <color name="R2_SL_level">#FF8000</color>
+    <color name="R3_SL_level">#FFFF00</color>
+    <color name="R4_SL_level">#80FF00</color>
+    <color name="R5_SL_level">#00FF00</color>
+
+
+</resources>

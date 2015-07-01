@@ -36,6 +36,8 @@
 
     <string name="title_settings_data_transfer">Data transfer</string>
     <string name="summary_settings_data_transfer">Accept data transfer</string>
+    <string name="title_settings_transfer_wifi_only">Wifi only</string>
+    <string name="summary_settings_transfer_wifi_only">Check if data transfer by wifi only</string>
     <string name="title_settings_recording">Recording</string>
     <string name="summary_settings_recording">Set default recording time</string>
     <string name="title_settings_caution">Caution message</string>

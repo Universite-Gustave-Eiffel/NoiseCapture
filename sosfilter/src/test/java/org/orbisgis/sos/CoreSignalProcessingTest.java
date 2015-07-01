@@ -43,7 +43,7 @@ public class CoreSignalProcessingTest extends TestCase {
          */
 
         // Stream of the audio signal (i.e. pinknoise_1s.wav)
-        InputStream inputStream = ThirdOctaveBandsFilteringTest.class.getResourceAsStream("pinknoise_1s.raw");
+        InputStream inputStream = CoreSignalProcessingTest.class.getResourceAsStream("pinknoise_1s.raw");
 
         final int rate = 44100;
         CoreSignalProcessing signalProcessing = new CoreSignalProcessing(rate);

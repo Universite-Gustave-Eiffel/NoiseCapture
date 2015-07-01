@@ -132,11 +132,6 @@ public class CoreSignalProcessing {
         /*
         A-weighting and third octave bands filtering
          */
-        try {
-            writeDoubleArrInCSVFile(sampleBuffer, "/home/gguillaume/sig.csv");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
         filteredSignals = CoreSignalProcessing.filterSignal(sampleBuffer);
         for(int idSample = 0; idSample < nbSubSamples; idSample++) {
             leq.add(new double[nbFrequencies]);

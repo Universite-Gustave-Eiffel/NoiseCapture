@@ -1,7 +1,7 @@
 package org.orbisgis.protonomap;
 
+
 import android.app.AlertDialog;
-import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -10,37 +10,36 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 
 public class MainActivity extends ActionBarActivity {
 
     // For the list view
     public ListView mDrawerList;
-    public ArrayAdapter<String> mAdapter;
     public DrawerLayout mDrawerLayout;
     public String[] mMenuLeft;
     public ActionBarDrawerToggle mDrawerToggle;
-    private CharSequence mTitle;
 
     // For the menu option
-    public static String pagetosee;
-    public static String titletosee;
+    public String pagetosee;
+    public String titletosee;
 
-    public static boolean isRecording=false;
-    public static boolean isResults=false;
-    public static boolean isHistory=true; // must be false but just for the testing
+    public boolean isResults = false;
+    public boolean isHistory = true; // must be false but just for the testing
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -157,8 +156,11 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public void setTitle(CharSequence title) {
-        mTitle = title;
-        getActionBar().setTitle(mTitle);
+        CharSequence mTitle = title;
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null) {
+            actionBar.setTitle(mTitle);
+        }
     }
 
     @Override
@@ -240,9 +242,6 @@ public class MainActivity extends ActionBarActivity {
 
 
      // Color for noise exposition representation
-     //public static final int[] NE_COLORS = {
-     //        Color.rgb(255, 0, 0), Color.rgb(255, 128, 0), Color.rgb(255, 255, 0), Color.rgb(128, 255, 0), Color.rgb(0, 255, 0)
-    //};
     public int[] NE_COLORS() {
         Resources res = getResources();
         int R1_SL_level = res.getColor(R.color.R1_SL_level);
@@ -250,33 +249,23 @@ public class MainActivity extends ActionBarActivity {
         int R3_SL_level = res.getColor(R.color.R3_SL_level);
         int R4_SL_level = res.getColor(R.color.R4_SL_level);
         int R5_SL_level = res.getColor(R.color.R5_SL_level);
-        int[] color_rep={R1_SL_level,R2_SL_level,R3_SL_level,R4_SL_level,R5_SL_level};
-        return color_rep;              //Color.rgb(255, 0, 0), Color.rgb(255, 128, 0), Color.rgb(255, 255, 0), Color.rgb(128, 255, 0), Color.rgb(0, 255, 0)
+        return new int[] {R1_SL_level,R2_SL_level,R3_SL_level,R4_SL_level,R5_SL_level};
     };
     // Choose color category in function of sound level
     public int getNEcatColors(float SL) {
 
         int NbNEcat;
 
-        if(SL > 75.)
-        {
-            NbNEcat=0;
-        }
-        else if( (SL<=75) & (SL>65))
-        {
-            NbNEcat=1;
-        }
-        else if( (SL<=65) & (SL>55))
-        {
-            NbNEcat=2;
-        }
-        else if( (SL<=55) & (SL>45))
-        {
-            NbNEcat=3;
-        }
-        else
-        {
-            NbNEcat=4;
+        if (SL > 75.) {
+            NbNEcat = 0;
+        } else if ((SL <= 75) & (SL > 65)) {
+            NbNEcat = 1;
+        } else if ((SL <= 65) & (SL > 55)) {
+            NbNEcat = 2;
+        } else if ((SL <= 55) & (SL > 45)) {
+            NbNEcat = 3;
+        } else {
+            NbNEcat = 4;
         }
         return NbNEcat;
     }
@@ -293,9 +282,7 @@ public class MainActivity extends ActionBarActivity {
         // have as many colors as stack-values per entry
         int []colors = new int[stacksize];
 
-        for(int i = 0; i < stacksize; i++) {
-            colors[i] = SPECTRUM_COLORS[i];
-        }
+        System.arraycopy(SPECTRUM_COLORS, 0, colors, 0, stacksize);
 
         return colors;
     }

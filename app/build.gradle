@@ -37,5 +37,5 @@ dependencies {
     compile 'com.android.support:appcompat-v7:22.0.0'
     compile 'com.github.PhilJay:MPAndroidChart:v2.0.8'
     compile 'com.android.support:support-v4:22.0.0'
-    compile 'org.orbisgis:signal_processing_sos:1.0-SNAPSHOT'
+    //compile 'org.orbisgis:signal_processing_sos:1.0-SNAPSHOT'
 }

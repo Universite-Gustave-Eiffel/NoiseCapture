@@ -110,6 +110,7 @@ public class History extends MainActivity {
             TextView history_Id = (TextView)arg1.findViewById(R.id.textView_Id_item_history);
             TextView history_Date = (TextView)arg1.findViewById(R.id.textView_Date_item_history);
             TextView history_SEL = (TextView)arg1.findViewById(R.id.textView_SEL_item_history);
+            TextView history_SEL_bar = (TextView)arg1.findViewById(R.id.textView_SEL_bar_item_history);
             informationHistory informationHistory = informationHistoryList.get(arg0);
 
             // Update history item
@@ -117,7 +118,8 @@ public class History extends MainActivity {
             history_Date.setText(informationHistory.Date);
             history_SEL.setText(Float.toString(informationHistory.SEL).concat(" dB(A)"));
             int nc=getNEcatColors(informationHistory.SEL);
-            history_SEL.setBackgroundColor(color_rep[nc]);
+            history_SEL.setTextColor(color_rep[nc]);
+            history_SEL_bar.setBackgroundColor(color_rep[nc]);
 
             return arg1;
         }

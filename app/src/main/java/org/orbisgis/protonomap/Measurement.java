@@ -86,12 +86,15 @@ public class Measurement extends MainActivity {
         }
 
         // Enabled/disabled buttons
-        // history disabled; cancel enabled; record button enabled
+        // history disabled; cancel enabled; record button enabled; map enabled
         ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
         checkHistoryButton();
         ImageButton buttoncancel= (ImageButton) findViewById(R.id.cancelBtn);
         buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
         buttoncancel.setEnabled(false);
+        ImageButton buttonmap= (ImageButton) findViewById(R.id.mapBtn);
+        buttonmap.setImageResource(R.drawable.button_map_normal);
+        buttoncancel.setEnabled(true);
 
         // To start a record (test mode)
         ImageButton buttonrecord=(ImageButton)findViewById(R.id.recordBtn);
@@ -126,6 +129,9 @@ public class Measurement extends MainActivity {
                 ImageButton buttonrecord=(ImageButton)findViewById(R.id.recordBtn);
                 buttonrecord.setImageResource(R.drawable.button_record);
                 buttoncancel.setEnabled(true);
+                ImageButton buttonmap=(ImageButton)findViewById(R.id.mapBtn);
+                buttonmap.setImageResource(R.drawable.button_map);
+                buttonmap.setEnabled(true);
 
                 // Goto the Results activity
                 isResults = false;
@@ -139,6 +145,16 @@ public class Measurement extends MainActivity {
             public void onClick(View view) {
                 // Go to history page
                 gotoHistory();
+            }
+        });
+
+        // Action on Map button
+        buttonmap.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Go to map page
+                Intent a = new Intent(getApplicationContext(), Map.class);
+                startActivity(a);;
             }
         });
 
@@ -171,6 +187,7 @@ public class Measurement extends MainActivity {
         mChart.setDrawGridBackground(false);
         mChart.setMaxVisibleValueCount(0);
         mChart.setScaleXEnabled(false); // Disable scaling on the X-axis
+        mChart.setHighlightEnabled(false);
         // XAxis parameters: hide all
         XAxis xlv = mChart.getXAxis();
         xlv.setPosition(XAxisPosition.BOTTOM);
@@ -199,6 +216,7 @@ public class Measurement extends MainActivity {
         sChart.setDrawGridBackground(false);
         sChart.setMaxVisibleValueCount(0);
         sChart.setDrawValuesForWholeStack(true); // Stacked
+        sChart.setHighlightEnabled(false);
         sChart.setNoDataTextDescription("Start by pressing the record button");
         // XAxis parameters:
         XAxis xls = sChart.getXAxis();
@@ -382,7 +400,7 @@ public class Measurement extends MainActivity {
         @Override
         public void onClick(View v) {
 
-            // Update buttons: history disabled; cancel enabled; record button to stop
+            // Update buttons: history disabled; cancel enabled; record button to stop; map disabled
             ImageButton buttonhistory= (ImageButton) activity.findViewById(R.id.historyBtn);
             buttonhistory.setImageResource(R.drawable.button_history_disabled);
             buttonhistory.setEnabled(false);
@@ -391,6 +409,8 @@ public class Measurement extends MainActivity {
             buttoncancel.setEnabled(true);
             ImageButton buttonrecord= (ImageButton) activity.findViewById(R.id.recordBtn);
             buttonrecord.setImageResource(R.drawable.button_record_pressed);
+            ImageButton buttonmap= (ImageButton) activity.findViewById(R.id.mapBtn);
+            buttonmap.setImageResource(R.drawable.button_map_disabled);
 
             if (!isRecording) {
 
@@ -423,7 +443,9 @@ public class Measurement extends MainActivity {
                 buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
                 buttoncancel.setEnabled(false);
                 buttonrecord.setImageResource(R.drawable.button_record);
-                buttoncancel.setEnabled(true);
+                buttonrecord.setEnabled(true);
+                buttonmap.setImageResource(R.drawable.button_map);
+                buttonmap.setEnabled(true);
 
                 // Goto the Results activity
                 isResults = true;

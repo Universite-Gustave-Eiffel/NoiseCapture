@@ -32,6 +32,7 @@ public class AudioProcess implements Runnable {
     private double[] movingLvl = new double[ThirdOctaveFrequencies.STANDARD_FREQUENCIES.length];
     // 1s level evaluation for upload to server
     private List<double[]> stdLvl = new ArrayList<>();
+    private CoreSignalProcessing movingLeqProcessing;
 
 
 
@@ -96,7 +97,7 @@ public class AudioProcess implements Runnable {
                     audioRecord.startRecording();
                     while (recording.get()) {
                         audioRecord.read(buffer, 0, buffer.length);
-                        //TODO add to stacks of process threads
+                        movingLeqProcessing.addSample();
                     }
                 } catch (Exception ex) {
                     Log.e("tag_record", "Error while recording", ex);
@@ -124,7 +125,7 @@ public class AudioProcess implements Runnable {
         }
 
         public void addSample(byte[] sample) {
-            coreSignalProcessing.addSample(sample);
+            coreSignalProcessing.addSample(CoreSignalProcessing.convertBytesToDouble(sample, sample.length));
         }
 
         @Override
@@ -136,18 +137,62 @@ public class AudioProcess implements Runnable {
     private static class StandartLeqProcessing implements Runnable {
         private ConcurrentLinkedDeque<byte[]> bufferToProcess = new ConcurrentLinkedDeque<byte[]>();
         private final AudioProcess audioProcess;
+        private AtomicBoolean processing = new AtomicBoolean(false);
+        private CoreSignalProcessing coreSignalProcessing;
+        private List<Double> lvls = new ArrayList<>();
 
         public StandartLeqProcessing(AudioProcess audioProcess) {
             this.audioProcess = audioProcess;
+            this.coreSignalProcessing = new CoreSignalProcessing(audioProcess.getRate());
         }
 
         public void addSample(byte[] sample) {
             bufferToProcess.add(sample);
         }
 
+        public boolean isTaskQueueEmpty() {
+            return bufferToProcess.isEmpty() && !processing.get();
+        }
+
+        private void processSecondSample(double[] secondSample) {
+            coreSignalProcessing.addSample(secondSample);
+            lvls.addAll(coreSignalProcessing.processSamples(1.));
+        }
+
         @Override
         public void run() {
-
+            final int rate = audioProcess.getRate();
+            double[] secondSample = new double[rate];
+            int secondCursor = 0;
+            int totalRead = 0;
+            while (audioProcess.currentState != STATE.WAITING_END_PROCESSING) {
+                while(!bufferToProcess.isEmpty()) {
+                    try {
+                        processing.set(true);
+                        byte[] buffer = bufferToProcess.pop();
+                        double[] samples = CoreSignalProcessing.convertBytesToDouble(sample, sample.length);
+                        int lengthRead = Math.min(samples.length, rate - secondCursor);
+                        // Copy sample fragment into second array
+                        System.arraycopy(samples, 0, secondSample, secondCursor, lengthRead);
+                        secondCursor+=lengthRead;
+                        if(lengthRead < samples.length) {
+                            processSecondSample(secondSample);
+                            secondCursor = 0;
+                            // Copy remaining sample fragment into new second array
+                            int newLengthRead = samples.length - lengthRead;
+                            System.arraycopy(samples, lengthRead, secondSample, secondCursor, newLengthRead);
+                            secondCursor+=newLengthRead;
+                        }
+                        if(secondCursor == rate) {
+                            processSecondSample(secondSample);
+                            secondCursor = 0;
+                        }
+                    } finally {
+                        processing.set(!bufferToProcess.isEmpty());
+                    }
+                }
+                processing.set(false);
+            }
         }
     }
 }

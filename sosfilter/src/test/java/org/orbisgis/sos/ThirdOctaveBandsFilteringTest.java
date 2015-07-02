@@ -47,7 +47,9 @@ public class ThirdOctaveBandsFilteringTest {
      */
     @Test
     public void testReadCsv() {
-        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering();
+        int samplingRate = 44100;
+        double sampleLength = 1.;
+        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, sampleLength);
         List<ThirdOctaveBandsFiltering.FiltersParameters> filtersCoefficients = thirdOctaveBandsFiltering.getFilterParameters();
         Assert.assertEquals(32, filtersCoefficients.size());
     }
@@ -64,8 +66,11 @@ public class ThirdOctaveBandsFilteringTest {
         Reference data (i.e. expected results)
          */
 
-        int nbExpectedSamples = 44100;
-        double[] standardFrequencies = ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES;
+        int samplingRate = 44100;
+        double sampleLength = 1.;
+        int nbExpectedSamples = (int)(samplingRate * sampleLength);
+        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, sampleLength);
+        double[] standardFrequencies = thirdOctaveBandsFiltering.STANDARD_FREQUENCIES;
         int nbFrequencies = standardFrequencies.length;
 
         // Reference third octave bands filtered signals (i.e. expected results)
@@ -121,7 +126,7 @@ public class ThirdOctaveBandsFilteringTest {
         }
 
         // Third octave bands filtering of the audio signal
-        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering();
+//        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, sampleLength);
         double[][] actualFilteredSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(audioSignalArr);
 
         // Equivalent sound pressure levels of the third octave bands filtered signals
@@ -153,8 +158,11 @@ public class ThirdOctaveBandsFilteringTest {
         Reference data (i.e. expected results)
          */
 
-        int nbExpectedSamples = 44100;
-        double[] standardFrequencies = ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES;
+        int samplingRate = 44100;
+        double sampleLength = 1.;
+        int nbExpectedSamples = (int)(samplingRate * sampleLength);
+        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, sampleLength);
+        double[] standardFrequencies = thirdOctaveBandsFiltering.STANDARD_FREQUENCIES;
         int nbFrequencies = standardFrequencies.length;
 
         // Expected third octave bands filtered signals
@@ -213,7 +221,6 @@ public class ThirdOctaveBandsFilteringTest {
         double[] actualAWeightedSignal = AWeighting.aWeightingSignal(audioSignalArr);
 
         // Third octave bands filtering of the A-weighted signal
-        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering();
         double[][] actualFilteredAWeightedSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(actualAWeightedSignal);
 
         // Third octave bands filtering of the input signal (i.e. unweighted)

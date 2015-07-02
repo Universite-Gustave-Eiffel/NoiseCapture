@@ -52,7 +52,9 @@ public class CoreSignalProcessing {
      * @param signal time signal
      * @return double[frequency][time] A-weighted and third octave bands filtered time signals for each nominal center frequency
      */
-    public static double[][] filterSignal(double[] signal) {
+    public static double[][] filterSignal(double[] signal, int samplingRate) {
+
+        int sampleDuration = signal.length / samplingRate;
 
         /**
          * Apply the A-weighting filter to the input signal
@@ -62,10 +64,31 @@ public class CoreSignalProcessing {
         /**
          * Third octave bands filtering of the A-weighted signal
          */
-        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering();
+        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, sampleDuration);
         double[][] filteredSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(aWeightedSignal);
 
         return filteredSignal;
+    }
+
+    /**
+     *
+     * @param buffer
+     * @param length Length from the start to convert
+     * @return Processed
+     */
+    public static double[] convertBytesToDouble(byte[] buffer, int length) {
+        ShortBuffer byteBuffer = ByteBuffer.wrap(buffer, 0, length).asShortBuffer();
+        short[] samplesShort = new short[byteBuffer.capacity()];
+        double[] samples = new double[samplesShort.length];
+        byteBuffer.get(samplesShort);
+        for (int i = 0; i < samplesShort.length; i++) {
+            if (samplesShort[i] > 0) {
+                samples[i] = Math.min(1, samplesShort[i] / ((double) Short.MAX_VALUE));
+            } else {
+                samples[i] = Math.max(-1, samplesShort[i] / (-(double) Short.MIN_VALUE));
+            }
+        }
+        return samples;
     }
 
     /**
@@ -79,33 +102,23 @@ public class CoreSignalProcessing {
      */
     public List<double[]> processAudio(int encoding, final int rate, InputStream inputStream, double leqPeriod) throws IOException {
         List<double[]> allLeq = new ArrayList<double[]>();
+
+
         double[] secondSample = new double[rate];
         int secondCursor = 0;
         byte[] buffer = new byte[4096];
         int read = 0;
-        int totalRead = 0;
         // Read input signal up to buffer.length
         while ((read = inputStream.read(buffer)) != -1) {
-            totalRead += read;
             // Convert bytes into double values. Samples array size is 8 times inferior than buffer size
-            ShortBuffer byteBuffer = ByteBuffer.wrap(buffer, 0, read).asShortBuffer();
-            short[] samplesShort = new short[byteBuffer.capacity()];
-            double[] samples = new double[samplesShort.length];
-            byteBuffer.get(samplesShort);
-            for (int i = 0; i < samplesShort.length; i++) {
-                if (samplesShort[i] > 0) {
-                    samples[i] = Math.min(1, samplesShort[i] / ((double) Short.MAX_VALUE));
-                } else {
-                    samples[i] = Math.max(-1, samplesShort[i] / (-(double) Short.MIN_VALUE));
-                }
-            }
+            double[] samples = convertBytesToDouble(buffer, read);
             int lengthRead = Math.min(samples.length, rate - secondCursor);
             // Copy sample fragment into second array
             System.arraycopy(samples, 0, secondSample, secondCursor, lengthRead);
             secondCursor += lengthRead;
             if (lengthRead < samples.length) {
                 addSample(secondSample);
-                allLeq.addAll(processSamples(leqPeriod));
+                allLeq.addAll(processSample(leqPeriod));
                 secondCursor = 0;
                 // Copy remaining sample fragment into new second array
                 int newLengthRead = samples.length - lengthRead;
@@ -114,7 +127,7 @@ public class CoreSignalProcessing {
             }
             if (secondCursor == rate) {
                 addSample(secondSample);
-                allLeq.addAll(processSamples(leqPeriod));
+                allLeq.addAll(processSample(leqPeriod));
                 secondCursor = 0;
             }
         }
@@ -126,17 +139,20 @@ public class CoreSignalProcessing {
      * @param leqPeriod time period over which the equivalent sound pressure level is computed over [s] {@link AcousticIndicators#TIMEPERIOD_FAST} or {@link AcousticIndicators#TIMEPERIOD_SLOW}
      * @return List of double array of equivalent sound pressure level per third octave bands
      */
-    private List<double[]> processSamples(double leqPeriod) throws FileNotFoundException {
-        int nbFrequencies = ThirdOctaveBandsFiltering.getStandardFrequencies().length;
-        List<double[]> leq = new ArrayList<double[]>();
+    private List<double[]> processSample(double leqPeriod) throws FileNotFoundException {
         int signalLength = sampleBuffer.length;
+        double sampleDuration = (double)(signalLength / samplingRate);
+        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, sampleDuration);
+        double[] standardFrequencies = thirdOctaveBandsFiltering.getStandardFrequencies(samplingRate, sampleDuration);
+        int nbFrequencies = standardFrequencies.length;
+        List<double[]> leq = new ArrayList<double[]>();
         double[][] filteredSignals;
         final int subSamplesLength = (int)(leqPeriod * samplingRate);      // Sub-samples length
-        final int nbSubSamples = (int)(signalLength / subSamplesLength);
+        final int nbSubSamples = signalLength / subSamplesLength;
         /*
         A-weighting and third octave bands filtering
          */
-        filteredSignals = CoreSignalProcessing.filterSignal(sampleBuffer);
+        filteredSignals = CoreSignalProcessing.filterSignal(sampleBuffer, samplingRate);
         for(int idSample = 0; idSample < nbSubSamples; idSample++) {
             leq.add(new double[nbFrequencies]);
         }

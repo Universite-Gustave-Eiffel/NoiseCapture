@@ -196,8 +196,9 @@ public class Measurement extends MainActivity {
         }
         initSpectrum();
         // Data (before legend)
-        setDataSA(30, 0);
-        // 30 values for each third-octave band// Legend: hide all
+        ltob= getResources().getStringArray(R.array.tob_list_array);
+        setDataSA((ltob.length-1), 0);
+        // (ltob.length-1) values for each third-octave band// Legend: hide all
         Legend ls = sChart.getLegend();
         ls.setEnabled(false); // Hide legend
 
@@ -341,7 +342,7 @@ public class Measurement extends MainActivity {
         ArrayList<String> xVals = new ArrayList<String>();
         ltob= getResources().getStringArray(R.array.tob_list_array);
         for (int i = 0; i < count; i++) {
-            xVals.add(ltob[i % 30]);
+            xVals.add(ltob[i % (ltob.length-1)]);
         }
 
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
@@ -377,7 +378,7 @@ public class Measurement extends MainActivity {
         ArrayList<String> xVals = new ArrayList<String>();
         ltob= getResources().getStringArray(R.array.tob_list_array);
         for (int i = 0; i < count; i++) {
-            xVals.add(ltob[i % 30]);
+            xVals.add(ltob[i % (ltob.length-1)]);
         }
 
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
@@ -571,7 +572,7 @@ public class Measurement extends MainActivity {
             mTextView.setTextColor(color_rep[nc]);
 
             // Spectrum data
-            activity.setDataSA(30, 135);
+            activity.setDataSA((activity.ltob.length-1), 135);
         }
 
     }

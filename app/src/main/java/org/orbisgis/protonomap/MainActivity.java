@@ -136,6 +136,11 @@ public class MainActivity extends ActionBarActivity {
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
                     break;
+                case 4:
+                    Intent ics = new Intent(getApplicationContext(), activity_calibration_start.class);
+                    mDrawerLayout.closeDrawer(mDrawerList);
+                    startActivity(ics);
+                    break;
                 case 5:
                     Intent ih = new Intent(getApplicationContext(),View_html_page.class);
                     pagetosee=getString(R.string.url_help);
@@ -149,6 +154,7 @@ public class MainActivity extends ActionBarActivity {
                     titletosee=getString((R.string.title_activity_about));
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ia);
+                    break;
                 default:
                     break;
             }

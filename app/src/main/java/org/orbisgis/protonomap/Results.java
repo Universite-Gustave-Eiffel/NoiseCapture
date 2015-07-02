@@ -66,9 +66,10 @@ public class Results extends MainActivity {
         lnei.setEnabled(false);
 
         // Cumulated spectrum
+        ltob= getResources().getStringArray(R.array.tob_list_array);
         sChart = (BarChart) findViewById(R.id.spectrumChart);
         initSpectrumChart();
-        setDataS(30, 115);
+        setDataS((ltob.length-1), 115);
         Legend ls = sChart.getLegend();
         ls.setEnabled(false); // Hide legend
 
@@ -147,7 +148,7 @@ public class Results extends MainActivity {
         ArrayList<String> xVals = new ArrayList<String>();
         ltob= getResources().getStringArray(R.array.tob_list_array);
         for (int i = 0; i < count; i++) {
-            xVals.add(ltob[i % 30]);
+            xVals.add(ltob[i % (ltob.length-1)]);
         }
 
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();

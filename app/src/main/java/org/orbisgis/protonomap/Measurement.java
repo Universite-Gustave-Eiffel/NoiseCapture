@@ -111,7 +111,7 @@ public class Measurement extends MainActivity {
         buttonrecord.setOnClickListener(new DoProcessing(getApplicationContext(), this));
 
         // Action on cancel button (during recording)
-        buttoncancel.setOnClickListener(
+        buttoncancel.setOnClickListener(onButtonCancel);
 
         // Action on History button
         buttonhistory.setOnClickListener(new View.OnClickListener() {
@@ -435,7 +435,7 @@ public class Measurement extends MainActivity {
                 chronometer.start();
 
                 // Start recording
-                new Thread(new AudioProcess(activity.isRecording).start();
+                new Thread(new AudioProcess(activity.isRecording)).start();
             }
             else
             {

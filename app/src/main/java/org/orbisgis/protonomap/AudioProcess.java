@@ -5,7 +5,14 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
 
+import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import org.orbisgis.sos.CoreSignalProcessing;
+import org.orbisgis.sos.ThirdOctaveFrequencies;
 
 /**
  * Processing thread of packets of Audio signal
@@ -16,7 +23,18 @@ public class AudioProcess implements Runnable {
     private final int encoding;
     private final int rate;
     private final int audioChannel;
-    private AudioRecord audioRecord;
+    public enum STATE { WAITING, PROCESSING,WAITING_END_PROCESSING, CLOSED }
+    private STATE currentState = STATE.WAITING;
+    private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
+    public static String PROP_MOVING_LEQ = "PROP_MOVING_LEQ";
+    private double movingLeq;
+    // Moving Level evaluation for rendering to user
+    private double[] movingLvl = new double[ThirdOctaveFrequencies.STANDARD_FREQUENCIES.length];
+    // 1s level evaluation for upload to server
+    private List<double[]> stdLvl = new ArrayList<>();
+
+
+
 
     /**
      * Constructor
@@ -24,7 +42,7 @@ public class AudioProcess implements Runnable {
      */
     public AudioProcess(AtomicBoolean recording) {
         this.recording = recording;
-        final int[] mSampleRates = new int[] { 8000, 11025, 22050, 44100 };
+        final int[] mSampleRates = new int[] { 44100 };
         final int[] encodings = new int[] { AudioFormat.ENCODING_PCM_16BIT , AudioFormat.ENCODING_PCM_8BIT };
         final short[] audioChannels = new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO };
         for (int tryRate : mSampleRates) {
@@ -48,6 +66,10 @@ public class AudioProcess implements Runnable {
         rate = -1;
     }
 
+    public STATE getCurrentState() {
+        return currentState;
+    }
+
     private AudioRecord createAudioRecord() {
         if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
             return new AudioRecord(MediaRecorder.AudioSource.MIC,
@@ -60,27 +82,72 @@ public class AudioProcess implements Runnable {
 
     @Override
     public void run() {
-        audioRecord = createAudioRecord();
-        byte[] buffer = new byte[bufferSize];
-        if(recording.get()) {
-            try {
-
+        try {
+            currentState = STATE.PROCESSING;
+            AudioRecord audioRecord = createAudioRecord();
+            byte[] buffer = new byte[bufferSize];
+            if (recording.get() && audioRecord != null) {
                 try {
-                    android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
-                } catch (IllegalArgumentException | SecurityException ex) {
-                    // Ignore
+                    try {
+                        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+                    } catch (IllegalArgumentException | SecurityException ex) {
+                        // Ignore
+                    }
+                    audioRecord.startRecording();
+                    while (recording.get()) {
+                        audioRecord.read(buffer, 0, buffer.length);
+                        //TODO add to stacks of process threads
+                    }
+                } catch (Exception ex) {
+                    Log.e("tag_record", "Error while recording", ex);
+                } finally {
+                    audioRecord.stop();
+                    audioRecord.release();
                 }
-                audioRecord.startRecording();
-                while (recording.get()) {
-                    audioRecord.read(buffer, 0, buffer.length);
-                    //TODO add to stacks of process threads
-                }
-            } catch (Exception ex) {
-                Log.e("tag_record", "Error while recording", ex);
-            } finally {
-                audioRecord.stop();
-                audioRecord.release();
             }
+        } finally {
+            currentState = STATE.CLOSED;
+        }
+    }
+
+    public int getRate() {
+        return rate;
+    }
+
+    private static class MovingLeqProcessing implements Runnable {
+        private final AudioProcess audioProcess;
+        private CoreSignalProcessing coreSignalProcessing;
+
+        public MovingLeqProcessing(AudioProcess audioProcess) {
+            this.audioProcess = audioProcess;
+            this.coreSignalProcessing = new CoreSignalProcessing(audioProcess.getRate());
+        }
+
+        public void addSample(byte[] sample) {
+            coreSignalProcessing.addSample(sample);
+        }
+
+        @Override
+        public void run() {
+
+        }
+    }
+
+    private static class StandartLeqProcessing implements Runnable {
+        private ConcurrentLinkedDeque<byte[]> bufferToProcess = new ConcurrentLinkedDeque<byte[]>();
+        private final AudioProcess audioProcess;
+
+        public StandartLeqProcessing(AudioProcess audioProcess) {
+            this.audioProcess = audioProcess;
+        }
+
+        public void addSample(byte[] sample) {
+            bufferToProcess.add(sample);
+        }
+
+        @Override
+        public void run() {
+
         }
     }
 }

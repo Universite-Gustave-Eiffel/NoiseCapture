@@ -93,7 +93,11 @@ public class CoreSignalProcessing {
             double[] samples = new double[samplesShort.length];
             byteBuffer.get(samplesShort);
             for (int i = 0; i < samplesShort.length; i++) {
-                samples[i] = samplesShort[i] / 32768d;
+                if (samplesShort[i] > 0) {
+                    samples[i] = Math.min(1, samplesShort[i] / ((double) Short.MAX_VALUE));
+                } else {
+                    samples[i] = Math.max(-1, samplesShort[i] / (-(double) Short.MIN_VALUE));
+                }
             }
             int lengthRead = Math.min(samples.length, rate - secondCursor);
             // Copy sample fragment into second array
@@ -159,7 +163,8 @@ public class CoreSignalProcessing {
         }
         StringBuilder sb = new StringBuilder();
         for (Double element : data) {
-            sb.append(element.toString() + "\n");
+            sb.append(element.toString());
+            sb.append("\n");
         }
 
         if (br != null) {

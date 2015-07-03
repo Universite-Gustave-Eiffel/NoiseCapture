@@ -57,9 +57,9 @@
     <!--  Ressources for the spinner map !-->
     <string name="title_select_calibration_mode">Select calibration mode</string>
     <string-array name="choice_user_calibration_mode">
-        <item>Sonometer with global value</item>
-        <item>Sonometer with frequency band values</item>
-        <item>Reference to background noise</item>
+        <item>1- Sonometer with global value</item>
+        <item>2- Sonometer with frequency band values</item>
+        <item>3- Reference to background noise</item>
     </string-array>
 
     <!--  Ressources for the spinner history !-->

@@ -32,11 +32,9 @@
             android:layout_below="@+id/textView_select_calibration_mode"
             android:paddingBottom="0dp"
             android:gravity="center_horizontal"
+            android:textAlignment="center"
             android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:textAlignment="center" />
+            android:layout_alignParentStart="true" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -46,7 +44,8 @@
             android:layout_below="@+id/spinner_calibration_mode"
             android:layout_centerHorizontal="true"
             android:textColor="#0099CC"
-            android:textSize="15dp" />
+            android:textSize="15dp"
+            android:paddingTop="20dp" />
 
         <EditText
             android:layout_width="wrap_content"
@@ -55,12 +54,12 @@
             android:ems="10"
             android:id="@+id/editText"
             android:layout_below="@+id/textView_calibration_duration"
-            android:layout_alignLeft="@+id/textView_calibration_duration"
-            android:layout_alignStart="@+id/textView_calibration_duration"
-            android:layout_alignRight="@+id/textView_select_calibration_mode"
-            android:layout_alignEnd="@+id/textView_select_calibration_mode"
             android:text="10"
-            android:gravity="center_horizontal" />
+            android:gravity="center_horizontal"
+            android:layout_alignLeft="@+id/textView_title_calibration_delay"
+            android:layout_alignStart="@+id/textView_title_calibration_delay"
+            android:layout_alignRight="@+id/textView_title_calibration_delay"
+            android:layout_alignEnd="@+id/textView_title_calibration_delay" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -93,35 +92,80 @@
             android:layout_alignRight="@+id/editText"
             android:layout_alignEnd="@+id/editText" />
 
-        <ProgressBar
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/progressBar2"
-            android:paddingTop="20dp"
-            android:layout_below="@+id/editText_calibration_delay"
-            android:layout_centerHorizontal="true" />
-
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Start"
             android:id="@+id/button_start_calibration"
-            android:layout_toLeftOf="@+id/progressBar2"
-            android:layout_toStartOf="@+id/progressBar2"
             android:background="@color/R1_SL_level"
-            android:layout_alignParentBottom="true" />
+            android:layout_alignParentBottom="true"
+            android:layout_centerHorizontal="true" />
 
         <Button
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Cancel"
             android:id="@+id/button_cancel_calibration"
-            android:layout_alignBottom="@+id/button_start_calibration"
-            android:layout_toRightOf="@+id/progressBar2"
-            android:layout_toEndOf="@+id/progressBar2"
             android:background="@color/R3_SL_level"
             android:textColor="@android:color/black"
-            android:layout_alignParentBottom="true" />
+            android:layout_alignParentBottom="true"
+            android:layout_alignLeft="@+id/button_start_calibration"
+            android:layout_alignStart="@+id/button_start_calibration"
+            android:visibility="invisible" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Prepare to start recording..."
+            android:id="@+id/textView_title_Prepare_start_recording"
+            android:layout_below="@+id/editText_calibration_delay"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignRight="@+id/spinner_calibration_mode"
+            android:layout_alignEnd="@+id/spinner_calibration_mode"
+            android:paddingTop="40dp"
+            android:textSize="15dp" />
+
+        <ProgressBar
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/progressBar_wait_calibration_recording"
+            android:layout_below="@+id/textView_title_Prepare_start_recording"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="false"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="false"
+            android:maxHeight="20dp"
+            android:minHeight="20dp"
+            android:layout_marginTop="6dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Recording..."
+            android:id="@+id/textView_title_Recording"
+            android:layout_below="@+id/progressBar_wait_calibration_recording"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:textSize="15dp"
+            android:paddingTop="10dp" />
+
+        <ProgressBar
+            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/progressBar_calibration_recording"
+            android:layout_below="@+id/textView_title_Recording"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignRight="@+id/progressBar_wait_calibration_recording"
+            android:layout_alignEnd="@+id/progressBar_wait_calibration_recording"
+            android:minHeight="20dp"
+            android:maxHeight="20dp"
+            android:color="@color/R1_SL_level"
+            android:layout_marginTop="5dp"
+            android:progress="10" />
 
     </RelativeLayout>
 

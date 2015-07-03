@@ -65,6 +65,7 @@ public class Measurement extends MainActivity {
         if (CheckNbRun() & CheckNbRunSettings) {
 
             // show dialog
+            // TODO : verify calibration mode and inform user
             new AlertDialog.Builder(this).setTitle(R.string.title_caution)
                     .setMessage(R.string.text_caution)
                     .setNeutralButton(R.string.text_OK, null)

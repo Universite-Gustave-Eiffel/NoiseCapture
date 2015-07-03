@@ -42,14 +42,14 @@ public class Measurement extends MainActivity {
 
     //public ImageButton buttonrecord;
     //public ImageButton buttoncancel;
-    static float Leqi;
 
     // For the Charts
     protected HorizontalBarChart mChart; // VUMETER representation
     protected BarChart sChart; // Spectrum representation
 
     // Other ressources
-    public AtomicBoolean isRecording = new AtomicBoolean(false);
+    private AtomicBoolean isRecording = new AtomicBoolean(false);
+    private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
     private AudioProcess audioProcess = new AudioProcess(isRecording);
 
 
@@ -301,21 +301,18 @@ public class Measurement extends MainActivity {
     }
 
     // Generate artificial 1 data (sound level) for vumeter representation
-    private void setData(float range) {
+    private void setData(float val) {
 
         ArrayList<String> xVals = new ArrayList<String>();
         xVals.add("");
 
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
-        float mult = (range + 1f);
-        float val = (float) (Math.random() * mult);
-        Leqi=val;
         yVals1.add(new BarEntry(val, 0));
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
         //set1.setBarSpacePercent(35f);
         //set1.setColor(Color.rgb(0, 153, 204));
-        int nc=getNEcatColors(Leqi);    // Choose the color category in function of the sound level
+        int nc=getNEcatColors(val);    // Choose the color category in function of the sound level
         int[] color_rep=NE_COLORS();
         set1.setColor(color_rep[nc]);
 
@@ -377,7 +374,8 @@ public class Measurement extends MainActivity {
 
         @Override
         public void propertyChange(PropertyChangeEvent event) {
-            if(AudioProcess.PROP_MOVING_LEQ.equals(event.getPropertyName())) {
+            if(AudioProcess.PROP_MOVING_LEQ.equals(event.getPropertyName()) &&
+                    activity.isComputingMovingLeq.compareAndSet(false, true)) {
                 activity.runOnUiThread(new UpdateText(activity));
             }
         }
@@ -456,27 +454,29 @@ public class Measurement extends MainActivity {
 
         @Override
         public void run() {
-            final double[] movingLevel = activity.audioProcess.getMovingLvl();
-            for(int idFreq = 0; idFreq < movingLevel.length; idFreq++) {
-                movingLevel[idFreq]+=100;
-            }
-            // Vumeter data
-            //TODO do it in library
-            double sum = 0d;
-            for(double lvl : movingLevel) {
-                sum += Math.pow(10, lvl / 10);
-            }
-            activity.setData((float)(10* Math.log10(sum)));
-            // Change the text and the textcolor in the corresponding textview
-            // for the Leqi value
-            final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
-            mTextView.setText(String.format("%.1f", Leqi));
-            int nc=activity.getNEcatColors(Leqi);    // Choose the color category in function of the sound level
-            int[] color_rep=activity.NE_COLORS();
-            mTextView.setTextColor(color_rep[nc]);
+            try {
+                final double[] movingLevel = activity.audioProcess.getMovingLvl();
+                // Vumeter data
+                //TODO do it in library
+                double sum = 0d;
+                for (double lvl : movingLevel) {
+                    sum += Math.pow(10, lvl / 10);
+                }
+                float leq = (float) (10 * Math.log10(sum));
+                activity.setData(leq);
+                // Change the text and the textcolor in the corresponding textview
+                // for the Leqi value
+                final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
+                mTextView.setText(String.format("%.1f", leq));
+                int nc = activity.getNEcatColors(leq);    // Choose the color category in function of the sound level
+                int[] color_rep = activity.NE_COLORS();
+                mTextView.setTextColor(color_rep[nc]);
 
-            // Spectrum data
-            activity.updateSpectrumGUI(movingLevel);
+                // Spectrum data
+                activity.updateSpectrumGUI(movingLevel);
+            } finally {
+                activity.isComputingMovingLeq.set(false);
+            }
         }
 
     }

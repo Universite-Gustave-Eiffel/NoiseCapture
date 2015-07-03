@@ -16,7 +16,6 @@
     <string name="title_activity_history">History</string>
     <string name="title_activity_about">About</string>
     <string name="title_activity_help">Help</string>
-    <string name="title_activity_Results">Results</string>
 
     <!-- Caution dialog box at app launch !-->
     <string name="text_OK">YES, I understand</string>
@@ -36,6 +35,8 @@
 
     <string name="title_settings_data_transfer">Data transfer</string>
     <string name="summary_settings_data_transfer">Accept data transfer</string>
+    <string name="title_settings_transfer_wifi_only">Wifi only</string>
+    <string name="summary_settings_transfer_wifi_only">Check if data transfer by wifi only</string>
     <string name="title_settings_recording">Recording</string>
     <string name="summary_settings_recording">Set default recording time</string>
     <string name="title_settings_caution">Caution message</string>
@@ -45,12 +46,20 @@
     <string name="title_settings_view_mode">Display</string>
     <string name="summary_settings_view_mode">Check to display in the expert mode</string>
 
-    <!--  Ressources for the spinner map !-->
+    <!--  Ressources for the spinner calibration !-->
     <string name="title_choice_data_map">Choose data:</string>
     <string-array name="choice_user_map">
         <item>Last one</item>
         <item>Own from server</item>
         <item>All from server</item>
+    </string-array>
+
+    <!--  Ressources for the spinner map !-->
+    <string name="title_select_calibration_mode">Select calibration mode</string>
+    <string-array name="choice_user_calibration_mode">
+        <item>1- Sonometer with global value</item>
+        <item>2- Sonometer with frequency band values</item>
+        <item>3- Reference to background noise</item>
     </string-array>
 
     <!--  Ressources for the spinner history !-->
@@ -77,13 +86,15 @@
     <string name="url_help">file:///android_asset/html/help.html</string>
 
     <!--  Ressources for acoustics !-->
-    <string-array name="tob_list_array">
-        <item>25</item>
+    <!--
+    <item>25</item>
         <item>31.5</item>
         <item>40</item>
         <item>50</item>
         <item>63</item>
         <item>80</item>
+    !-->
+    <string-array name="tob_list_array">
         <item>100</item>
         <item>125</item>
         <item>160</item>
@@ -127,14 +138,13 @@
     <string name="title_activity_web_view_page">web_view_page</string>
     <string name="title_activity_view_html_page">View_html_page</string>
     <string name="title_activity_settings">Settings</string>
-    <string name="title_activity_main_activity2">MainActivity2Activity</string>
     <string name="title_activity_map">Map</string>
     <string name="title_activity_start">Start</string>
+    <string name="title_activity_calibration_start">Calibration</string>
 
     <string name="start_text_title">NoiseCapture</string>
     <string name="start_text_subtitle">Measuring your sound environment</string>
     <string name="start_text_developed_by">Developed by</string>
     <string name="start_text_supported_by">Supported by</string>
-
 
 </resources>

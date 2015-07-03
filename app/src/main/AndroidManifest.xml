@@ -53,6 +53,10 @@
             android:name=".History"
             android:label="@string/title_activity_history" >
         </activity>
+        <activity
+            android:name=".activity_calibration_start"
+            android:label="@string/title_activity_calibration_start" >
+        </activity>
     </application>
 
 </manifest>

@@ -158,12 +158,12 @@
 
             <com.github.mikephil.charting.charts.PieChart
             android:id="@+id/NEIChart"
-            android:layout_width="143dp"
+            android:layout_width="120dp"
             android:layout_height="match_parent" />
 
             <com.github.mikephil.charting.charts.PieChart
             android:id="@+id/RNEChart"
-            android:layout_width="216dp"
+            android:layout_width="210dp"
             android:layout_height="match_parent" />
 
         </LinearLayout>

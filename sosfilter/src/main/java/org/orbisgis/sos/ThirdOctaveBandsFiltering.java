@@ -16,20 +16,78 @@ import java.util.*;
  */
 public class ThirdOctaveBandsFiltering {
 
+    public enum FREQUENCY_BANDS {REDUCED, FULL};
+    private int expectedSampleLength;
+    private int samplingRate;
+    private final double[] standardFrequencies;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(ThirdOctaveBandsFiltering.class);
-    private List<FiltersParameters> filterParameters = new ArrayList<FiltersParameters>(STANDARD_FREQUENCIES.length);
+    private List<FiltersParameters> filterParameters;
+
+    /**
+     * Standard center frequencies of third octave bands
+     * STANDARD_FREQUENCIES_REDUCED corresponds with a reduced array of standard third octave bands frequencies in the range [100Hz, 20kHz]
+     * STANDARD_FREQUENCIES_FULL corresponds with the array of standard third octave bands frequencies in the range [100Hz, 20kHz]
+     */
+    private static final double[] STANDARD_FREQUENCIES_REDUCED = new double[]{100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000};
+    private static final double[] STANDARD_FREQUENCIES_FULL = new double[]{16, 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000};
+
 
     /**
      * Third octave bands filtering constructor
      */
-    public ThirdOctaveBandsFiltering() {
-        int sampleRate = 44100;
-        String csvRootName = "Third_oct_filters_coefts";
-        String strSamplingFrequency = String.valueOf(sampleRate) + "Hz";
-        String strLenSecs = String.valueOf((int)AcousticIndicators.TIMEPERIOD_SLOW) + "s";
-        String csvFileName = csvRootName + "_" + strSamplingFrequency + "_" + strLenSecs + ".csv";
+    public ThirdOctaveBandsFiltering(int samplingRate, FREQUENCY_BANDS frequency_bands) {
+        this.samplingRate = samplingRate;
+        this.standardFrequencies = getStandardFrequencies(frequency_bands);
+        String csvFileName;
+        if (frequency_bands == FREQUENCY_BANDS.FULL) {
+            // Third octave bands filtering over the full standards frequency bands (i.e. [16Hz-20kHz]) requires a
+            // 5-seconds duration input signal
+            this.expectedSampleLength = samplingRate * 5;
+            csvFileName = "Third_oct_filters_coefts_44100Hz_16Hz-20kHz";
+        } else {
+            // Third octave bands filtering over the full standards frequency bands (i.e. [100Hz-20kHz]) requires a
+            // 1-second duration input signal
+            this.expectedSampleLength = samplingRate;
+            csvFileName = "Third_oct_filters_coefts_44100Hz_100Hz-20kHz.csv";
+        }
+        filterParameters = new ArrayList<FiltersParameters>(standardFrequencies.length);
         getFiltersParameters(ThirdOctaveBandsFiltering.class.getResourceAsStream(csvFileName));
     }
+
+    public static double[] getStandardFrequencies(FREQUENCY_BANDS frequency_bands) {
+        if (frequency_bands == FREQUENCY_BANDS.FULL) {
+            return STANDARD_FREQUENCIES_FULL;
+        } else {
+            return STANDARD_FREQUENCIES_REDUCED;
+        }
+    }
+
+    public static double getSampleBufferDuration(FREQUENCY_BANDS frequency_bands) {
+        if (frequency_bands == FREQUENCY_BANDS.FULL) {
+            return 5.;
+        } else {
+            return 1.;
+        }
+    }
+
+    /**
+     * Get the array of standard third octave bands frequencies
+     * @param samplingRate sampling rate [Hz]
+     * @param sampleDuration sample duration [s]
+     * @return array of standard third octave bands frequencies
+     */
+    public final double[] getStandardFrequencies(int samplingRate, double sampleDuration) {
+        double[] standFrequencies = new double[0];
+        if (samplingRate == 44100 && sampleDuration == 1.) {
+            standFrequencies = STANDARD_FREQUENCIES_REDUCED;
+        }
+        else if (samplingRate == 44100 && sampleDuration == 5.) {
+            standFrequencies = STANDARD_FREQUENCIES_FULL;
+        }
+        return standFrequencies;
+    }
+
 
     /**
      * Load the .csv file containing the third octave bands filters parameters
@@ -70,19 +128,6 @@ public class ThirdOctaveBandsFiltering {
             }
         }
     }
-
-    /**
-     * Standard center frequencies of third octave bands
-     */
-    public static final double[] STANDARD_FREQUENCIES = new double[]{16, 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000};
-
-    public static final double[] getStandardFrequencies() { return STANDARD_FREQUENCIES; }
-
-    /**
-     * Exact nominal center frequencies of third octave bands
-     * @param idCtrFreq center frequency index
-     */
-    private static double getCtrFreq(int idCtrFreq) { return Math.pow(10., 3.) * Math.pow(2., (idCtrFreq -18) / 3.); }
 
     /**
      * @return List of parameters used to filter the signal.
@@ -148,6 +193,10 @@ public class ThirdOctaveBandsFiltering {
      * @return Third octave band filtered signal
      */
     private double[] applySosFilter(double[] signal, int idFreq){
+        // Check the audio input sample duration
+        if(signal.length != expectedSampleLength) {
+            throw new IllegalArgumentException("Illegal audio sample duration: expected " + expectedSampleLength + ", got " + signal.length);
+        }
         double [][] states = new double [2][4];
         FiltersParameters filtParams = this.filterParameters.get(idFreq);
         for (int idRow = 0; idRow < states.length; idRow++) { Arrays.fill(states[idRow], 0.); }
@@ -171,7 +220,7 @@ public class ThirdOctaveBandsFiltering {
      */
     public double[][] thirdOctaveFiltering(double[] signal){
         int signalLength = signal.length;
-        int nbFreqs = STANDARD_FREQUENCIES.length;
+        int nbFreqs = standardFrequencies.length;
         double [][] filteredSignals = new double[nbFreqs][signalLength];
         for (int idf = 0; idf < nbFreqs; idf++){
             double[] filteredSignal = applySosFilter(signal, idf);

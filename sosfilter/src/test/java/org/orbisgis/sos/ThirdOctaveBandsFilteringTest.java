@@ -47,9 +47,11 @@ public class ThirdOctaveBandsFilteringTest {
      */
     @Test
     public void testReadCsv() {
-        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering();
+        int samplingRate = 44100;
+        ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands = ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED;
+        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, frequencyBands);
         List<ThirdOctaveBandsFiltering.FiltersParameters> filtersCoefficients = thirdOctaveBandsFiltering.getFilterParameters();
-        Assert.assertEquals(32, filtersCoefficients.size());
+        Assert.assertEquals(24, filtersCoefficients.size());
     }
 
     /**
@@ -64,8 +66,12 @@ public class ThirdOctaveBandsFilteringTest {
         Reference data (i.e. expected results)
          */
 
-        int nbExpectedSamples = 44100;
-        double[] standardFrequencies = ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES;
+        int samplingRate = 44100;
+        double sampleLength = 1.;
+        ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands = ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED;
+        int nbExpectedSamples = (int)(samplingRate * sampleLength);
+        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, frequencyBands);
+        double[] standardFrequencies = thirdOctaveBandsFiltering.getStandardFrequencies(frequencyBands);
         int nbFrequencies = standardFrequencies.length;
 
         // Reference third octave bands filtered signals (i.e. expected results)
@@ -92,17 +98,14 @@ public class ThirdOctaveBandsFilteringTest {
         }
 
         // Double array containing the expected equivalent sound pressure levels of the audio signal
-        double[] expectedLeq = new double[]{-6.2536288952690864, -8.9224519032469463, -8.2510880930132462,
-                                            -9.4003324484153499, -8.0382590641823697, -6.814082180728497,
-                                            -6.9162266944864061, -5.3301964319815118, -7.0973669866213065,
-                                            -6.2965899956866345, -5.3078017689128814, -6.8795990415408594,
-                                            -5.3277667783912595, -5.6278761344874884, -5.6970352863031,
-                                            -6.2160336916659347, -5.7015316919145809, -5.7866266910773518,
-                                            -6.0190061348242629, -6.1732453627428914, -5.9426324145047253,
-                                            -6.2428616092913529, -5.8656603608320772, -5.4352349729066596,
-                                            -5.6635779294813551, -5.6954504341153678, -5.1865800342603752,
-                                            -5.0790653253417961, -4.6935101856572512, -4.765503741093208,
-                                            -4.7147868664115666, -4.9323563222821489};
+        double[] expectedLeq = new double[]{-7.0973669866213065, -6.2965899956866345, -5.3078017689128814,
+                                            -6.8795990415408594, -5.3277667783912595, -5.6278761344874884,
+                                            -5.6970352863031, -6.2160336916659347, -5.7015316919145809,
+                                            -5.7866266910773518, -6.0190061348242629, -6.1732453627428914,
+                                            -5.9426324145047253, -6.2428616092913529, -5.8656603608320772,
+                                            -5.4352349729066596, -5.6635779294813551, -5.6954504341153678,
+                                            -5.1865800342603752, -5.0790653253417961, -4.6935101856572512,
+                                            -4.765503741093208, -4.7147868664115666, -4.9323563222821489};
 
         /*
         Actual results
@@ -121,7 +124,7 @@ public class ThirdOctaveBandsFilteringTest {
         }
 
         // Third octave bands filtering of the audio signal
-        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering();
+//        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, sampleLength);
         double[][] actualFilteredSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(audioSignalArr);
 
         // Equivalent sound pressure levels of the third octave bands filtered signals
@@ -135,7 +138,9 @@ public class ThirdOctaveBandsFilteringTest {
          */
 
         // Comparison of expected and actual results
-        Assert.assertArrayEquals(expectedFilteredSignal, actualFilteredSignal);
+        for (int idf = 0; idf < nbFrequencies; idf++) {
+            Assert.assertArrayEquals(expectedFilteredSignal[idf], actualFilteredSignal[idf], 1E-12);
+        }
 
         // Comparison of expected and actual equivalent sound pressure levels
         Assert.assertArrayEquals(expectedLeq, actualLeq, 1E-3);
@@ -153,9 +158,12 @@ public class ThirdOctaveBandsFilteringTest {
         Reference data (i.e. expected results)
          */
 
-        int nbExpectedSamples = 44100;
-        double[] standardFrequencies = ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES;
+        int samplingRate = 44100;
+        ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands = ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED;
+        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, frequencyBands);
+        double[] standardFrequencies = thirdOctaveBandsFiltering.getStandardFrequencies(frequencyBands);
         int nbFrequencies = standardFrequencies.length;
+        int nbExpectedSamples = (int)(ThirdOctaveBandsFiltering.getSampleBufferDuration(frequencyBands) * samplingRate);
 
         // Expected third octave bands filtered signals
         File filesPath = new File("src/test/resources/org/orbisgis/sos/");
@@ -181,17 +189,14 @@ public class ThirdOctaveBandsFilteringTest {
         }
 
         // Double array containing the expected equivalent sound pressure levels of the A-weighted signal
-        double[] expectedLAeq = new double[]{-58.823366746199916, -57.411103403259737, -52.470297505531704,
-                                             -49.004785317367229, -41.897908121810943, -37.330987418100001,
-                                             -33.070404060472256, -27.937599116939168, -26.161183471504501,
-                                             -22.306693915046981, -18.633466776366664, -17.72022287948035,
-                                             -13.89977584781793, -12.301951032576017, -10.559414688636281,
-                                             -9.5034089175215524, -7.6675678600608501, -6.6277333815003736,
-                                             -6.0127170847103351, -5.5759839976091481, -4.9576870805312439,
-                                             -5.0412837223810172, -4.6020305469466161, -4.2570338838010571,
-                                             -4.7537949562959882, -5.2801486059526459, -5.6127883969334462,
-                                             -6.8972448281621892, -8.7803132921304758, -12.628481580985344,
-                                             -19.615200681068686, -34.091179733661974};
+        double[] expectedLAeq = new double[]{-26.161183471504501, -22.306693915046981, -18.633466776366664,
+                                             -17.72022287948035, -13.89977584781793, -12.301951032576017,
+                                             -10.559414688636281, -9.5034089175215524, -7.6675678600608501,
+                                             -6.6277333815003736, -6.0127170847103351, -5.5759839976091481,
+                                             -4.9576870805312439, -5.0412837223810172, -4.6020305469466161,
+                                             -4.2570338838010571, -4.7537949562959882, -5.2801486059526459,
+                                             -5.6127883969334462, -6.8972448281621892, -8.7803132921304758,
+                                             -12.628481580985344, -19.615200681068686, -34.091179733661974};
 
         /*
         Actual results
@@ -213,7 +218,6 @@ public class ThirdOctaveBandsFilteringTest {
         double[] actualAWeightedSignal = AWeighting.aWeightingSignal(audioSignalArr);
 
         // Third octave bands filtering of the A-weighted signal
-        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering();
         double[][] actualFilteredAWeightedSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(actualAWeightedSignal);
 
         // Third octave bands filtering of the input signal (i.e. unweighted)
@@ -236,7 +240,9 @@ public class ThirdOctaveBandsFilteringTest {
          */
 
         // Comparison of expected and actual filtered signals
-        Assert.assertArrayEquals(expectedFilteredSignal, actualFilteredAWeightedSignal);
+        for (int idf = 0; idf < nbFrequencies; idf++) {
+            Assert.assertArrayEquals(expectedFilteredSignal[idf], actualFilteredAWeightedSignal[idf], 1E-13);
+        }
 
         // Comparison of expected and actual equivalent sound pressure levels
         Assert.assertArrayEquals(expectedLAeq, actualLAeq, 1E-3);

@@ -1,39 +1,24 @@
 package org.orbisgis.protonomap;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.media.AudioFormat;
-import android.media.AudioRecord;
-import android.media.MediaPlayer;
-import android.media.MediaRecorder;
-import android.media.audiofx.Equalizer;
-import android.media.audiofx.Visualizer;
+import android.graphics.Color;
+import android.os.Bundle;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.graphics.Color;
-import android.content.Intent;
 import android.view.View;
 import android.widget.Chronometer;
 import android.widget.CompoundButton;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.components.Legend;
-import com.github.mikephil.charting.components.Legend.LegendPosition;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.XAxis.XAxisPosition;
 import com.github.mikephil.charting.components.YAxis;
@@ -42,9 +27,9 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.utils.ValueFormatter;
 
-import java.io.DataOutputStream;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Measurement extends MainActivity {
 
@@ -58,6 +43,7 @@ public class Measurement extends MainActivity {
 
     // Other ressources
     private String[] ltob;  // List of third-octave bands (defined as ressources)
+    public AtomicBoolean isRecording = new AtomicBoolean(false);
 
 
 
@@ -125,39 +111,7 @@ public class Measurement extends MainActivity {
         buttonrecord.setOnClickListener(new DoProcessing(getApplicationContext(), this));
 
         // Action on cancel button (during recording)
-        buttoncancel.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                // Stop measurement
-                isRecording = false;
-
-                // Stop and reset chronometer
-                Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer_recording_time);
-                chronometer.stop();
-                chronometer.setText("00:00");
-
-                // Stop measurement
-                isRecording = false;
-
-                // Enabled/disabled buttons after measurement
-                // history enabled or disabled (if isHistory); cancel disable; record button enabled
-                checkHistoryButton();
-                ImageButton buttoncancel = (ImageButton) findViewById(R.id.cancelBtn);
-                buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
-                buttoncancel.setEnabled(false);
-                ImageButton buttonrecord = (ImageButton) findViewById(R.id.recordBtn);
-                buttonrecord.setImageResource(R.drawable.button_record);
-                buttoncancel.setEnabled(true);
-                ImageButton buttonmap = (ImageButton) findViewById(R.id.mapBtn);
-                buttonmap.setImageResource(R.drawable.button_map);
-                buttonmap.setEnabled(true);
-
-                // Goto the Results activity
-                isResults = false;
-
-            }
-        });
+        buttoncancel.setOnClickListener(
 
         // Action on History button
         buttonhistory.setOnClickListener(new View.OnClickListener() {
@@ -203,6 +157,37 @@ public class Measurement extends MainActivity {
         ls.setEnabled(false); // Hide legend
 
     }
+
+    private View.OnClickListener onButtonCancel = new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+
+            // Stop measurement
+            isRecording.set(false);
+
+            // Stop and reset chronometer
+            Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer_recording_time);
+            chronometer.stop();
+            chronometer.setText("00:00");
+
+            // Enabled/disabled buttons after measurement
+            // history enabled or disabled (if isHistory); cancel disable; record button enabled
+            checkHistoryButton();
+            ImageButton buttoncancel = (ImageButton) findViewById(R.id.cancelBtn);
+            buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
+            buttoncancel.setEnabled(false);
+            ImageButton buttonrecord = (ImageButton) findViewById(R.id.recordBtn);
+            buttonrecord.setImageResource(R.drawable.button_record);
+            buttoncancel.setEnabled(true);
+            ImageButton buttonmap = (ImageButton) findViewById(R.id.mapBtn);
+            buttonmap.setImageResource(R.drawable.button_map);
+            buttonmap.setEnabled(true);
+
+            // Goto the Results activity
+            isResults = false;
+
+        }
+    };
 
     // Init RNE Pie Chart
     public void initVueMeter(){
@@ -422,6 +407,10 @@ public class Measurement extends MainActivity {
             this.activity = activity;
         }
 
+        public void onLeqAvailable() {
+
+        }
+
         @Override
         public void onClick(View v) {
 
@@ -437,10 +426,9 @@ public class Measurement extends MainActivity {
             ImageButton buttonmap= (ImageButton) activity.findViewById(R.id.mapBtn);
             buttonmap.setImageResource(R.drawable.button_map_disabled);
 
-            if (!isRecording) {
+            if (activity.isRecording.compareAndSet(false, true)) {
 
                 // Start measurement
-                isRecording=true;
 
                 // Start chronometer
                 Chronometer chronometer = (Chronometer) activity.findViewById(R.id.chronometer_recording_time);
@@ -448,16 +436,16 @@ public class Measurement extends MainActivity {
                 chronometer.start();
 
                 // Start recording
-                new Thread(new ProcessThread(context, activity)).start();
+                new Thread(new AudioProcess(activity.isRecording).start();
             }
             else
             {
                 // Stop measurement
-                isRecording=false;
+                activity.isRecording.set(false);
 
                 // Enabled/disabled buttons after measurement
                 // history enabled or disabled (if isHistory); cancel disable; record button enabled
-                if (isHistory){
+                if (activity.isHistory){
                     buttonhistory.setImageResource(R.drawable.button_history_normal);
                     buttonhistory.setEnabled(true);
                 }
@@ -473,7 +461,7 @@ public class Measurement extends MainActivity {
                 buttonmap.setEnabled(true);
 
                 // Goto the Results activity
-                isResults = true;
+                activity.isResults = true;
                 Intent ir = new Intent(context, Results.class);
                 activity.startActivity(ir);
 
@@ -487,73 +475,9 @@ public class Measurement extends MainActivity {
         }
     }
 
-    private static class ProcessThread implements Runnable {
-        private Context context;
-        private Measurement activity;
-
-        private ProcessThread(Context context, Measurement activity) {
-            this.context = context;
-            this.activity = activity;
-        }
-
-        @Override
-        public void run(){
-
-            /*
-            int buffersize=0;
-            AudioRecord mRecord;
-            Equalizer mEqualizer;
-            int session_id;
-            int frequency;
-
-            buffersize = AudioRecord.getMinBufferSize(
-                    44100,
-                    AudioFormat.CHANNEL_IN_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT);
-            mRecord = new AudioRecord(
-                    MediaRecorder.AudioSource.MIC,
-                    44100,
-                    AudioFormat.CHANNEL_IN_MONO,
-                    AudioFormat.ENCODING_PCM_16BIT,
-                    buffersize);
-            mRecord.startRecording();
-
-            session_id=mRecord.getAudioSessionId();
-
-
-            mEqualizer = new Equalizer(0,session_id);
-            //mEqualizer.setEnabled(true);
-            short bands=mEqualizer.getNumberOfBands();
-            final short min=mEqualizer.getBandLevelRange()[0];
-            final short max=mEqualizer.getBandLevelRange()[1];
-
-            for(short i=0;i<bands;i++)
-            {
-                frequency= mEqualizer.getCenterFreq(i)/1000;
-            }
-            */
-
-            // TODO: check duration time in user preferences
-            while (isRecording) {
-
-                activity.runOnUiThread(new UpdateText(activity));
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException ex) {
-                    // Ignore
-                }
-
-            }
-
-            //Intent ir = new Intent(context, Results.class);
-            //activity.startActivity(ir);
-        }
-    }
-
     private static class UpdateText implements Runnable {
         Measurement activity;
 
-        private Chronometer chronometer;
         private UpdateText(Measurement activity) {
             this.activity = activity;
         }

@@ -97,7 +97,7 @@ public class AWeightingTest {
 //        int nbExpectedSamples = 44100;
 //        int samplingRate = 44100;
 //        int binSize = 1024;
-//        double[] standardFrequencies = ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES;
+//        double[] standardFrequencies = ThirdOctaveBandsFiltering.standardFrequencies;
 //        int nbFrequencies = standardFrequencies.length;
 //
 //        // Double array containing the expected third octave bands attenuation

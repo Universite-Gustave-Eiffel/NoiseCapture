@@ -35,6 +35,8 @@ public class AudioProcess implements Runnable {
     // 1s level evaluation for upload to server
     private List<double[]> stdLvl = new ArrayList<>();
     private final CoreSignalProcessing movingLeqProcessing;
+    private final static int MILLISECOND_FIRE_MOVING_LEQ = 100;
+    private long lastTimeFiredMovingLeq = 0;
 
 
 
@@ -104,6 +106,11 @@ public class AudioProcess implements Runnable {
                         synchronized (movingLeqProcessing) {
                             movingLeqProcessing.addSample(CoreSignalProcessing.convertBytesToDouble(buffer, buffer.length));
                         }
+                        long now = System.currentTimeMillis();
+                        if(lastTimeFiredMovingLeq + MILLISECOND_FIRE_MOVING_LEQ < now) {
+                            listeners.firePropertyChange(PROP_MOVING_LEQ, lastTimeFiredMovingLeq, now);
+                            lastTimeFiredMovingLeq = now;
+                        }
                     }
                 } catch (Exception ex) {
                     Log.e("tag_record", "Error while recording", ex);
@@ -115,6 +122,13 @@ public class AudioProcess implements Runnable {
         } finally {
             currentState = STATE.CLOSED;
         }
+    }
+
+    /**
+     * @return Listener manager
+     */
+    public PropertyChangeSupport getListeners() {
+        return listeners;
     }
 
     /**

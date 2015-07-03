@@ -340,7 +340,7 @@ public class Measurement extends MainActivity {
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
         int index = 0;
         for(double lvl : levels) {
-            yVals1.add(new BarEntry(new float[] {(float)lvl}, index));
+            yVals1.add(new BarEntry(new float[] {(float)lvl}, index++));
         }
 
 
@@ -378,7 +378,7 @@ public class Measurement extends MainActivity {
         @Override
         public void propertyChange(PropertyChangeEvent event) {
             if(AudioProcess.PROP_MOVING_LEQ.equals(event.getPropertyName())) {
-                new Thread(new UpdateText(activity));
+                activity.runOnUiThread(new UpdateText(activity));
             }
         }
 
@@ -408,6 +408,7 @@ public class Measurement extends MainActivity {
 
                 // Start recording
                 new Thread(activity.audioProcess).start();
+                activity.audioProcess.getListeners().addPropertyChangeListener(this);
             }
             else
             {
@@ -456,6 +457,9 @@ public class Measurement extends MainActivity {
         @Override
         public void run() {
             final double[] movingLevel = activity.audioProcess.getMovingLvl();
+            for(int idFreq = 0; idFreq < movingLevel.length; idFreq++) {
+                movingLevel[idFreq]+=100;
+            }
             // Vumeter data
             //TODO do it in library
             double sum = 0d;

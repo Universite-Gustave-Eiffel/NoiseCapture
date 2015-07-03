@@ -27,8 +27,15 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.utils.ValueFormatter;
 
+import org.orbisgis.sos.AcousticIndicators;
+import org.orbisgis.sos.ThirdOctaveBandsFiltering;
+import org.orbisgis.sos.ThirdOctaveFrequencies;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Measurement extends MainActivity {
@@ -42,8 +49,8 @@ public class Measurement extends MainActivity {
     protected BarChart sChart; // Spectrum representation
 
     // Other ressources
-    private String[] ltob;  // List of third-octave bands (defined as ressources)
     public AtomicBoolean isRecording = new AtomicBoolean(false);
+    private AudioProcess audioProcess = new AudioProcess(isRecording);
 
 
 
@@ -151,8 +158,9 @@ public class Measurement extends MainActivity {
         }
         initSpectrum();
         // Data (before legend)
-        ltob= getResources().getStringArray(R.array.tob_list_array);
-        setDataSA((ltob.length-1), 0);
+        double[] defaultLevels = new double[ThirdOctaveBandsFiltering.getStandardFrequencies(ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED).length];
+        Arrays.fill(defaultLevels, 0);
+        updateSpectrumGUI(defaultLevels);
         // (ltob.length-1) values for each third-octave band// Legend: hide all
         Legend ls = sChart.getLegend();
         ls.setEnabled(false); // Hide legend
@@ -321,61 +329,20 @@ public class Measurement extends MainActivity {
         mChart.invalidate(); // refresh
     }
 
-    // Generate artificial data (sound level for each 1/3 octave band)
-    // for spectrum representation: SL, Min and Max
-    private void setDataS(int count, float range) {
-
+    private void updateSpectrumGUI(double[] levels) {
         ArrayList<String> xVals = new ArrayList<String>();
-        ltob= getResources().getStringArray(R.array.tob_list_array);
-        for (int i = 0; i < count; i++) {
-            xVals.add(ltob[i % (ltob.length-1)]);
+        for(double freq : ThirdOctaveBandsFiltering.getStandardFrequencies
+                (ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED)) {
+            xVals.add(String.valueOf(freq));
         }
+
 
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
-
-        // Value for each third-octave band
-        for (int i = 0; i < count; i++) {
-            float mult = (range + 1f);
-            float val = (float) (20f+Math.random() * mult);
-            //yVals1.add(new BarEntry(val, i));
-            yVals1.add(new BarEntry(new float[] {40f,30f,val-30f}, i));
+        int index = 0;
+        for(double lvl : levels) {
+            yVals1.add(new BarEntry(new float[] {(float)lvl}, index));
         }
 
-        BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
-        set1.setColors(getColors());
-        set1.setStackLabels(new String[] {
-                "Min", "SL", "Max"
-        });
-
-        ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
-        dataSets.add(set1);
-
-        BarData data = new BarData(xVals, dataSets);
-        data.setValueTextSize(10f);
-
-        sChart.setData(data);
-        sChart.invalidate(); // refresh
-    }
-
-    // Generate artificial data (sound level for each 1/3 octave band)
-    // for spectrum representation: SL
-    private void setDataSA(int count, float range) {
-
-        ArrayList<String> xVals = new ArrayList<String>();
-        ltob= getResources().getStringArray(R.array.tob_list_array);
-        for (int i = 0; i < count; i++) {
-            xVals.add(ltob[i % (ltob.length-1)]);
-        }
-
-        ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
-
-        // Value for each third-octave band
-        for (int i = 0; i < count; i++) {
-            float mult = (range);
-            float val = (float) (Math.random() * mult);
-            //yVals1.add(new BarEntry(val, i));
-            yVals1.add(new BarEntry(new float[] {val}, i));
-        }
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
         set1.setColor(Color.rgb(102, 178, 255));
@@ -398,7 +365,7 @@ public class Measurement extends MainActivity {
             Color.rgb(0, 128, 255), Color.rgb(102, 178, 255), Color.rgb(204, 229, 255),
     };
 
-    private static class DoProcessing implements CompoundButton.OnClickListener {
+    private static class DoProcessing implements CompoundButton.OnClickListener, PropertyChangeListener {
         private Context context;
         private Measurement activity;
 
@@ -408,8 +375,11 @@ public class Measurement extends MainActivity {
             this.activity = activity;
         }
 
-        public void onLeqAvailable() {
-
+        @Override
+        public void propertyChange(PropertyChangeEvent event) {
+            if(AudioProcess.PROP_MOVING_LEQ.equals(event.getPropertyName())) {
+                new Thread(new UpdateText(activity));
+            }
         }
 
         @Override
@@ -437,7 +407,7 @@ public class Measurement extends MainActivity {
                 chronometer.start();
 
                 // Start recording
-                new Thread(new AudioProcess(activity.isRecording)).start();
+                new Thread(activity.audioProcess).start();
             }
             else
             {
@@ -485,9 +455,14 @@ public class Measurement extends MainActivity {
 
         @Override
         public void run() {
-
+            final double[] movingLevel = activity.audioProcess.getMovingLvl();
             // Vumeter data
-            activity.setData(135);
+            //TODO do it in library
+            double sum = 0d;
+            for(double lvl : movingLevel) {
+                sum += Math.pow(10, lvl / 10);
+            }
+            activity.setData((float)(10* Math.log10(sum)));
             // Change the text and the textcolor in the corresponding textview
             // for the Leqi value
             final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
@@ -497,7 +472,7 @@ public class Measurement extends MainActivity {
             mTextView.setTextColor(color_rep[nc]);
 
             // Spectrum data
-            activity.setDataSA((activity.ltob.length-1), 135);
+            activity.updateSpectrumGUI(movingLevel);
         }
 
     }

@@ -34,10 +34,6 @@ public class MainActivity extends ActionBarActivity {
     public String[] mMenuLeft;
     public ActionBarDrawerToggle mDrawerToggle;
 
-    // For the menu option
-    public String pagetosee;
-    public String titletosee;
-
     public boolean isResults = false;
     public boolean isHistory = true; // must be false but just for the testing
 
@@ -142,15 +138,19 @@ public class MainActivity extends ActionBarActivity {
                     break;
                 case 5:
                     Intent ih = new Intent(getApplicationContext(),View_html_page.class);
-                    pagetosee=getString(R.string.url_help);
-                    titletosee=getString(R.string.title_activity_help);
                     mDrawerLayout.closeDrawer(mDrawerList);
+                    ih.putExtra(this.getClass().getPackage().getName() + ".pagetosee",
+                            getString(R.string.url_help));
+                    ih.putExtra(this.getClass().getPackage().getName() + ".titletosee",
+                            getString(R.string.title_activity_help));
                     startActivity(ih);
                     break;
                 case 6:
                     Intent ia = new Intent(getApplicationContext(),View_html_page.class);
-                    pagetosee=getString(R.string.url_about);
-                    titletosee=getString((R.string.title_activity_about));
+                    ia.putExtra(this.getClass().getPackage().getName() + ".pagetosee",
+                            getString(R.string.url_about));
+                    ia.putExtra(this.getClass().getPackage().getName() + ".titletosee",
+                            getString(R.string.title_activity_about));
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ia);
                     break;

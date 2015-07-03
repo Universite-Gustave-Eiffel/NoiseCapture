@@ -14,10 +14,10 @@ public class View_html_page extends MainActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_html_page);
         initDrawer();
-
         WebView myWebView = (WebView) findViewById(R.id.webview);
-        myWebView.loadUrl(MainActivity.pagetosee);
-        getSupportActionBar().setTitle(MainActivity.titletosee);
+        myWebView.loadUrl(savedInstanceState.getString(this.getClass().getPackage().getName()
+                + ".pagetosee"));
+        getSupportActionBar().setTitle(this.getClass().getPackage().getName() + ".titletosee");
 
     }
 

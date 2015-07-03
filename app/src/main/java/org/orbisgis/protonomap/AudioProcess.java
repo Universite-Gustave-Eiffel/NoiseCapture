@@ -6,9 +6,11 @@ import android.media.MediaRecorder;
 import android.util.Log;
 
 import java.beans.PropertyChangeSupport;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.orbisgis.sos.CoreSignalProcessing;
@@ -27,13 +29,13 @@ public class AudioProcess implements Runnable {
     public enum STATE { WAITING, PROCESSING,WAITING_END_PROCESSING, CLOSED }
     private STATE currentState = STATE.WAITING;
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
-    public static String PROP_MOVING_LEQ = "PROP_MOVING_LEQ";
+    public static final String PROP_MOVING_LEQ = "PROP_MOVING_LEQ";
     private double movingLeq;
     // Moving Level evaluation for rendering to user
     private double[] movingLvl = new double[ThirdOctaveFrequencies.STANDARD_FREQUENCIES.length];
     // 1s level evaluation for upload to server
     private List<double[]> stdLvl = new ArrayList<>();
-    private CoreSignalProcessing movingLeqProcessing;
+    private final CoreSignalProcessing movingLeqProcessing;
 
 
 
@@ -57,15 +59,17 @@ public class AudioProcess implements Runnable {
                         encoding = tryEncoding;
                         audioChannel = tryAudioChannel;
                         rate = tryRate;
+                        this.movingLeqProcessing = new CoreSignalProcessing(rate,
+                                ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
                         return;
                     }
                 }
             }
         }
-        bufferSize = AudioRecord.ERROR_BAD_VALUE;
-        encoding = -1;
-        audioChannel = -1;
-        rate = -1;
+        throw new IllegalStateException("This device is not compatible");
+    }
+
+    private void init() {
     }
 
     public STATE getCurrentState() {
@@ -98,7 +102,9 @@ public class AudioProcess implements Runnable {
                     audioRecord.startRecording();
                     while (recording.get()) {
                         audioRecord.read(buffer, 0, buffer.length);
-                        movingLeqProcessing.addSample();
+                        synchronized (movingLeqProcessing) {
+                            movingLeqProcessing.addSample(CoreSignalProcessing.convertBytesToDouble(buffer, buffer.length));
+                        }
                     }
                 } catch (Exception ex) {
                     Log.e("tag_record", "Error while recording", ex);
@@ -112,35 +118,36 @@ public class AudioProcess implements Runnable {
         }
     }
 
+    /**
+     * Filter the last 1s record.
+     * @return Level in dB(A) of the last 1s for each frequency band.
+     */
+    double[] getMovingLvl() {
+        try {
+            synchronized (movingLeqProcessing) {
+                List<double[]> timeLevels = movingLeqProcessing.processSample(1.);
+                if(!timeLevels.isEmpty()) {
+                    return timeLevels.get(timeLevels.size() - 1);
+                } else {
+                    return null;
+                }
+            }
+        } catch (FileNotFoundException ex) {
+            return null;
+        }
+    }
+
     public int getRate() {
         return rate;
     }
 
-    private static class MovingLeqProcessing implements Runnable {
-        private final AudioProcess audioProcess;
-        private CoreSignalProcessing coreSignalProcessing;
-
-        public MovingLeqProcessing(AudioProcess audioProcess) {
-            this.audioProcess = audioProcess;
-            this.coreSignalProcessing = new CoreSignalProcessing(audioProcess.getRate(), ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
-        }
-
-        public void addSample(byte[] sample) {
-            coreSignalProcessing.addSample(CoreSignalProcessing.convertBytesToDouble(sample, sample.length));
-        }
-
-        @Override
-        public void run() {
-
-        }
-    }
 
     private static class StandartLeqProcessing implements Runnable {
-        private ConcurrentLinkedDeque<byte[]> bufferToProcess = new ConcurrentLinkedDeque<byte[]>();
+        private List<byte[]> bufferToProcess = new CopyOnWriteArrayList<byte[]>();
         private final AudioProcess audioProcess;
         private AtomicBoolean processing = new AtomicBoolean(false);
         private CoreSignalProcessing coreSignalProcessing;
-        private List<Double> lvls = new ArrayList<>();
+        private List<double[]> lvls = new ArrayList<>();
 
         public StandartLeqProcessing(AudioProcess audioProcess) {
             this.audioProcess = audioProcess;
@@ -156,8 +163,12 @@ public class AudioProcess implements Runnable {
         }
 
         private void processSecondSample(double[] secondSample) {
-            coreSignalProcessing.addSample(secondSample);
-            lvls.addAll(coreSignalProcessing.processSamples(1.));
+            try {
+                coreSignalProcessing.addSample(secondSample);
+                lvls.addAll(coreSignalProcessing.processSample(1.));
+            } catch (FileNotFoundException ex) {
+                // Ignore, do not process sample
+            }
         }
 
         @Override
@@ -170,8 +181,8 @@ public class AudioProcess implements Runnable {
                 while(!bufferToProcess.isEmpty()) {
                     try {
                         processing.set(true);
-                        byte[] buffer = bufferToProcess.pop();
-                        double[] samples = CoreSignalProcessing.convertBytesToDouble(sample, sample.length);
+                        byte[] buffer = bufferToProcess.remove(0);
+                        double[] samples = CoreSignalProcessing.convertBytesToDouble(buffer, buffer.length);
                         int lengthRead = Math.min(samples.length, rate - secondCursor);
                         // Copy sample fragment into second array
                         System.arraycopy(samples, 0, secondSample, secondCursor, lengthRead);

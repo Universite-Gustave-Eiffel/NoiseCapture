@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.orbisgis.sos.CoreSignalProcessing;
+import org.orbisgis.sos.ThirdOctaveBandsFiltering;
 import org.orbisgis.sos.ThirdOctaveFrequencies;
 
 /**
@@ -121,7 +122,7 @@ public class AudioProcess implements Runnable {
 
         public MovingLeqProcessing(AudioProcess audioProcess) {
             this.audioProcess = audioProcess;
-            this.coreSignalProcessing = new CoreSignalProcessing(audioProcess.getRate());
+            this.coreSignalProcessing = new CoreSignalProcessing(audioProcess.getRate(), ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
         }
 
         public void addSample(byte[] sample) {
@@ -143,7 +144,7 @@ public class AudioProcess implements Runnable {
 
         public StandartLeqProcessing(AudioProcess audioProcess) {
             this.audioProcess = audioProcess;
-            this.coreSignalProcessing = new CoreSignalProcessing(audioProcess.getRate());
+            this.coreSignalProcessing = new CoreSignalProcessing(audioProcess.getRate(), ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
         }
 
         public void addSample(byte[] sample) {

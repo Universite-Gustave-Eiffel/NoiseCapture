@@ -87,7 +87,7 @@ public class AudioProcess implements Runnable {
         try {
             currentState = STATE.PROCESSING;
             AudioRecord audioRecord = createAudioRecord();
-            byte[] buffer;
+            short[] buffer;
             if (recording.get() && audioRecord != null) {
                 try {
                     try {
@@ -98,7 +98,7 @@ public class AudioProcess implements Runnable {
                     new Thread(movingLeqProcessing).start();
                     audioRecord.startRecording();
                     while (recording.get()) {
-                        buffer = new byte[bufferSize];
+                        buffer = new short[bufferSize];
                         audioRecord.read(buffer, 0, buffer.length);
                         movingLeqProcessing.addSample(buffer);
                     }
@@ -133,18 +133,25 @@ public class AudioProcess implements Runnable {
         return movingLeqProcessing.getLastLvls();
     }
 
+    double getLeq() {
+        return movingLeqProcessing.getLeq();
+    }
+
     public int getRate() {
         return rate;
     }
 
     private static class MovingLeqProcessing implements Runnable {
-        private List<byte[]> bufferToProcess = new CopyOnWriteArrayList<byte[]>();
+        private List<short[]> bufferToProcess = new CopyOnWriteArrayList<short[]>();
         private final AudioProcess audioProcess;
         private AtomicBoolean processing = new AtomicBoolean(false);
         private CoreSignalProcessing coreSignalProcessing;
         private double[] lastLvls = new double[ThirdOctaveBandsFiltering.getStandardFrequencies(ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED).length];
+        private double leq = 0;
         private final static int MILLISECOND_FIRE_MOVING_LEQ = 100;
+        private final static int MILLISECOND_FIRE_MOVING_SPECTRUM = 800;
         private long lastTimeFiredMovingLeq = 0;
+        private long lastTimeFiredMovingSpectrum = 0;
 
         public MovingLeqProcessing(AudioProcess audioProcess) {
             this.audioProcess = audioProcess;
@@ -155,7 +162,11 @@ public class AudioProcess implements Runnable {
             return lastLvls;
         }
 
-        public void addSample(byte[] sample) {
+        public double getLeq() {
+            return leq;
+        }
+
+        public void addSample(short[] sample) {
             bufferToProcess.add(sample);
         }
 
@@ -175,20 +186,24 @@ public class AudioProcess implements Runnable {
         }
 
         private void processSecondSample(double[] secondSample) {
-            try {
-                coreSignalProcessing.addSample(secondSample);
-                List<double[]> allLeq = coreSignalProcessing.processSample(1.);
-                if(!allLeq.isEmpty()) {
-                    lastLvls = allLeq.get(allLeq.size() - 1);
-                    lastLvls[0] = getSpl(secondSample);
-                    long now = System.currentTimeMillis();
-                    if(lastTimeFiredMovingLeq + MILLISECOND_FIRE_MOVING_LEQ < now) {
+            leq = getSpl(secondSample);
+            coreSignalProcessing.addSample(secondSample);
+            long now = System.currentTimeMillis();
+            if(lastTimeFiredMovingLeq + MILLISECOND_FIRE_MOVING_LEQ < now) {
+                audioProcess.listeners.firePropertyChange(PROP_MOVING_LEQ, lastTimeFiredMovingLeq, now);
+                lastTimeFiredMovingLeq = now;
+            }
+            if(leq > 70 && lastTimeFiredMovingSpectrum + MILLISECOND_FIRE_MOVING_SPECTRUM < now) {
+                try {
+                    List<double[]> allLeq = coreSignalProcessing.processSample(1.);
+                    if(!allLeq.isEmpty()) {
+                        lastLvls = allLeq.get(allLeq.size() - 1);
                         audioProcess.listeners.firePropertyChange(PROP_MOVING_LEQ, lastTimeFiredMovingLeq, now);
-                        lastTimeFiredMovingLeq = now;
+                        lastTimeFiredMovingSpectrum = now;
                     }
+                } catch (FileNotFoundException ex) {
+                    // Ignore, do not process sample
                 }
-            } catch (FileNotFoundException ex) {
-                // Ignore, do not process sample
             }
         }
 
@@ -202,13 +217,21 @@ public class AudioProcess implements Runnable {
             double[] secondSample = new double[rate];
             int secondCursor = 0;
             lastTimeFiredMovingLeq = System.currentTimeMillis();
+            lastTimeFiredMovingSpectrum = lastTimeFiredMovingLeq;
             while (audioProcess.currentState != STATE.WAITING_END_PROCESSING
                     && audioProcess.currentState != STATE.CLOSED) {
                 while(!bufferToProcess.isEmpty()) {
                     try {
                         processing.set(true);
-                        byte[] buffer = bufferToProcess.remove(0);
-                        double[] samples = CoreSignalProcessing.convertBytesToDouble(buffer, buffer.length);
+                        short[] buffer = bufferToProcess.remove(0);
+                        double[] samples = new double[buffer.length];
+                        for(int i = 0; i < buffer.length; ++i) {
+                            if(buffer[i] > 0) {
+                                samples[i] = Math.min(1.0D, (double)buffer[i] / 32767.0D);
+                            } else {
+                                samples[i] = Math.max(-1.0D, (double)buffer[i] / 32768.0D);
+                            }
+                        }
                         int lengthRead = Math.min(samples.length, rate - secondCursor);
                         // Copy sample fragment into second array
                         System.arraycopy(samples, 0, secondSample, secondCursor, lengthRead);
@@ -219,7 +242,7 @@ public class AudioProcess implements Runnable {
                             // Copy remaining sample fragment into new second array
                             int newLengthRead = samples.length - lengthRead;
                             System.arraycopy(samples, lengthRead, secondSample, secondCursor, newLengthRead);
-                            secondCursor+=newLengthRead;
+                            secondCursor = newLengthRead;
                         }
                         if(secondCursor == rate) {
                             processSecondSample(secondSample);

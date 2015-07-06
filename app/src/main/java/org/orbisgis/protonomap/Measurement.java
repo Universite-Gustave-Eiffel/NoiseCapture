@@ -456,13 +456,7 @@ public class Measurement extends MainActivity {
         public void run() {
             try {
                 final double[] movingLevel = activity.audioProcess.getMovingLvl();
-                // Vumeter data
-                //TODO do it in library
-                double sum = 0d;
-                for (double lvl : movingLevel) {
-                    sum += Math.pow(10, lvl / 10);
-                }
-                float leq = (float) (10 * Math.log10(sum));
+                final float leq = (float)activity.audioProcess.getLeq();
                 activity.setData(leq);
                 // Change the text and the textcolor in the corresponding textview
                 // for the Leqi value

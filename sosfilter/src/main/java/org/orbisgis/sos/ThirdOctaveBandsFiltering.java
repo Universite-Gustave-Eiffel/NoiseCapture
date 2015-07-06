@@ -224,7 +224,7 @@ public class ThirdOctaveBandsFiltering {
         double [][] filteredSignals = new double[nbFreqs][signalLength];
         for (int idf = 0; idf < nbFreqs; idf++){
             double[] filteredSignal = applySosFilter(signal, idf);
-            for (int idT = 0; idT< signalLength; idT++){ filteredSignals[idf][idT] = filteredSignal[idT]; }
+            System.arraycopy(filteredSignal, 0, filteredSignals[idf], 0, signalLength);
         }
         return filteredSignals;
     }

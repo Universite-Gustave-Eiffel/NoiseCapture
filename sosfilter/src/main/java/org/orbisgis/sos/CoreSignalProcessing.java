@@ -27,6 +27,12 @@ public class CoreSignalProcessing {
         Arrays.fill(sampleBuffer, 0);
     }
 
+    /**
+     * @return Internal sample buffer where length depends on minimal frequency.
+     */
+    public double[] getSampleBuffer() {
+        return sampleBuffer;
+    }
 
     /**
      * Add an audio sample to the buffer

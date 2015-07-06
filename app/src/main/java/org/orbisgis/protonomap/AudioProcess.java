@@ -7,6 +7,8 @@ import android.util.Log;
 
 import java.beans.PropertyChangeSupport;
 import java.io.FileNotFoundException;
+import java.nio.ByteBuffer;
+import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -34,9 +36,7 @@ public class AudioProcess implements Runnable {
     private double[] movingLvl = new double[ThirdOctaveFrequencies.STANDARD_FREQUENCIES.length];
     // 1s level evaluation for upload to server
     private List<double[]> stdLvl = new ArrayList<>();
-    private final CoreSignalProcessing movingLeqProcessing;
-    private final static int MILLISECOND_FIRE_MOVING_LEQ = 100;
-    private long lastTimeFiredMovingLeq = 0;
+    private final MovingLeqProcessing movingLeqProcessing;
 
 
 
@@ -60,8 +60,7 @@ public class AudioProcess implements Runnable {
                         encoding = tryEncoding;
                         audioChannel = tryAudioChannel;
                         rate = tryRate;
-                        this.movingLeqProcessing = new CoreSignalProcessing(rate,
-                                ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
+                        this.movingLeqProcessing = new MovingLeqProcessing(this);
                         return;
                     }
                 }
@@ -69,10 +68,6 @@ public class AudioProcess implements Runnable {
         }
         throw new IllegalStateException("This device is not compatible");
     }
-
-    private void init() {
-    }
-
     public STATE getCurrentState() {
         return currentState;
     }
@@ -92,7 +87,7 @@ public class AudioProcess implements Runnable {
         try {
             currentState = STATE.PROCESSING;
             AudioRecord audioRecord = createAudioRecord();
-            byte[] buffer = new byte[bufferSize];
+            byte[] buffer;
             if (recording.get() && audioRecord != null) {
                 try {
                     try {
@@ -100,16 +95,16 @@ public class AudioProcess implements Runnable {
                     } catch (IllegalArgumentException | SecurityException ex) {
                         // Ignore
                     }
-                    lastTimeFiredMovingLeq = System.currentTimeMillis();
+                    new Thread(movingLeqProcessing).start();
                     audioRecord.startRecording();
                     while (recording.get()) {
+                        buffer = new byte[bufferSize];
                         audioRecord.read(buffer, 0, buffer.length);
-                        movingLeqProcessing.addSample(CoreSignalProcessing.convertBytesToDouble(buffer, buffer.length));
-                        long now = System.currentTimeMillis();
-                        if(lastTimeFiredMovingLeq + MILLISECOND_FIRE_MOVING_LEQ < now) {
-                            listeners.firePropertyChange(PROP_MOVING_LEQ, lastTimeFiredMovingLeq, now);
-                            lastTimeFiredMovingLeq = now;
-                        }
+                        movingLeqProcessing.addSample(buffer);
+                    }
+                    currentState = STATE.WAITING_END_PROCESSING;
+                    while (movingLeqProcessing.isProcessing()) {
+                        Thread.sleep(10);
                     }
                 } catch (Exception ex) {
                     Log.e("tag_record", "Error while recording", ex);
@@ -135,18 +130,7 @@ public class AudioProcess implements Runnable {
      * @return Level in dB(A) of the last 1s for each frequency band.
      */
     double[] getMovingLvl() {
-        try {
-            synchronized (movingLeqProcessing) {
-                List<double[]> timeLevels = movingLeqProcessing.processSample(MILLISECOND_FIRE_MOVING_LEQ / 1000.);
-                if(!timeLevels.isEmpty()) {
-                    return timeLevels.get(timeLevels.size() - 1);
-                } else {
-                    return null;
-                }
-            }
-        } catch (FileNotFoundException ex) {
-            return null;
-        }
+        return movingLeqProcessing.getLastLvls();
     }
 
     public int getRate() {
@@ -158,11 +142,17 @@ public class AudioProcess implements Runnable {
         private final AudioProcess audioProcess;
         private AtomicBoolean processing = new AtomicBoolean(false);
         private CoreSignalProcessing coreSignalProcessing;
-        private List<double[]> lvls = new ArrayList<>();
+        private double[] lastLvls = new double[ThirdOctaveBandsFiltering.getStandardFrequencies(ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED).length];
+        private final static int MILLISECOND_FIRE_MOVING_LEQ = 100;
+        private long lastTimeFiredMovingLeq = 0;
 
         public MovingLeqProcessing(AudioProcess audioProcess) {
             this.audioProcess = audioProcess;
             this.coreSignalProcessing = new CoreSignalProcessing(audioProcess.getRate(), ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
+        }
+
+        public double[] getLastLvls() {
+            return lastLvls;
         }
 
         public void addSample(byte[] sample) {
@@ -173,13 +163,37 @@ public class AudioProcess implements Runnable {
             return bufferToProcess.isEmpty() && !processing.get();
         }
 
+
+        private double getSpl(double[] secondSample) {
+            double rms = 0d;
+            for(double sample : secondSample) {
+                rms += sample * sample;
+            }
+            rms /= secondSample.length;
+            rms = Math.sqrt(rms);
+            return 20 * Math.log10(rms / 2e-5);
+        }
+
         private void processSecondSample(double[] secondSample) {
             try {
                 coreSignalProcessing.addSample(secondSample);
-                lvls.addAll(coreSignalProcessing.processSample(1.));
+                List<double[]> allLeq = coreSignalProcessing.processSample(1.);
+                if(!allLeq.isEmpty()) {
+                    lastLvls = allLeq.get(allLeq.size() - 1);
+                    lastLvls[0] = getSpl(secondSample);
+                    long now = System.currentTimeMillis();
+                    if(lastTimeFiredMovingLeq + MILLISECOND_FIRE_MOVING_LEQ < now) {
+                        audioProcess.listeners.firePropertyChange(PROP_MOVING_LEQ, lastTimeFiredMovingLeq, now);
+                        lastTimeFiredMovingLeq = now;
+                    }
+                }
             } catch (FileNotFoundException ex) {
                 // Ignore, do not process sample
             }
+        }
+
+        public boolean isProcessing() {
+            return processing.get();
         }
 
         @Override
@@ -187,8 +201,9 @@ public class AudioProcess implements Runnable {
             final int rate = audioProcess.getRate();
             double[] secondSample = new double[rate];
             int secondCursor = 0;
-            int totalRead = 0;
-            while (audioProcess.currentState != STATE.WAITING_END_PROCESSING) {
+            lastTimeFiredMovingLeq = System.currentTimeMillis();
+            while (audioProcess.currentState != STATE.WAITING_END_PROCESSING
+                    && audioProcess.currentState != STATE.CLOSED) {
                 while(!bufferToProcess.isEmpty()) {
                     try {
                         processing.set(true);
@@ -215,6 +230,11 @@ public class AudioProcess implements Runnable {
                     }
                 }
                 processing.set(false);
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException ex) {
+                    break;
+                }
             }
         }
     }

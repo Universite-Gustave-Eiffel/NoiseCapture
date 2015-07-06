@@ -100,12 +100,11 @@ public class AudioProcess implements Runnable {
                     } catch (IllegalArgumentException | SecurityException ex) {
                         // Ignore
                     }
+                    lastTimeFiredMovingLeq = System.currentTimeMillis();
                     audioRecord.startRecording();
                     while (recording.get()) {
                         audioRecord.read(buffer, 0, buffer.length);
-                        synchronized (movingLeqProcessing) {
-                            movingLeqProcessing.addSample(CoreSignalProcessing.convertBytesToDouble(buffer, buffer.length));
-                        }
+                        movingLeqProcessing.addSample(CoreSignalProcessing.convertBytesToDouble(buffer, buffer.length));
                         long now = System.currentTimeMillis();
                         if(lastTimeFiredMovingLeq + MILLISECOND_FIRE_MOVING_LEQ < now) {
                             listeners.firePropertyChange(PROP_MOVING_LEQ, lastTimeFiredMovingLeq, now);
@@ -138,7 +137,7 @@ public class AudioProcess implements Runnable {
     double[] getMovingLvl() {
         try {
             synchronized (movingLeqProcessing) {
-                List<double[]> timeLevels = movingLeqProcessing.processSample(1.);
+                List<double[]> timeLevels = movingLeqProcessing.processSample(MILLISECOND_FIRE_MOVING_LEQ / 1000.);
                 if(!timeLevels.isEmpty()) {
                     return timeLevels.get(timeLevels.size() - 1);
                 } else {
@@ -154,6 +153,71 @@ public class AudioProcess implements Runnable {
         return rate;
     }
 
+    private static class MovingLeqProcessing implements Runnable {
+        private List<byte[]> bufferToProcess = new CopyOnWriteArrayList<byte[]>();
+        private final AudioProcess audioProcess;
+        private AtomicBoolean processing = new AtomicBoolean(false);
+        private CoreSignalProcessing coreSignalProcessing;
+        private List<double[]> lvls = new ArrayList<>();
+
+        public MovingLeqProcessing(AudioProcess audioProcess) {
+            this.audioProcess = audioProcess;
+            this.coreSignalProcessing = new CoreSignalProcessing(audioProcess.getRate(), ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
+        }
+
+        public void addSample(byte[] sample) {
+            bufferToProcess.add(sample);
+        }
+
+        public boolean isTaskQueueEmpty() {
+            return bufferToProcess.isEmpty() && !processing.get();
+        }
+
+        private void processSecondSample(double[] secondSample) {
+            try {
+                coreSignalProcessing.addSample(secondSample);
+                lvls.addAll(coreSignalProcessing.processSample(1.));
+            } catch (FileNotFoundException ex) {
+                // Ignore, do not process sample
+            }
+        }
+
+        @Override
+        public void run() {
+            final int rate = audioProcess.getRate();
+            double[] secondSample = new double[rate];
+            int secondCursor = 0;
+            int totalRead = 0;
+            while (audioProcess.currentState != STATE.WAITING_END_PROCESSING) {
+                while(!bufferToProcess.isEmpty()) {
+                    try {
+                        processing.set(true);
+                        byte[] buffer = bufferToProcess.remove(0);
+                        double[] samples = CoreSignalProcessing.convertBytesToDouble(buffer, buffer.length);
+                        int lengthRead = Math.min(samples.length, rate - secondCursor);
+                        // Copy sample fragment into second array
+                        System.arraycopy(samples, 0, secondSample, secondCursor, lengthRead);
+                        secondCursor+=lengthRead;
+                        if(lengthRead < samples.length) {
+                            processSecondSample(secondSample);
+                            secondCursor = 0;
+                            // Copy remaining sample fragment into new second array
+                            int newLengthRead = samples.length - lengthRead;
+                            System.arraycopy(samples, lengthRead, secondSample, secondCursor, newLengthRead);
+                            secondCursor+=newLengthRead;
+                        }
+                        if(secondCursor == rate) {
+                            processSecondSample(secondSample);
+                            secondCursor = 0;
+                        }
+                    } finally {
+                        processing.set(!bufferToProcess.isEmpty());
+                    }
+                }
+                processing.set(false);
+            }
+        }
+    }
 
     private static class StandartLeqProcessing implements Runnable {
         private List<byte[]> bufferToProcess = new CopyOnWriteArrayList<byte[]>();

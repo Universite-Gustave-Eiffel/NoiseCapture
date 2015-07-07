@@ -16,6 +16,7 @@ public class CoreSignalProcessing {
     public int samplingRate;
     private double[] sampleBuffer;
     private ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands;
+    double[] standardFrequencies;
 
     public CoreSignalProcessing(int samplingRate, ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands) {
         this.frequencyBands = frequencyBands;
@@ -24,6 +25,7 @@ public class CoreSignalProcessing {
         }
         this.samplingRate = samplingRate;
         this.sampleBuffer = new double[(int) (samplingRate * ThirdOctaveBandsFiltering.getSampleBufferDuration(frequencyBands))];
+        this.standardFrequencies = ThirdOctaveBandsFiltering.getStandardFrequencies(frequencyBands);
         Arrays.fill(sampleBuffer, 0);
     }
 
@@ -138,9 +140,6 @@ public class CoreSignalProcessing {
      */
     public List<double[]> processSample(double leqPeriod) throws FileNotFoundException {
         int signalLength = sampleBuffer.length;
-        double sampleDuration = (double)(signalLength / samplingRate);
-        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, frequencyBands);
-        double[] standardFrequencies = thirdOctaveBandsFiltering.getStandardFrequencies(samplingRate, sampleDuration);
         int nbFrequencies = standardFrequencies.length;
         List<double[]> leq = new ArrayList<double[]>();
         double[][] filteredSignals;

@@ -42,4 +42,6 @@ dependencies {
     compile 'com.github.PhilJay:MPAndroidChart:v2.0.8'
     compile 'com.android.support:support-v4:22.0.0'
     compile 'org.orbisgis:signal_processing_sos:1.0-SNAPSHOT'
+    // TODO insert multithreaded FFT for realtime visualisation of spectrum only
+    // compile 'com.github.wendykierp:JTransforms:3.0'
 }

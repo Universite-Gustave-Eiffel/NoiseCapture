@@ -199,7 +199,6 @@ public class ThirdOctaveBandsFiltering {
         }
         double [][] states = new double [2][4];
         FiltersParameters filtParams = this.filterParameters.get(idFreq);
-        for (int idRow = 0; idRow < states.length; idRow++) { Arrays.fill(states[idRow], 0.); }
 
         // Backward filtering
         double[] reversedSignal = reverse2dArray(signal);
@@ -223,8 +222,7 @@ public class ThirdOctaveBandsFiltering {
         int nbFreqs = standardFrequencies.length;
         double [][] filteredSignals = new double[nbFreqs][signalLength];
         for (int idf = 0; idf < nbFreqs; idf++){
-            double[] filteredSignal = applySosFilter(signal, idf);
-            System.arraycopy(filteredSignal, 0, filteredSignals[idf], 0, signalLength);
+            filteredSignals[idf] = applySosFilter(signal, idf);
         }
         return filteredSignals;
     }

@@ -2,6 +2,8 @@ package org.orbisgis.sos;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -153,7 +155,7 @@ public class ThirdOctaveBandsFilteringTest {
      */
     @Test
     public void testAWeightingAnThirdOctaveBandsFiltering() throws IOException{
-
+        Logger logger = LoggerFactory.getLogger(ThirdOctaveBandsFilteringTest.class);
         /*
         Reference data (i.e. expected results)
          */
@@ -161,7 +163,7 @@ public class ThirdOctaveBandsFilteringTest {
         int samplingRate = 44100;
         ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands = ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED;
         ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, frequencyBands);
-        double[] standardFrequencies = thirdOctaveBandsFiltering.getStandardFrequencies(frequencyBands);
+        double[] standardFrequencies = ThirdOctaveBandsFiltering.getStandardFrequencies(frequencyBands);
         int nbFrequencies = standardFrequencies.length;
         int nbExpectedSamples = (int)(ThirdOctaveBandsFiltering.getSampleBufferDuration(frequencyBands) * samplingRate);
 
@@ -221,7 +223,9 @@ public class ThirdOctaveBandsFilteringTest {
         double[][] actualFilteredAWeightedSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(actualAWeightedSignal);
 
         // Third octave bands filtering of the input signal (i.e. unweighted)
+        long deb = System.currentTimeMillis();
         double[][] actualFilteredInputSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(audioSignalArr);
+        logger.info("Compute Filtering signal in "+(System.currentTimeMillis() - deb)+" ms");
 
         // Equivalent sound pressure levels of the third octave bands filtered A-weighted signals
         double[] actualLAeq = new double[nbFrequencies];

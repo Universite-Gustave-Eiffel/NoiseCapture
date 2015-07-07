@@ -19,13 +19,21 @@ public class AcousticIndicators {
      * @return equivalent sound pressure level [dB]
      */
     public static double getLeq(double[] inputSignal) {
+        double rms = 0.0;
+
+        for (int idT = 1; idT < inputSignal.length; idT++) {
+            rms += Math.pow(inputSignal[idT], 2);    // Math.pow(inputSignal[i], 2.);
+        }
+        return 10 * Math.log10(rms / (inputSignal.length* REF_SOUND_PRESSURE));
+    }
+
+    public static double newGetLeq(double[] inputSignal) {
         double rms = 0d;
         for(double sample : inputSignal) {
             rms += sample * sample;
         }
         return 20 * Math.log10(Math.sqrt(rms / inputSignal.length) / REF_SOUND_PRESSURE);
     }
-
 
     /**
      * Calculation of the equivalent sound pressure levels over a time period

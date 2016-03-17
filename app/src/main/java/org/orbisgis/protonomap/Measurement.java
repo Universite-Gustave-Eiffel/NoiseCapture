@@ -468,6 +468,10 @@ public class Measurement extends MainActivity {
 
                 // Spectrum data
                 activity.updateSpectrumGUI(movingLevel);
+
+                // Debug processing time
+                final TextView mTextProcessingView = (TextView) activity.findViewById(R.id.textView_value_Min_i);
+                mTextProcessingView.setText(String.format("%d", activity.audioProcess.getProcessingTime()));
             } finally {
                 activity.isComputingMovingLeq.set(false);
             }

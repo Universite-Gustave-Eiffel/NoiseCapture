@@ -8,6 +8,7 @@ import android.util.Log;
 import java.beans.PropertyChangeSupport;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -16,7 +17,6 @@ import org.jtransforms.fft.FloatFFT_1D;
 import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.CoreSignalProcessing;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
-import org.orbisgis.sos.ThirdOctaveFrequencies;
 
 /**
  * Processing thread of packets of Audio signal
@@ -31,9 +31,8 @@ public class AudioProcess implements Runnable {
     private STATE currentState = STATE.WAITING;
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
     public static final String PROP_MOVING_LEQ = "PROP_MOVING_LEQ";
+    public static final String PROP_MOVING_SPECTRUM = "PROP_MOVING_SPECTRUM";
     private double movingLeq;
-    // Moving Level evaluation for rendering to user
-    private double[] movingLvl = new double[ThirdOctaveFrequencies.STANDARD_FREQUENCIES.length];
     // 1s level evaluation for upload to server
     private List<double[]> stdLvl = new ArrayList<>();
     private final MovingLeqProcessing movingLeqProcessing;
@@ -134,7 +133,7 @@ public class AudioProcess implements Runnable {
      * Filter the last 1s record.
      * @return Level in dB(A) of the last 1s for each frequency band.
      */
-    double[] getMovingLvl() {
+    float[] getMovingLvl() {
         return movingLeqProcessing.getLastLvls();
     }
 
@@ -155,10 +154,11 @@ public class AudioProcess implements Runnable {
         private final AudioProcess audioProcess;
         private AtomicBoolean processing = new AtomicBoolean(false);
         private CoreSignalProcessing coreSignalProcessing;
-        private double[] lastLvls = new double[ThirdOctaveBandsFiltering.getStandardFrequencies(ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED).length];
+        private float[] lastLvls = new float[0];
         private double leq = 0;
-        private final static double SECOND_FIRE_MOVING_LEQ = 0.;
-        private final static double SECOND_FIRE_MOVING_SPECTRUM = 0.;
+        // 0.066 mean 15 fps max
+        private final static double SECOND_FIRE_MOVING_LEQ = 0.065;
+        private final static double SECOND_FIRE_MOVING_SPECTRUM = 0.5;
         private int lastProcessedMovingLeq = 0;
         private int lastProcessedSpectrum = 0;
         public long processingTime = 0;
@@ -170,7 +170,7 @@ public class AudioProcess implements Runnable {
             this.floatFFT_1D = new FloatFFT_1D(audioProcess.getRate());
         }
 
-        public double[] getLastLvls() {
+        public float[] getLastLvls() {
             return lastLvls;
         }
 
@@ -200,34 +200,26 @@ public class AudioProcess implements Runnable {
                     SECOND_FIRE_MOVING_SPECTRUM) {
                     long beginProcess = System.currentTimeMillis();
                     double[] signalDouble = coreSignalProcessing.getSampleBuffer();
+                    // Apply Hanning window
+                    AcousticIndicators.hanningWindow(signalDouble);
+                    // Convert into float precision - Speedup processing
                     float[] signal = new float[signalDouble.length];
-                    for(int i=0; i<signalDouble.length;i++) {
+                    for(int i=0; i< signal.length;i++) {
                         signal[i] = (float)signalDouble[i];
                     }
                     floatFFT_1D.realForward(signal);
+                    // Keep only last half part
+                    float[] fftResult =  new float[signal.length / 4];
+                    //a[offa+2*k] = Re[k], 0<=k<n/2
+                    for(int k = 0; k < fftResult.length; k++) {
+                        fftResult[k] = Math.max(0, Math.min(signal[2 * k], 2));
+                        //Math.max(0, Math.abs(10 * (float)Math.log10(Math.abs(signal[2*k]))));
+                    }
                     processingTime = System.currentTimeMillis() - beginProcess;
                     lastProcessedSpectrum = pushedSamples;
-                    audioProcess.listeners.firePropertyChange(PROP_MOVING_LEQ,
-                            lastProcessedSpectrum, lastProcessedSpectrum + pushedSamples);
+                    audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
+                            null, fftResult);
             }
-            /*
-            if((pushedSamples - lastProcessedSpectrum) / (double)audioProcess.getRate() >
-                    SECOND_FIRE_MOVING_SPECTRUM) {
-                try {
-                    long beginProcess = System.currentTimeMillis();
-                    List<double[]> allLeq = coreSignalProcessing.processSample(0.5);
-                    processingTime = System.currentTimeMillis() - beginProcess;
-                    if(!allLeq.isEmpty()) {
-                        lastLvls = allLeq.get(allLeq.size() - 1);
-                        audioProcess.listeners.firePropertyChange(PROP_MOVING_LEQ,
-                                lastProcessedSpectrum, lastProcessedSpectrum + pushedSamples);
-                        lastProcessedSpectrum = pushedSamples;
-                    }
-                } catch (FileNotFoundException ex) {
-                    // Ignore, do not process sample
-                }
-            }
-            */
         }
 
         public boolean isProcessing() {

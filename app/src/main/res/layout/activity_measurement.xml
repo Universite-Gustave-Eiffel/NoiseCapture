@@ -154,12 +154,10 @@
             android:gravity="center_horizontal"
             android:paddingBottom="4dp" />
 
-        <com.github.mikephil.charting.charts.BarChart
-            android:id="@+id/spectrumChart"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:layout_above="@+id/linearLayout"
-            android:layout_below="@+id/vumeter" />
+        <org.orbisgis.protonomap.Spectrogram
+            android:id="@+id/spectrogram_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
 
     </LinearLayout>
 

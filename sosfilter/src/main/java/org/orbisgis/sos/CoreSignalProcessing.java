@@ -17,7 +17,7 @@ import java.util.List;
  */
 public class CoreSignalProcessing {
 
-    public int samplingRate;
+    public final int samplingRate;
     private double[] sampleBuffer;
     private ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands;
     double[] standardFrequencies;

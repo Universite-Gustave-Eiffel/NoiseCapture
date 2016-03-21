@@ -77,4 +77,20 @@ public class AcousticIndicators {
         // Return modified buffer
         return signal;
     }
+
+    /**
+     * Apply a Hanning window to a signal
+     * @param signal time signal
+     * @return the windowed signal
+     */
+    public static float[] hanningWindow(float[] signal) {
+
+        // Iterate until the last line of the data buffer
+        for (int n = 1; n < signal.length; n++) {
+            // reduce unnecessarily performed frequency part of each and every frequency
+            signal[n] *= 0.5 * (1 - Math.cos((2 * Math.PI * n) / (signal.length - 1)));
+        }
+        // Return modified buffer
+        return signal;
+    }
 }

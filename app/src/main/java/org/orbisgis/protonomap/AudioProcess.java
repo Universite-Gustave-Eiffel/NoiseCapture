@@ -159,7 +159,9 @@ public class AudioProcess implements Runnable {
         private double leq = 0;
         // 0.066 mean 15 fps max
         private final static double SECOND_FIRE_MOVING_LEQ = 0.065;
-        private final static double SECOND_FIRE_MOVING_SPECTRUM = 0.5;
+        private final static double SECOND_FIRE_MOVING_SPECTRUM = 0.1;
+        private final double FFT_TIMELENGTH = 0.1;
+        private final int FFT_SAMPLINGRATE_FACTOR = 2;
         private int lastProcessedMovingLeq = 0;
         private int lastProcessedSpectrum = 0;
         public long processingTime = 0;
@@ -168,7 +170,7 @@ public class AudioProcess implements Runnable {
         public MovingLeqProcessing(AudioProcess audioProcess) {
             this.audioProcess = audioProcess;
             this.coreSignalProcessing = new CoreSignalProcessing(audioProcess.getRate(), ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
-            this.floatFFT_1D = new FloatFFT_1D(audioProcess.getRate());
+            this.floatFFT_1D = new FloatFFT_1D((int)(audioProcess.getRate() * FFT_TIMELENGTH) / FFT_SAMPLINGRATE_FACTOR);
         }
 
         public float[] getLastLvls() {
@@ -201,13 +203,15 @@ public class AudioProcess implements Runnable {
                     SECOND_FIRE_MOVING_SPECTRUM) {
                     long beginProcess = System.currentTimeMillis();
                     double[] signalDouble = coreSignalProcessing.getSampleBuffer();
-                    // Apply Hanning window
-                    AcousticIndicators.hanningWindow(signalDouble);
+                    // signalDouble is 1s long, take a part of it and downsampling
                     // Convert into float precision - Speedup processing
-                    float[] signal = new float[signalDouble.length];
+                    float[] signal = new float[(int)((signalDouble.length * SECOND_FIRE_MOVING_SPECTRUM) / FFT_SAMPLINGRATE_FACTOR)];
+                    int offset = (int)(signalDouble.length * SECOND_FIRE_MOVING_SPECTRUM);
                     for(int i=0; i< signal.length;i++) {
-                        signal[i] = (float)signalDouble[i];
+                        signal[i] = (float)signalDouble[offset + i * FFT_SAMPLINGRATE_FACTOR];
                     }
+                    // Apply Hanning window
+                    AcousticIndicators.hanningWindow(signal);
                     floatFFT_1D.realForward(signal);
                     // Keep only last half part
                     float[] fftResult =  new float[signal.length / 2];

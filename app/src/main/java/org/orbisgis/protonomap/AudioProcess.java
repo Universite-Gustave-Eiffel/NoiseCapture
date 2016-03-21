@@ -142,10 +142,6 @@ public class AudioProcess implements Runnable {
         return movingLeqProcessing.getLeq();
     }
 
-    long getProcessingTime() {
-        return movingLeqProcessing.processingTime;
-    }
-
     public int getRate() {
         return rate;
     }
@@ -164,7 +160,6 @@ public class AudioProcess implements Runnable {
         private final int FFT_SAMPLINGRATE_FACTOR = 2;
         private int lastProcessedMovingLeq = 0;
         private int lastProcessedSpectrum = 0;
-        public long processingTime = 0;
         private FloatFFT_1D floatFFT_1D;
 
         public MovingLeqProcessing(AudioProcess audioProcess) {
@@ -201,7 +196,6 @@ public class AudioProcess implements Runnable {
 
             if((pushedSamples - lastProcessedSpectrum) / (double)audioProcess.getRate() >
                     SECOND_FIRE_MOVING_SPECTRUM) {
-                    long beginProcess = System.currentTimeMillis();
                     double[] signalDouble = coreSignalProcessing.getSampleBuffer();
                     // signalDouble is 1s long, take a part of it and downsampling
                     // Convert into float precision - Speedup processing
@@ -223,7 +217,6 @@ public class AudioProcess implements Runnable {
                         fftResult[k] = (float)Math.max(0,
                                 (10 * Math.log10(rms / AcousticIndicators.REF_SOUND_PRESSURE)));
                     }
-                    processingTime = System.currentTimeMillis() - beginProcess;
                     lastProcessedSpectrum = pushedSamples;
                     audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
                             null, fftResult);

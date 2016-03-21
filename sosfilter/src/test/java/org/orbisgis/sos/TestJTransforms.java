@@ -4,6 +4,8 @@ import org.jtransforms.fft.FloatFFT_1D;
 import org.junit.Assert;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 
 public class TestJTransforms {
 
@@ -13,34 +15,34 @@ public class TestJTransforms {
 
         // Make 50 Hz signal
         final int sampleRate = 44100;
-        final int signalFrequency = 7500;
+        final int signalFrequency = 50;
         float[] signal = new float[sampleRate];
         for(int s = 0; s < sampleRate; s++) {
             double t = s * (1 / (double)sampleRate);
             signal[s] = (float)Math.sin(2 * Math.PI * signalFrequency * t);
         }
 
-        // Compute min/max
-        float[] minMax = getMinMax(signal);
-        System.out.println("Min "+ minMax[0] + " max "+ minMax[1]);
-
         // Execute FFT
         FloatFFT_1D floatFFT_1D = new FloatFFT_1D(sampleRate);
         floatFFT_1D.realForward(signal);
 
         // Extract Real part
+        float localMax = Float.MIN_VALUE;
+        int maxValueFreq = -1;
         float[] result = new float[signal.length / 2];
         for(int s = 0; s < result.length; s++) {
             //result[s] = Math.abs(signal[2*s]);
-            float reali = signal[s * 2];
-            float imagi = signal[s * 2 + 1];
-            result[s] = (float) Math.sqrt(reali * reali + imagi * imagi) / result.length;
+            float re = signal[s * 2];
+            float im = signal[s * 2 + 1];
+            result[s] = (float) Math.sqrt(re * re + im * im) / result.length;
+            if(result[s] > localMax) {
+                maxValueFreq = s;
+            }
+            localMax = Math.max(localMax, result[s]);
         }
 
-        // Compute and print min max
-        minMax = getMinMax(result);
-        System.out.println("Min "+ minMax[0] + " max "+ minMax[1] + " position " + ((int)minMax[2]) +"/"+result.length);
-
+        assertEquals(1, localMax, 1e-12);
+        assertEquals(signalFrequency, maxValueFreq);
     }
 
     private float[] getMinMax(float[] signal) {

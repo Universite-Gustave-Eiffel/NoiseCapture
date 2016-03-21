@@ -400,8 +400,8 @@ public class Measurement extends MainActivity {
                 activity.updateSpectrumGUI();
 
                 // Debug processing time
-                final TextView mTextProcessingView = (TextView) activity.findViewById(R.id.textView_value_Min_i);
-                mTextProcessingView.setText(String.format("%d", activity.audioProcess.getProcessingTime()));
+                //final TextView valueMin = (TextView) activity.findViewById(R.id.textView_value_Min_i);
+                //mTextProcessingView.setText(String.format("%d", minValue));
             } finally {
                 activity.isComputingMovingLeq.set(false);
             }

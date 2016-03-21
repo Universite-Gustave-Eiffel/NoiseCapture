@@ -34,7 +34,6 @@ public class AudioProcess implements Runnable {
     public static final String PROP_MOVING_SPECTRUM = "PROP_MOVING_SPECTRUM";
     private double movingLeq;
     // 1s level evaluation for upload to server
-    private List<double[]> stdLvl = new ArrayList<>();
     private final MovingLeqProcessing movingLeqProcessing;
 
 
@@ -209,11 +208,14 @@ public class AudioProcess implements Runnable {
                     }
                     floatFFT_1D.realForward(signal);
                     // Keep only last half part
-                    float[] fftResult =  new float[signal.length / 4];
+                    float[] fftResult =  new float[signal.length / 2];
                     //a[offa+2*k] = Re[k], 0<=k<n/2
                     for(int k = 0; k < fftResult.length; k++) {
-                        fftResult[k] = Math.max(0, Math.min(signal[2 * k], 2));
-                        //Math.max(0, Math.abs(10 * (float)Math.log10(Math.abs(signal[2*k]))));
+                        final float re = signal[k * 2];
+                        final float im = signal[k * 2 + 1];
+                        final double rms = Math.sqrt(re * re + im * im) / fftResult.length;
+                        fftResult[k] = (float)Math.max(0,
+                                (10 * Math.log10(rms / AcousticIndicators.REF_SOUND_PRESSURE)));
                     }
                     processingTime = System.currentTimeMillis() - beginProcess;
                     lastProcessedSpectrum = pushedSamples;

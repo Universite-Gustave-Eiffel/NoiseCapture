@@ -47,11 +47,6 @@ public class Measurement extends MainActivity {
     private AtomicBoolean isRecording = new AtomicBoolean(false);
     private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
     private AudioProcess audioProcess = new AudioProcess(isRecording);
-    private List<float[]> freqToPush = new CopyOnWriteArrayList<float[]>();
-
-    public void addFreqValues(float[] values) {
-        freqToPush.add(values);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -285,12 +280,7 @@ public class Measurement extends MainActivity {
     }
 
     private void updateSpectrumGUI() {
-        // Copy array in order
-        ArrayList<float[]> freqValues = new ArrayList<float[]>(freqToPush);
-        freqToPush.clear();
-        for(float[] freqVal : freqValues) {
-            spectrogram.addTimeStep(freqVal);
-        }
+
     }
 
     // Color for spectrum representation (min, iSL, max)
@@ -313,7 +303,7 @@ public class Measurement extends MainActivity {
             if((AudioProcess.PROP_MOVING_LEQ.equals(event.getPropertyName()) ||
                     AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName()))) {
                 if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
-                    activity.addFreqValues((float[])event.getNewValue());
+                    activity.spectrogram.addTimeStep((float[])event.getNewValue());
                 }
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));

@@ -20,8 +20,8 @@ public class Spectrogram extends View {
     private Bitmap spectrogramBuffer = null;
     private int canvasHeight = -1;
     private int canvasWidth = -1;
-    private float min = Float.MAX_VALUE;
-    private float max = Float.MIN_VALUE;
+    private static final float min = 0;
+    private static final float max = 50;
 
     private static final int[] colorRamp = new int[]{p("#000000"), p("#170f79"), p("#301084"),
             p("#460f75"), p("#5c0f67"), p("#720f59"), p("#8a0e49"), p("#ad0d32"), p("#ee2209"),
@@ -60,32 +60,36 @@ public class Spectrogram extends View {
      * @param spectrum FFT response
      */
     public void addTimeStep(float[] spectrum) {
-        // Copy data into a new array
-        for(float val : spectrum) {
-            min = Math.min(min, val);
-            max = Math.max(max, val);
-        }
-        System.out.println("Min " + min + " Max " + max);
+        final int ticWidth = 4; // Timestep width in pixels
         spectrumData.add(0, spectrum);
         if(canvasWidth > 0 && canvasHeight > 0) {
             if (spectrogramBuffer == null ||spectrogramBuffer.getWidth() != canvasWidth ||
                     spectrogramBuffer.getHeight() != canvasHeight ) {
                 spectrogramBuffer = Bitmap.createBitmap(canvasWidth, canvasHeight,
                         Bitmap.Config.ARGB_8888);
+                spectrogramBuffer.eraseColor(colorRamp[0]);
+            } else {
+                // Move spectrum on the left
+                Canvas canvas = new Canvas(spectrogramBuffer);
+                canvas.drawBitmap(spectrogramBuffer, -(spectrumData.size()), 0, null);
             }
             Canvas canvas = new Canvas(spectrogramBuffer);
-            final int ticWidth = 4; // Timestep width in pixels
-            // TODO do not redraw tics (move old tics on the left)
             int drawnTics = 0;
-            for (float[] ticSpectrum : spectrumData) {
+            float localMin = Float.MAX_VALUE;
+            float localMax = Float.MIN_VALUE;
+            while ( !spectrumData.isEmpty()) {
+                float[] ticSpectrum = spectrumData.remove(0);
                 // Rescale to the range of color ramp
                 Bitmap ticBuffer = Bitmap.createBitmap(1, ticSpectrum.length,
                         Bitmap.Config.ARGB_8888);
                 int[] ticColors = new int[ticSpectrum.length];
                 for(int idfreq = 0; idfreq < ticSpectrum.length; idfreq++) {
                     // Rescale value and pick the color in the color ramp
+                    float val = ticSpectrum[idfreq];
+                    localMin = Math.min(localMin, val);
+                    localMax = Math.max(localMax, val);
                     ticColors[idfreq] = colorRamp[Math.min(colorRamp.length - 1, Math.max(0,
-                            (int) (((ticSpectrum[idfreq] - min) / (max - min)) * colorRamp.length)))];
+                            (int) (((val - min) / (max - min)) * colorRamp.length)))];
                 }
                 ticBuffer.setPixels(ticColors, 0, 1, 0, 0, 1, ticColors.length);
                 int leftPos = spectrogramBuffer.getWidth() - 1 - (drawnTics * ticWidth);
@@ -94,7 +98,8 @@ public class Spectrogram extends View {
                 canvas.drawBitmap(ticBuffer, null,destRect, null);
                 drawnTics++;
             }
-            invalidate(); // redraws the view calling onDraw()
+            System.out.println("Loc [" + localMin + ";" + localMax+"] tot ["+min+";"+max+"]");
+            postInvalidate(); // redraws the view calling onDraw()
         }
     }
 }

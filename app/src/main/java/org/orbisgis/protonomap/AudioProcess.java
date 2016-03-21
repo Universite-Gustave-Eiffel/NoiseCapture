@@ -112,8 +112,10 @@ public class AudioProcess implements Runnable {
                 } catch (Exception ex) {
                     Log.e("tag_record", "Error while recording", ex);
                 } finally {
-                    audioRecord.stop();
-                    audioRecord.release();
+                    if(audioRecord.getState() != AudioRecord.STATE_UNINITIALIZED) {
+                        audioRecord.stop();
+                        audioRecord.release();
+                    }
                 }
             }
         } finally {

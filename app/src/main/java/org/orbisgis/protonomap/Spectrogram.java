@@ -51,7 +51,7 @@ public class Spectrogram extends View {
         if(spectrogramBuffer != null) {
             canvas.drawBitmap(spectrogramBuffer, 0, 0, null);
         } else {
-            canvas.drawARGB(255, 255, 0, 0);
+            canvas.drawColor(colorRamp[0]);
         }
     }
 
@@ -60,7 +60,8 @@ public class Spectrogram extends View {
      * @param spectrum FFT response
      */
     public void addTimeStep(float[] spectrum) {
-        final int ticWidth = 4; // Timestep width in pixels
+        long deb = System.currentTimeMillis();
+        final int ticWidth = 5; // Timestep width in pixels
         spectrumData.add(0, spectrum);
         if(canvasWidth > 0 && canvasHeight > 0) {
             if (spectrogramBuffer == null ||spectrogramBuffer.getWidth() != canvasWidth ||
@@ -71,35 +72,44 @@ public class Spectrogram extends View {
             } else {
                 // Move spectrum on the left
                 Canvas canvas = new Canvas(spectrogramBuffer);
-                canvas.drawBitmap(spectrogramBuffer, -(spectrumData.size()), 0, null);
+                canvas.drawBitmap(spectrogramBuffer, -(spectrumData.size() * ticWidth), 0, null);
             }
             Canvas canvas = new Canvas(spectrogramBuffer);
             int drawnTics = 0;
-            float localMin = Float.MAX_VALUE;
-            float localMax = Float.MIN_VALUE;
             while ( !spectrumData.isEmpty()) {
                 float[] ticSpectrum = spectrumData.remove(0);
                 // Rescale to the range of color ramp
-                Bitmap ticBuffer = Bitmap.createBitmap(1, ticSpectrum.length,
+                Bitmap ticBuffer = Bitmap.createBitmap(ticWidth, canvasHeight,
                         Bitmap.Config.ARGB_8888);
-                int[] ticColors = new int[ticSpectrum.length];
-                for(int idfreq = 0; idfreq < ticSpectrum.length; idfreq++) {
-                    // Rescale value and pick the color in the color ramp
-                    float val = ticSpectrum[idfreq];
-                    localMin = Math.min(localMin, val);
-                    localMax = Math.max(localMax, val);
-                    ticColors[idfreq] = colorRamp[Math.min(colorRamp.length - 1, Math.max(0,
-                            (int) (((val - min) / (max - min)) * colorRamp.length)))];
+                int[] ticColors = new int[canvasHeight * ticWidth];
+
+                // merge frequencies following the destination resolution
+                double freqByPixel = ticSpectrum.length / (double)canvasHeight;
+                for(int pixel = 0; pixel < canvasHeight; pixel++) {
+                    // Compute frequency range covered by this pixel
+                    int freqStart = (int)Math.floor(pixel * freqByPixel);
+                    int freqEnd =(int)Math.min(freqStart + freqByPixel, ticSpectrum.length);
+                    float sumVal = 0;
+                    for (int idfreq = freqStart; idfreq < freqEnd; idfreq++) {
+                        // Rescale value and pick the color in the color ramp
+                        sumVal += ticSpectrum[idfreq];
+                    }
+                    sumVal /= (freqEnd - freqStart);
+                    int pixColor = colorRamp[Math.min(colorRamp.length - 1, Math.max(0,
+                            (int) (((sumVal - min) / (max - min)) * colorRamp.length)))];
+                    for(int y = 0; y < ticWidth; y++) {
+                        ticColors[((canvasHeight - 1) - pixel) * ticWidth + y] = pixColor;
+                    }
                 }
-                ticBuffer.setPixels(ticColors, 0, 1, 0, 0, 1, ticColors.length);
-                int leftPos = spectrogramBuffer.getWidth() - 1 - (drawnTics * ticWidth);
-                int rightPos = leftPos + ticWidth;
-                Rect destRect = new Rect(leftPos, 0, rightPos, spectrogramBuffer.getHeight());
-                canvas.drawBitmap(ticBuffer, null,destRect, null);
+                ticBuffer.setPixels(ticColors, 0, ticWidth, 0, 0, ticWidth , canvasHeight);
+                //ticBuffer = Bitmap.createScaledBitmap(ticBuffer, ticWidth, ticBuffer.getHeight(), false);
+                int leftPos = spectrogramBuffer.getWidth() - ((drawnTics + 1) * ticWidth);
+                //Rect destRect = new Rect(leftPos, 0, rightPos, spectrogramBuffer.getHeight());
+                canvas.drawBitmap(ticBuffer, leftPos, 0, null);
                 drawnTics++;
             }
-            System.out.println("Loc [" + localMin + ";" + localMax+"] tot ["+min+";"+max+"]");
             postInvalidate(); // redraws the view calling onDraw()
+            System.out.println("Drawing time "+(System.currentTimeMillis() - deb));
         }
     }
 }

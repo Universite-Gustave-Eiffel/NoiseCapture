@@ -21,7 +21,7 @@ public class Spectrogram extends View {
     private int canvasHeight = -1;
     private int canvasWidth = -1;
     private static final float min = 0;
-    private static final float max = 50;
+    private static final float max = 20;
 
     private static final int[] colorRamp = new int[]{p("#000000"), p("#170f79"), p("#301084"),
             p("#460f75"), p("#5c0f67"), p("#720f59"), p("#8a0e49"), p("#ad0d32"), p("#ee2209"),
@@ -60,7 +60,6 @@ public class Spectrogram extends View {
      * @param spectrum FFT response
      */
     public void addTimeStep(float[] spectrum) {
-        long deb = System.currentTimeMillis();
         final int ticWidth = 5; // Timestep width in pixels
         spectrumData.add(0, spectrum);
         if(canvasWidth > 0 && canvasHeight > 0) {
@@ -102,14 +101,11 @@ public class Spectrogram extends View {
                     }
                 }
                 ticBuffer.setPixels(ticColors, 0, ticWidth, 0, 0, ticWidth , canvasHeight);
-                //ticBuffer = Bitmap.createScaledBitmap(ticBuffer, ticWidth, ticBuffer.getHeight(), false);
                 int leftPos = spectrogramBuffer.getWidth() - ((drawnTics + 1) * ticWidth);
-                //Rect destRect = new Rect(leftPos, 0, rightPos, spectrogramBuffer.getHeight());
                 canvas.drawBitmap(ticBuffer, leftPos, 0, null);
                 drawnTics++;
             }
             postInvalidate(); // redraws the view calling onDraw()
-            System.out.println("Drawing time "+(System.currentTimeMillis() - deb));
         }
     }
 }

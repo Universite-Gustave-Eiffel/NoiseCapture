@@ -8,6 +8,8 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 
+import org.orbisgis.sos.AcousticIndicators;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -21,7 +23,7 @@ public class Spectrogram extends View {
     private int canvasHeight = -1;
     private int canvasWidth = -1;
     private static final float min = 0;
-    private static final float max = 20;
+    private static final float max = 80;
 
     private static final int[] colorRamp = new int[]{p("#000000"), p("#170f79"), p("#301084"),
             p("#460f75"), p("#5c0f67"), p("#720f59"), p("#8a0e49"), p("#ad0d32"), p("#ee2209"),
@@ -93,7 +95,8 @@ public class Spectrogram extends View {
                         // Rescale value and pick the color in the color ramp
                         sumVal += ticSpectrum[idfreq];
                     }
-                    sumVal /= (freqEnd - freqStart);
+                    sumVal = (float)Math.max(0,
+                            (20 * Math.log10(sumVal)));
                     int pixColor = colorRamp[Math.min(colorRamp.length - 1, Math.max(0,
                             (int) (((sumVal - min) / (max - min)) * colorRamp.length)))];
                     for(int y = 0; y < ticWidth; y++) {

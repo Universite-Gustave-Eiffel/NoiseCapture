@@ -27,6 +27,7 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.utils.ValueFormatter;
 
+import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
 
 import java.beans.PropertyChangeEvent;
@@ -348,9 +349,10 @@ public class Measurement extends MainActivity {
             float sumVal = 0;
             for (int idthinFreq = freqStart; idthinFreq < freqEnd; idthinFreq++) {
                 // Rescale value and pick the color in the color ramp
-                sumVal += levels[idfreq];
+                sumVal += levels[idthinFreq];
             }
-            sumVal /= (freqEnd - freqStart);
+            sumVal = (float)Math.max(0,
+                    (20 * Math.log10(sumVal)));
             yVals1.add(new BarEntry(new float[] {sumVal}, idfreq));
         }
 

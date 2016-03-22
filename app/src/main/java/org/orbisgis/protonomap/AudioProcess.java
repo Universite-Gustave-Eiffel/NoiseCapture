@@ -35,6 +35,7 @@ public class AudioProcess implements Runnable {
     private double movingLeq;
     // 1s level evaluation for upload to server
     private final MovingLeqProcessing movingLeqProcessing;
+    private double calibrationPressureReference = Math.pow(10, 91 / 20);
 
 
 
@@ -157,7 +158,7 @@ public class AudioProcess implements Runnable {
         private final static double SECOND_FIRE_MOVING_LEQ = 0.065;
         private final static double SECOND_FIRE_MOVING_SPECTRUM = 0.1;
         private final double FFT_TIMELENGTH = 0.1;
-        private final int FFT_SAMPLINGRATE_FACTOR = 2;
+        private final int FFT_SAMPLINGRATE_FACTOR = 1;
         private int lastProcessedMovingLeq = 0;
         private int lastProcessedSpectrum = 0;
         private FloatFFT_1D floatFFT_1D;
@@ -189,6 +190,7 @@ public class AudioProcess implements Runnable {
             if((pushedSamples - lastProcessedMovingLeq) / (double)audioProcess.getRate() >
                     SECOND_FIRE_MOVING_LEQ) {
                 leq = AcousticIndicators.getLeq(coreSignalProcessing.getSampleBuffer());
+                System.out.println(leq);
                 audioProcess.listeners.firePropertyChange(PROP_MOVING_LEQ, lastProcessedMovingLeq,
                         lastProcessedMovingLeq + pushedSamples);
                 lastProcessedMovingLeq = pushedSamples;
@@ -214,8 +216,7 @@ public class AudioProcess implements Runnable {
                         final float re = signal[k * 2];
                         final float im = signal[k * 2 + 1];
                         final double rms = Math.sqrt(re * re + im * im) / fftResult.length;
-                        fftResult[k] = (float)Math.max(0,
-                                (10 * Math.log10(rms / AcousticIndicators.REF_SOUND_PRESSURE)));
+                        fftResult[k] = (float)(rms);
                     }
                     lastProcessedSpectrum = pushedSamples;
                     lastLvls = fftResult;
@@ -245,6 +246,7 @@ public class AudioProcess implements Runnable {
                             } else {
                                 samples[i] = Math.max(-1.0D, (double) buffer[i] / 32768.0D);
                             }
+                            samples[i] *= audioProcess.calibrationPressureReference;
                         }
                         coreSignalProcessing.addSample(samples);
                         secondCursor += samples.length;

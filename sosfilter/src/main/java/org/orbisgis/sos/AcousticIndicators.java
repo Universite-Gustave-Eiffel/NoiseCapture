@@ -10,21 +10,18 @@ public class AcousticIndicators {
     public static final double TIMEPERIOD_SLOW = 1.0;
     public static final double TIMEPERIOD_FAST = 0.125;
 
-    // Reference sound pressure level [Pa]
-    public static final double REF_SOUND_PRESSURE = 0.00002;
-
     /**
      * Calculation of the equivalent sound pressure level
      * @param inputSignal time signal [Pa]
-     * @return equivalent sound pressure level [dB]
+     * @return equivalent sound pressure level [dB] not normalised by reference pressure.
      */
     public static double getLeq(double[] inputSignal) {
-        double rms = 0.0;
+        double sqrRms = 0.0;
 
         for (int idT = 1; idT < inputSignal.length; idT++) {
-            rms += inputSignal[idT] * inputSignal[idT];    // Math.pow(inputSignal[i], 2.);
+            sqrRms += inputSignal[idT] * inputSignal[idT];    // Math.pow(inputSignal[i], 2.);
         }
-        return 10 * Math.log10(rms / (inputSignal.length* REF_SOUND_PRESSURE));
+        return 10 * Math.log10(sqrRms / (inputSignal.length));
     }
 
     /**

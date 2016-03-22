@@ -218,6 +218,7 @@ public class AudioProcess implements Runnable {
                                 (10 * Math.log10(rms / AcousticIndicators.REF_SOUND_PRESSURE)));
                     }
                     lastProcessedSpectrum = pushedSamples;
+                    lastLvls = fftResult;
                     audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
                             null, fftResult);
             }

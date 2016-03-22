@@ -16,6 +16,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.HorizontalBarChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
@@ -26,10 +27,13 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.utils.ValueFormatter;
 
+import org.orbisgis.sos.ThirdOctaveBandsFiltering;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -41,6 +45,7 @@ public class Measurement extends MainActivity {
 
     // For the Charts
     protected HorizontalBarChart mChart; // VUMETER representation
+    protected BarChart sChart; // Spectrum representation
     protected Spectrogram spectrogram;
 
     // Other ressources
@@ -136,17 +141,36 @@ public class Measurement extends MainActivity {
         });
 
         // Instantaneous sound level VUMETER
+        // Stacked bars are used for represented Min, Current and Max values
         // Horizontal barchart
+        sChart = (BarChart) findViewById(R.id.spectrumChart);
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
         spectrogram = (Spectrogram) findViewById(R.id.spectrogram_view);
+        // When user click on spectrum control, view are switched
+        SwitchVisibilityListener switchVisibilityListener = new SwitchVisibilityListener(sChart, spectrogram);
+        sChart.setOnClickListener(switchVisibilityListener);
+        spectrogram.setOnClickListener(switchVisibilityListener);
+        initSpectrum();
         initVueMeter();
         setData(0);
         // Legend: hide all
         Legend lv = mChart.getLegend();
         lv.setEnabled(false); // Hide legend
 
+        // Instantaneous spectrum
+        // Stacked bars are used for represented Min, Current and Max values
+        sChart = (BarChart) findViewById(R.id.spectrumChart);
+        if (!CheckViewModeSettings){
+            sChart.setVisibility(View.GONE);
+        }
+        initSpectrum();
+        // Data (before legend)
+        float[] defaultLevels = new float[ThirdOctaveBandsFiltering.getStandardFrequencies(ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED).length];
+        Arrays.fill(defaultLevels, 0);
+        updateSpectrumGUI(defaultLevels);
         // (ltob.length-1) values for each third-octave band// Legend: hide all
-        updateSpectrumGUI();
+        Legend ls = sChart.getLegend();
+        ls.setEnabled(false); // Hide legend
     }
 
     private View.OnClickListener onButtonCancel = new View.OnClickListener() {
@@ -179,6 +203,36 @@ public class Measurement extends MainActivity {
 
         }
     };
+
+
+    private void initSpectrum() {
+        sChart.setDrawBarShadow(false);
+        sChart.setDescription("");
+        sChart.setPinchZoom(false);
+        sChart.setDrawGridBackground(false);
+        sChart.setMaxVisibleValueCount(0);
+        sChart.setDrawValuesForWholeStack(true); // Stacked
+        sChart.setHighlightEnabled(false);
+        sChart.setNoDataTextDescription("Start by pressing the record button");
+        // XAxis parameters:
+        XAxis xls = sChart.getXAxis();
+        xls.setPosition(XAxisPosition.BOTTOM);
+        xls.setDrawAxisLine(true);
+        xls.setDrawGridLines(false);
+        xls.setDrawLabels(true);
+        xls.setTextColor(Color.WHITE);
+        // YAxis parameters (left): main axis for dB values representation
+        YAxis yls = sChart.getAxisLeft();
+        yls.setDrawAxisLine(true);
+        yls.setDrawGridLines(true);
+        yls.setAxisMaxValue(141.f);
+        yls.setStartAtZero(true);
+        yls.setTextColor(Color.WHITE);
+        yls.setGridColor(Color.WHITE);
+        // YAxis parameters (right): no axis, hide all
+        YAxis yrs = sChart.getAxisRight();
+        yrs.setEnabled(false);
+    }
 
     // Init RNE Pie Chart
     public void initVueMeter(){
@@ -279,8 +333,41 @@ public class Measurement extends MainActivity {
         mChart.invalidate(); // refresh
     }
 
-    private void updateSpectrumGUI() {
+    private void updateSpectrumGUI(float[] levels) {
+        ArrayList<String> xVals = new ArrayList<String>();
+        ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
+        double[] freqLabels = ThirdOctaveBandsFiltering.getStandardFrequencies
+                (ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
+        int rangeByThirdOctave = levels.length / freqLabels.length;
+        for(int idfreq =0; idfreq < freqLabels.length; idfreq++) {
+            xVals.add(String.valueOf(freqLabels[idfreq]));
+            // Sum values
+            // Compute frequency range covered by frequency
+            int freqStart = (int)Math.floor(idfreq * rangeByThirdOctave);
+            int freqEnd = Math.min(freqStart + rangeByThirdOctave, levels.length);
+            float sumVal = 0;
+            for (int idthinFreq = freqStart; idthinFreq < freqEnd; idthinFreq++) {
+                // Rescale value and pick the color in the color ramp
+                sumVal += levels[idfreq];
+            }
+            sumVal /= (freqEnd - freqStart);
+            yVals1.add(new BarEntry(new float[] {sumVal}, idfreq));
+        }
 
+        BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
+        set1.setColor(Color.rgb(102, 178, 255));
+        set1.setStackLabels(new String[] {
+                "SL"
+        });
+
+        ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
+        dataSets.add(set1);
+
+        BarData data = new BarData(xVals, dataSets);
+        data.setValueTextSize(10f);
+
+        sChart.setData(data);
+        sChart.invalidate(); // refresh
     }
 
     // Color for spectrum representation (min, iSL, max)
@@ -397,7 +484,8 @@ public class Measurement extends MainActivity {
                 mTextView.setTextColor(color_rep[nc]);
 
                 // Spectrum data
-                activity.updateSpectrumGUI();
+                final float[] movingLevel = activity.audioProcess.getMovingLvl();
+                activity.updateSpectrumGUI(movingLevel);
 
                 // Debug processing time
                 //final TextView valueMin = (TextView) activity.findViewById(R.id.textView_value_Min_i);
@@ -407,6 +495,27 @@ public class Measurement extends MainActivity {
             }
         }
 
+    }
+
+    private static class SwitchVisibilityListener implements View.OnClickListener {
+        private BarChart sChart; // Spectrum representation
+        private Spectrogram spectrogram;
+
+        public SwitchVisibilityListener(BarChart sChart, Spectrogram spectrogram) {
+            this.sChart = sChart;
+            this.spectrogram = spectrogram;
+        }
+
+        @Override
+        public void onClick(View view) {
+            if(sChart.getVisibility() == View.GONE) {
+                sChart.setVisibility(View.VISIBLE);
+                spectrogram.setVisibility(View.GONE);
+            } else {
+                sChart.setVisibility(View.GONE);
+                spectrogram.setVisibility(View.VISIBLE);
+            }
+        }
     }
 
 }

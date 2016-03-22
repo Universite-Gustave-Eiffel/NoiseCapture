@@ -94,7 +94,7 @@ public class Results extends MainActivity {
             public void onClick(View view) {
                 // Go to map page
                 Intent a = new Intent(getApplicationContext(), Map.class);
-                startActivity(a);;
+                startActivity(a);
             }
         });
 
@@ -106,8 +106,7 @@ public class Results extends MainActivity {
                 // Go to Measurement activity
                 Intent im = new Intent(getApplicationContext(),Measurement.class);
                 mDrawerLayout.closeDrawer(mDrawerList);
-                startActivity(im);
-                //DoProcessing(getApplicationContext(), this);
+                startActivityIfNeeded(im,0);
             }
         });
 

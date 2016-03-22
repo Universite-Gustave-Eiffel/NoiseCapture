@@ -34,6 +34,13 @@ public class CoreSignalProcessing {
     }
 
     /**
+     * @return Time in seconds of sample buffer
+     */
+    public double getSampleDuration() {
+        return ThirdOctaveBandsFiltering.getSampleBufferDuration(frequencyBands);
+    }
+
+    /**
      * @return Internal sample buffer where length depends on minimal frequency.
      */
     public double[] getSampleBuffer() {

@@ -154,8 +154,8 @@ public class AudioProcess implements Runnable {
         private float[] fftResultLvl = new float[0];
         private double leq = 0;
         // 0.066 mean 15 fps max
-        private final static double SECOND_FIRE_MOVING_SPECTRUM = 0.33;
-        private final double FFT_TIMELENGTH_FACTOR = Math.min(1, SECOND_FIRE_MOVING_SPECTRUM);
+        private final static double SECOND_FIRE_MOVING_SPECTRUM = 0.15;
+        private final double FFT_TIMELENGTH_FACTOR = Math.min(1, AcousticIndicators.TIMEPERIOD_FAST);
         // Target sampling is REALTIME_SAMPLE_RATE_LIMITATION, then sub-sampling the signal if it is greater than needed (taking Nyquist factor)
         private final double fftSamplingrateFactor;
         // Output only frequency response on this sample rate on the real time result (center + upper band)

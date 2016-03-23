@@ -61,7 +61,7 @@ public class Spectrogram extends View {
      * @param spectrum FFT response
      */
     public void addTimeStep(float[] spectrum) {
-        final int ticWidth = 5; // Timestep width in pixels
+        final int ticWidth = 2; // Timestep width in pixels
         spectrumData.add(0, spectrum);
         if(canvasWidth > 0 && canvasHeight > 0) {
             if (spectrogramBuffer == null ||spectrogramBuffer.getWidth() != canvasWidth ||
@@ -95,7 +95,7 @@ public class Spectrogram extends View {
                         sumVal += ticSpectrum[idfreq];
                     }
                     sumVal = (float)Math.max(0,
-                            (20 * Math.log10(sumVal)));
+                            (10 * Math.log10(sumVal)));
                     int pixColor = colorRamp[Math.min(colorRamp.length - 1, Math.max(0,
                             (int) (((sumVal - min) / (max - min)) * colorRamp.length)))];
                     for(int y = 0; y < ticWidth; y++) {

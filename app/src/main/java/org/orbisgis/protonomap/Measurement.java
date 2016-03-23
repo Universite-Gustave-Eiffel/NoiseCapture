@@ -166,9 +166,7 @@ public class Measurement extends MainActivity {
         }
         initSpectrum();
         // Data (before legend)
-        float[] defaultLevels = new float[ThirdOctaveBandsFiltering.getStandardFrequencies(ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED).length];
-        Arrays.fill(defaultLevels, 0);
-        updateSpectrumGUI(defaultLevels);
+        updateSpectrumGUI();
         // (ltob.length-1) values for each third-octave band// Legend: hide all
         Legend ls = sChart.getLegend();
         ls.setEnabled(false); // Hide legend
@@ -334,31 +332,25 @@ public class Measurement extends MainActivity {
         mChart.invalidate(); // refresh
     }
 
-    private void updateSpectrumGUI(float[] levels) {
+    private void updateSpectrumGUI() {
+
+
         ArrayList<String> xVals = new ArrayList<String>();
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
-        double[] freqLabels = ThirdOctaveBandsFiltering.getStandardFrequencies
-                (ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
-        int rangeByThirdOctave = levels.length / freqLabels.length;
+        double[] freqLabels = audioProcess.getRealtimeCenterFrequency();
+        float[] freqValues = audioProcess.getThirdOctaveFrequencySPL();
+
+
         for(int idfreq =0; idfreq < freqLabels.length; idfreq++) {
-            xVals.add(String.valueOf(freqLabels[idfreq]));
+            xVals.add(String.valueOf((int)(freqLabels[idfreq])));
             // Sum values
             // Compute frequency range covered by frequency
-            int freqStart = (int)Math.floor(idfreq * rangeByThirdOctave);
-            int freqEnd = Math.min(freqStart + rangeByThirdOctave, levels.length);
-            float sumVal = 0;
-            for (int idthinFreq = freqStart; idthinFreq < freqEnd; idthinFreq++) {
-                // Rescale value and pick the color in the color ramp
-                sumVal += levels[idthinFreq];
-            }
-            sumVal = (float)Math.max(0,
-                    (20 * Math.log10(sumVal)));
-            yVals1.add(new BarEntry(new float[] {sumVal}, idfreq));
+            yVals1.add(new BarEntry(new float[] {freqValues[idfreq]}, idfreq));
         }
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
         set1.setColor(Color.rgb(102, 178, 255));
-        set1.setStackLabels(new String[] {
+        set1.setStackLabels(new String[]{
                 "SL"
         });
 
@@ -486,8 +478,7 @@ public class Measurement extends MainActivity {
                 mTextView.setTextColor(color_rep[nc]);
 
                 // Spectrum data
-                final float[] movingLevel = activity.audioProcess.getMovingLvl();
-                activity.updateSpectrumGUI(movingLevel);
+                activity.updateSpectrumGUI();
 
                 // Debug processing time
                 //final TextView valueMin = (TextView) activity.findViewById(R.id.textView_value_Min_i);

@@ -25,6 +25,7 @@ import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
+import com.github.mikephil.charting.utils.LargeValueFormatter;
 import com.github.mikephil.charting.utils.ValueFormatter;
 
 import org.orbisgis.sos.AcousticIndicators;
@@ -228,6 +229,7 @@ public class Measurement extends MainActivity {
         yls.setStartAtZero(true);
         yls.setTextColor(Color.WHITE);
         yls.setGridColor(Color.WHITE);
+        yls.setValueFormatter(new SPLValueFormatter());
         // YAxis parameters (right): no axis, hide all
         YAxis yrs = sChart.getAxisRight();
         yrs.setEnabled(false);
@@ -273,7 +275,7 @@ public class Measurement extends MainActivity {
      */
     private boolean CheckNbRun() {
         Resources res = getResources();
-        Integer NbRunMaxCaution=res.getInteger(R.integer.NbRunMaxCaution);
+        Integer NbRunMaxCaution = res.getInteger(R.integer.NbRunMaxCaution);
         SharedPreferences preferences = getPreferences(MODE_PRIVATE);
         SharedPreferences.Editor editor = preferences.edit();
                 Integer NbRun = preferences.getInt("NbRun", 1);
@@ -339,10 +341,10 @@ public class Measurement extends MainActivity {
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
         double[] freqLabels = audioProcess.getRealtimeCenterFrequency();
         float[] freqValues = audioProcess.getThirdOctaveFrequencySPL();
-
+        LargeValueFormatter largeValueFormatter = new LargeValueFormatter();
 
         for(int idfreq =0; idfreq < freqLabels.length; idfreq++) {
-            xVals.add(String.valueOf((int)(freqLabels[idfreq])));
+            xVals.add(largeValueFormatter.getFormattedValue((float)freqLabels[idfreq]));
             // Sum values
             // Compute frequency range covered by frequency
             yVals1.add(new BarEntry(new float[] {freqValues[idfreq]}, idfreq));
@@ -381,11 +383,8 @@ public class Measurement extends MainActivity {
 
         @Override
         public void propertyChange(PropertyChangeEvent event) {
-            if((AudioProcess.PROP_MOVING_LEQ.equals(event.getPropertyName()) ||
-                    AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName()))) {
-                if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
-                    activity.spectrogram.addTimeStep((float[])event.getNewValue());
-                }
+            if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
+                activity.spectrogram.addTimeStep((float[])event.getNewValue());
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));
                 }

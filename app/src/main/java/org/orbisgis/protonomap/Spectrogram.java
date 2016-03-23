@@ -17,13 +17,12 @@ import java.util.List;
  * This canvas drawer receive thin or third octave frequency SPL and draw it.
  */
 public class Spectrogram extends View {
-    private static final int CAPACITY_HINT = 500;
-    private final List<float[]> spectrumData = new ArrayList<>(CAPACITY_HINT);
+    private final List<float[]> spectrumData = new ArrayList<>();
     private Bitmap spectrogramBuffer = null;
     private int canvasHeight = -1;
     private int canvasWidth = -1;
     private static final float min = 0;
-    private static final float max = 80;
+    private static final float max = 70;
 
     private static final int[] colorRamp = new int[]{p("#000000"), p("#170f79"), p("#301084"),
             p("#460f75"), p("#5c0f67"), p("#720f59"), p("#8a0e49"), p("#ad0d32"), p("#ee2209"),

@@ -12,10 +12,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jtransforms.fft.FloatFFT_1D;
-import org.orbisgis.sos.AWeighting;
 import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.CoreSignalProcessing;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
+import org.orbisgis.sos.ThirdOctaveFrequencies;
 
 /**
  * Processing thread of packets of Audio signal
@@ -29,7 +29,6 @@ public class AudioProcess implements Runnable {
     public enum STATE { WAITING, PROCESSING,WAITING_END_PROCESSING, CLOSED }
     private STATE currentState = STATE.WAITING;
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
-    public static final String PROP_MOVING_LEQ = "PROP_MOVING_LEQ";
     public static final String PROP_MOVING_SPECTRUM = "PROP_MOVING_SPECTRUM";
     // 1s level evaluation for upload to server
     private final MovingLeqProcessing movingLeqProcessing;
@@ -139,14 +138,6 @@ public class AudioProcess implements Runnable {
         return listeners;
     }
 
-    /**
-     * Filter the last 1s record.
-     * @return Level in dB(A) of the last 1s for each frequency band.
-     */
-    float[] getMovingLvl() {
-        return movingLeqProcessing.getFineFrequencyLevels();
-    }
-
     double getLeq() {
         return movingLeqProcessing.getLeq();
     }
@@ -160,20 +151,20 @@ public class AudioProcess implements Runnable {
         private final AudioProcess audioProcess;
         private AtomicBoolean processing = new AtomicBoolean(false);
         private CoreSignalProcessing coreSignalProcessing;
-        private float[] lastLvls = new float[0];
+        private float[] fftResultLvl = new float[0];
         private double leq = 0;
         // 0.066 mean 15 fps max
-        private final static double SECOND_FIRE_MOVING_SPECTRUM = 0.1;
-        private final double FFT_TIMELENGTH_FACTOR = 0.1;
+        private final static double SECOND_FIRE_MOVING_SPECTRUM = 0.33;
+        private final double FFT_TIMELENGTH_FACTOR = Math.min(1, SECOND_FIRE_MOVING_SPECTRUM);
         // Target sampling is REALTIME_SAMPLE_RATE_LIMITATION, then sub-sampling the signal if it is greater than needed (taking Nyquist factor)
         private final double fftSamplingrateFactor;
-        // Output only frequency response on this sample rate on the real time result
-        private static final int REALTIME_SAMPLE_RATE_LIMITATION = 8000;
+        // Output only frequency response on this sample rate on the real time result (center + upper band)
+        private static final double REALTIME_SAMPLE_RATE_LIMITATION = 8000 * Math.pow(2, 1. / 6.);
         private final int expectedFFTSize;
         private final double[] fftCenterFreq;
-        private int lastProcessedMovingLeq = 0;
         private int lastProcessedSpectrum = 0;
         private FloatFFT_1D floatFFT_1D;
+        private float[] thirdOctaveSplLevels;
 
         public MovingLeqProcessing(AudioProcess audioProcess) {
             this.audioProcess = audioProcess;
@@ -182,25 +173,26 @@ public class AudioProcess implements Runnable {
             expectedFFTSize = (int)(audioProcess.getRate() * FFT_TIMELENGTH_FACTOR);
             this.floatFFT_1D = new FloatFFT_1D(expectedFFTSize);
             fftCenterFreq = computeFFTCenterFrequency();
+            thirdOctaveSplLevels = new float[fftCenterFreq.length];
         }
 
         /**
          * @return Live FFT result up to REALTIME_SAMPLE_RATE_LIMITATION Hz
          */
         public float[] getFineFrequencyLevels() {
-            return lastLvls;
+            return fftResultLvl;
         }
 
-        public int getFFtSamplingRate() {
+        public double getFFtSamplingRate() {
             if(fftSamplingrateFactor >= 1) {
                 return REALTIME_SAMPLE_RATE_LIMITATION;
             } else {
-                return (int)(audioProcess.getRate() * fftSamplingrateFactor);
+                return audioProcess.getRate() * fftSamplingrateFactor;
             }
         }
 
         private double[] computeFFTCenterFrequency() {
-            int limitFreq = getFFtSamplingRate();
+            double limitFreq = getFFtSamplingRate();
             double[] allCenterFreq = ThirdOctaveBandsFiltering.getStandardFrequencies(ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
             double[] retCenterFreq = new double[allCenterFreq.length];
             int retSize = 0;
@@ -222,28 +214,7 @@ public class AudioProcess implements Runnable {
          * @return Third octave SPL up to 8Khz (4 Khz if the phone support 8Khz only)
          */
         public float[] getThirdOctaveFrequencySPL() {
-            final double fd = Math.pow(2, 1. / 6.);
-            final double[] fCenters = getFftCenterFreq();
-            final double freqByCell = 1 / FFT_TIMELENGTH_FACTOR;
-            float[] splLevels = new float[fCenters.length];
-            int thirdOctaveId = 0;
-            if(lastLvls.length == 0) {
-                return new float[fCenters.length];
-            }
-            for(double fCenter : fCenters) {
-                // Compute lower and upper value of third-octave
-                final double fLower = fCenter / fd;
-                final double fUpper = fCenter * fd;
-                int cellLower = (int)(fLower / freqByCell);
-                int cellUpper = Math.min(lastLvls.length, (int) (fUpper / freqByCell));
-                double sumVal = 0;
-                for(int idCell = cellLower; idCell < cellUpper; idCell++) {
-                    sumVal += lastLvls[idCell];
-                }
-                splLevels[thirdOctaveId] = (float)Math.max(0, (20 * Math.log10(sumVal)));
-                thirdOctaveId++;
-            }
-            return splLevels;
+            return thirdOctaveSplLevels;
         }
 
         public double getLeq() {
@@ -263,8 +234,6 @@ public class AudioProcess implements Runnable {
             if((pushedSamples - lastProcessedSpectrum) / (double)audioProcess.getRate() >
                     SECOND_FIRE_MOVING_SPECTRUM) {
                     double[] signalDouble = coreSignalProcessing.getSampleBuffer();
-                    // Apply A weight filtering
-                    signalDouble = AWeighting.aWeightingSignal(signalDouble);
                     // Convert into float precision - Speedup processing
                     float[] signal = new float[expectedFFTSize];
                     int offset = (int)(signalDouble.length * (1 - FFT_TIMELENGTH_FACTOR));
@@ -285,14 +254,37 @@ public class AudioProcess implements Runnable {
                         fftResult[k] = (float)(rms);
                     }
                     lastProcessedSpectrum = pushedSamples;
-                    lastLvls = fftResult;
-                    audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
-                            null, fftResult);
+                    fftResultLvl = fftResult;
+                    // Compute A weighted third octave bands
+                    final double fd = Math.pow(2, 1. / 6.);
+                    final double[] fCenters = getFftCenterFreq();
+                    float[] splLevels = new float[fCenters.length];
+                    int thirdOctaveId = 0;
+                    double newLeq = 0;
+                    for(double fCenter : fCenters) {
+                        // Compute lower and upper value of third-octave
+                        final double fLower = fCenter / fd;
+                        final double fUpper = fCenter * fd;
+                        int cellLower = (int)(fLower / freqByCell);
+                        int cellUpper = Math.min(fftResultLvl.length, (int) (fUpper / freqByCell));
+                        double sumVal = 0;
+                        for(int idCell = cellLower; idCell < cellUpper; idCell++) {
+                            sumVal += fftResultLvl[idCell];
+                        }
+                        sumVal = (float)(20 * Math.log10(sumVal));
+                        // Apply A weighting
+                        int freqIndex = Arrays.binarySearch(
+                                ThirdOctaveFrequencies.STANDARD_FREQUENCIES, fCenter);
+                        sumVal = (float)(sumVal + ThirdOctaveFrequencies.A_WEIGHTING[freqIndex]);
+                        newLeq += Math.pow(10., sumVal / 20.);
+                        splLevels[thirdOctaveId] = (float) sumVal;
+                        thirdOctaveId++;
+                    }
+                    thirdOctaveSplLevels = splLevels;
                     // Compute leq
-                    double oldLeq = leq;
-
-                    audioProcess.listeners.firePropertyChange(PROP_MOVING_LEQ,
-                            oldLeq, leq);
+                    leq = (float)Math.max(0, (20 * Math.log10(newLeq)));
+                    audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
+                        null, fftResult);
             }
         }
 
@@ -302,7 +294,6 @@ public class AudioProcess implements Runnable {
 
         @Override
         public void run() {
-            final int rate = audioProcess.getRate();
             int secondCursor = 0;
             try {
                 while (audioProcess.currentState != STATE.WAITING_END_PROCESSING

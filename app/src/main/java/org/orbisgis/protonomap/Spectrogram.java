@@ -21,6 +21,7 @@ public class Spectrogram extends View {
     private final List<float[]> spectrumData = new ArrayList<>();
     private Bitmap spectrogramBuffer = null;
     private Bitmap frequencyLegend = null;
+    private static final int frequencyLegendTicWidth = 4;
     private int canvasHeight = -1;
     private int canvasWidth = -1;
     private int initCanvasHeight = -1;
@@ -112,6 +113,7 @@ public class Spectrogram extends View {
                     paint.getTextBounds(labelFreq, 0, labelFreq.length(), bounds);
                     legendWidth = Math.max(legendWidth, bounds.width());
                 }
+                legendWidth += frequencyLegendTicWidth;
                 // Make empty legend bitmap
                 frequencyLegend = Bitmap.createBitmap(legendWidth, canvasHeight,
                         Bitmap.Config.ARGB_8888);
@@ -121,14 +123,16 @@ public class Spectrogram extends View {
                 double cellByPixel = spectrum.length / (double)spectrogramHeight;
                 int freqIndex = 0;
                 for(int frequency : frequencyLegendPosition) {
-                    float heightPos = Math.max(0, (float)(frequencyLegend.getHeight() -
-                            frequency / (cellByPixel * hertzBySpectrumCell) - (bounds.height() / 2)));
+                    float tickHeightPos = (float) (frequencyLegend.getHeight() -
+                            frequency / (cellByPixel * hertzBySpectrumCell) );
+                    float heightPos = Math.max(bounds.height(), tickHeightPos + (bounds.height() / 2));
                     final String labelFreq = frequencyLegendLabels[freqIndex++];
                     paint.getTextBounds(labelFreq, 0, labelFreq.length(), bounds);
                     if(bounds.height() + heightPos > frequencyLegend.getHeight()) {
-                        heightPos = frequencyLegend.getHeight() - bounds.height();
+                        heightPos = frequencyLegend.getHeight() - bounds.height() / 2;
                     }
-                    legendCanvas.drawText(labelFreq, bounds.left, heightPos, paint);
+                    legendCanvas.drawText(labelFreq, frequencyLegendTicWidth+ bounds.left, heightPos, paint);
+                    legendCanvas.drawLine(0, tickHeightPos, frequencyLegendTicWidth, tickHeightPos, paint);
                 }
                 spectrogramBuffer = Bitmap.createBitmap(canvasWidth - legendWidth, spectrogramHeight,
                         Bitmap.Config.ARGB_8888);

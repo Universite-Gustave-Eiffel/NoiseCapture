@@ -7,8 +7,8 @@ import android.util.Log;
 
 import java.beans.PropertyChangeSupport;
 import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jtransforms.fft.FloatFFT_1D;
@@ -52,7 +52,10 @@ public class AudioProcess implements Runnable {
                     int tryBufferSize = AudioRecord.getMinBufferSize(tryRate,
                             tryAudioChannel, tryEncoding);
                     if (tryBufferSize != AudioRecord.ERROR_BAD_VALUE) {
-                        bufferSize = tryBufferSize;
+                        // Take a higher buffer size in order to get a smooth recording under load
+                        // avoiding Buffer overflow error on AudioRecord side.
+                        bufferSize = Math.max(tryBufferSize,
+                                (int)(AcousticIndicators.TIMEPERIOD_FAST * tryRate));
                         encoding = tryEncoding;
                         audioChannel = tryAudioChannel;
                         rate = tryRate;
@@ -130,6 +133,12 @@ public class AudioProcess implements Runnable {
     }
 
     /**
+     * @return In the array fftResultLvl, how many frequency cover one cell.
+     */
+    public double getFFTFreqArrayStep() {
+        return movingLeqProcessing.getFFTFreqArrayStep();
+    }
+    /**
      * @return Listener manager
      */
     public PropertyChangeSupport getListeners() {
@@ -145,7 +154,7 @@ public class AudioProcess implements Runnable {
     }
 
     private static class MovingLeqProcessing implements Runnable {
-        private List<short[]> bufferToProcess = new CopyOnWriteArrayList<short[]>();
+        private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
         private final AudioProcess audioProcess;
         private AtomicBoolean processing = new AtomicBoolean(false);
         private CoreSignalProcessing coreSignalProcessing;
@@ -182,6 +191,13 @@ public class AudioProcess implements Runnable {
                 sumNorm += normVal * normVal;
             }
             normHanning = sumNorm;
+        }
+
+        /**
+         * @return In the array fftResultLvl, how many frequency cover one cell.
+         */
+        public double getFFTFreqArrayStep() {
+            return 1 / FFT_TIMELENGTH_FACTOR;
         }
 
         /**
@@ -291,8 +307,6 @@ public class AudioProcess implements Runnable {
                     thirdOctaveSplLevels = splLevels;
                     // Compute leq
                     leq = 10 * Math.log10(newLeq);
-                    //debug
-                    System.out.println("Leq : "+leq);
                     audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
                         null, fftResult);
             }
@@ -310,7 +324,7 @@ public class AudioProcess implements Runnable {
                         && audioProcess.currentState != STATE.CLOSED) {
                     while (!bufferToProcess.isEmpty()) {
                         processing.set(true);
-                        short[] buffer = bufferToProcess.remove(0);
+                        short[] buffer = bufferToProcess.poll();
                         double[] samples = new double[buffer.length];
                         for (int i = 0; i < buffer.length; ++i) {
                             if (buffer[i] > 0) {

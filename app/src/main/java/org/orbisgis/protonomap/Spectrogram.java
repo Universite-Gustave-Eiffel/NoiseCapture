@@ -4,6 +4,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
@@ -19,14 +20,36 @@ import java.util.List;
 public class Spectrogram extends View {
     private final List<float[]> spectrumData = new ArrayList<>();
     private Bitmap spectrogramBuffer = null;
+    private Bitmap frequencyLegend = null;
     private int canvasHeight = -1;
     private int canvasWidth = -1;
+    private int initCanvasHeight = -1;
+    private int initCanvasWidth = -1;
     private static final float min = 0;
     private static final float max = 70;
+    private int[] frequencyLegendPosition = new int[] {0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
+    private static final int FREQUENCY_LEGEND_TEXT_SIZE = 18;
+    /** Color ramp, using http://www.zonums.com/online/color_ramp/ */
 
-    private static final int[] colorRamp = new int[]{p("#000000"), p("#170f79"), p("#301084"),
-            p("#460f75"), p("#5c0f67"), p("#720f59"), p("#8a0e49"), p("#ad0d32"), p("#ee2209"),
-            p("#d10c1b"), p("#f85e04"), p("#ff8800"), p("#f3d328")};
+    private static final int[] colorRamp = new int[]{
+            p("#303030"),
+            p("#2D3C2D"),
+            p("#2A482A"),
+            p("#275427"),
+            p("#246024"),
+            p("#216C21"),
+            p("#3F8E19"),
+            p("#61A514"),
+            p("#82BB0F"),
+            p("#A4D20A"),
+            p("#C5E805"),
+            p("#E7FF00"),
+            p("#EBD400"),
+            p("#EFAA00"),
+            p("#F37F00"),
+            p("#F75500"),
+            p("#FB2A00"),
+    };
 
     public Spectrogram(Context context) {
         super(context);
@@ -51,6 +74,7 @@ public class Spectrogram extends View {
         canvasHeight = canvas.getHeight();
         if(spectrogramBuffer != null) {
             canvas.drawBitmap(spectrogramBuffer, 0, 0, null);
+            canvas.drawBitmap(frequencyLegend, spectrogramBuffer.getWidth(), 0, null);
         } else {
             canvas.drawColor(colorRamp[0]);
         }
@@ -59,14 +83,54 @@ public class Spectrogram extends View {
     /**
      * Add the spectrum as a new spectrogramImage column
      * @param spectrum FFT response
+     * @param hertzBySpectrumCell Used to build the legend. How many hertz are covered by one FFT response cell
      */
-    public void addTimeStep(float[] spectrum) {
+    public void addTimeStep(float[] spectrum, double hertzBySpectrumCell) {
         final int ticWidth = 2; // Timestep width in pixels
         spectrumData.add(0, spectrum);
         if(canvasWidth > 0 && canvasHeight > 0) {
-            if (spectrogramBuffer == null ||spectrogramBuffer.getWidth() != canvasWidth ||
-                    spectrogramBuffer.getHeight() != canvasHeight ) {
-                spectrogramBuffer = Bitmap.createBitmap(canvasWidth, canvasHeight,
+            if (spectrogramBuffer == null || initCanvasWidth != canvasWidth ||
+                    initCanvasHeight != canvasHeight ) {
+                initCanvasWidth = canvasWidth;
+                initCanvasHeight = canvasHeight;
+                // Build legend
+                // Determine legend bitmap width
+                Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.LINEAR_TEXT_FLAG);
+                paint.setStyle(Paint.Style.FILL);
+                paint.setColor(Color.WHITE);
+                paint.setTextAlign(Paint.Align.LEFT);
+                paint.setTextSize(FREQUENCY_LEGEND_TEXT_SIZE);
+                Rect bounds = new Rect();
+                int legendWidth = 0;
+                paint.getTextBounds("kHz", 0, 3, bounds);
+                legendWidth = Math.max(legendWidth, bounds.width());
+                String[] frequencyLegendLabels = new String[frequencyLegendPosition.length];
+                for(int freqIndex = 0; freqIndex < frequencyLegendLabels.length; freqIndex++) {
+                    frequencyLegendLabels[freqIndex] = String.valueOf(frequencyLegendPosition[freqIndex] / 1000)+ " kHz";
+                }
+                for(String labelFreq : frequencyLegendLabels) {
+                    paint.getTextBounds(labelFreq, 0, labelFreq.length(), bounds);
+                    legendWidth = Math.max(legendWidth, bounds.width());
+                }
+                // Make empty legend bitmap
+                frequencyLegend = Bitmap.createBitmap(legendWidth, canvasHeight,
+                        Bitmap.Config.ARGB_8888);
+                // Draw text on legend
+                Canvas legendCanvas = new Canvas(frequencyLegend);
+                final int spectrogramHeight = canvasHeight;
+                double cellByPixel = spectrum.length / (double)spectrogramHeight;
+                int freqIndex = 0;
+                for(int frequency : frequencyLegendPosition) {
+                    float heightPos = Math.max(0, (float)(frequencyLegend.getHeight() -
+                            frequency / (cellByPixel * hertzBySpectrumCell) - (bounds.height() / 2)));
+                    final String labelFreq = frequencyLegendLabels[freqIndex++];
+                    paint.getTextBounds(labelFreq, 0, labelFreq.length(), bounds);
+                    if(bounds.height() + heightPos > frequencyLegend.getHeight()) {
+                        heightPos = frequencyLegend.getHeight() - bounds.height();
+                    }
+                    legendCanvas.drawText(labelFreq, bounds.left, heightPos, paint);
+                }
+                spectrogramBuffer = Bitmap.createBitmap(canvasWidth - legendWidth, spectrogramHeight,
                         Bitmap.Config.ARGB_8888);
                 spectrogramBuffer.eraseColor(colorRamp[0]);
             } else {
@@ -76,19 +140,21 @@ public class Spectrogram extends View {
             }
             Canvas canvas = new Canvas(spectrogramBuffer);
             int drawnTics = 0;
+            final int spectrogramHeight = spectrogramBuffer.getHeight();
+            final int spectrogramWidth = spectrogramBuffer.getWidth();
             while ( !spectrumData.isEmpty()) {
                 float[] ticSpectrum = spectrumData.remove(0);
                 // Rescale to the range of color ramp
-                Bitmap ticBuffer = Bitmap.createBitmap(ticWidth, canvasHeight,
+                Bitmap ticBuffer = Bitmap.createBitmap(ticWidth, spectrogramHeight,
                         Bitmap.Config.ARGB_8888);
-                int[] ticColors = new int[canvasHeight * ticWidth];
+                int[] ticColors = new int[spectrogramHeight * ticWidth];
 
                 // merge frequencies following the destination resolution
-                double freqByPixel = ticSpectrum.length / (double)canvasHeight;
-                for(int pixel = 0; pixel < canvasHeight; pixel++) {
+                double freqByPixel = ticSpectrum.length / (double)spectrogramHeight;
+                for(int pixel = 0; pixel < spectrogramHeight; pixel++) {
                     // Compute frequency range covered by this pixel
                     int freqStart = (int)Math.floor(pixel * freqByPixel);
-                    int freqEnd =(int)Math.min(freqStart + freqByPixel, ticSpectrum.length);
+                    int freqEnd =(int)Math.min(pixel * freqByPixel + freqByPixel, ticSpectrum.length);
                     float sumVal = 0;
                     for (int idfreq = freqStart; idfreq < freqEnd; idfreq++) {
                         // Rescale value and pick the color in the color ramp
@@ -99,11 +165,11 @@ public class Spectrogram extends View {
                     int pixColor = colorRamp[Math.min(colorRamp.length - 1, Math.max(0,
                             (int) (((sumVal - min) / (max - min)) * colorRamp.length)))];
                     for(int y = 0; y < ticWidth; y++) {
-                        ticColors[((canvasHeight - 1) - pixel) * ticWidth + y] = pixColor;
+                        ticColors[((spectrogramHeight - 1) - pixel) * ticWidth + y] = pixColor;
                     }
                 }
-                ticBuffer.setPixels(ticColors, 0, ticWidth, 0, 0, ticWidth , canvasHeight);
-                int leftPos = spectrogramBuffer.getWidth() - ((drawnTics + 1) * ticWidth);
+                ticBuffer.setPixels(ticColors, 0, ticWidth, 0, 0, ticWidth , spectrogramHeight);
+                int leftPos = spectrogramWidth - ((drawnTics + 1) * ticWidth);
                 canvas.drawBitmap(ticBuffer, leftPos, 0, null);
                 drawnTics++;
             }

@@ -384,7 +384,7 @@ public class Measurement extends MainActivity {
         @Override
         public void propertyChange(PropertyChangeEvent event) {
             if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
-                activity.spectrogram.addTimeStep((float[])event.getNewValue());
+                activity.spectrogram.addTimeStep((float[])event.getNewValue(), activity.audioProcess.getFFTFreqArrayStep());
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));
                 }

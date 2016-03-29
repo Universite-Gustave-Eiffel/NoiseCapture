@@ -102,13 +102,13 @@ public class ThirdOctaveBandsFilteringTest {
         // Equivalent sound pressure levels of the third octave bands filtered signals
         // Warmup
         for(int i = 0; i < 5; i++) {
-            AcousticIndicators.getLeq(actualFilteredSignal[0]);
+            AcousticIndicators.getLeq(actualFilteredSignal[0], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
         }
 
         long beginLeq = System.currentTimeMillis();
         double[] actualLeq = new double[nbFrequencies];
         for (int idf = 0; idf < nbFrequencies; idf++) {
-            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredSignal[idf]);
+            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredSignal[idf], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
         }
 
 
@@ -196,7 +196,7 @@ public class ThirdOctaveBandsFilteringTest {
         // Equivalent sound pressure levels of the third octave bands filtered signals
         double[] actualLeq = new double[nbFrequencies];
         for (int idf = 0; idf < nbFrequencies; idf++) {
-            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredSignal[idf]);
+            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredSignal[idf], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
         }
 
 
@@ -297,13 +297,13 @@ public class ThirdOctaveBandsFilteringTest {
         // Equivalent sound pressure levels of the third octave bands filtered A-weighted signals
         double[] actualLAeq = new double[nbFrequencies];
         for (int idf = 0; idf < nbFrequencies; idf++) {
-            actualLAeq[idf] = AcousticIndicators.getLeq(actualFilteredAWeightedSignal[idf]);
+            actualLAeq[idf] = AcousticIndicators.getLeq(actualFilteredAWeightedSignal[idf], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
         }
 
         // Equivalent sound pressure levels of the third octave bands filtered unweighted signals
         double[] actualLeq = new double[nbFrequencies];
         for (int idf = 0; idf < nbFrequencies; idf++) {
-            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredInputSignal[idf]);
+            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredInputSignal[idf], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
         }
 
         /*

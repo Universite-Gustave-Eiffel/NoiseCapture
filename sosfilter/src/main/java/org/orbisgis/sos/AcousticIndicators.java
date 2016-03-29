@@ -10,18 +10,21 @@ public class AcousticIndicators {
     public static final double TIMEPERIOD_SLOW = 1.0;
     public static final double TIMEPERIOD_FAST = 0.125;
 
+    // Reference sound pressure level [Pa]
+    public static final double REF_SOUND_PRESSURE = 0.00002;
+
     /**
      * Calculation of the equivalent sound pressure level
      * @param inputSignal time signal [Pa]
      * @return equivalent sound pressure level [dB] not normalised by reference pressure.
      */
-    public static double getLeq(double[] inputSignal) {
+    public static double getLeq(double[] inputSignal, double refSoundPressure) {
         double sqrRms = 0.0;
-
+        final double sqrRefSoundPressure = refSoundPressure * refSoundPressure;
         for (int idT = 1; idT < inputSignal.length; idT++) {
-            sqrRms += inputSignal[idT] * inputSignal[idT];    // Math.pow(inputSignal[i], 2.);
+            sqrRms += inputSignal[idT] * inputSignal[idT];
         }
-        return 10 * Math.log10(sqrRms / (inputSignal.length));
+        return 10 * Math.log10(sqrRms / (inputSignal.length * sqrRefSoundPressure));
     }
 
     /**
@@ -31,7 +34,7 @@ public class AcousticIndicators {
      * @param timePeriod time period (s)
      * @return double array of equivalent sound pressure levels [dB]
      */
-    public static double[] getLeqT(double[] inputSignal, int sampleRate, double timePeriod) {
+    public static double[] getLeqT(double[] inputSignal, int sampleRate, double timePeriod, double refSoundPressure) {
         int subSamplesLength = (int)(timePeriod * sampleRate);      // Sub-samples length
         int nbSubSamples = inputSignal.length / subSamplesLength;
         double[] leqT = new double[nbSubSamples];
@@ -39,7 +42,7 @@ public class AcousticIndicators {
         for (int idSub = 0; idSub < nbSubSamples; idSub++) {
             double[] subSample = new double[subSamplesLength];
             System.arraycopy(inputSignal, idStartForSub, subSample, 0, subSamplesLength);
-            leqT[idSub] = getLeq(subSample);
+            leqT[idSub] = getLeq(subSample, refSoundPressure);
             idStartForSub += subSamplesLength;
         }
         return leqT;

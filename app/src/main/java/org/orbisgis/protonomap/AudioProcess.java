@@ -6,7 +6,9 @@ import android.media.MediaRecorder;
 import android.util.Log;
 
 import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -91,6 +93,10 @@ public class AudioProcess implements Runnable {
         }
     }
 
+    public double getFFTDelay() {
+        return MovingLeqProcessing.SECOND_FIRE_MOVING_SPECTRUM;
+    }
+
     @Override
     public void run() {
         try {
@@ -161,8 +167,8 @@ public class AudioProcess implements Runnable {
         private float[] fftResultLvl = new float[0];
         private double leq = 0;
         // 0.066 mean 15 fps max
-        private final static double FFT_TIMELENGTH_FACTOR = Math.min(1, AcousticIndicators.TIMEPERIOD_FAST);
-        private final static double SECOND_FIRE_MOVING_SPECTRUM = FFT_TIMELENGTH_FACTOR;
+        public final static double FFT_TIMELENGTH_FACTOR = Math.min(1, AcousticIndicators.TIMEPERIOD_FAST);
+        public final static double SECOND_FIRE_MOVING_SPECTRUM = FFT_TIMELENGTH_FACTOR;
         // Target sampling is REALTIME_SAMPLE_RATE_LIMITATION, then sub-sampling the signal if it is greater than needed (taking Nyquist factor)
         private final double fftSamplingrateFactor;
         // Output only frequency response on this sample rate on the real time result (center + upper band)
@@ -289,10 +295,10 @@ public class AudioProcess implements Runnable {
                         // Compute lower and upper value of third-octave
                         final double fLower = fCenter / fd;
                         final double fUpper = fCenter * fd;
-                        int cellLower = (int)(fLower / freqByCell);
-                        int cellUpper = Math.min(fftResultLvl.length, (int) (fUpper / freqByCell));
+                        int cellLower = (int)(Math.ceil(fLower / freqByCell));
+                        int cellUpper = Math.min(fftResultLvl.length - 1, (int) (Math.floor(fUpper / freqByCell)));
                         double sumVal = 0;
-                        for(int idCell = cellLower; idCell < cellUpper; idCell++) {
+                        for(int idCell = cellLower; idCell <= cellUpper; idCell++) {
                             sumVal += fftResultLvl[idCell];
                         }
                         sumVal = (float)(10 * Math.log10(sumVal));
@@ -308,7 +314,7 @@ public class AudioProcess implements Runnable {
                     // Compute leq
                     leq = 10 * Math.log10(newLeq);
                     audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
-                        null, fftResult);
+                            null, fftResult);
             }
         }
 

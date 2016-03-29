@@ -1,17 +1,21 @@
 package org.orbisgis.sos;
 
-import junit.framework.TestCase;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.InputStream;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * Created by G. Guillaume on 26/06/15.
  *  * Unit tests concerning audio signal processing
  */
-public class CoreSignalProcessingTest extends TestCase {
+public class CoreSignalProcessingTest {
+
+    // Reference sound pressure level [Pa]
+    public static final double REF_SOUND_PRESSURE = Math.sqrt(0.00002);
 
 //    @Test
 //    public void testGetSamplingRate() throws Exception {
@@ -49,7 +53,7 @@ public class CoreSignalProcessingTest extends TestCase {
         ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands = ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED;
         CoreSignalProcessing signalProcessing = new CoreSignalProcessing(rate, frequencyBands);
 
-        List<double[]> leqs = signalProcessing.processAudio(16, rate, inputStream, AcousticIndicators.TIMEPERIOD_SLOW);
+        List<double[]> leqs = signalProcessing.processAudio(16, rate, inputStream, AcousticIndicators.TIMEPERIOD_SLOW, REF_SOUND_PRESSURE);
         inputStream.close();
 
         /*

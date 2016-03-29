@@ -101,7 +101,7 @@ public class ThirdOctaveBandsFiltering {
             while ((line = inputStream.readLine()) != null) {
                 StringTokenizer splitter = new StringTokenizer(line, ",");
                 double frequency = Double.valueOf(splitter.nextToken());
-                int casc = Integer.valueOf(splitter.nextToken());
+                splitter.nextToken();
                 double[] params = new double[5];
                 int i = 0;
                 while(splitter.hasMoreTokens()) {
@@ -140,7 +140,7 @@ public class ThirdOctaveBandsFiltering {
      * @param filterParams Third octave band filter coefficients
      * @param states State variables array
      */
-    private ReturnFilterData sosFiltering(double[] signal, FiltersParameters filterParams, double[][] states){
+    private void sosFiltering(final double[] signal, FiltersParameters filterParams, double[][] states){
 
         // Loop on the cascaded filtering stages
         int k = 0;
@@ -149,28 +149,25 @@ public class ThirdOctaveBandsFiltering {
             double w2 = states[1][k];
 
             // Feedforward coefficients
-            double b0 = stage.coefficients[0];
-            double b1 = stage.coefficients[1];
-            double b2 = stage.coefficients[2];
+            final double b0 = stage.coefficients[0];
+            final double b1 = stage.coefficients[1];
+            final double b2 = stage.coefficients[2];
 
             // Feedback coefficients
-            double a1 = stage.coefficients[3];
-            double a2 = stage.coefficients[4];
+            final double a1 = stage.coefficients[3];
+            final double a2 = stage.coefficients[4];
 
             // Second-order recursive linear filtering
             for (int idT = 0; idT < signal.length; ++idT){
-                double w0 = signal[idT];
-                w0 = w0 - a1*w1 - a2*w2;
-                double yn = b0*w0 + b1*w1 + b2*w2;
+                final double w0 = signal[idT] - a1*w1 - a2*w2;
+                signal[idT] = b0*w0 + b1*w1 + b2*w2;
                 w2 = w1;
                 w1 = w0;
-                signal[idT] = yn;
             }
             states[0][k] = w1;
             states[1][k] = w2;
             k++;
         }
-        return new ReturnFilterData(signal, states);
     }
 
     /**
@@ -202,15 +199,13 @@ public class ThirdOctaveBandsFiltering {
 
         // Backward filtering
         double[] reversedSignal = reverse2dArray(signal);
-        ReturnFilterData backwardFiltering = sosFiltering(reversedSignal, filtParams, states);
-        double[] backFilteredSignal = backwardFiltering.getFilteredSig();
-        double[][] backFilteredStates = backwardFiltering.getStates();
+        sosFiltering(reversedSignal, filtParams, states);
 
         // Forward filtering
-        double[] reversedBackFilteredSignal = reverse2dArray(backFilteredSignal);
-        ReturnFilterData forwardFilteredSignal = sosFiltering(reversedBackFilteredSignal, filtParams, backFilteredStates);
+        double[] reversedBackFilteredSignal = reverse2dArray(reversedSignal);
+        sosFiltering(reversedBackFilteredSignal, filtParams, states);
 
-        return forwardFilteredSignal.getFilteredSig();
+        return reversedBackFilteredSignal;
     }
 
     /**
@@ -251,24 +246,5 @@ public class ThirdOctaveBandsFiltering {
         public FiltersParameters(double frequency) {
             this.frequency = frequency;
         }
-    }
-
-    /**
-     * Return third octave filtered signals and states
-     */
-    public static class ReturnFilterData
-    {
-        private double[] filteredSignal;
-        private double[][] states;
-
-        public ReturnFilterData(double[] filteredSignal, double[][] states)
-        {
-            this.filteredSignal = filteredSignal;
-            this.states = states;
-
-        }
-
-        public double[] getFilteredSig() { return filteredSignal; }
-        public double[][] getStates() { return states; }
     }
 }

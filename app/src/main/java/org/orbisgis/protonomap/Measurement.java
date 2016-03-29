@@ -148,6 +148,7 @@ public class Measurement extends MainActivity {
         sChart = (BarChart) findViewById(R.id.spectrumChart);
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
         spectrogram = (Spectrogram) findViewById(R.id.spectrogram_view);
+        spectrogram.setTimeStep(audioProcess.getFFTDelay());
         // When user click on spectrum control, view are switched
         SwitchVisibilityListener switchVisibilityListener = new SwitchVisibilityListener(sChart, spectrogram);
         sChart.setOnClickListener(switchVisibilityListener);

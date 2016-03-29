@@ -112,7 +112,7 @@ public class CoreSignalProcessing {
      * @return list of double array of equivalent sound pressure levels
      * @throws IOException
      */
-    public List<double[]> processAudio(int encoding, final int rate, InputStream inputStream, double leqPeriod) throws IOException {
+    public List<double[]> processAudio(int encoding, final int rate, InputStream inputStream, double leqPeriod, double refSoundPressure) throws IOException {
         List<double[]> allLeq = new ArrayList<double[]>();
         double[] secondSample = new double[rate];
         int secondCursor = 0;
@@ -128,7 +128,7 @@ public class CoreSignalProcessing {
             secondCursor += lengthRead;
             if (lengthRead < samples.length) {
                 addSample(secondSample);
-                allLeq.addAll(processSample(leqPeriod));
+                allLeq.addAll(processSample(leqPeriod, refSoundPressure));
                 secondCursor = 0;
                 // Copy remaining sample fragment into new second array
                 int newLengthRead = samples.length - lengthRead;
@@ -137,7 +137,7 @@ public class CoreSignalProcessing {
             }
             if (secondCursor == rate) {
                 addSample(secondSample);
-                allLeq.addAll(processSample(leqPeriod));
+                allLeq.addAll(processSample(leqPeriod, refSoundPressure));
                 secondCursor = 0;
             }
         }
@@ -149,7 +149,7 @@ public class CoreSignalProcessing {
      * @param leqPeriod time period over which the equivalent sound pressure level is computed over [s] {@link AcousticIndicators#TIMEPERIOD_FAST} or {@link AcousticIndicators#TIMEPERIOD_SLOW}
      * @return List of double array of equivalent sound pressure level per third octave bands
      */
-    public List<double[]> processSample(double leqPeriod) throws FileNotFoundException {
+    public List<double[]> processSample(double leqPeriod, double refSoundPressure) throws FileNotFoundException {
         int signalLength = sampleBuffer.length;
         int nbFrequencies = standardFrequencies.length;
         List<double[]> leq = new ArrayList<double[]>();
@@ -169,7 +169,7 @@ public class CoreSignalProcessing {
         for (int idFreq = 0; idFreq < nbFrequencies; idFreq++) {
             double[] filteredSignal = new double[filteredSignals[0].length];
             System.arraycopy(filteredSignals[idFreq], 0, filteredSignal, 0, signalLength);
-            double[] leqSamples = AcousticIndicators.getLeqT(filteredSignal, samplingRate, leqPeriod);
+            double[] leqSamples = AcousticIndicators.getLeqT(filteredSignal, samplingRate, leqPeriod, refSoundPressure);
             for(int idSample = 0; idSample < nbSubSamples; idSample++) {
                 leq.get(idSample)[idFreq] = leqSamples[idSample];
             }

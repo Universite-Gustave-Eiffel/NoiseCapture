@@ -172,7 +172,7 @@ public class AudioProcess implements Runnable {
         // Target sampling is REALTIME_SAMPLE_RATE_LIMITATION, then sub-sampling the signal if it is greater than needed (taking Nyquist factor)
         private final double fftSamplingrateFactor;
         // Output only frequency response on this sample rate on the real time result (center + upper band)
-        private static final double REALTIME_SAMPLE_RATE_LIMITATION = 10000;
+        private static final double REALTIME_SAMPLE_RATE_LIMITATION = 9000;
         private final int expectedFFTSize;
         private final double[] fftCenterFreq;
         private int lastProcessedSpectrum = 0;

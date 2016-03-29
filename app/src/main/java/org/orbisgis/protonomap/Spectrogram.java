@@ -30,7 +30,7 @@ public class Spectrogram extends View {
     private int initCanvasWidth = -1;
     private static final float min = 0;
     private static final float max = 70;
-    private int[] frequencyLegendPosition = new int[] {0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000};
+    private int[] frequencyLegendPosition = new int[] {0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000};
     private static final int FREQUENCY_LEGEND_TEXT_SIZE = 18;
     private double timeStep;
     /** Color ramp, using http://www.zonums.com/online/color_ramp/ */
@@ -98,7 +98,7 @@ public class Spectrogram extends View {
      * @param hertzBySpectrumCell Used to build the legend. How many hertz are covered by one FFT response cell
      */
     public void addTimeStep(float[] spectrum, double hertzBySpectrumCell) {
-        final int ticWidth = 2; // Timestep width in pixels
+        final int ticWidth = 4; // Timestep width in pixels
         spectrumData.add(0, spectrum);
         if(canvasWidth > 0 && canvasHeight > 0) {
             if (spectrogramBuffer == null || initCanvasWidth != canvasWidth ||
@@ -136,7 +136,7 @@ public class Spectrogram extends View {
                 float timePos = canvasWidth - legendWidth;
                 int maximumLabels = (int)Math.floor((canvasWidth - legendWidth) / bounds.width());
                 double maximumShownTime = ((canvasWidth - legendWidth) / ticWidth) * timeStep;
-                int stepByPrintLabels = (int)Math.floor(maximumShownTime / maximumLabels);
+                int stepByPrintLabels = (int)Math.ceil(maximumShownTime / maximumLabels);
                 int ticPrinted = 0;
                 while(timePos > 0) {
                     timePos = (float)((canvasWidth - legendWidth) - ticWidth * (timeCursor / timeStep));

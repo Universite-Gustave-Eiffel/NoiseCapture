@@ -26,6 +26,7 @@
     <string name="text_OK_data_transfer">Activate</string>
     <string name="text_CANCEL_data_transfer">Cancel</string>
     <string name="title_caution_data_transfer">Caution</string>
+    <string name="no_valid_dba_value">n/a</string>
     <string name="text_caution_data_transfer">In order to load the map, you must enable the data transfer option in the user settings.</string>
 
     <string name="SL_dBA">dB(A)</string>
@@ -45,6 +46,9 @@
     <string name="summary_settings_recording_duration">Set the recording duration (in second)</string>
     <string name="title_settings_view_mode">Display</string>
     <string name="summary_settings_view_mode">Check to display in the expert mode</string>
+    <string name="measurement_dba_min">Min</string>
+    <string name="measurement_dba_max">Max</string>
+    <string name="measurement_dba_mean">Mean</string>
 
     <!--  Ressources for the spinner calibration !-->
     <string name="title_choice_data_map">Choose data:</string>

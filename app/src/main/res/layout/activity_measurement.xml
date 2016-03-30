@@ -41,7 +41,7 @@
             <TextView
                 android:layout_width="170dp"
                 android:layout_height="match_parent"
-                android:text="100.0"
+                android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_SL_i"
                 android:textSize="60sp"
                 android:paddingRight="20dp"
@@ -71,7 +71,7 @@
                 <TextView
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="Mean"
+                    android:text="@string/measurement_dba_mean"
                     android:id="@+id/textView_title_Mean_i"
                     android:layout_gravity="center_horizontal|top"
                     android:textSize="15sp"
@@ -81,7 +81,7 @@
                 <TextView
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="Max"
+                    android:text="@string/measurement_dba_max"
                     android:id="@+id/textView_title_Max_i"
                     android:layout_gravity="right|top"
                     android:textSize="15sp"
@@ -91,7 +91,7 @@
                 <TextView
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="Min"
+                    android:text="@string/measurement_dba_min"
                     android:id="@+id/textView_title_Min_i"
                     android:layout_gravity="left|top"
                     android:textSize="15sp"
@@ -101,7 +101,7 @@
                 <TextView
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="100.0"
+                    android:text="@string/no_valid_dba_value"
                     android:id="@+id/textView_value_Min_i"
                     android:layout_gravity="left|center_vertical"
                     android:textSize="15sp"
@@ -112,7 +112,7 @@
                 <TextView
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="100.0"
+                    android:text="@string/no_valid_dba_value"
                     android:id="@+id/textView_value_Max_i"
                     android:layout_gravity="right|center_vertical"
                     android:textSize="15sp"
@@ -123,7 +123,7 @@
                 <TextView
                     android:layout_width="60dp"
                     android:layout_height="wrap_content"
-                    android:text="100.0"
+                    android:text="@string/no_valid_dba_value"
                     android:id="@+id/textView_value_Mean_i"
                     android:layout_gravity="center"
                     android:textSize="15sp"

@@ -258,7 +258,7 @@ public class MainActivity extends ActionBarActivity {
         return new int[] {R1_SL_level,R2_SL_level,R3_SL_level,R4_SL_level,R5_SL_level};
     };
     // Choose color category in function of sound level
-    public int getNEcatColors(float SL) {
+    public int getNEcatColors(double SL) {
 
         int NbNEcat;
 

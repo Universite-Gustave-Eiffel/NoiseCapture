@@ -1,5 +1,7 @@
 package org.orbisgis.sos;
 
+import java.util.List;
+
 /**
  * Created by G. Guillaume on 18/06/15.
  * Calculation of some acoustic indicators
@@ -49,20 +51,6 @@ public class AcousticIndicators {
     }
 
     /**
-     * Calculation of the averaged equivalent sound pressure level
-     * @param spl sound pressure level [dB]
-     * @return averaged equivalent sound pressure level [dB]
-     */
-    public static double getAverageSpl(double[] spl) {
-        int splLength = spl.length;
-        double sumSpl = 0.0;
-        for (int idSpl = 0; idSpl < splLength; idSpl++) {
-            sumSpl += Math.pow(10.0, spl[idSpl] / 10.0);
-        }
-        return Math.log10((1.0/splLength) * sumSpl);
-    }
-
-    /**
      * Apply a Hanning window to a signal
      * @param signal time signal
      * @return the windowed signal
@@ -92,5 +80,18 @@ public class AcousticIndicators {
         }
         // Return modified buffer
         return signal;
+    }
+
+
+    public final static class SplStatistics {
+        public final double min;
+        public final double max;
+        public final double mean;
+
+        public SplStatistics(double min, double max, double mean) {
+            this.min = min;
+            this.max = max;
+            this.mean = mean;
+        }
     }
 }

@@ -55,6 +55,9 @@ public class Measurement extends MainActivity {
     private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
     private AudioProcess audioProcess = new AudioProcess(isRecording);
 
+    public final static double MIN_SHOWN_DBA_VALUE = 45;
+    public final static double MAX_SHOWN_DBA_VALUE = 120;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -310,13 +313,13 @@ public class Measurement extends MainActivity {
     }
 
     // Generate artificial 1 data (sound level) for vumeter representation
-    private void setData(float val) {
+    private void setData(double val) {
 
         ArrayList<String> xVals = new ArrayList<String>();
         xVals.add("");
 
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
-        yVals1.add(new BarEntry(val, 0));
+        yVals1.add(new BarEntry((float)val, 0));
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
         //set1.setBarSpacePercent(35f);
@@ -452,13 +455,23 @@ public class Measurement extends MainActivity {
                 chronometer.stop();
                 chronometer.setText("00:00");
 
+                activity.finish();
+
                 // TODO save the results to the webphone storage and send data to the server (check if data transfer); add results to history change isHistory to true
             }
         }
     }
 
-    private static class UpdateText implements Runnable {
+    private final static class UpdateText implements Runnable {
         Measurement activity;
+
+        private static void formatdBA(double dbAValue, TextView textView) {
+            if(dbAValue > MIN_SHOWN_DBA_VALUE && dbAValue < MAX_SHOWN_DBA_VALUE) {
+                textView.setText(String.format("%.1f", dbAValue));
+            } else {
+                textView.setText(R.string.no_valid_dba_value);
+            }
+        }
 
         private UpdateText(Measurement activity) {
             this.activity = activity;
@@ -467,12 +480,20 @@ public class Measurement extends MainActivity {
         @Override
         public void run() {
             try {
-                final float leq = (float)activity.audioProcess.getLeq();
+                final double leq = activity.audioProcess.getLeq();
                 activity.setData(leq);
                 // Change the text and the textcolor in the corresponding textview
                 // for the Leqi value
                 final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
-                mTextView.setText(String.format("%.1f", leq));
+                formatdBA(leq, mTextView);
+                final TextView valueMin = (TextView) activity.findViewById(R.id.textView_value_Min_i);
+                formatdBA(activity.audioProcess.getLeqMin(), valueMin);
+                final TextView valueMax = (TextView) activity.findViewById(R.id.textView_value_Max_i);
+                formatdBA(activity.audioProcess.getLeqMax(), valueMax);
+                final TextView valueMean = (TextView) activity.findViewById(R.id.textView_value_Mean_i);
+                formatdBA(activity.audioProcess.getLeqMean(), valueMean);
+
+
                 int nc = activity.getNEcatColors(leq);    // Choose the color category in function of the sound level
                 int[] color_rep = activity.NE_COLORS();
                 mTextView.setTextColor(color_rep[nc]);
@@ -481,8 +502,6 @@ public class Measurement extends MainActivity {
                 activity.updateSpectrumGUI();
 
                 // Debug processing time
-                //final TextView valueMin = (TextView) activity.findViewById(R.id.textView_value_Min_i);
-                //mTextProcessingView.setText(String.format("%d", minValue));
             } finally {
                 activity.isComputingMovingLeq.set(false);
             }

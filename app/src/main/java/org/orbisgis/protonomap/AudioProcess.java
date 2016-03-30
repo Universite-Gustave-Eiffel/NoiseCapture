@@ -8,6 +8,7 @@ import android.util.Log;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -93,6 +94,28 @@ public class AudioProcess implements Runnable {
         }
     }
 
+
+    /**
+     * @return Minimal dB(A) value computed from FFT
+     */
+    public double getLeqMin() {
+        return movingLeqProcessing.getLeqMin();
+    }
+
+    /**
+     * @return Maximal dB(A) value computed from FFT
+     */
+    public double getLeqMax() {
+        return movingLeqProcessing.getLeqMax();
+    }
+
+    /**
+     * @return Average dB(A) value computed from FFT
+     */
+    public double getLeqMean() {
+        return movingLeqProcessing.getLeqMean();
+    }
+
     public double getFFTDelay() {
         return MovingLeqProcessing.SECOND_FIRE_MOVING_SPECTRUM;
     }
@@ -166,6 +189,11 @@ public class AudioProcess implements Runnable {
         private CoreSignalProcessing coreSignalProcessing;
         private float[] fftResultLvl = new float[0];
         private double leq = 0;
+        private double rmsSum = 0;
+        private int rmsSumCount = 0;
+        private double leqMin = Double.MAX_VALUE;
+        private double leqMax = Double.MIN_VALUE;
+
         // 0.066 mean 15 fps max
         public final static double FFT_TIMELENGTH_FACTOR = Math.min(1, AcousticIndicators.TIMEPERIOD_FAST);
         public final static double SECOND_FIRE_MOVING_SPECTRUM = FFT_TIMELENGTH_FACTOR;
@@ -251,6 +279,24 @@ public class AudioProcess implements Runnable {
             return leq;
         }
 
+        public double getLeqMin() {
+            return leqMin;
+        }
+
+        public double getLeqMax() {
+            return leqMax;
+        }
+
+        public double getLeqMean() {
+            if(rmsSumCount > 0) {
+                return 10 * Math.log10(rmsSum / rmsSumCount);
+            } else {
+                return 0;
+            }
+        }
+
+
+
         public void addSample(short[] sample) {
             bufferToProcess.add(sample);
         }
@@ -290,7 +336,7 @@ public class AudioProcess implements Runnable {
                     final double[] fCenters = getFftCenterFreq();
                     float[] splLevels = new float[fCenters.length];
                     int thirdOctaveId = 0;
-                    double newLeq = 0;
+                    double rmsSumFreqs = 0;
                     for(double fCenter : fCenters) {
                         // Compute lower and upper value of third-octave
                         final double fLower = fCenter / fd;
@@ -306,13 +352,17 @@ public class AudioProcess implements Runnable {
                         int freqIndex = Arrays.binarySearch(
                                 ThirdOctaveFrequencies.STANDARD_FREQUENCIES, fCenter);
                         sumVal = (float)(sumVal + ThirdOctaveFrequencies.A_WEIGHTING[freqIndex]);
-                        newLeq += Math.pow(10., sumVal / 10.);
+                        rmsSumFreqs += Math.pow(10., sumVal / 10.);
                         splLevels[thirdOctaveId] = (float) sumVal;
                         thirdOctaveId++;
                     }
                     thirdOctaveSplLevels = splLevels;
                     // Compute leq
-                    leq = 10 * Math.log10(newLeq);
+                    leq = 10 * Math.log10(rmsSumFreqs);
+                    leqMin = Math.min(leqMin, leq);
+                    leqMax = Math.max(leqMax, leq);
+                    rmsSum += rmsSumFreqs;
+                    rmsSumCount++;
                     audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
                             null, fftResult);
             }

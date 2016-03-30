@@ -131,7 +131,7 @@ public class Spectrogram extends View {
                         Bitmap.Config.ARGB_8888);
                 Canvas timeLegendCanvas = new Canvas(timeLegend);
                 double timeCursor = 0;
-                // Add a small tic each 250 ms and a big one with label each second
+                // Add a small tic each 1 s and a big one with label each second
                 final double ticStep = 1.;
                 float timePos = canvasWidth - legendWidth;
                 int maximumLabels = (int)Math.floor((canvasWidth - legendWidth) / bounds.width());
@@ -141,13 +141,13 @@ public class Spectrogram extends View {
                 while(timePos > 0) {
                     timePos = (float)((canvasWidth - legendWidth) - ticWidth * (timeCursor / timeStep));
                     timeLegendCanvas.drawLine(timePos, 0, timePos, timeLegendTicHeight, paint);
-                    timeCursor += ticStep;
                     if(ticPrinted % stepByPrintLabels == 0) {
                         String text = String.format("+%.1f", timeCursor);
                         paint.getTextBounds(text, 0, text.length(), bounds);
                         float textX = timePos - (bounds.width() / 2);
                         timeLegendCanvas.drawText(text, textX, timeLegendTicHeight + Math.abs(bounds.top), paint);
                     }
+                    timeCursor += ticStep;
                     ticPrinted++;
                 }
                 // Make empty legend bitmap

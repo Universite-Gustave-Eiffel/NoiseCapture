@@ -405,5 +405,84 @@ public class AudioProcess implements Runnable {
             }
         }
     }
+
+    /**
+     * Delayed Second-order recursive linear filtering that will be kept for future storage and optionally uploaded.
+     */
+    private static class StandartLeqProcessing implements Runnable {
+        private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
+        private boolean processing = false;
+        private final AudioProcess audioProcess;
+        private CoreSignalProcessing coreSignalProcessing;
+        private static final double windowFactor = 0.66;
+
+        public StandartLeqProcessing(AudioProcess audioProcess) {
+            this.audioProcess = audioProcess;
+            this.coreSignalProcessing = new CoreSignalProcessing(audioProcess.getRate(),
+                    ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
+        }
+
+        public boolean isProcessing() {
+            return processing;
+        }
+
+        public void addSample(short[] sample) {
+            bufferToProcess.add(sample);
+        }
+
+        @Override
+        public void run() {
+            long secondCursor = 0;
+            final int processEachSamples = (int)((audioProcess.getRate() * coreSignalProcessing.getSampleDuration()) * windowFactor);
+            long lastProcessedSamples = 0;
+            try {
+                while (audioProcess.currentState != STATE.WAITING_END_PROCESSING
+                        && audioProcess.currentState != STATE.CLOSED) {
+                    while (!bufferToProcess.isEmpty()) {
+                        processing = true;
+                        short[] buffer = bufferToProcess.poll();
+                        double[] samples = new double[buffer.length];
+                        for (int i = 0; i < buffer.length; ++i) {
+                            if (buffer[i] > 0) {
+                                samples[i] = Math.min(1.0D, (double) buffer[i] / 32767.0D);
+                            } else {
+                                samples[i] = Math.max(-1.0D, (double) buffer[i] / 32768.0D);
+                            }
+                            samples[i] *= audioProcess.calibrationPressureReference;
+                        }
+                        // Cancel Hanning window weighting by overlapping signal by 66%
+                        if(secondCursor + samples.length - lastProcessedSamples > processEachSamples) {
+                            // Check if some samples are to be processed in the next batch
+                            int remainingSamplesToPostPone = (int)(secondCursor + samples.length -
+                                    lastProcessedSamples - processEachSamples);
+                            if(remainingSamplesToPostPone > 0) {
+                                coreSignalProcessing.addSample(Arrays.copyOfRange(samples, 0, samples.length - remainingSamplesToPostPone));
+                            } else {
+                                coreSignalProcessing.addSample(samples);
+                            }
+                            // Do processing
+
+                            lastProcessedSamples = secondCursor;
+                            // Add not processed samples for the next batch
+                            if(remainingSamplesToPostPone > 0) {
+                                coreSignalProcessing.addSample(Arrays.copyOfRange(samples,
+                                        samples.length - remainingSamplesToPostPone, samples.length));
+                            }
+                        } else {
+                            coreSignalProcessing.addSample(samples);
+                        }
+                        secondCursor += samples.length;
+                    }
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException ex) {
+                        break;
+                    }
+                }
+            } finally {
+                processing = false;
+            }
+        }
+    }
 }
 

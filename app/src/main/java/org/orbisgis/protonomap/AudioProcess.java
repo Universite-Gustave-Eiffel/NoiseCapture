@@ -6,15 +6,14 @@ import android.media.MediaRecorder;
 import android.util.Log;
 
 import java.beans.PropertyChangeSupport;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jtransforms.fft.FloatFFT_1D;
+import org.orbisgis.protonomap.util.SystemUiHider;
 import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.CoreSignalProcessing;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
@@ -25,17 +24,21 @@ import org.orbisgis.sos.ThirdOctaveFrequencies;
  */
 public class AudioProcess implements Runnable {
     private AtomicBoolean recording;
+    private AtomicBoolean canceled;
     private final int bufferSize;
     private final int encoding;
     private final int rate;
     private final int audioChannel;
-    public enum STATE { WAITING, PROCESSING,WAITING_END_PROCESSING, CLOSED }
+    public enum STATE { WAITING, PROCESSING,WAITING_END_PROCESSING,CANCELED, CLOSED }
     private STATE currentState = STATE.WAITING;
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
-    public static final String PROP_MOVING_SPECTRUM = "PROP_MOVING_SPECTRUM";
+    public static final String PROP_MOVING_SPECTRUM = "PROP_MS";
+    public static final String PROP_DELAYED_STANDART_PROCESSING = "PROP_DSP";
     // 1s level evaluation for upload to server
-    private final MovingLeqProcessing movingLeqProcessing;
+    private final MovingLeqProcessing fftLeqProcessing;
+    private final StandartLeqProcessing standartLeqProcessing;
     private double calibrationPressureReference = Math.pow(10, 135.5 / 20);
+    private long beginRecordTime;
 
 
 
@@ -44,8 +47,9 @@ public class AudioProcess implements Runnable {
      * Constructor
      * @param recording Recording state
      */
-    public AudioProcess(AtomicBoolean recording) {
+    public AudioProcess(AtomicBoolean recording, AtomicBoolean canceled) {
         this.recording = recording;
+        this.canceled = canceled;
         final int[] mSampleRates = new int[] {44100, 22050, 16000, 11025,8000};
         final int[] encodings = new int[] { AudioFormat.ENCODING_PCM_16BIT , AudioFormat.ENCODING_PCM_8BIT };
         final short[] audioChannels = new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO };
@@ -62,7 +66,8 @@ public class AudioProcess implements Runnable {
                         encoding = tryEncoding;
                         audioChannel = tryAudioChannel;
                         rate = tryRate;
-                        this.movingLeqProcessing = new MovingLeqProcessing(this);
+                        this.fftLeqProcessing = new MovingLeqProcessing(this);
+                        this.standartLeqProcessing = new StandartLeqProcessing(this);
                         return;
                     }
                 }
@@ -75,18 +80,25 @@ public class AudioProcess implements Runnable {
     }
 
     public double[] getRealtimeCenterFrequency() {
-        return movingLeqProcessing.getFftCenterFreq();
+        return fftLeqProcessing.getFftCenterFreq();
     }
 
     /**
      * @return Third octave SPL up to 8Khz (4 Khz if the phone support 8Khz only)
      */
     public float[] getThirdOctaveFrequencySPL() {
-        return movingLeqProcessing.getThirdOctaveFrequencySPL();
+        return fftLeqProcessing.getThirdOctaveFrequencySPL();
     }
     private AudioRecord createAudioRecord() {
+        // Source:
+        //  section 5.3 of the Android 4.0 Compatibility Definition
+        // https://source.android.com/compatibility/4.0/android-4.0-cdd.pdf
+        // Using VOICE_RECOGNITION
+        // Noise reduction processing, if present, is disabled.
+        // Except for 5.0+ where android.media.audiofx.NoiseSuppressor could be use to cancel such processing
+        // Automatic gain control, if present, is disabled.
         if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
-            return new AudioRecord(MediaRecorder.AudioSource.MIC,
+            return new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION,
                     rate, audioChannel,
                     encoding, bufferSize);
         } else {
@@ -99,21 +111,21 @@ public class AudioProcess implements Runnable {
      * @return Minimal dB(A) value computed from FFT
      */
     public double getLeqMin() {
-        return movingLeqProcessing.getLeqMin();
+        return fftLeqProcessing.getLeqMin();
     }
 
     /**
      * @return Maximal dB(A) value computed from FFT
      */
     public double getLeqMax() {
-        return movingLeqProcessing.getLeqMax();
+        return fftLeqProcessing.getLeqMax();
     }
 
     /**
      * @return Average dB(A) value computed from FFT
      */
     public double getLeqMean() {
-        return movingLeqProcessing.getLeqMean();
+        return fftLeqProcessing.getLeqMean();
     }
 
     public double getFFTDelay() {
@@ -133,18 +145,21 @@ public class AudioProcess implements Runnable {
                     } catch (IllegalArgumentException | SecurityException ex) {
                         // Ignore
                     }
-                    new Thread(movingLeqProcessing).start();
+                    new Thread(fftLeqProcessing).start();
+                    new Thread(standartLeqProcessing).start();
                     audioRecord.startRecording();
+                    beginRecordTime = System.currentTimeMillis();
                     while (recording.get()) {
                         buffer = new short[bufferSize];
                         int read = audioRecord.read(buffer, 0, buffer.length);
                         if(read < buffer.length) {
                             buffer = Arrays.copyOfRange(buffer, 0, read);
                         }
-                        movingLeqProcessing.addSample(buffer);
+                        fftLeqProcessing.addSample(buffer);
+                        standartLeqProcessing.addSample(buffer);
                     }
                     currentState = STATE.WAITING_END_PROCESSING;
-                    while (movingLeqProcessing.isProcessing()) {
+                    while (fftLeqProcessing.isProcessing() && standartLeqProcessing.isProcessing()) {
                         Thread.sleep(10);
                     }
                 } catch (Exception ex) {
@@ -165,7 +180,7 @@ public class AudioProcess implements Runnable {
      * @return In the array fftResultLvl, how many frequency cover one cell.
      */
     public double getFFTFreqArrayStep() {
-        return movingLeqProcessing.getFFTFreqArrayStep();
+        return fftLeqProcessing.getFFTFreqArrayStep();
     }
     /**
      * @return Listener manager
@@ -175,14 +190,18 @@ public class AudioProcess implements Runnable {
     }
 
     double getLeq() {
-        return movingLeqProcessing.getLeq();
+        return fftLeqProcessing.getLeq();
     }
 
     public int getRate() {
         return rate;
     }
 
-    private static class MovingLeqProcessing implements Runnable {
+    public long getBeginRecordTime() {
+        return beginRecordTime;
+    }
+
+    private static final class MovingLeqProcessing implements Runnable {
         private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
         private final AudioProcess audioProcess;
         private AtomicBoolean processing = new AtomicBoolean(false);
@@ -200,7 +219,7 @@ public class AudioProcess implements Runnable {
         // Target sampling is REALTIME_SAMPLE_RATE_LIMITATION, then sub-sampling the signal if it is greater than needed (taking Nyquist factor)
         private final double fftSamplingrateFactor;
         // Output only frequency response on this sample rate on the real time result (center + upper band)
-        private static final double REALTIME_SAMPLE_RATE_LIMITATION = 9000;
+        private static final double REALTIME_SAMPLE_RATE_LIMITATION = 18000;
         private final int expectedFFTSize;
         private final double[] fftCenterFreq;
         private int lastProcessedSpectrum = 0;
@@ -409,7 +428,7 @@ public class AudioProcess implements Runnable {
     /**
      * Delayed Second-order recursive linear filtering that will be kept for future storage and optionally uploaded.
      */
-    private static class StandartLeqProcessing implements Runnable {
+    private static final class StandartLeqProcessing implements Runnable {
         private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
         private boolean processing = false;
         private final AudioProcess audioProcess;
@@ -436,9 +455,15 @@ public class AudioProcess implements Runnable {
             final int processEachSamples = (int)((audioProcess.getRate() * coreSignalProcessing.getSampleDuration()) * windowFactor);
             long lastProcessedSamples = 0;
             try {
-                while (audioProcess.currentState != STATE.WAITING_END_PROCESSING
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
+            } catch (IllegalArgumentException | SecurityException ex) {
+                // Ignore
+            }
+            try {
+                while (audioProcess.currentState != STATE.WAITING_END_PROCESSING &&
+                        audioProcess.currentState != STATE.CANCELED
                         && audioProcess.currentState != STATE.CLOSED) {
-                    while (!bufferToProcess.isEmpty()) {
+                    while (!bufferToProcess.isEmpty() && audioProcess.currentState != STATE.CANCELED) {
                         processing = true;
                         short[] buffer = bufferToProcess.poll();
                         double[] samples = new double[buffer.length];
@@ -451,7 +476,7 @@ public class AudioProcess implements Runnable {
                             samples[i] *= audioProcess.calibrationPressureReference;
                         }
                         // Cancel Hanning window weighting by overlapping signal by 66%
-                        if(secondCursor + samples.length - lastProcessedSamples > processEachSamples) {
+                        if(secondCursor + samples.length - lastProcessedSamples >= processEachSamples) {
                             // Check if some samples are to be processed in the next batch
                             int remainingSamplesToPostPone = (int)(secondCursor + samples.length -
                                     lastProcessedSamples - processEachSamples);
@@ -461,7 +486,14 @@ public class AudioProcess implements Runnable {
                                 coreSignalProcessing.addSample(samples);
                             }
                             // Do processing
-
+                            List<double[]> leqs = coreSignalProcessing.processSample(
+                                    coreSignalProcessing.getSampleDuration(),
+                                    audioProcess.calibrationPressureReference);
+                            // Compute record time
+                            long beginRecordTime = audioProcess.beginRecordTime + (secondCursor / audioProcess.getRate()) * 1000;
+                            audioProcess.listeners.firePropertyChange(
+                                    AudioProcess.PROP_DELAYED_STANDART_PROCESSING, null,
+                                    new DelayedStandartAudioMeasure(leqs,  beginRecordTime));
                             lastProcessedSamples = secondCursor;
                             // Add not processed samples for the next batch
                             if(remainingSamplesToPostPone > 0) {
@@ -482,6 +514,30 @@ public class AudioProcess implements Runnable {
             } finally {
                 processing = false;
             }
+        }
+    }
+
+    private static final class DelayedStandartAudioMeasure {
+        private final List<double[]> leqs;
+        private final long beginRecordTime;
+
+        public DelayedStandartAudioMeasure(List<double[]> leqs, long beginRecordTime) {
+            this.leqs = leqs;
+            this.beginRecordTime = beginRecordTime;
+        }
+
+        /**
+         * @return Leq value
+         */
+        public List<double[]> getLeqs() {
+            return leqs;
+        }
+
+        /**
+         * @return Millisecond since epoch of this measure.
+         */
+        public long getBeginRecordTime() {
+            return beginRecordTime;
         }
     }
 }

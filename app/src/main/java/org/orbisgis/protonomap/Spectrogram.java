@@ -30,7 +30,7 @@ public class Spectrogram extends View {
     private int initCanvasWidth = -1;
     private static final float min = 0;
     private static final float max = 70;
-    private int[] frequencyLegendPosition = new int[] {0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000};
+    private int[] frequencyLegendPosition = new int[] {0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 12000, 16000};
     private static final int FREQUENCY_LEGEND_TEXT_SIZE = 18;
     private double timeStep;
     /** Color ramp, using http://www.zonums.com/online/color_ramp/ */

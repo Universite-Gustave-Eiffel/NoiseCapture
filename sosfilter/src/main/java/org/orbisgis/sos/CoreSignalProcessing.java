@@ -149,7 +149,7 @@ public class CoreSignalProcessing {
      * @param leqPeriod time period over which the equivalent sound pressure level is computed over [s] {@link AcousticIndicators#TIMEPERIOD_FAST} or {@link AcousticIndicators#TIMEPERIOD_SLOW}
      * @return List of double array of equivalent sound pressure level per third octave bands
      */
-    public List<double[]> processSample(double leqPeriod, double refSoundPressure) throws FileNotFoundException {
+    public List<double[]> processSample(double leqPeriod, double refSoundPressure) {
         int signalLength = sampleBuffer.length;
         int nbFrequencies = standardFrequencies.length;
         List<double[]> leq = new ArrayList<double[]>();

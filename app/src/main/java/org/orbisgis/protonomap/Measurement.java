@@ -52,10 +52,11 @@ public class Measurement extends MainActivity {
 
     // Other ressources
     private AtomicBoolean isRecording = new AtomicBoolean(false);
+    private AtomicBoolean canceled = new AtomicBoolean(false);
     private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
-    private AudioProcess audioProcess = new AudioProcess(isRecording);
+    private AudioProcess audioProcess = new AudioProcess(isRecording, canceled);
 
-    public final static double MIN_SHOWN_DBA_VALUE = 45;
+    public final static double MIN_SHOWN_DBA_VALUE = 35;
     public final static double MAX_SHOWN_DBA_VALUE = 120;
 
     @Override
@@ -181,7 +182,8 @@ public class Measurement extends MainActivity {
         @Override
         public void onClick(View view) {
 
-            // Stop measurement
+            // Stop measurement without waiting for the end of processing
+            canceled.set(true);
             isRecording.set(false);
 
             // Stop and reset chronometer

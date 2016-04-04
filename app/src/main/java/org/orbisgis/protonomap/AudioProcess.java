@@ -29,7 +29,7 @@ public class AudioProcess implements Runnable {
     private final int encoding;
     private final int rate;
     private final int audioChannel;
-    public enum STATE { WAITING, PROCESSING,WAITING_END_PROCESSING,CANCELED, CLOSED }
+    public enum STATE { WAITING, PROCESSING,WAITING_END_PROCESSING, CLOSED }
     private STATE currentState = STATE.WAITING;
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
     public static final String PROP_MOVING_SPECTRUM = "PROP_MS";
@@ -219,7 +219,7 @@ public class AudioProcess implements Runnable {
         // Target sampling is REALTIME_SAMPLE_RATE_LIMITATION, then sub-sampling the signal if it is greater than needed (taking Nyquist factor)
         private final double fftSamplingrateFactor;
         // Output only frequency response on this sample rate on the real time result (center + upper band)
-        private static final double REALTIME_SAMPLE_RATE_LIMITATION = 18000;
+        private static final double REALTIME_SAMPLE_RATE_LIMITATION = 9000;
         private final int expectedFFTSize;
         private final double[] fftCenterFreq;
         private int lastProcessedSpectrum = 0;
@@ -395,9 +395,10 @@ public class AudioProcess implements Runnable {
         public void run() {
             int secondCursor = 0;
             try {
-                while (audioProcess.currentState != STATE.WAITING_END_PROCESSING
+                while (audioProcess.currentState != STATE.WAITING_END_PROCESSING &&
+                        !audioProcess.canceled.get()
                         && audioProcess.currentState != STATE.CLOSED) {
-                    while (!bufferToProcess.isEmpty()) {
+                    while (!bufferToProcess.isEmpty() && !audioProcess.canceled.get()) {
                         processing.set(true);
                         short[] buffer = bufferToProcess.poll();
                         double[] samples = new double[buffer.length];
@@ -461,9 +462,9 @@ public class AudioProcess implements Runnable {
             }
             try {
                 while (audioProcess.currentState != STATE.WAITING_END_PROCESSING &&
-                        audioProcess.currentState != STATE.CANCELED
+                        !audioProcess.canceled.get()
                         && audioProcess.currentState != STATE.CLOSED) {
-                    while (!bufferToProcess.isEmpty() && audioProcess.currentState != STATE.CANCELED) {
+                    while (!bufferToProcess.isEmpty() && !audioProcess.canceled.get()) {
                         processing = true;
                         short[] buffer = bufferToProcess.poll();
                         double[] samples = new double[buffer.length];

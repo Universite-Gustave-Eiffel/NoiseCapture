@@ -1,4 +1,4 @@
-package org.orbisgis.protonomap.util;
+package org.noise_planet.noisecapture.util;
 
 import android.app.Activity;
 import android.os.Build;

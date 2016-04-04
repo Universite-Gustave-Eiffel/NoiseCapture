@@ -1,4 +1,4 @@
-package org.orbisgis.protonomap;
+package org.noise_planet.noisecapture;
 
 import android.media.AudioFormat;
 import android.media.AudioRecord;
@@ -13,7 +13,6 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.jtransforms.fft.FloatFFT_1D;
-import org.orbisgis.protonomap.util.SystemUiHider;
 import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.CoreSignalProcessing;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;

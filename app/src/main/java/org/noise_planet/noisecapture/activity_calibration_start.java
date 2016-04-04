@@ -1,7 +1,6 @@
-package org.orbisgis.protonomap;
+package org.noise_planet.noisecapture;
 
 import android.os.Handler;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;

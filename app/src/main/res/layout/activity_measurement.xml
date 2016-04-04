@@ -13,7 +13,7 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="org.orbisgis.protonomap.Measurement"
+    tools:context="org.noise_planet.noisecapture.Measurement"
     android:layout_alignParentTop="true"
     android:layout_alignParentLeft="true"
     android:layout_alignParentStart="true">
@@ -155,7 +155,7 @@
             android:gravity="center_horizontal"
             android:paddingBottom="4dp" />
 
-        <org.orbisgis.protonomap.Spectrogram
+        <org.noise_planet.noisecapture.Spectrogram
             android:id="@+id/spectrogram_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

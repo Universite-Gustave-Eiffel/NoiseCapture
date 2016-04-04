@@ -1,4 +1,4 @@
-package org.orbisgis.protonomap;
+package org.noise_planet.noisecapture;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -28,16 +28,10 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.utils.LargeValueFormatter;
 import com.github.mikephil.charting.utils.ValueFormatter;
 
-import org.orbisgis.sos.AcousticIndicators;
-import org.orbisgis.sos.ThirdOctaveBandsFiltering;
-
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Measurement extends MainActivity {

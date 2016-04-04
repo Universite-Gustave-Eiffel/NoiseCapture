@@ -1,4 +1,4 @@
-package org.orbisgis.protonomap;
+package org.noise_planet.noisecapture;
 
 import android.os.Bundle;
 import android.preference.PreferenceFragment;

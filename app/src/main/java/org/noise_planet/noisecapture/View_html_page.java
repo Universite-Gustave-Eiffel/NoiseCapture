@@ -1,8 +1,7 @@
-package org.orbisgis.protonomap;
+package org.noise_planet.noisecapture;
 
 import android.os.Bundle;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.webkit.WebView;
 
 

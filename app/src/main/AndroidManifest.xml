@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.orbisgis.protonomap" >
+    package="org.noise_planet.noisecapture" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -12,34 +12,34 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat" >
         <activity
-            android:name=".Measurement"
+            android:name="org.noise_planet.noisecapture.Measurement"
             android:label="@string/title_activity_measurement"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name=".Results"
+            android:name="org.noise_planet.noisecapture.Results"
             android:label="@string/title_activity_results"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name=".MainActivity"
+            android:name="org.noise_planet.noisecapture.MainActivity"
             android:label="@string/title_activity_main" >
         </activity>
         <activity
-            android:name=".View_html_page"
+            android:name="org.noise_planet.noisecapture.View_html_page"
             android:label="@string/title_activity_view_html_page" >
         </activity>
         <activity
-            android:name=".Settings"
+            android:name="org.noise_planet.noisecapture.Settings"
             android:label="@string/title_activity_settings" >
         </activity>
         <activity
-            android:name=".Map"
+            android:name="org.noise_planet.noisecapture.Map"
             android:label="@string/title_activity_map"
             android:screenOrientation="portrait" >
         </activity>
         <activity
-            android:name=".Start"
+            android:name="org.noise_planet.noisecapture.Start"
             android:label="@string/title_activity_start"
             android:noHistory="true"
             android:screenOrientation="portrait" >
@@ -50,11 +50,11 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".History"
+            android:name="org.noise_planet.noisecapture.History"
             android:label="@string/title_activity_history" >
         </activity>
         <activity
-            android:name=".activity_calibration_start"
+            android:name="org.noise_planet.noisecapture.activity_calibration_start"
             android:label="@string/title_activity_calibration_start" >
         </activity>
     </application>

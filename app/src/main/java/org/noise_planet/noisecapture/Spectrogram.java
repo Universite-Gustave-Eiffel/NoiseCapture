@@ -1,4 +1,4 @@
-package org.orbisgis.protonomap;
+package org.noise_planet.noisecapture;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -8,8 +8,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
-
-import org.orbisgis.sos.AcousticIndicators;
 
 import java.util.ArrayList;
 import java.util.List;

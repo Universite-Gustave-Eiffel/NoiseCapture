@@ -41,6 +41,13 @@ public class CoreSignalProcessing {
     }
 
     /**
+     * @return Computed frequencies
+     */
+    public double[] getStandardFrequencies() {
+        return Arrays.copyOf(standardFrequencies, standardFrequencies.length);
+    }
+
+    /**
      * @return Internal sample buffer where length depends on minimal frequency.
      */
     public double[] getSampleBuffer() {
@@ -128,7 +135,7 @@ public class CoreSignalProcessing {
             secondCursor += lengthRead;
             if (lengthRead < samples.length) {
                 addSample(secondSample);
-                allLeq.addAll(processSample(leqPeriod, refSoundPressure));
+                allLeq.add(processSample(refSoundPressure));
                 secondCursor = 0;
                 // Copy remaining sample fragment into new second array
                 int newLengthRead = samples.length - lengthRead;
@@ -137,7 +144,7 @@ public class CoreSignalProcessing {
             }
             if (secondCursor == rate) {
                 addSample(secondSample);
-                allLeq.addAll(processSample(leqPeriod, refSoundPressure));
+                allLeq.add(processSample(refSoundPressure));
                 secondCursor = 0;
             }
         }
@@ -146,35 +153,28 @@ public class CoreSignalProcessing {
 
     /**
      * Calculation of the equivalent sound pressure level per third octave bands
-     * @param leqPeriod time period over which the equivalent sound pressure level is computed over [s] {@link AcousticIndicators#TIMEPERIOD_FAST} or {@link AcousticIndicators#TIMEPERIOD_SLOW}
      * @return List of double array of equivalent sound pressure level per third octave bands
      */
-    public List<double[]> processSample(double leqPeriod, double refSoundPressure) {
+    public double[] processSample(double refSoundPressure) {
         int signalLength = sampleBuffer.length;
         int nbFrequencies = standardFrequencies.length;
-        List<double[]> leq = new ArrayList<double[]>();
         double[][] filteredSignals;
-        final int subSamplesLength = (int)(leqPeriod * samplingRate);      // Sub-samples length
-        final int nbSubSamples = signalLength / subSamplesLength;
+        double[] ret = new double[standardFrequencies.length];
         /*
         A-weighting and third octave bands filtering
          */
         filteredSignals = filterSignal(sampleBuffer, samplingRate, frequencyBands);
-        for(int idSample = 0; idSample < nbSubSamples; idSample++) {
-            leq.add(new double[nbFrequencies]);
-        }
+
         /*
         Calculation of the equivalent sound pressure level per third octave bands
          */
         for (int idFreq = 0; idFreq < nbFrequencies; idFreq++) {
-            double[] filteredSignal = new double[filteredSignals[0].length];
-            System.arraycopy(filteredSignals[idFreq], 0, filteredSignal, 0, signalLength);
-            double[] leqSamples = AcousticIndicators.getLeqT(filteredSignal, samplingRate, leqPeriod, refSoundPressure);
-            for(int idSample = 0; idSample < nbSubSamples; idSample++) {
-                leq.get(idSample)[idFreq] = leqSamples[idSample];
-            }
+            //for(double signal : filteredSignals[idFreq]) {
+            //    System.out.println(standardFrequencies[idFreq]+", "+signal);
+            //}
+            ret[idFreq] = AcousticIndicators.getLeq(filteredSignals[idFreq], refSoundPressure);
         }
-        return leq;
+        return ret;
     }
 
     public static void writeDoubleArrInCSVFile(double[] data, String fileName) throws IOException {

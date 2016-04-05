@@ -5,6 +5,7 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.util.Log;
 
+import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeSupport;
 import java.util.Arrays;
 import java.util.List;
@@ -78,8 +79,18 @@ public class AudioProcess implements Runnable {
         return currentState;
     }
 
+    /**
+     * @return Frequency feed in {@link AudioProcess#PROP_MOVING_SPECTRUM} {@link PropertyChangeEvent#getNewValue()}
+    */
     public double[] getRealtimeCenterFrequency() {
         return fftLeqProcessing.getFftCenterFreq();
+    }
+
+    /**
+     * @return Frequency feed in {@link AudioProcess#PROP_DELAYED_STANDART_PROCESSING} {@link PropertyChangeEvent#getNewValue()}
+     */
+    public double[] getDelayedCenterFrequency() {
+        return standartLeqProcessing.getComputedFrequencies();
     }
 
     /**
@@ -441,6 +452,11 @@ public class AudioProcess implements Runnable {
                     ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
         }
 
+
+        public double[] getComputedFrequencies() {
+            return coreSignalProcessing.getStandardFrequencies();
+        }
+
         public boolean isProcessing() {
             return processing;
         }
@@ -477,6 +493,7 @@ public class AudioProcess implements Runnable {
                         }
                         // Cancel Hanning window weighting by overlapping signal by 66%
                         if(secondCursor + samples.length - lastProcessedSamples >= processEachSamples) {
+                            System.out.println("Process sample, stack is "+bufferToProcess.size());
                             // Check if some samples are to be processed in the next batch
                             int remainingSamplesToPostPone = (int)(secondCursor + samples.length -
                                     lastProcessedSamples - processEachSamples);
@@ -486,14 +503,13 @@ public class AudioProcess implements Runnable {
                                 coreSignalProcessing.addSample(samples);
                             }
                             // Do processing
-                            List<double[]> leqs = coreSignalProcessing.processSample(
-                                    coreSignalProcessing.getSampleDuration(),
+                            double[] leqs = coreSignalProcessing.processSample(
                                     audioProcess.calibrationPressureReference);
                             // Compute record time
                             long beginRecordTime = audioProcess.beginRecordTime + (secondCursor / audioProcess.getRate()) * 1000;
                             audioProcess.listeners.firePropertyChange(
                                     AudioProcess.PROP_DELAYED_STANDART_PROCESSING, null,
-                                    new DelayedStandartAudioMeasure(leqs,  beginRecordTime));
+                                    new DelayedStandardAudioMeasure(leqs,  beginRecordTime));
                             lastProcessedSamples = secondCursor;
                             // Add not processed samples for the next batch
                             if(remainingSamplesToPostPone > 0) {
@@ -517,11 +533,11 @@ public class AudioProcess implements Runnable {
         }
     }
 
-    private static final class DelayedStandartAudioMeasure {
-        private final List<double[]> leqs;
+    public static final class DelayedStandardAudioMeasure {
+        private final double[] leqs;
         private final long beginRecordTime;
 
-        public DelayedStandartAudioMeasure(List<double[]> leqs, long beginRecordTime) {
+        public DelayedStandardAudioMeasure(double[] leqs, long beginRecordTime) {
             this.leqs = leqs;
             this.beginRecordTime = beginRecordTime;
         }
@@ -529,7 +545,7 @@ public class AudioProcess implements Runnable {
         /**
          * @return Leq value
          */
-        public List<double[]> getLeqs() {
+        public double[] getLeqs() {
             return leqs;
         }
 

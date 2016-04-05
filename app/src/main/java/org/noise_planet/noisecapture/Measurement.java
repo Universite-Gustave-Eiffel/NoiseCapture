@@ -28,6 +28,8 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.utils.LargeValueFormatter;
 import com.github.mikephil.charting.utils.ValueFormatter;
 
+import org.orbisgis.sos.ThirdOctaveFrequencies;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
@@ -49,6 +51,9 @@ public class Measurement extends MainActivity {
     private AtomicBoolean canceled = new AtomicBoolean(false);
     private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
     private AudioProcess audioProcess = new AudioProcess(isRecording, canceled);
+    private MeasurementManager measurementManager;
+    // This measurement identifier in the long term storage
+    private int recordId;
 
     public final static double MIN_SHOWN_DBA_VALUE = 35;
     public final static double MAX_SHOWN_DBA_VALUE = 120;
@@ -57,6 +62,7 @@ public class Measurement extends MainActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        this.measurementManager = new MeasurementManager(getApplicationContext());
         setContentView(R.layout.activity_measurement);
         initDrawer();
 
@@ -384,9 +390,20 @@ public class Measurement extends MainActivity {
         @Override
         public void propertyChange(PropertyChangeEvent event) {
             if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
+                // Realtime audio processing
                 activity.spectrogram.addTimeStep((float[])event.getNewValue(), activity.audioProcess.getFFTFreqArrayStep());
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));
+                }
+            }else if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName())) {
+                // Delayed audio processing
+                AudioProcess.DelayedStandardAudioMeasure measure =
+                        (AudioProcess.DelayedStandardAudioMeasure)event.getNewValue();
+                int leqId = activity.measurementManager.addLeq(activity.recordId, measure.getBeginRecordTime());
+                double[] freqValues = activity.audioProcess.getDelayedCenterFrequency();
+                final double[] leqs = measure.getLeqs();
+                for(int idFreq = 0; idFreq < leqs.length; idFreq++) {
+                    activity.measurementManager.addLeqValue(leqId,(int)freqValues[idFreq], (float)leqs[idFreq]);
                 }
             }
         }
@@ -409,6 +426,7 @@ public class Measurement extends MainActivity {
             if (activity.isRecording.compareAndSet(false, true)) {
 
                 // Start measurement
+                activity.recordId = activity.measurementManager.addRecord();
 
                 // Start chronometer
                 Chronometer chronometer = (Chronometer) activity.findViewById(R.id.chronometer_recording_time);

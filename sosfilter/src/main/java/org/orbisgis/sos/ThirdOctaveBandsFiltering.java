@@ -31,7 +31,7 @@ public class ThirdOctaveBandsFiltering {
      */
     private static final double[] STANDARD_FREQUENCIES_REDUCED = new double[]{100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000};
     private static final double[] STANDARD_FREQUENCIES_FULL = new double[]{16, 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000};
-
+    private static final double[] STANDARD_OCTAVE_FREQUENCIES_REDUCED = new double[]{125, 250, 500, 1000, 2000, 4000, 8000, 16000};
 
     /**
      * Third octave bands filtering constructor
@@ -191,9 +191,9 @@ public class ThirdOctaveBandsFiltering {
      */
     private double[] applySosFilter(double[] signal, int idFreq){
         // Check the audio input sample duration
-        if(signal.length != expectedSampleLength) {
-            throw new IllegalArgumentException("Illegal audio sample duration: expected " + expectedSampleLength + ", got " + signal.length);
-        }
+        //if(signal.length != expectedSampleLength) {
+        //    throw new IllegalArgumentException("Illegal audio sample duration: expected " + expectedSampleLength + ", got " + signal.length);
+        //}
         double [][] states = new double [2][4];
         FiltersParameters filtParams = this.filterParameters.get(idFreq);
 
@@ -222,7 +222,28 @@ public class ThirdOctaveBandsFiltering {
         return filteredSignals;
     }
 
-
+    /*
+    public double[][] thirdOctaveFiltering(double[] signal){
+        int nbFreqs = standardFrequencies.length;
+        double [][] filteredSignals = new double[nbFreqs][];
+        double[] decimateSignal;
+        filteredSignals[(nbFreqs - 1)] = applySosFilter(signal, nbFreqs - 1);
+        filteredSignals[(nbFreqs - 1) - 1] = applySosFilter(signal, nbFreqs - 2);
+        filteredSignals[(nbFreqs - 1) - 2] = applySosFilter(signal, nbFreqs - 3);
+        for (int idf = 3; idf < nbFreqs; idf+=3){
+            filteredSignals[(nbFreqs - 1) - idf] = applySosFilter(signal, nbFreqs - 4);
+            filteredSignals[(nbFreqs - 1) - idf - 1] = applySosFilter(signal, nbFreqs - 5);
+            filteredSignals[(nbFreqs - 1) - idf - 2] = applySosFilter(signal, nbFreqs - 6);
+            // Decimation signal by two factor
+            decimateSignal = new double[signal.length / 2];
+            for(int i = 0; i < decimateSignal.length; i++) {
+                decimateSignal[i] = (signal[i * 2] + signal[i * 2 + 1]) / 2;
+            }
+            signal = decimateSignal;
+        }
+        return filteredSignals;
+    }
+    */
     /**
      * Cascade stage parameters
      */

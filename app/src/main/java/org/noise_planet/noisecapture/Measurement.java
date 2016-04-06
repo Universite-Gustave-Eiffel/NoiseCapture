@@ -53,10 +53,14 @@ public class Measurement extends MainActivity {
     private AudioProcess audioProcess = new AudioProcess(isRecording, canceled);
     private MeasurementManager measurementManager;
     // This measurement identifier in the long term storage
-    private int recordId;
+    private int recordId = -1;
 
     public final static double MIN_SHOWN_DBA_VALUE = 35;
     public final static double MAX_SHOWN_DBA_VALUE = 120;
+
+    public int getRecordId() {
+        return recordId;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -23,6 +23,7 @@ import android.widget.TextView;
  *
  */
 public class History extends MainActivity {
+    private MeasurementManager measurementManager;
 
     public class informationHistory {
         String Id;
@@ -35,6 +36,7 @@ public class History extends MainActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        this.measurementManager = new MeasurementManager(getApplicationContext());
         setContentView(R.layout.activity_history);
         initDrawer();
 

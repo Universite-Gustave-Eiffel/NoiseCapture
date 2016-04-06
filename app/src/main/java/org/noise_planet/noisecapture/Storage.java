@@ -34,11 +34,13 @@ public class Storage extends SQLiteOpenHelper {
         public static final String TABLE_NAME = "record";
         public static final String COLUMN_ID = "record_id";
         public static final String COLUMN_UTC = "record_utc";
+        public static final String COLUMN_UPLOAD_ID = "upload_id";
     }
 
     public static final String CREATE_RECORD = "CREATE TABLE " + Record.TABLE_NAME +
             "("+Record.COLUMN_ID +" INTEGER PRIMARY KEY, " +
-            Record.COLUMN_UTC +" LONG)";
+            Record.COLUMN_UTC +" LONG, " +
+            Record.COLUMN_UPLOAD_ID + " TEXT)";
 
     public static abstract class Leq implements BaseColumns {
         public static final String TABLE_NAME = "leq";
@@ -73,8 +75,8 @@ public class Storage extends SQLiteOpenHelper {
 
     public static final String CREATE_LEQ_VALUE = "CREATE TABLE " + LeqValue.TABLE_NAME + "(" +
             LeqValue.LEQ_ID+" INTEGER, " +
-            LeqValue.FREQUENCY+"frequency INTEGER, " +
-            LeqValue.SPL+"spl FLOAT, " +
+            LeqValue.FREQUENCY+" INTEGER, " +
+            LeqValue.SPL+" FLOAT, " +
             "PRIMARY KEY("+LeqValue.LEQ_ID+", "+LeqValue.FREQUENCY+"), " +
             "FOREIGN KEY("+LeqValue.LEQ_ID+") REFERENCES leq);";
 }

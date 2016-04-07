@@ -16,25 +16,26 @@ import java.util.List;
  * Add, remove and list all measures using android private storage.
  */
 public class MeasurementManager {
-    private Context context;
     private Storage storage;
     private static final Logger LOGGER = LoggerFactory.getLogger(MeasurementManager.class);
 
     public MeasurementManager(Context context) {
-        this.context = context;
         this.storage = new Storage(context);
         // Connect to local database
     }
 
-    public List<Record> getRecords() {
-        List<Record> records = new ArrayList<>();
+    public List<Storage.Record> getRecords() {
+        List<Storage.Record> records = new ArrayList<>();
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
-            try(Cursor cursor = database.rawQuery("SELECT * FROM "+Storage.Record.TABLE_NAME +
-                    " ORDER BY " + Storage.Record.COLUMN_ID, null)) {
+            Cursor cursor = database.rawQuery("SELECT * FROM "+Storage.Record.TABLE_NAME +
+                    " ORDER BY " + Storage.Record.COLUMN_ID, null);
+            try {
                 while (cursor.moveToNext()) {
-                    records.add(new Record());
+                    records.add(new Storage.Record(cursor));
                 }
+            } finally {
+                cursor.close();
             }
         } finally {
             database.close();
@@ -42,7 +43,10 @@ public class MeasurementManager {
         return records;
     }
 
-    int addRecord() {
+    /**
+     * @return Record
+     */
+    public int addRecord() {
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
             ContentValues contentValues = new ContentValues();
@@ -59,18 +63,55 @@ public class MeasurementManager {
         }
     }
 
+    public Storage.Record getRecord(int recordId) {
+        SQLiteDatabase database = storage.getReadableDatabase();
+        try {
+            Cursor cursor = database.rawQuery("SELECT * FROM "+Storage.Record.TABLE_NAME +
+                    " WHERE " + Storage.Record.COLUMN_ID + " = ?", new String[]{String.valueOf(recordId)});
+            try {
+                if (cursor.moveToNext()) {
+                    return new Storage.Record(cursor);
+                }
+            } finally {
+                cursor.close();
+            }
+        } finally {
+            database.close();
+        }
+        return null;
+    }
+
+    public void updateRecordLeqMean(int recordId, float leqMean) {
+        SQLiteDatabase database = storage.getWritableDatabase();
+        try {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(Storage.Record.COLUMN_UTC, System.currentTimeMillis());
+            contentValues.put(Storage.Record.COLUMN_UPLOAD_ID, "");
+            try {
+                database.execSQL("UPDATE "+Storage.Record.TABLE_NAME+" SET "+
+                        Storage.Record.COLUMN_LEQ_MEAN+" = ? WHERE "+Storage.Record.COLUMN_ID+" = ?",
+                        new Object[]{leqMean, recordId});
+            } catch (SQLException sqlException) {
+                LOGGER.error(sqlException.getLocalizedMessage(), sqlException);
+            }
+        } finally {
+            database.close();
+        }
+
+    }
+
     /**
      * Add a Leq header information
      * @param recordId Record identifier
      * @param leqTime Start leq capture time
      * @return Leq identifier
      */
-    int addLeq(int recordId, long leqTime) {
+    public int addLeq(int recordId, long leqTime) {
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
             ContentValues contentValues = new ContentValues();
-            contentValues.put(Storage.Leq.RECORD_ID, recordId);
-            contentValues.put(Storage.Leq.LEQ_UTC, leqTime);
+            contentValues.put(Storage.Leq.COLUMN_RECORD_ID, recordId);
+            contentValues.put(Storage.Leq.COLUMN_LEQ_UTC, leqTime);
             try {
                 return (int) database.insertOrThrow(Storage.Leq.TABLE_NAME, null, contentValues);
             } catch (SQLException sqlException) {
@@ -92,9 +133,9 @@ public class MeasurementManager {
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
             ContentValues contentValues = new ContentValues();
-            contentValues.put(Storage.LeqValue.LEQ_ID, leqId);
-            contentValues.put(Storage.LeqValue.FREQUENCY, frequency);
-            contentValues.put(Storage.LeqValue.SPL, spl);
+            contentValues.put(Storage.LeqValue.COLUMN_LEQ_ID, leqId);
+            contentValues.put(Storage.LeqValue.COLUMN_FREQUENCY, frequency);
+            contentValues.put(Storage.LeqValue.COLUMN_SPL, spl);
             try {
                 database.insertOrThrow(Storage.LeqValue.TABLE_NAME, null, contentValues);
             } catch (SQLException sqlException) {
@@ -103,10 +144,5 @@ public class MeasurementManager {
         } finally {
             database.close();
         }
-    }
-
-    public static class Record {
-        private Storage storage;
-
     }
 }

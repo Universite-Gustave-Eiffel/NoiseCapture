@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.jtransforms.fft.FloatFFT_1D;
 import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.CoreSignalProcessing;
+import org.orbisgis.sos.LeqStats;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
 import org.orbisgis.sos.ThirdOctaveFrequencies;
 
@@ -93,6 +94,10 @@ public class AudioProcess implements Runnable {
         return standartLeqProcessing.getComputedFrequencies();
     }
 
+    public int getRemainingNotProcessSamples() {
+        return standartLeqProcessing.bufferToProcess.size();
+    }
+
     /**
      * @return Third octave SPL up to 8Khz (4 Khz if the phone support 8Khz only)
      */
@@ -120,22 +125,29 @@ public class AudioProcess implements Runnable {
     /**
      * @return Minimal dB(A) value computed from FFT
      */
-    public double getLeqMin() {
+    public double getRealtimeLeqMin() {
         return fftLeqProcessing.getLeqMin();
     }
 
     /**
      * @return Maximal dB(A) value computed from FFT
      */
-    public double getLeqMax() {
+    public double getRealtimeLeqMax() {
         return fftLeqProcessing.getLeqMax();
     }
 
     /**
      * @return Average dB(A) value computed from FFT
      */
-    public double getLeqMean() {
+    public double getRealtimeLeqMean() {
         return fftLeqProcessing.getLeqMean();
+    }
+
+    /**
+     * @return Computed mean leq.
+     */
+    public double getLeqMean() {
+        return standartLeqProcessing.leqStats.getLeqMean();
     }
 
     public double getFFTDelay() {
@@ -169,7 +181,7 @@ public class AudioProcess implements Runnable {
                         standartLeqProcessing.addSample(buffer);
                     }
                     currentState = STATE.WAITING_END_PROCESSING;
-                    while (fftLeqProcessing.isProcessing() && standartLeqProcessing.isProcessing()) {
+                    while (fftLeqProcessing.isProcessing() || standartLeqProcessing.isProcessing()) {
                         Thread.sleep(10);
                     }
                 } catch (Exception ex) {
@@ -218,10 +230,7 @@ public class AudioProcess implements Runnable {
         private CoreSignalProcessing coreSignalProcessing;
         private float[] fftResultLvl = new float[0];
         private double leq = 0;
-        private double rmsSum = 0;
-        private int rmsSumCount = 0;
-        private double leqMin = Double.MAX_VALUE;
-        private double leqMax = Double.MIN_VALUE;
+        private LeqStats leqStats = new LeqStats();
 
         // 0.066 mean 15 fps max
         public final static double FFT_TIMELENGTH_FACTOR = Math.min(1, AcousticIndicators.TIMEPERIOD_FAST);
@@ -309,19 +318,15 @@ public class AudioProcess implements Runnable {
         }
 
         public double getLeqMin() {
-            return leqMin;
+            return leqStats.getLeqMin();
         }
 
         public double getLeqMax() {
-            return leqMax;
+            return leqStats.getLeqMax();
         }
 
         public double getLeqMean() {
-            if(rmsSumCount > 0) {
-                return 10 * Math.log10(rmsSum / rmsSumCount);
-            } else {
-                return 0;
-            }
+            return leqStats.getLeqMean();
         }
 
 
@@ -387,11 +392,8 @@ public class AudioProcess implements Runnable {
                     }
                     thirdOctaveSplLevels = splLevels;
                     // Compute leq
-                    leq = 10 * Math.log10(rmsSumFreqs);
-                    leqMin = Math.min(leqMin, leq);
-                    leqMax = Math.max(leqMax, leq);
-                    rmsSum += rmsSumFreqs;
-                    rmsSumCount++;
+                    leq = leqStats.addRms(rmsSumFreqs);
+                    leqStats.addLeq(leq);
                     audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
                             null, fftResult);
             }
@@ -445,6 +447,7 @@ public class AudioProcess implements Runnable {
         private final AudioProcess audioProcess;
         private CoreSignalProcessing coreSignalProcessing;
         private static final double windowFactor = 0.66;
+        private LeqStats leqStats = new LeqStats();
 
         public StandartLeqProcessing(AudioProcess audioProcess) {
             this.audioProcess = audioProcess;
@@ -493,7 +496,6 @@ public class AudioProcess implements Runnable {
                         }
                         // Cancel Hanning window weighting by overlapping signal by 66%
                         if(secondCursor + samples.length - lastProcessedSamples >= processEachSamples) {
-                            System.out.println("Process sample, stack is "+bufferToProcess.size());
                             // Check if some samples are to be processed in the next batch
                             int remainingSamplesToPostPone = (int)(secondCursor + samples.length -
                                     lastProcessedSamples - processEachSamples);
@@ -503,8 +505,12 @@ public class AudioProcess implements Runnable {
                                 coreSignalProcessing.addSample(samples);
                             }
                             // Do processing
-                            double[] leqs = coreSignalProcessing.processSample(
-                                    audioProcess.calibrationPressureReference);
+                            double[] leqs = coreSignalProcessing.processSample(1.);
+                            double rmsSum = 0;
+                            for(double leq : leqs) {
+                                rmsSum += Math.pow(10, leq / 10);
+                            }
+                            leqStats.addRms(rmsSum);
                             // Compute record time
                             long beginRecordTime = audioProcess.beginRecordTime + (secondCursor / audioProcess.getRate()) * 1000;
                             audioProcess.listeners.firePropertyChange(

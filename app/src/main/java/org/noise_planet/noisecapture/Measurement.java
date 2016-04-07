@@ -1,7 +1,9 @@
 package org.noise_planet.noisecapture;
 
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
@@ -27,8 +29,6 @@ import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.utils.LargeValueFormatter;
 import com.github.mikephil.charting.utils.ValueFormatter;
-
-import org.orbisgis.sos.ThirdOctaveFrequencies;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -208,8 +208,6 @@ public class Measurement extends MainActivity {
             buttonmap.setImageResource(R.drawable.button_map);
             buttonmap.setEnabled(true);
 
-            // Goto the Results activity
-            isResults = false;
 
         }
     };
@@ -331,8 +329,7 @@ public class Measurement extends MainActivity {
         //set1.setBarSpacePercent(35f);
         //set1.setColor(Color.rgb(0, 153, 204));
         int nc=getNEcatColors(val);    // Choose the color category in function of the sound level
-        int[] color_rep=NE_COLORS();
-        set1.setColor(color_rep[nc]);
+        set1.setColor(NE_COLORS[nc]);
 
         ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
         dataSets.add(set1);
@@ -381,6 +378,65 @@ public class Measurement extends MainActivity {
             Color.rgb(0, 128, 255), Color.rgb(102, 178, 255), Color.rgb(204, 229, 255),
     };
 
+    private static class WaitEndOfProcessing implements Runnable {
+        private Measurement activity;
+        private ProgressDialog processingDialog;
+
+        public WaitEndOfProcessing(Measurement activity, ProgressDialog processingDialog) {
+            this.activity = activity;
+            this.processingDialog = processingDialog;
+        }
+
+        @Override
+        public void run() {
+            int lastShownProgress = 0;
+            while(activity.audioProcess.getCurrentState() != AudioProcess.STATE.CLOSED && !activity.canceled.get()) {
+                try {
+                    Thread.sleep(200);
+                    int progress =  activity.audioProcess.getRemainingNotProcessSamples();
+                    if(progress != lastShownProgress) {
+                        lastShownProgress = progress;
+                        activity.runOnUiThread(new SetDialogMessage(processingDialog, activity.getResources().getString(R.string.measurement_processlastsamples,
+                                lastShownProgress)));
+                    }
+                } catch (InterruptedException ex) {
+                    return;
+                }
+            }
+
+            if(!activity.canceled.get()) {
+                // Update record
+                activity.measurementManager.updateRecordLeqMean(activity.recordId, (float) activity.audioProcess.getLeqMean());
+                // Goto the Results activity
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Intent ir = new Intent(activity.getApplicationContext(), Results.class);
+                        ir.putExtra(Results.RESULTS_RECORD_ID, activity.recordId);
+                        activity.startActivity(ir);
+                        activity.finish();
+                    }
+                });
+
+            }
+        }
+    }
+
+    private static class SetDialogMessage implements Runnable {
+        private ProgressDialog dialog;
+        private String message;
+
+        public SetDialogMessage(ProgressDialog dialog, String message) {
+            this.dialog = dialog;
+            this.message = message;
+        }
+
+        @Override
+        public void run() {
+            dialog.setMessage(message);
+        }
+    }
+
     private static class DoProcessing implements CompoundButton.OnClickListener, PropertyChangeListener {
         private Context context;
         private Measurement activity;
@@ -414,7 +470,7 @@ public class Measurement extends MainActivity {
 
         @Override
         public void onClick(View v) {
-
+            Resources resources = activity.getResources();
             // Update buttons: history disabled; cancel enabled; record button to stop; map disabled
             ImageButton buttonhistory= (ImageButton) activity.findViewById(R.id.historyBtn);
             buttonhistory.setImageResource(R.drawable.button_history_disabled);
@@ -438,8 +494,8 @@ public class Measurement extends MainActivity {
                 chronometer.start();
 
                 // Start recording
-                new Thread(activity.audioProcess).start();
                 activity.audioProcess.getListeners().addPropertyChangeListener(this);
+                new Thread(activity.audioProcess).start();
             }
             else
             {
@@ -448,14 +504,8 @@ public class Measurement extends MainActivity {
 
                 // Enabled/disabled buttons after measurement
                 // history enabled or disabled (if isHistory); cancel disable; record button enabled
-                if (activity.isHistory){
-                    buttonhistory.setImageResource(R.drawable.button_history_normal);
-                    buttonhistory.setEnabled(true);
-                }
-                else {
-                    buttonhistory.setImageResource(R.drawable.button_history_disabled);
-                    buttonhistory.setEnabled(false);
-                }
+                buttonhistory.setImageResource(R.drawable.button_history_normal);
+                buttonhistory.setEnabled(true);
                 buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
                 buttoncancel.setEnabled(false);
                 buttonrecord.setImageResource(R.drawable.button_record);
@@ -463,19 +513,36 @@ public class Measurement extends MainActivity {
                 buttonmap.setImageResource(R.drawable.button_map);
                 buttonmap.setEnabled(true);
 
+                // Show computing progress dialog
+                ProgressDialog myDialog = new ProgressDialog(activity);
+                myDialog.setMessage(resources.getString(R.string.measurement_processlastsamples,
+                        activity.audioProcess.getRemainingNotProcessSamples()));
+                myDialog.setCancelable(false);
+                myDialog.setButton(DialogInterface.BUTTON_NEGATIVE,
+                        resources.getText(R.string.text_CANCEL_data_transfer),
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                dialog.dismiss();
+                                activity.canceled.set(true);
+                            }
+                        });
+                myDialog.show();
+
+                // Launch processing end activity
+                new Thread(new WaitEndOfProcessing(activity, myDialog)).start();
+
                 // Goto the Results activity
-                activity.isResults = true;
-                Intent ir = new Intent(context, Results.class);
-                activity.startActivity(ir);
+                //activity.isResults = true;
+                //Intent ir = new Intent(context, Results.class);
+                //activity.startActivity(ir);
 
                 // Stop and reset chronometer
                 Chronometer chronometer = (Chronometer) activity.findViewById(R.id.chronometer_recording_time);
                 chronometer.stop();
-                chronometer.setText("00:00");
+                //chronometer.setText("00:00");
 
-                activity.finish();
-
-                // TODO save the results to the webphone storage and send data to the server (check if data transfer); add results to history change isHistory to true
+                //activity.finish();
             }
         }
     }
@@ -505,16 +572,15 @@ public class Measurement extends MainActivity {
                 final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
                 formatdBA(leq, mTextView);
                 final TextView valueMin = (TextView) activity.findViewById(R.id.textView_value_Min_i);
-                formatdBA(activity.audioProcess.getLeqMin(), valueMin);
+                formatdBA(activity.audioProcess.getRealtimeLeqMin(), valueMin);
                 final TextView valueMax = (TextView) activity.findViewById(R.id.textView_value_Max_i);
-                formatdBA(activity.audioProcess.getLeqMax(), valueMax);
+                formatdBA(activity.audioProcess.getRealtimeLeqMax(), valueMax);
                 final TextView valueMean = (TextView) activity.findViewById(R.id.textView_value_Mean_i);
-                formatdBA(activity.audioProcess.getLeqMean(), valueMean);
+                formatdBA(activity.audioProcess.getRealtimeLeqMean(), valueMean);
 
 
                 int nc = activity.getNEcatColors(leq);    // Choose the color category in function of the sound level
-                int[] color_rep = activity.NE_COLORS();
-                mTextView.setTextColor(color_rep[nc]);
+                mTextView.setTextColor(activity.NE_COLORS[nc]);
 
                 // Spectrum data
                 activity.updateSpectrumGUI();

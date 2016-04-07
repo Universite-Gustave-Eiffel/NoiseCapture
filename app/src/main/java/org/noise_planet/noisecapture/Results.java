@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
@@ -23,10 +24,12 @@ import com.github.mikephil.charting.utils.Highlight;
 import com.github.mikephil.charting.utils.PercentFormatter;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Results extends MainActivity {
-
-    static float Leqi; // for testing
+    public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
+    private MeasurementManager measurementManager;
+    private Storage.Record record;
 
     // For the Charts
     public PieChart rneChart;
@@ -39,8 +42,24 @@ public class Results extends MainActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
+        this.measurementManager = new MeasurementManager(getApplicationContext());
+        Intent intent = getIntent();
+        if(intent != null && intent.hasExtra(RESULTS_RECORD_ID)) {
+            record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1));
+        } else {
+            // Read the last stored record
+            List<Storage.Record> recordList = measurementManager.getRecords();
+            if(!recordList.isEmpty()) {
+                record = recordList.get(recordList.size() - 1);
+            } else {
+                // Message for starting a record
+                Toast.makeText(getApplicationContext(),
+                        getString(R.string.no_results), Toast.LENGTH_LONG).show();
+                finish();
+                return;
+            }
+        }
         setContentView(R.layout.activity_results);
         initDrawer();
 
@@ -57,7 +76,7 @@ public class Results extends MainActivity {
         // NEI PieChart
         neiChart = (PieChart) findViewById(R.id.NEIChart);
         initNEIChart();
-        setNEIData(100);
+        setNEIData();
         Legend lnei = neiChart.getLegend();
         lnei.setEnabled(false);
 
@@ -193,7 +212,6 @@ public class Results extends MainActivity {
 
         float mult3 = range;
         double[] tab = new double[count];
-        int[] color_rep=NE_COLORS();
 
         ArrayList<Entry> yVals1 = new ArrayList<Entry>();
 
@@ -214,7 +232,7 @@ public class Results extends MainActivity {
 
         PieDataSet dataSet = new PieDataSet(yVals1, "Sound level");
         dataSet.setSliceSpace(3f);
-        dataSet.setColors(color_rep);
+        dataSet.setColors(NE_COLORS);
 
         PieData data = new PieData(xVals, dataSet);
         data.setValueFormatter(new PercentFormatter());
@@ -266,18 +284,14 @@ public class Results extends MainActivity {
     }
 
     // Generate artificial data for NEI
-    private void setNEIData(float range) {
-
-        float mult5 = range;
-        int[] color_rep=NE_COLORS();
+    private void setNEIData() {
 
         ArrayList<Entry> yVals1 = new ArrayList<Entry>();
 
         // IMPORTANT: In a PieChart, no values (Entry) should have the same
         // xIndex (even if from different DataSets), since no values can be
         // drawn above each other.
-        Leqi = (float) Math.random() * mult5;
-        yVals1.add(new Entry( Leqi, 0));
+        yVals1.add(new Entry( record.getLeqMean(), 0));
 
         ArrayList<String> xVals = new ArrayList<String>();
 
@@ -285,8 +299,8 @@ public class Results extends MainActivity {
 
         PieDataSet dataSet = new PieDataSet(yVals1, "NEI");
         dataSet.setSliceSpace(3f);
-        int nc=getNEcatColors(Leqi);    // Choose the color category in function of the sound level
-        dataSet.setColor(color_rep[nc]);   // Apply color category for the corresponding sound level
+        int nc=getNEcatColors(record.getLeqMean());    // Choose the color category in function of the sound level
+        dataSet.setColor(NE_COLORS[nc]);   // Apply color category for the corresponding sound level
 
         PieData data = new PieData(xVals, dataSet);
         data.setValueFormatter(new PercentFormatter());
@@ -295,7 +309,7 @@ public class Results extends MainActivity {
         data.setDrawValues(false);
 
         neiChart.setData(data);
-        neiChart.setCenterText(String.format("%.1f", Leqi).concat(" dB(A)"));
+        neiChart.setCenterText(String.format("%.1f", record.getLeqMean()).concat(" dB(A)"));
         rneChart.invalidate();
     }
 

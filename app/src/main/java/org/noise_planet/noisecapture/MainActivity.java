@@ -25,6 +25,8 @@ import android.widget.Toast;
 
 
 public class MainActivity extends AppCompatActivity {
+    // Color for noise exposition representation
+    public int[] NE_COLORS;
 
     // For the list view
     public ListView mDrawerList;
@@ -32,14 +34,15 @@ public class MainActivity extends AppCompatActivity {
     public String[] mMenuLeft;
     public ActionBarDrawerToggle mDrawerToggle;
 
-    public boolean isResults = false;
-    public boolean isHistory = true; // must be false but just for the testing
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //setContentView(R.layout.activity_main);
-
+        Resources res = getResources();
+        NE_COLORS = new int[]{res.getColor(R.color.R1_SL_level),
+                res.getColor(R.color.R2_SL_level),
+                res.getColor(R.color.R3_SL_level),
+                res.getColor(R.color.R4_SL_level),
+                res.getColor(R.color.R5_SL_level)};
     }
 
     // Drawer navigation
@@ -244,19 +247,8 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-
-     // Color for noise exposition representation
-    public int[] NE_COLORS() {
-        Resources res = getResources();
-        int R1_SL_level = res.getColor(R.color.R1_SL_level);
-        int R2_SL_level = res.getColor(R.color.R2_SL_level);
-        int R3_SL_level = res.getColor(R.color.R3_SL_level);
-        int R4_SL_level = res.getColor(R.color.R4_SL_level);
-        int R5_SL_level = res.getColor(R.color.R5_SL_level);
-        return new int[] {R1_SL_level,R2_SL_level,R3_SL_level,R4_SL_level,R5_SL_level};
-    };
     // Choose color category in function of sound level
-    public int getNEcatColors(double SL) {
+    public static int getNEcatColors(double SL) {
 
         int NbNEcat;
 
@@ -274,63 +266,26 @@ public class MainActivity extends AppCompatActivity {
         return NbNEcat;
     }
 
-    // Color for spectrum representation (min, iSL, max)
-    public static final int[] SPECTRUM_COLORS = {
-            Color.rgb(0, 128, 255), Color.rgb(102, 178, 255), Color.rgb(204, 229, 255),
-    };
-
-    public int[] getColors() {
-
-        int stacksize = 3;
-
-        // have as many colors as stack-values per entry
-        int []colors = new int[stacksize];
-
-        System.arraycopy(SPECTRUM_COLORS, 0, colors, 0, stacksize);
-
-        return colors;
-    }
-
     public final void gotoHistory(){
 
-        if (isHistory) {
-            Intent a = new Intent(getApplicationContext(), History.class);
-            startActivity(a);
-            mDrawerLayout.closeDrawer(mDrawerList);
-        }
-        else {
-            // Message for starting a record
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.no_history), Toast.LENGTH_LONG).show();
-        }
+        Intent a = new Intent(getApplicationContext(), History.class);
+        startActivity(a);
+        mDrawerLayout.closeDrawer(mDrawerList);
 
     }
 
     public final void gotoResults() {
-        if (isResults) {
-            Intent ir = new Intent(getApplicationContext(), Results.class);
-            mDrawerLayout.closeDrawer(mDrawerList);
-            startActivity(ir);
-        }
-        else {
-            // Message for starting a record
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.no_results), Toast.LENGTH_LONG).show();
-        }
+        Intent ir = new Intent(getApplicationContext(), Results.class);
+        mDrawerLayout.closeDrawer(mDrawerList);
+        startActivity(ir);
     }
 
     public final void checkHistoryButton() {
         // Enabled/disabled buttons
         // history disabled; cancel enabled; record button enabled
         ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
-        if (isHistory){
-            buttonhistory.setImageResource(R.drawable.button_history_normal);
-            buttonhistory.setEnabled(true);
-        }
-        else {
-            buttonhistory.setImageResource(R.drawable.button_history_disabled);
-            buttonhistory.setEnabled(false);
-        }
+        buttonhistory.setImageResource(R.drawable.button_history_normal);
+        buttonhistory.setEnabled(true);
     }
 
 }

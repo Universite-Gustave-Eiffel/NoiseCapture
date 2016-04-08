@@ -212,6 +212,7 @@ public class ThirdOctaveBandsFiltering {
      * Third octave filtering
      * @param signal Raw time input signal
      */
+    /*
     public double[][] thirdOctaveFiltering(double[] signal){
         int signalLength = signal.length;
         int nbFreqs = standardFrequencies.length;
@@ -221,8 +222,8 @@ public class ThirdOctaveBandsFiltering {
         }
         return filteredSignals;
     }
+    */
 
-    /*
     public double[][] thirdOctaveFiltering(double[] signal){
         int nbFreqs = standardFrequencies.length;
         double [][] filteredSignals = new double[nbFreqs][];
@@ -243,7 +244,6 @@ public class ThirdOctaveBandsFiltering {
         }
         return filteredSignals;
     }
-    */
     /**
      * Cascade stage parameters
      */

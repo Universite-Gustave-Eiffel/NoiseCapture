@@ -1,10 +1,12 @@
 package org.noise_planet.noisecapture;
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.BarChart;
@@ -23,7 +25,11 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.utils.Highlight;
 import com.github.mikephil.charting.utils.PercentFormatter;
 
+import org.orbisgis.sos.LeqStats;
+
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class Results extends MainActivity {
@@ -37,8 +43,10 @@ public class Results extends MainActivity {
     protected BarChart sChart; // Spectrum representation
 
     // Other ressources
-    private String[] ltob;  // List of third-octave bands (defined as ressources)
+    private String[] ltob;  // List of third-octave bands
     private String[] catNE; // List of noise level category (defined as ressources)
+    private List<Float> splHistogram;
+    private LeqStats leqStats = new LeqStats();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +68,7 @@ public class Results extends MainActivity {
                 return;
             }
         }
+        loadMeasurement();
         setContentView(R.layout.activity_results);
         initDrawer();
 
@@ -81,12 +90,17 @@ public class Results extends MainActivity {
         lnei.setEnabled(false);
 
         // Cumulated spectrum
-        ltob= getResources().getStringArray(R.array.tob_list_array);
         sChart = (BarChart) findViewById(R.id.spectrumChart);
         initSpectrumChart();
-        setDataS((ltob.length-1), 115);
+        setDataS();
         Legend ls = sChart.getLegend();
         ls.setEnabled(false); // Hide legend
+
+        TextView minText = (TextView) findViewById(R.id.textView_value_Min_SL);
+        minText.setText(String.format("%.01f", leqStats.getLeqMin()));
+
+        TextView maxText = (TextView) findViewById(R.id.textView_value_Max_SL);
+        maxText.setText(String.format("%.01f", leqStats.getLeqMax()));
 
         // Enabled/disabled history button if necessary
         ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
@@ -128,6 +142,40 @@ public class Results extends MainActivity {
 
     }
 
+    private void loadMeasurement() {
+        Resources resources = getResources();
+
+        // Query database
+        List<Integer> frequencies = new ArrayList<Integer>();
+        List<Float[]> leqValues = new ArrayList<Float[]>();
+        measurementManager.getRecordValues(record.getId(), frequencies, leqValues);
+
+        // Create leq statistics by frequency
+        LeqStats[] leqStatsByFreq = new LeqStats[frequencies.size()];
+        for(int idFreq = 0; idFreq < leqStatsByFreq.length; idFreq++) {
+            leqStatsByFreq[idFreq] = new LeqStats();
+        }
+        // parse each leq window time
+        for(Float[] leqFreqs : leqValues) {
+            double rms = 0;
+            int idFreq = 0;
+            for(float leqValue : leqFreqs) {
+                leqStatsByFreq[idFreq].addLeq(leqValue);
+                rms += Math.pow(10, leqValue / 10);
+                idFreq++;
+            }
+            leqStats.addRms(rms);
+        }
+        splHistogram = new ArrayList<>(leqStatsByFreq.length);
+        ltob = new String[leqStatsByFreq.length];
+        int idFreq = 0;
+        for (LeqStats aLeqStatsByFreq : leqStatsByFreq) {
+            ltob[idFreq] = resources.getString(R.string.results_histo_freq, frequencies.get(idFreq));
+            splHistogram.add((float) aLeqStatsByFreq.getLeqMean());
+            idFreq++;
+        }
+    }
+
     public void initSpectrumChart(){
         sChart.setDrawBarShadow(false);
         sChart.setDescription("");
@@ -156,21 +204,17 @@ public class Results extends MainActivity {
         //return true;
     }
 
-    // Generate artificial data for spectrum representation
-    private void setDataS(int count, float range) {
+    // Read spl data for spectrum representation
+    private void setDataS() {
 
         ArrayList<String> xVals = new ArrayList<String>();
-        ltob= getResources().getStringArray(R.array.tob_list_array);
-        for (int i = 0; i < count; i++) {
-            xVals.add(ltob[i % (ltob.length-1)]);
-        }
+        Collections.addAll(xVals, ltob);
+
 
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
 
-        for (int i = 0; i < count; i++) {
-            float mult = (range + 1);
-            float val = (float) (20f+Math.random() * mult);
-            yVals1.add(new BarEntry(val, i));
+        for (int i = 0; i < splHistogram.size(); i++) {
+            yVals1.add(new BarEntry(splHistogram.get(i), i));
         }
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");

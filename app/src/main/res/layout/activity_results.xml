@@ -66,7 +66,7 @@
             <TextView
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:text="Min"
+                android:text="@string/measurement_dba_min"
                 android:id="@+id/textView_title_Min_SL"
                 android:gravity="center_horizontal"
                 android:paddingLeft="5dp"
@@ -76,7 +76,7 @@
             <TextView
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:text="Max"
+                android:text="@string/measurement_dba_max"
                 android:id="@+id/textView_title_Max_SL"
                 android:gravity="center_horizontal"
                 android:paddingLeft="5dp"
@@ -95,7 +95,7 @@
             <TextView
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:text="100.0"
+                android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_LA10"
                 android:gravity="center_horizontal"
                 android:paddingLeft="5dp"
@@ -106,7 +106,7 @@
             <TextView
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:text="100.0"
+                android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_LA50"
                 android:gravity="center_horizontal"
                 android:paddingLeft="5dp"
@@ -117,7 +117,7 @@
             <TextView
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:text="100.0"
+                android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_LA90"
                 android:gravity="center_horizontal"
                 android:paddingLeft="5dp"
@@ -128,7 +128,7 @@
             <TextView
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:text="100.0"
+                android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_Min_SL"
                 android:gravity="center_horizontal"
                 android:paddingLeft="5dp"
@@ -139,7 +139,7 @@
             <TextView
                 android:layout_width="70dp"
                 android:layout_height="wrap_content"
-                android:text="100.0"
+                android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_Max_SL"
                 android:gravity="center_horizontal"
                 android:paddingLeft="5dp"

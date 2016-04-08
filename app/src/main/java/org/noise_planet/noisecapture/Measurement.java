@@ -373,11 +373,6 @@ public class Measurement extends MainActivity {
         sChart.invalidate(); // refresh
     }
 
-    // Color for spectrum representation (min, iSL, max)
-    public static final int[] SPECTRUM_COLORS = {
-            Color.rgb(0, 128, 255), Color.rgb(102, 178, 255), Color.rgb(204, 229, 255),
-    };
-
     private static class WaitEndOfProcessing implements Runnable {
         private Measurement activity;
         private ProgressDialog processingDialog;
@@ -405,6 +400,7 @@ public class Measurement extends MainActivity {
             }
 
             if(!activity.canceled.get()) {
+                processingDialog.dismiss();
                 // Update record
                 activity.measurementManager.updateRecordLeqMean(activity.recordId, (float) activity.audioProcess.getLeqMean());
                 // Goto the Results activity

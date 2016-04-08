@@ -499,7 +499,7 @@ public class AudioProcess implements Runnable {
                             // Check if some samples are to be processed in the next batch
                             int remainingSamplesToPostPone = (int)(secondCursor + samples.length -
                                     lastProcessedSamples - processEachSamples);
-                            if(remainingSamplesToPostPone > 0) {
+                            if (remainingSamplesToPostPone > 0) {
                                 coreSignalProcessing.addSample(Arrays.copyOfRange(samples, 0, samples.length - remainingSamplesToPostPone));
                             } else {
                                 coreSignalProcessing.addSample(samples);
@@ -512,7 +512,10 @@ public class AudioProcess implements Runnable {
                             }
                             leqStats.addRms(rmsSum);
                             // Compute record time
-                            long beginRecordTime = audioProcess.beginRecordTime + (secondCursor / audioProcess.getRate()) * 1000;
+                            long beginRecordTime = audioProcess.beginRecordTime +
+                                    (long) (((secondCursor + samples.length
+                                            - remainingSamplesToPostPone) /
+                                            (double) audioProcess.getRate()) * 1000);
                             audioProcess.listeners.firePropertyChange(
                                     AudioProcess.PROP_DELAYED_STANDART_PROCESSING, null,
                                     new DelayedStandardAudioMeasure(leqs,  beginRecordTime));

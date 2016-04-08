@@ -153,8 +153,9 @@
 
     <string name="history_id">Id: %d</string>
     <string name="history_date">Date: %s</string>
-    <string name="history_sel">"%.02f dB(A)"</string>
+    <string name="history_sel">"%.01f dB(A)"</string>
     <string name="history_uploadeddescr">Is this result has been uploaded to community map server</string>
 
     <string name="measurement_processlastsamples">Processing remaining %d samples..</string>
+    <string name="results_histo_freq">%d Hz</string>
 </resources>

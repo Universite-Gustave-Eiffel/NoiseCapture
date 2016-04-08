@@ -102,21 +102,42 @@ public class Storage extends SQLiteOpenHelper {
 
     public static final String CREATE_LEQ = "CREATE TABLE " + Leq.TABLE_NAME + "(" +
             Leq.COLUMN_RECORD_ID + " INTEGER, " +
-            Leq.COLUMN_LEQ_ID + " INTEGER AUTO_INCREMENT, " +
+            Leq.COLUMN_LEQ_ID + " INTEGER PRIMARY KEY, " +
             Leq.COLUMN_LEQ_UTC + " LONG, " +
             Leq.COLUMN_LATITUDE + " DOUBLE, " +
             Leq.COLUMN_LONGITUDE + " DOUBLE, " +
             Leq.COLUMN_ALTITUDE + " DOUBLE, " +
             Leq.COLUMN_ACCURACY + " FLOAT, " +
             Leq.COLUMN_LOCATION_UTC + " LONG, " +
-            "PRIMARY KEY(" + Record.COLUMN_ID + ", " + Leq.COLUMN_LEQ_ID + "), " +
-            "FOREIGN KEY(" + Record.COLUMN_ID + ") REFERENCES record)";
+            "FOREIGN KEY(" + Leq.COLUMN_RECORD_ID + ") REFERENCES record("+Record.COLUMN_ID+"))";
 
     public static class LeqValue implements BaseColumns {
         public static final String TABLE_NAME = "leq_value";
         public static final String COLUMN_LEQ_ID = "leq_id";
         public static final String COLUMN_FREQUENCY = "frequency";
         public static final String COLUMN_SPL = "spl"; // Spl value in dB(A)
+
+        private final int leqId;
+        private final int frequency;
+        private final float spl;
+
+        public LeqValue(Cursor cursor) {
+            leqId = cursor.getInt(cursor.getColumnIndex(COLUMN_LEQ_ID));
+            frequency = cursor.getInt(cursor.getColumnIndex(COLUMN_FREQUENCY));
+            spl = cursor.getFloat(cursor.getColumnIndex(COLUMN_SPL));
+        }
+
+        public int getLeqId() {
+            return leqId;
+        }
+
+        public int getFrequency() {
+            return frequency;
+        }
+
+        public float getSpl() {
+            return spl;
+        }
     }
 
     public static final String CREATE_LEQ_VALUE = "CREATE TABLE " + LeqValue.TABLE_NAME + "(" +
@@ -124,5 +145,5 @@ public class Storage extends SQLiteOpenHelper {
             LeqValue.COLUMN_FREQUENCY +" INTEGER, " +
             LeqValue.COLUMN_SPL +" FLOAT, " +
             "PRIMARY KEY("+LeqValue.COLUMN_LEQ_ID +", "+LeqValue.COLUMN_FREQUENCY +"), " +
-            "FOREIGN KEY("+LeqValue.COLUMN_LEQ_ID +") REFERENCES leq);";
+            "FOREIGN KEY("+LeqValue.COLUMN_LEQ_ID +") REFERENCES leq("+Leq.COLUMN_LEQ_ID+"));";
 }

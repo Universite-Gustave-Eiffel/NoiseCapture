@@ -4,23 +4,19 @@ import android.content.res.Resources;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.provider.MediaStore;
 import android.util.Log;
-
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeSupport;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.Arrays;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.FFTSignalProcessing;
 import org.orbisgis.sos.LeqStats;
-import org.orbisgis.sos.SOSSignalProcessing;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
+
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeSupport;
+import java.util.Arrays;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Processing thread of packets of Audio signal
@@ -41,9 +37,6 @@ public class AudioProcess implements Runnable {
     private final MovingLeqProcessing fftLeqProcessing;
     private final StandartLeqProcessing standartLeqProcessing;
     private long beginRecordTime;
-    private static final int REFERENCE_90DB_RMS = 2500;
-    private static final double REFERENCE_SIGNAL = Math.pow(10, 90 / 10) / REFERENCE_90DB_RMS;
-    private Resources appResources;
 
 
 
@@ -53,10 +46,9 @@ public class AudioProcess implements Runnable {
      * Constructor
      * @param recording Recording state
      */
-    public AudioProcess(AtomicBoolean recording, AtomicBoolean canceled, Resources appResources) {
+    public AudioProcess(AtomicBoolean recording, AtomicBoolean canceled) {
         this.recording = recording;
         this.canceled = canceled;
-        this.appResources = appResources;
         final int[] mSampleRates = new int[] {44100, 22050, 16000, 11025,8000};
         final int[] encodings = new int[] { AudioFormat.ENCODING_PCM_16BIT , AudioFormat.ENCODING_PCM_8BIT };
         final short[] audioChannels = new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO };

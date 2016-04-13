@@ -63,10 +63,10 @@ public class FFTSignalProcessing {
             sampleSum += sample * sample;
         }
         final double rmsValue = Math.sqrt(sampleSum / sampleBuffer.length);
-        return todBA(rmsValue * Math.sqrt(2));
+        return todBspl(rmsValue * Math.sqrt(2));
     }
 
-    private double todBA(double peakLevel) {
+    private double todBspl(double peakLevel) {
         return (20 * Math.log10(peakLevel / Short.MAX_VALUE) + DB_FS_REFERENCE);
     }
 
@@ -109,7 +109,7 @@ public class FFTSignalProcessing {
             for(int idCell = cellLower; idCell <= cellUpper; idCell++) {
                 sumVal += fftResult[idCell];
             }
-            sumVal = todBA(sumVal);
+            sumVal = todBspl(sumVal);
             if(aWeighting) {
                 // Apply A weighting
                 int freqIndex = Arrays.binarySearch(
@@ -120,9 +120,10 @@ public class FFTSignalProcessing {
             splLevels[thirdOctaveId] = (float) sumVal;
             thirdOctaveId++;
         }
-        float[] spectrumSplLevels = new float[fftResult.length];
+        // Limit spectrum output by specified frequencies and convert to dBspl
+        float[] spectrumSplLevels = new float[(int)(standardFrequencies[standardFrequencies.length - 1] /  freqByCell)];
         for(int i = 0; i < spectrumSplLevels.length; i++) {
-            spectrumSplLevels[i] = (float)todBA(fftResult[i]);
+            spectrumSplLevels[i] = (float) todBspl(fftResult[i]);
         }
         return new ProcessingResult(spectrumSplLevels, splLevels, (float)(10 * Math.log10(globalSpl)));
     }

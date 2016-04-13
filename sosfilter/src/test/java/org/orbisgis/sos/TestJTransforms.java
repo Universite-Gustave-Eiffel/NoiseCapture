@@ -57,10 +57,8 @@ public class TestJTransforms {
         fftSignalProcessing.addSample(signal);
         FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(true, true);
 
-        assertEquals(90, fftSignalProcessing.computeGlobalLeq(), 0.01);
-        assertEquals(90,
-                processingResult.dBaLevels[Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED,
-                        rate)], 0.01);
+        assertEquals(72.24, fftSignalProcessing.computeGlobalLeq(), 0.01);
+        assertEquals(72.24, processingResult.getGlobaldBaValue(), 1);
     }
 
     @Test

@@ -66,7 +66,7 @@ public class Measurement extends MainActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.audioProcess = new AudioProcess(isRecording, canceled, getResources());
+        this.audioProcess = new AudioProcess(isRecording, canceled);
         this.measurementManager = new MeasurementManager(getApplicationContext());
         setContentView(R.layout.activity_measurement);
         initDrawer();
@@ -158,6 +158,8 @@ public class Measurement extends MainActivity {
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
         spectrogram = (Spectrogram) findViewById(R.id.spectrogram_view);
         spectrogram.setTimeStep(audioProcess.getFFTDelay());
+        mChart.setTouchEnabled(false);
+        sChart.setTouchEnabled(false);
         // When user click on spectrum control, view are switched
         SwitchVisibilityListener switchVisibilityListener = new SwitchVisibilityListener(sChart, spectrogram);
         sChart.setOnClickListener(switchVisibilityListener);

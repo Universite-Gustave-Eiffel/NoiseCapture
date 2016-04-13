@@ -1,10 +1,12 @@
 package org.noise_planet.noisecapture;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -17,7 +19,6 @@ import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 
@@ -38,39 +39,100 @@ public class History extends MainActivity {
         initDrawer();
 
         // Fill the spinner_history
-        Spinner spinner = (Spinner) findViewById(R.id.spinner_history);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.choice_user_history, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
+        //Spinner spinner = (Spinner) findViewById(R.id.spinner_history);
+        //ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+        //        R.array.choice_user_history, android.R.layout.simple_spinner_item);
+        //adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        //spinner.setAdapter(adapter);
 
         // Fill the listview
         historyListAdapter = new InformationHistoryAdapter(measurementManager, this);
         ListView infohistory = (ListView)findViewById(R.id.listiew_history);
         infohistory.setAdapter(historyListAdapter);
-        infohistory.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-
-        infohistory.setOnItemClickListener(new OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2,
-                                    long arg3) {
-
-                Storage.Record history = historyListAdapter.getInformationHistory(arg2);
-                //Toast.makeText(History.this, history.Id,Toast.LENGTH_LONG).show();
-
-            }
-        });
+        infohistory.setChoiceMode(ListView.CHOICE_MODE_NONE);
+        infohistory.setOnItemClickListener(new HistoryItemListener(this, measurementManager, historyListAdapter));
     }
 
+    private static final class HistoryItemListener implements OnItemClickListener {
+        private Activity activity;
+        private MeasurementManager measurementManager;
+        private BaseAdapter baseAdapter;
+
+        public HistoryItemListener(Activity activity, MeasurementManager measurementManager,
+                                   BaseAdapter baseAdapter) {
+            this.activity = activity;
+            this.measurementManager = measurementManager;
+            this.baseAdapter = baseAdapter;
+        }
+
+        @Override
+        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            // Show
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            builder.setTitle(R.string.history_item_choice_title);
+            ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(activity,
+                    R.array.choice_user_history, android.R.layout.simple_spinner_item);
+            builder.setAdapter(adapter,
+                    new ItemActionOnClickListener(activity, (int) id, measurementManager));
+            builder.show();
+            baseAdapter.notifyDataSetChanged();
+        }
+    }
+
+    private static class ItemActionOnClickListener implements DialogInterface.OnClickListener {
+        private Activity activity;
+        private int recordId;
+        private MeasurementManager measurementManager;
+
+        public ItemActionOnClickListener(Activity activity, int recordId,
+                                         MeasurementManager measurementManager) {
+            this.activity = activity;
+            this.recordId = recordId;
+            this.measurementManager = measurementManager;
+        }
+
+        private void launchResult() {
+            Intent ir = new Intent(activity.getApplicationContext(), Results.class);
+            ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
+            activity.startActivity(ir);
+            activity.finish();
+        }
+
+        private void launchMap() {
+            Intent ir = new Intent(activity.getApplicationContext(), Map.class);
+            ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
+            activity.startActivity(ir);
+            activity.finish();
+        }
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            switch (which) {
+                case 0:
+                    // Result
+                    launchResult();
+                    break;
+                case 1:
+                    // Map
+                    launchMap();
+                    break;
+                case 2:
+                    // Upload
+                    // TODO upload action
+                    break;
+                case 3:
+                    // Delete record
+                    measurementManager.deleteRecord(recordId);
+                    break;
+            }
+        }
+    }
 
     public static class InformationHistoryAdapter extends BaseAdapter {
-        private MeasurementManager measurementManager;
         private List<Storage.Record> informationHistoryList;
         private MainActivity activity;
 
         public InformationHistoryAdapter(MeasurementManager measurementManager, MainActivity activity) {
-            this.measurementManager = measurementManager;
             this.informationHistoryList = measurementManager.getRecords();
             this.activity = activity;
         }
@@ -88,7 +150,7 @@ public class History extends MainActivity {
 
         @Override
         public long getItemId(int position) {
-            return position;
+            return informationHistoryList.get(position).getId();
         }
 
         @Override
@@ -98,7 +160,6 @@ public class History extends MainActivity {
                 LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 convertView = inflater.inflate(R.layout.history_item_layout, parent,false);
             }
-
             TextView history_Id = (TextView)convertView.findViewById(R.id.textView_Id_item_history);
             TextView history_Date = (TextView)convertView.findViewById(R.id.textView_Date_item_history);
             TextView history_SEL = (TextView)convertView.findViewById(R.id.textView_SEL_item_history);

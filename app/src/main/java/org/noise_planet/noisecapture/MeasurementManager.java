@@ -48,6 +48,20 @@ public class MeasurementManager {
     }
 
     /**
+     * Delete all data associated with a record
+     * @param recordId Record identifier
+     */
+    public void deleteRecord(int recordId) {
+        SQLiteDatabase database = storage.getWritableDatabase();
+        try {
+            database.delete(Storage.Record.TABLE_NAME, Storage.Record.COLUMN_ID + " = ?",
+                    new String[]{String.valueOf(recordId)});
+        } finally {
+            database.close();
+        }
+    }
+
+    /**
      * @return Record
      */
     public int addRecord() {

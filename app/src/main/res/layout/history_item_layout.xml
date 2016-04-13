@@ -63,13 +63,6 @@
             app:srcCompat="@drawable/uploaded"
             android:contentDescription="@string/history_uploadeddescr" />
 
-        <CheckBox
-            android:layout_width="wrap_content"
-            android:layout_height="45dp"
-            android:id="@+id/checkBox_item_history"
-            android:gravity="center_vertical|end" />
-
-
     </LinearLayout>
 
 </RelativeLayout>

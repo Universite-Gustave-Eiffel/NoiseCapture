@@ -123,6 +123,7 @@ public class Results extends MainActivity {
             public void onClick(View view) {
                 // Go to map page
                 Intent a = new Intent(getApplicationContext(), Map.class);
+                finish();
                 startActivity(a);
             }
         });
@@ -135,7 +136,8 @@ public class Results extends MainActivity {
                 // Go to Measurement activity
                 Intent im = new Intent(getApplicationContext(),Measurement.class);
                 mDrawerLayout.closeDrawer(mDrawerList);
-                startActivityIfNeeded(im,0);
+                startActivity(im);
+                finish();
             }
         });
 

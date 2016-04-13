@@ -33,6 +33,7 @@ public class Start extends Activity {
 
             Intent i = new Intent(getApplicationContext(),Measurement.class);
             startActivity(i);
+            finish();
         }
     };
 

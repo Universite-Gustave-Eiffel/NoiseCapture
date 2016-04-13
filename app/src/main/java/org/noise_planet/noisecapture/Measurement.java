@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -147,13 +148,14 @@ public class Measurement extends MainActivity {
                 // Go to map page
                 Intent a = new Intent(getApplicationContext(), Map.class);
                 startActivity(a);
-                ;
+                finish();
             }
         });
 
         // Instantaneous sound level VUMETER
         // Stacked bars are used for represented Min, Current and Max values
         // Horizontal barchart
+        LinearLayout graphLayouts = (LinearLayout) findViewById(R.id.graph_components_layout);
         sChart = (BarChart) findViewById(R.id.spectrumChart);
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
         spectrogram = (Spectrogram) findViewById(R.id.spectrogram_view);
@@ -162,8 +164,7 @@ public class Measurement extends MainActivity {
         sChart.setTouchEnabled(false);
         // When user click on spectrum control, view are switched
         SwitchVisibilityListener switchVisibilityListener = new SwitchVisibilityListener(sChart, spectrogram);
-        sChart.setOnClickListener(switchVisibilityListener);
-        spectrogram.setOnClickListener(switchVisibilityListener);
+        graphLayouts.setOnClickListener(switchVisibilityListener);
         initSpectrum();
         initVueMeter();
         setData(0);
@@ -417,6 +418,9 @@ public class Measurement extends MainActivity {
                     }
                 });
 
+            } else {
+                // Destroy record
+                activity.measurementManager.deleteRecord(activity.recordId);
             }
         }
     }
@@ -487,6 +491,7 @@ public class Measurement extends MainActivity {
 
             if (activity.isRecording.compareAndSet(false, true)) {
 
+                activity.canceled.set(false);
                 // Start measurement
                 activity.recordId = activity.measurementManager.addRecord();
 
@@ -554,13 +559,13 @@ public class Measurement extends MainActivity {
 
         private static void formatdBA(double dbAValue, TextView textView) {
             // TODO provide warning information about approximate value about 30 dB range from -18 dB to +12dB around 90 dB
-            //boolean approximate = dbAValue < 72 || dbAValue > 102;
+            boolean approximate = dbAValue < 72 || dbAValue > 102;
             if(dbAValue > MIN_SHOWN_DBA_VALUE && dbAValue < MAX_SHOWN_DBA_VALUE) {
-            //    if(!approximate) {
+                if(!approximate) {
                     textView.setText(String.format(" %.1f", dbAValue));
-            //    } else {
-            //        textView.setText(String.format("~%.1f", dbAValue));
-            //    }
+                } else {
+                    textView.setText(String.format("%.1f~", dbAValue));
+                }
             } else {
                 textView.setText(R.string.no_valid_dba_value);
             }

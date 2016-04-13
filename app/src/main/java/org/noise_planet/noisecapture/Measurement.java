@@ -34,6 +34,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Measurement extends MainActivity {
@@ -50,7 +51,7 @@ public class Measurement extends MainActivity {
     private AtomicBoolean isRecording = new AtomicBoolean(false);
     private AtomicBoolean canceled = new AtomicBoolean(false);
     private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
-    private AudioProcess audioProcess = new AudioProcess(isRecording, canceled);
+    private AudioProcess audioProcess;
     private MeasurementManager measurementManager;
     // This measurement identifier in the long term storage
     private int recordId = -1;
@@ -64,8 +65,8 @@ public class Measurement extends MainActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
+        this.audioProcess = new AudioProcess(isRecording, canceled, getResources());
         this.measurementManager = new MeasurementManager(getApplicationContext());
         setContentView(R.layout.activity_measurement);
         initDrawer();
@@ -455,12 +456,15 @@ public class Measurement extends MainActivity {
                 // Delayed audio processing
                 AudioProcess.DelayedStandardAudioMeasure measure =
                         (AudioProcess.DelayedStandardAudioMeasure)event.getNewValue();
-                int leqId = activity.measurementManager.addLeq(activity.recordId, measure.getBeginRecordTime());
+                Storage.Leq leq = new Storage.Leq(activity.recordId, -1,
+                        measure.getBeginRecordTime(), 0, 0, 0, 0, 0);
                 double[] freqValues = activity.audioProcess.getDelayedCenterFrequency();
-                final double[] leqs = measure.getLeqs();
+                final float[] leqs = measure.getLeqs();
+                List<Storage.LeqValue> leqValueList = new ArrayList<>(leqs.length);
                 for(int idFreq = 0; idFreq < leqs.length; idFreq++) {
-                    activity.measurementManager.addLeqValue(leqId,(int)freqValues[idFreq], (float)leqs[idFreq]);
+                    leqValueList.add(new Storage.LeqValue(-1, (int) freqValues[idFreq], leqs[idFreq]));
                 }
+                activity.measurementManager.addLeqBatch(new MeasurementManager.LeqBatch(leq, leqValueList));
             }
         }
 
@@ -547,8 +551,14 @@ public class Measurement extends MainActivity {
         Measurement activity;
 
         private static void formatdBA(double dbAValue, TextView textView) {
+            // TODO provide warning information about approximate value about 30 dB range from -18 dB to +12dB around 90 dB
+            //boolean approximate = dbAValue < 72 || dbAValue > 102;
             if(dbAValue > MIN_SHOWN_DBA_VALUE && dbAValue < MAX_SHOWN_DBA_VALUE) {
-                textView.setText(String.format("%.1f", dbAValue));
+            //    if(!approximate) {
+                    textView.setText(String.format(" %.1f", dbAValue));
+            //    } else {
+            //        textView.setText(String.format("~%.1f", dbAValue));
+            //    }
             } else {
                 textView.setText(R.string.no_valid_dba_value);
             }

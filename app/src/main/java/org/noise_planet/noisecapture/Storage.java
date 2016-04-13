@@ -46,10 +46,17 @@ public class Storage extends SQLiteOpenHelper {
         private float leqMean;
 
         public Record(Cursor cursor) {
-            id = cursor.getInt(cursor.getColumnIndex(COLUMN_ID));
-            utc = cursor.getLong(cursor.getColumnIndex(COLUMN_UTC));
-            uploadId = cursor.getString(cursor.getColumnIndex(COLUMN_UPLOAD_ID));
-            leqMean = cursor.getFloat(cursor.getColumnIndex(COLUMN_LEQ_MEAN));
+            this(cursor.getInt(cursor.getColumnIndex(COLUMN_ID)),
+                    cursor.getLong(cursor.getColumnIndex(COLUMN_UTC)),
+                    cursor.getString(cursor.getColumnIndex(COLUMN_UPLOAD_ID)),
+                    cursor.getFloat(cursor.getColumnIndex(COLUMN_LEQ_MEAN)));
+        }
+
+        public Record(int id, long utc, String uploadId, float leqMean) {
+            this.id = id;
+            this.utc = utc;
+            this.uploadId = uploadId;
+            this.leqMean = leqMean;
         }
 
         /**
@@ -98,6 +105,70 @@ public class Storage extends SQLiteOpenHelper {
         public static final String COLUMN_ALTITUDE = "altitude";
         public static final String COLUMN_ACCURACY = "accuracy"; // location precision estimation
         public static final String COLUMN_LOCATION_UTC = "location_utc"; // date of last obtained location
+
+        private int recordId;
+        private int leqId;
+        private long leqUtc;
+        private double latitude;
+        private double longitude;
+        private double altitude;
+        private float accuracy;
+        private long locationUTC;
+
+        /**
+         *
+         * @param recordId Record id or -1 if unknown
+         * @param leqId
+         * @param leqUtc
+         * @param latitude
+         * @param longitude
+         * @param altitude
+         * @param accuracy
+         * @param locationUTC
+         */
+        public Leq(int recordId, int leqId, long leqUtc, double latitude, double longitude,
+                   double altitude, float accuracy, long locationUTC) {
+            this.recordId = recordId;
+            this.leqId = leqId;
+            this.leqUtc = leqUtc;
+            this.latitude = latitude;
+            this.longitude = longitude;
+            this.altitude = altitude;
+            this.accuracy = accuracy;
+            this.locationUTC = locationUTC;
+        }
+
+        public int getRecordId() {
+            return recordId;
+        }
+
+        public int getLeqId() {
+            return leqId;
+        }
+
+        public long getLeqUtc() {
+            return leqUtc;
+        }
+
+        public double getLatitude() {
+            return latitude;
+        }
+
+        public double getLongitude() {
+            return longitude;
+        }
+
+        public double getAltitude() {
+            return altitude;
+        }
+
+        public float getAccuracy() {
+            return accuracy;
+        }
+
+        public long getLocationUTC() {
+            return locationUTC;
+        }
     }
 
     public static final String CREATE_LEQ = "CREATE TABLE " + Leq.TABLE_NAME + "(" +
@@ -109,7 +180,7 @@ public class Storage extends SQLiteOpenHelper {
             Leq.COLUMN_ALTITUDE + " DOUBLE, " +
             Leq.COLUMN_ACCURACY + " FLOAT, " +
             Leq.COLUMN_LOCATION_UTC + " LONG, " +
-            "FOREIGN KEY(" + Leq.COLUMN_RECORD_ID + ") REFERENCES record("+Record.COLUMN_ID+"))";
+            "FOREIGN KEY(" + Leq.COLUMN_RECORD_ID + ") REFERENCES record("+Record.COLUMN_ID+") ON DELETE CASCADE)";
 
     public static class LeqValue implements BaseColumns {
         public static final String TABLE_NAME = "leq_value";
@@ -122,9 +193,20 @@ public class Storage extends SQLiteOpenHelper {
         private final float spl;
 
         public LeqValue(Cursor cursor) {
-            leqId = cursor.getInt(cursor.getColumnIndex(COLUMN_LEQ_ID));
-            frequency = cursor.getInt(cursor.getColumnIndex(COLUMN_FREQUENCY));
-            spl = cursor.getFloat(cursor.getColumnIndex(COLUMN_SPL));
+            this(cursor.getInt(cursor.getColumnIndex(COLUMN_LEQ_ID)),
+                    cursor.getInt(cursor.getColumnIndex(COLUMN_FREQUENCY)),
+                    cursor.getFloat(cursor.getColumnIndex(COLUMN_SPL)));
+        }
+
+        /**
+         * @param leqId Leq Id or -1 if unknown
+         * @param frequency Frequency in Hertz
+         * @param spl Sound pressure value in dB(A)
+         */
+        public LeqValue(int leqId, int frequency, float spl) {
+            this.leqId = leqId;
+            this.frequency = frequency;
+            this.spl = spl;
         }
 
         public int getLeqId() {
@@ -145,5 +227,5 @@ public class Storage extends SQLiteOpenHelper {
             LeqValue.COLUMN_FREQUENCY +" INTEGER, " +
             LeqValue.COLUMN_SPL +" FLOAT, " +
             "PRIMARY KEY("+LeqValue.COLUMN_LEQ_ID +", "+LeqValue.COLUMN_FREQUENCY +"), " +
-            "FOREIGN KEY("+LeqValue.COLUMN_LEQ_ID +") REFERENCES leq("+Leq.COLUMN_LEQ_ID+"));";
+            "FOREIGN KEY("+LeqValue.COLUMN_LEQ_ID +") REFERENCES leq("+Leq.COLUMN_LEQ_ID+") ON DELETE CASCADE);";
 }

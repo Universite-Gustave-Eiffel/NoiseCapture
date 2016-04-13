@@ -5,12 +5,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteStatement;
 
 import org.orbisgis.sos.LeqStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -130,9 +133,9 @@ public class MeasurementManager {
             contentValues.put(Storage.Record.COLUMN_UTC, System.currentTimeMillis());
             contentValues.put(Storage.Record.COLUMN_UPLOAD_ID, "");
             try {
-                database.execSQL("UPDATE "+Storage.Record.TABLE_NAME+" SET "+
-                        Storage.Record.COLUMN_LEQ_MEAN+" = ? WHERE "+Storage.Record.COLUMN_ID+" = ?",
-                        new Object[]{leqMean, recordId});
+                database.execSQL("UPDATE " + Storage.Record.TABLE_NAME + " SET " +
+                        Storage.Record.COLUMN_LEQ_MEAN + " = ? WHERE " +
+                        Storage.Record.COLUMN_ID + " = ?", new Object[]{leqMean, recordId});
             } catch (SQLException sqlException) {
                 LOGGER.error(sqlException.getLocalizedMessage(), sqlException);
             }
@@ -143,48 +146,63 @@ public class MeasurementManager {
     }
 
     /**
-     * Add a Leq header information
-     * @param recordId Record identifier
-     * @param leqTime Start leq capture time
-     * @return Leq identifier
+     * Add multiple leq records
+     * @param leqBatches List of Leq to add
      */
-    public int addLeq(int recordId, long leqTime) {
+    public void addLeqBatches(List<LeqBatch> leqBatches) {
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(Storage.Leq.COLUMN_RECORD_ID, recordId);
-            contentValues.put(Storage.Leq.COLUMN_LEQ_UTC, leqTime);
-            try {
-                return (int) database.insertOrThrow(Storage.Leq.TABLE_NAME, null, contentValues);
-            } catch (SQLException sqlException) {
-                LOGGER.error(sqlException.getLocalizedMessage(), sqlException);
-                return -1;
+            database.beginTransaction();
+            SQLiteStatement leqStatement = database.compileStatement(
+                    "INSERT INTO " + Storage.Leq.TABLE_NAME + "(" +
+                            Storage.Leq.COLUMN_RECORD_ID + "," + Storage.Leq.COLUMN_LEQ_UTC +
+                            ") VALUES (?, ?)");
+            SQLiteStatement leqValueStatement = database.compileStatement("INSERT INTO " +
+                    Storage.LeqValue.TABLE_NAME + " VALUES (?,?,?)");
+            for(LeqBatch leqBatch : leqBatches) {
+                Storage.Leq leq = leqBatch.getLeq();
+                leqStatement.clearBindings();
+                leqStatement.bindLong(1, leq.getRecordId());
+                leqStatement.bindLong(2, leq.getLeqUtc());
+                long leqId = leqStatement.executeInsert();
+                for(Storage.LeqValue leqValue : leqBatch.getLeqValues()) {
+                    leqValueStatement.clearBindings();
+                    leqValueStatement.bindLong(1, leqId);
+                    leqValueStatement.bindLong(2, leqValue.getFrequency());
+                    leqValueStatement.bindDouble(3, leqValue.getSpl());
+                    leqValueStatement.execute();
+                }
             }
+            database.setTransactionSuccessful();
+            database.endTransaction();
         } finally {
             database.close();
         }
     }
 
     /**
-     * Add a Leq frequency value
-     * @param leqId Leq identifier
-     * @param frequency Frequency in Hz
-     * @param spl Sound pressure value in dB(A)
+     * Add a leq record
+     * @param leqBatch Leq values
      */
-    void addLeqValue(int leqId, int frequency, float spl) {
-        SQLiteDatabase database = storage.getWritableDatabase();
-        try {
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(Storage.LeqValue.COLUMN_LEQ_ID, leqId);
-            contentValues.put(Storage.LeqValue.COLUMN_FREQUENCY, frequency);
-            contentValues.put(Storage.LeqValue.COLUMN_SPL, spl);
-            try {
-                database.insertOrThrow(Storage.LeqValue.TABLE_NAME, null, contentValues);
-            } catch (SQLException sqlException) {
-                LOGGER.error(sqlException.getLocalizedMessage(), sqlException);
-            }
-        } finally {
-            database.close();
+    public void addLeqBatch(LeqBatch leqBatch) {
+        addLeqBatches(Collections.singletonList(leqBatch));
+    }
+
+    public static class LeqBatch {
+        private Storage.Leq leq;
+        private List<Storage.LeqValue> leqValues;
+
+        public LeqBatch(Storage.Leq leq, List<Storage.LeqValue> leqValues) {
+            this.leq = leq;
+            this.leqValues = leqValues;
+        }
+
+        public Storage.Leq getLeq() {
+            return leq;
+        }
+
+        public List<Storage.LeqValue> getLeqValues() {
+            return leqValues;
         }
     }
 }

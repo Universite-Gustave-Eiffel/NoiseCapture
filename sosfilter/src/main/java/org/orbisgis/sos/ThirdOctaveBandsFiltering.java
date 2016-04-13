@@ -29,9 +29,9 @@ public class ThirdOctaveBandsFiltering {
      * STANDARD_FREQUENCIES_REDUCED corresponds with a reduced array of standard third octave bands frequencies in the range [100Hz, 20kHz]
      * STANDARD_FREQUENCIES_FULL corresponds with the array of standard third octave bands frequencies in the range [100Hz, 20kHz]
      */
-    private static final double[] STANDARD_FREQUENCIES_REDUCED = new double[]{100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000};
-    private static final double[] STANDARD_FREQUENCIES_FULL = new double[]{16, 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000};
-    private static final double[] STANDARD_OCTAVE_FREQUENCIES_REDUCED = new double[]{125, 250, 500, 1000, 2000, 4000, 8000, 16000};
+    public static final double[] STANDARD_FREQUENCIES_REDUCED = new double[]{100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000};
+    public static final double[] STANDARD_FREQUENCIES_FULL = new double[]{16, 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000, 20000};
+    public static final double[] STANDARD_OCTAVE_FREQUENCIES_REDUCED = new double[]{125, 250, 500, 1000, 2000, 4000, 8000, 16000};
 
     /**
      * Third octave bands filtering constructor

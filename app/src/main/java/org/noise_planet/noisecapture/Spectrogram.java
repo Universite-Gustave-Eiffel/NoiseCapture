@@ -196,10 +196,10 @@ public class Spectrogram extends View {
                     float sumVal = 0;
                     for (int idfreq = freqStart; idfreq < freqEnd; idfreq++) {
                         // Rescale value and pick the color in the color ramp
-                        sumVal += ticSpectrum[idfreq];
+                        sumVal += Math.pow(10, ticSpectrum[idfreq] / 20);
                     }
                     sumVal = (float)Math.max(0,
-                            (10 * Math.log10(sumVal)));
+                            (20 * Math.log10(sumVal)));
                     int pixColor = colorRamp[Math.min(colorRamp.length - 1, Math.max(0,
                             (int) (((sumVal - min) / (max - min)) * colorRamp.length)))];
                     for(int y = 0; y < ticWidth; y++) {

@@ -4,6 +4,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.InputStream;
+import java.nio.ByteOrder;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -56,11 +57,11 @@ public class CoreSignalProcessingTest {
 
         final int rate = 44100;
         ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands = ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED;
-        CoreSignalProcessing signalProcessing = new CoreSignalProcessing(rate, frequencyBands);
+        SOSSignalProcessing signalProcessing = new SOSSignalProcessing(rate, frequencyBands);
         //long deb = System.currentTimeMillis();
         //for(int i = 0; i < 100; i++) {
             InputStream inputStream = CoreSignalProcessingTest.class.getResourceAsStream("pinknoise_1s.raw");
-            List<double[]> leqs = signalProcessing.processAudio(16, rate, inputStream, AcousticIndicators.TIMEPERIOD_SLOW, REF_SOUND_PRESSURE);
+            List<double[]> leqs = signalProcessing.processAudio(16, rate, inputStream, AcousticIndicators.TIMEPERIOD_SLOW, REF_SOUND_PRESSURE, ByteOrder.BIG_ENDIAN);
             inputStream.close();
         //}
         //System.out.println("Comp done in "+(System.currentTimeMillis() - deb)+" ms");

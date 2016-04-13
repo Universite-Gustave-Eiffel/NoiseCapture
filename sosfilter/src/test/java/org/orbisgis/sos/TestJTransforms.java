@@ -4,11 +4,64 @@ import org.jtransforms.fft.FloatFFT_1D;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import static org.junit.Assert.assertEquals;
 
 
 public class TestJTransforms {
 
+    @Test
+    public void testProcessing() {
+        // Make 1000 Hz signal
+        final int sampleRate = 44100;
+        final int signalFrequency = 1000;
+        double powerRMS = 2500; // 90 dBspl
+        double powerPeak = powerRMS * Math.sqrt(2);
+        short[] signal = new short[sampleRate];
+        for (int s = 0; s < sampleRate; s++) {
+            double t = s * (1 / (double) sampleRate);
+            signal[s] = (short)(Math.sin(2 * Math.PI * signalFrequency * t) * (powerPeak));
+        }
+
+        FFTSignalProcessing fftSignalProcessing =
+                new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, signal.length);
+        fftSignalProcessing.addSample(signal);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false);
+
+        assertEquals(90, fftSignalProcessing.computeGlobalLeq(), 0.01);
+        assertEquals(90,
+                processingResult.dBaLevels[Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED,
+                        signalFrequency)], 0.01);
+
+    }
+
+    @Test
+    public void testRecorder() throws IOException {
+        int rate = 44100;
+        InputStream inputStream = CoreSignalProcessingTest.class.getResourceAsStream("capture_1000hz_16bits_44100hz_signed.raw");
+        FFTSignalProcessing fftSignalProcessing =
+                new FFTSignalProcessing(rate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, rate);
+        // Read input signal up to buffer.length
+        double min = Double.MAX_VALUE;
+        double max = Double.MIN_VALUE;
+        short[] signal = SOSSignalProcessing.loadShortStream(inputStream);
+        for(short tic : signal) {
+            min = Math.min(min, tic);
+            max = Math.max(max, tic);
+        }
+        fftSignalProcessing.addSample(signal);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(true, true);
+
+        assertEquals(90, fftSignalProcessing.computeGlobalLeq(), 0.01);
+        assertEquals(90,
+                processingResult.dBaLevels[Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED,
+                        rate)], 0.01);
+    }
 
     @Test
     public void testAmplitude() {
@@ -16,10 +69,11 @@ public class TestJTransforms {
         // Make 50 Hz signal
         final int sampleRate = 44100;
         final int signalFrequency = 50;
+        float power = 2500;
         float[] signal = new float[sampleRate];
         for(int s = 0; s < sampleRate; s++) {
             double t = s * (1 / (double)sampleRate);
-            signal[s] = (float)Math.sin(2 * Math.PI * signalFrequency * t);
+            signal[s] = (float)Math.sin(2 * Math.PI * signalFrequency * t) * power;
         }
 
         // Execute FFT
@@ -41,7 +95,7 @@ public class TestJTransforms {
             localMax = Math.max(localMax, result[s]);
         }
 
-        assertEquals(1, localMax, 1e-12);
+        assertEquals(power, localMax, 1e-12);
         assertEquals(signalFrequency, maxValueFreq);
     }
 

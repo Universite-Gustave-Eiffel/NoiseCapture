@@ -99,15 +99,28 @@ public class FFTSignalProcessing {
         float[] splLevels = new float[standardFrequencies.length];
         int thirdOctaveId = 0;
         double globalSpl = 0;
-        for(double fCenter : standardFrequencies) {
+        double freqByCellDiv2 = freqByCell / 2;
+        int refFreq = Arrays.binarySearch(standardFrequencies, 1000);
+        for(double fNominal : standardFrequencies) {
             // Compute lower and upper value of third-octave
-            final double fLower = fCenter / fd;
-            final double fUpper = fCenter * fd;
-            int cellLower = (int)(Math.ceil(fLower / freqByCell));
-            int cellUpper = Math.min(fftResult.length - 1, (int) (Math.floor(fUpper / freqByCell)));
+            // NF-EN 61260
+            // base 10
+            double fCenter = Math.pow(10, (Arrays.binarySearch(standardFrequencies, fNominal) - refFreq)/10.) * 1000;
+            final double fLower = fCenter * Math.pow(10, -1. / 20.);
+            final double fUpper = fCenter * Math.pow(10, 1. / 20.);
+            int cellLower = (int)(fLower / freqByCell);
+            int cellUpper = Math.min(fftResult.length - 1, (int) (fUpper / freqByCell));
             double sumVal = 0;
             for(int idCell = cellLower; idCell <= cellUpper; idCell++) {
-                sumVal += fftResult[idCell];
+                if(fLower < (idCell * freqByCell) - freqByCellDiv2 &&
+                        fUpper > (idCell * freqByCell) + freqByCellDiv2) {
+                    sumVal += fftResult[idCell];
+                }else if(fLower < (idCell * freqByCell) + freqByCellDiv2 &&
+                        fUpper < (idCell * freqByCell) + freqByCellDiv2) {
+                    sumVal += fftResult[idCell] * (fUpper - ((idCell * freqByCell) - freqByCellDiv2)) / freqByCell;
+                } else {
+                    System.out.println("Ignored "+(idCell*freqByCell)+" Hz");
+                }
             }
             sumVal = todBspl(sumVal);
             if(aWeighting) {

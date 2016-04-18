@@ -7,7 +7,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.preference.PreferenceManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -21,7 +20,6 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.Toast;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -126,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                     // Show the map if data transfer settings is true
                     // TODO: Check also if data transfer using wifi
                     if (CheckDataTransfer()) {
-                        Intent imap = new Intent(getApplicationContext(), Map.class);
+                        Intent imap = new Intent(getApplicationContext(), MapActivity.class);
                         //mDrawerLayout.closeDrawer(mDrawerList);
                         startActivity(imap);
                         finish();

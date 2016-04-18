@@ -56,10 +56,10 @@ public class History extends MainActivity {
     private static final class HistoryItemListener implements OnItemClickListener {
         private Activity activity;
         private MeasurementManager measurementManager;
-        private BaseAdapter baseAdapter;
+        private InformationHistoryAdapter baseAdapter;
 
         public HistoryItemListener(Activity activity, MeasurementManager measurementManager,
-                                   BaseAdapter baseAdapter) {
+                                   InformationHistoryAdapter baseAdapter) {
             this.activity = activity;
             this.measurementManager = measurementManager;
             this.baseAdapter = baseAdapter;
@@ -71,11 +71,10 @@ public class History extends MainActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(activity);
             builder.setTitle(R.string.history_item_choice_title);
             ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(activity,
-                    R.array.choice_user_history, android.R.layout.simple_spinner_item);
+                    R.array.choice_user_history, android.R.layout.simple_selectable_list_item);
             builder.setAdapter(adapter,
-                    new ItemActionOnClickListener(activity, (int) id, measurementManager));
+                    new ItemActionOnClickListener(activity, (int) id, measurementManager, baseAdapter));
             builder.show();
-            baseAdapter.notifyDataSetChanged();
         }
     }
 
@@ -83,12 +82,15 @@ public class History extends MainActivity {
         private Activity activity;
         private int recordId;
         private MeasurementManager measurementManager;
+        private InformationHistoryAdapter baseAdapter;
 
         public ItemActionOnClickListener(Activity activity, int recordId,
-                                         MeasurementManager measurementManager) {
+                                         MeasurementManager measurementManager,
+                                         InformationHistoryAdapter baseAdapter) {
             this.activity = activity;
             this.recordId = recordId;
             this.measurementManager = measurementManager;
+            this.baseAdapter = baseAdapter;
         }
 
         private void launchResult() {
@@ -99,7 +101,7 @@ public class History extends MainActivity {
         }
 
         private void launchMap() {
-            Intent ir = new Intent(activity.getApplicationContext(), Map.class);
+            Intent ir = new Intent(activity.getApplicationContext(), MapActivity.class);
             ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
             activity.startActivity(ir);
             activity.finish();
@@ -123,6 +125,7 @@ public class History extends MainActivity {
                 case 3:
                     // Delete record
                     measurementManager.deleteRecord(recordId);
+                    baseAdapter.reload();
                     break;
             }
         }
@@ -131,17 +134,25 @@ public class History extends MainActivity {
     public static class InformationHistoryAdapter extends BaseAdapter {
         private List<Storage.Record> informationHistoryList;
         private MainActivity activity;
+        private MeasurementManager measurementManager;
 
         public InformationHistoryAdapter(MeasurementManager measurementManager, MainActivity activity) {
             this.informationHistoryList = measurementManager.getRecords();
             this.activity = activity;
+            this.measurementManager = measurementManager;
         }
+
+
 
         @Override
         public int getCount() {
             return informationHistoryList.size();
         }
 
+        public void reload() {
+            informationHistoryList = measurementManager.getRecords();
+            notifyDataSetChanged();
+        }
 
         @Override
         public Object getItem(int position) {

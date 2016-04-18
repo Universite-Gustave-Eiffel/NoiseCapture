@@ -160,4 +160,7 @@
     <string name="measurement_processlastsamples">Processing remaining %d samples..</string>
     <string name="results_histo_freq">%d Hz</string>
     <string name="history_item_choice_title">Record action</string>
+    <string name="local_service_started">Localisation service started</string>
+    <string name="local_service_disconnected">Localisation service disconnected</string>
+    <string name="local_service_connected">Localisation service connected</string>
 </resources>

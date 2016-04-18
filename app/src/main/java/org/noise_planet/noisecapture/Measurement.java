@@ -2,13 +2,16 @@ package org.noise_planet.noisecapture;
 
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.view.View;
@@ -56,6 +59,7 @@ public class Measurement extends MainActivity {
     private MeasurementManager measurementManager;
     // This measurement identifier in the long term storage
     private int recordId = -1;
+    private boolean mIsBound = false;
 
     public final static double MIN_SHOWN_DBA_VALUE = 35;
     public final static double MAX_SHOWN_DBA_VALUE = 120;
@@ -146,7 +150,7 @@ public class Measurement extends MainActivity {
             @Override
             public void onClick(View view) {
                 // Go to map page
-                Intent a = new Intent(getApplicationContext(), Map.class);
+                Intent a = new Intent(getApplicationContext(), MapActivity.class);
                 startActivity(a);
                 finish();
             }
@@ -422,6 +426,8 @@ public class Measurement extends MainActivity {
                 // Destroy record
                 activity.measurementManager.deleteRecord(activity.recordId);
             }
+            // Stop gps tracking
+            activity.doUnbindService();
         }
     }
 
@@ -491,6 +497,9 @@ public class Measurement extends MainActivity {
 
             if (activity.isRecording.compareAndSet(false, true)) {
 
+                // Start gps tracking
+                activity.doBindService(); // Connect to localisation service
+
                 activity.canceled.set(false);
                 // Start measurement
                 activity.recordId = activity.measurementManager.addRecord();
@@ -558,14 +567,8 @@ public class Measurement extends MainActivity {
         Measurement activity;
 
         private static void formatdBA(double dbAValue, TextView textView) {
-            // TODO provide warning information about approximate value about 30 dB range from -18 dB to +12dB around 90 dB
-            boolean approximate = dbAValue < 72 || dbAValue > 102;
             if(dbAValue > MIN_SHOWN_DBA_VALUE && dbAValue < MAX_SHOWN_DBA_VALUE) {
-                if(!approximate) {
-                    textView.setText(String.format(" %.1f", dbAValue));
-                } else {
-                    textView.setText(String.format("%.1f~", dbAValue));
-                }
+                textView.setText(String.format(" %.1f", dbAValue));
             } else {
                 textView.setText(R.string.no_valid_dba_value);
             }
@@ -627,5 +630,57 @@ public class Measurement extends MainActivity {
         }
     }
 
+
+
+    private LocalisationService mBoundService;
+
+    private ServiceConnection mConnection = new ServiceConnection() {
+        public void onServiceConnected(ComponentName className, IBinder service) {
+            // This is called when the connection with the service has been
+            // established, giving us the service object we can use to
+            // interact with the service.  Because we have bound to a explicit
+            // service that we know is running in our own process, we can
+            // cast its IBinder to a concrete class and directly access it.
+            mBoundService = ((LocalisationService.LocalBinder)service).getService();
+
+            // Tell the user about this for our demo.
+            Toast.makeText(Measurement.this, R.string.local_service_connected,
+                    Toast.LENGTH_SHORT).show();
+        }
+
+        public void onServiceDisconnected(ComponentName className) {
+            // This is called when the connection with the service has been
+            // unexpectedly disconnected -- that is, its process crashed.
+            // Because it is running in our same process, we should never
+            // see this happen.
+            mBoundService = null;
+            Toast.makeText(Measurement.this, R.string.local_service_disconnected,
+                    Toast.LENGTH_SHORT).show();
+        }
+    };
+
+    void doBindService() {
+        // Establish a connection with the service.  We use an explicit
+        // class name because we want a specific service implementation that
+        // we know will be running in our own process (and thus won't be
+        // supporting component replacement by other applications).
+        bindService(new Intent(this,
+                LocalisationService.class), mConnection, Context.BIND_AUTO_CREATE);
+        mIsBound = true;
+    }
+
+    void doUnbindService() {
+        if (mIsBound) {
+            // Detach our existing connection.
+            unbindService(mConnection);
+            mIsBound = false;
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        doUnbindService();
+    }
 }
 

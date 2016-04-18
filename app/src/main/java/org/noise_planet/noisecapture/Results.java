@@ -28,7 +28,6 @@ import com.github.mikephil.charting.utils.PercentFormatter;
 import org.orbisgis.sos.LeqStats;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -122,7 +121,7 @@ public class Results extends MainActivity {
             @Override
             public void onClick(View view) {
                 // Go to map page
-                Intent a = new Intent(getApplicationContext(), Map.class);
+                Intent a = new Intent(getApplicationContext(), MapActivity.class);
                 finish();
                 startActivity(a);
             }

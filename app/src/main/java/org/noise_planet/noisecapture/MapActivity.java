@@ -8,7 +8,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
 
-public class Map extends MainActivity {
+public class MapActivity extends MainActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

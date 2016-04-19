@@ -1,5 +1,6 @@
 package org.orbisgis.sos;
 
+import com.sun.media.sound.FFT;
 import org.jtransforms.fft.FloatFFT_1D;
 import org.junit.Assert;
 import org.junit.Test;
@@ -14,6 +15,23 @@ import static org.junit.Assert.assertEquals;
 
 
 public class TestJTransforms {
+
+    /**
+     * Check combination to third octave of white noise.
+     * Disabled as the combination is rectangular
+     */
+    //@Test
+    public void testThirdOctaveSum() {
+        float[] fftResult = new float[20000];
+        Arrays.fill(fftResult, 1.f);
+        FFTSignalProcessing fftSignalProcessing = new FFTSignalProcessing(44100,
+                ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, fftResult.length);
+        float[] thirdOctaveSum = fftSignalProcessing.thirdOctaveProcessing(fftResult, false);
+        double ref = FFTSignalProcessing.todBspl(thirdOctaveSum[0]);
+        for(int idThirdOctave  = 1; idThirdOctave < thirdOctaveSum.length; idThirdOctave++) {
+            assertEquals(ref + idThirdOctave, FFTSignalProcessing.todBspl(thirdOctaveSum[idThirdOctave]), 0.01);
+        }
+    }
 
     @Test
     public void testProcessing() {

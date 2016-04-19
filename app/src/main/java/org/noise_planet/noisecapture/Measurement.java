@@ -188,6 +188,7 @@ public class Measurement extends MainActivity {
         // (ltob.length-1) values for each third-octave band// Legend: hide all
         Legend ls = sChart.getLegend();
         ls.setEnabled(false); // Hide legend
+        doBindService();
     }
 
     private View.OnClickListener onButtonCancel = new View.OnClickListener() {
@@ -498,7 +499,7 @@ public class Measurement extends MainActivity {
             if (activity.isRecording.compareAndSet(false, true)) {
 
                 // Start gps tracking
-                activity.doBindService(); // Connect to localisation service
+                //activity.doBindService(); // Connect to localisation service
 
                 activity.canceled.set(false);
                 // Start measurement
@@ -664,8 +665,11 @@ public class Measurement extends MainActivity {
         // class name because we want a specific service implementation that
         // we know will be running in our own process (and thus won't be
         // supporting component replacement by other applications).
-        bindService(new Intent(this,
-                LocalisationService.class), mConnection, Context.BIND_AUTO_CREATE);
+        if(!bindService(new Intent(this,
+                LocalisationService.class), mConnection, Context.BIND_AUTO_CREATE)) {
+            Toast.makeText(Measurement.this, R.string.local_service_disconnected,
+                    Toast.LENGTH_SHORT).show();
+        }
         mIsBound = true;
     }
 

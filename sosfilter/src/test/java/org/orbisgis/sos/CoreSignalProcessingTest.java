@@ -33,6 +33,35 @@ public class CoreSignalProcessingTest {
 //
 //    }
 
+
+    @Test
+    public void testLeqStats() {
+        LeqStats leqStats = new LeqStats();
+        leqStats.addLeq(45.15);
+        leqStats.addLeq(45.21);
+        leqStats.addLeq(45.35);
+        leqStats.addLeq(46.33);
+        leqStats.addLeq(46.87);
+        leqStats.addLeq(45.86);
+        leqStats.addLeq(48.15);
+        leqStats.addLeq(49.5);
+        leqStats.addLeq(50.5);
+        leqStats.addLeq(50.52);
+        leqStats.addLeq(50.62);
+        leqStats.addLeq(49.89);
+        leqStats.addLeq(49.88);
+        leqStats.addLeq(48.45);
+        leqStats.addLeq(65.15);
+        leqStats.addLeq(65.14);
+        leqStats.addLeq(66.12);
+        leqStats.addLeq(66.2);
+        leqStats.addLeq(67.21);
+        leqStats.addLeq(66.25);
+
+        LeqStats.LeqOccurences leqOccurences = leqStats.computeLeqOccurences();
+        assertEquals(50, leqOccurences.getLa10(), 0.01);
+    }
+
     @Test
     public void testProcessAudioOneSecond() throws Exception {
 

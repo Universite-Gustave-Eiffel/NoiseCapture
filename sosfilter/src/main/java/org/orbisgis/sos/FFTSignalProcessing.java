@@ -66,7 +66,7 @@ public class FFTSignalProcessing {
         return todBspl(rmsValue * Math.sqrt(2));
     }
 
-    private double todBspl(double peakLevel) {
+    public static double todBspl(double peakLevel) {
         return (20 * Math.log10(peakLevel / Short.MAX_VALUE) + DB_FS_REFERENCE);
     }
 
@@ -95,11 +95,23 @@ public class FFTSignalProcessing {
             fftResult[k] = (float)(peak);
         }
         // Compute A weighted third octave bands
-        final double fd = Math.pow(2, 1. / 6.);
+        float[] splLevels = thirdOctaveProcessing(fftResult, aWeighting);
+        double globalSpl = 0;
+        for(float splLevel : splLevels) {
+            globalSpl += Math.pow(10, splLevel / 10);
+        }
+        // Limit spectrum output by specified frequencies and convert to dBspl
+        float[] spectrumSplLevels = new float[(int)(standardFrequencies[standardFrequencies.length - 1] /  freqByCell)];
+        for(int i = 0; i < spectrumSplLevels.length; i++) {
+            spectrumSplLevels[i] = (float) todBspl(fftResult[i]);
+        }
+        return new ProcessingResult(spectrumSplLevels, splLevels, (float)(10 * Math.log10(globalSpl)));
+    }
+
+    public float[] thirdOctaveProcessing(float[] fftResult, boolean aWeighting) {
+        final double freqByCell = samplingRate / windowSize;
         float[] splLevels = new float[standardFrequencies.length];
         int thirdOctaveId = 0;
-        double globalSpl = 0;
-        double freqByCellDiv2 = freqByCell / 2;
         int refFreq = Arrays.binarySearch(standardFrequencies, 1000);
         for(double fNominal : standardFrequencies) {
             // Compute lower and upper value of third-octave
@@ -108,37 +120,23 @@ public class FFTSignalProcessing {
             double fCenter = Math.pow(10, (Arrays.binarySearch(standardFrequencies, fNominal) - refFreq)/10.) * 1000;
             final double fLower = fCenter * Math.pow(10, -1. / 20.);
             final double fUpper = fCenter * Math.pow(10, 1. / 20.);
-            int cellLower = (int)(fLower / freqByCell);
-            int cellUpper = Math.min(fftResult.length - 1, (int) (fUpper / freqByCell));
             double sumVal = 0;
+            int cellLower = (int)(Math.ceil(fLower / freqByCell));
+            int cellUpper = Math.min(fftResult.length - 1, (int) (Math.floor(fUpper / freqByCell)));
             for(int idCell = cellLower; idCell <= cellUpper; idCell++) {
-                if(fLower < (idCell * freqByCell) - freqByCellDiv2 &&
-                        fUpper > (idCell * freqByCell) + freqByCellDiv2) {
-                    sumVal += fftResult[idCell];
-                }else if(fLower < (idCell * freqByCell) + freqByCellDiv2 &&
-                        fUpper < (idCell * freqByCell) + freqByCellDiv2) {
-                    sumVal += fftResult[idCell] * (fUpper - ((idCell * freqByCell) - freqByCellDiv2)) / freqByCell;
-                } else {
-                    System.out.println("Ignored "+(idCell*freqByCell)+" Hz");
-                }
+                sumVal += fftResult[idCell];
             }
             sumVal = todBspl(sumVal);
             if(aWeighting) {
                 // Apply A weighting
                 int freqIndex = Arrays.binarySearch(
-                        ThirdOctaveFrequencies.STANDARD_FREQUENCIES, fCenter);
+                        ThirdOctaveFrequencies.STANDARD_FREQUENCIES, fNominal);
                 sumVal = (float) (sumVal + ThirdOctaveFrequencies.A_WEIGHTING[freqIndex]);
             }
-            globalSpl += Math.pow(10, sumVal / 10);
             splLevels[thirdOctaveId] = (float) sumVal;
             thirdOctaveId++;
         }
-        // Limit spectrum output by specified frequencies and convert to dBspl
-        float[] spectrumSplLevels = new float[(int)(standardFrequencies[standardFrequencies.length - 1] /  freqByCell)];
-        for(int i = 0; i < spectrumSplLevels.length; i++) {
-            spectrumSplLevels[i] = (float) todBspl(fftResult[i]);
-        }
-        return new ProcessingResult(spectrumSplLevels, splLevels, (float)(10 * Math.log10(globalSpl)));
+        return splLevels;
     }
 
     /**

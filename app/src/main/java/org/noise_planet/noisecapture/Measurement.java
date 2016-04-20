@@ -40,6 +40,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class Measurement extends MainActivity {
 
@@ -55,6 +56,7 @@ public class Measurement extends MainActivity {
     private AtomicBoolean isRecording = new AtomicBoolean(false);
     private AtomicBoolean canceled = new AtomicBoolean(false);
     private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
+    private AtomicInteger leqAdded = new AtomicInteger(0);
     private AudioProcess audioProcess;
     private MeasurementManager measurementManager;
     // This measurement identifier in the long term storage
@@ -408,7 +410,8 @@ public class Measurement extends MainActivity {
                 }
             }
 
-            if(!activity.canceled.get()) {
+            // If canceled or ended before 1s
+            if(!activity.canceled.get() || activity.leqAdded.get() == 0) {
                 processingDialog.dismiss();
                 // Update record
                 activity.measurementManager.updateRecordLeqMean(activity.recordId, (float) activity.audioProcess.getLeqMean());
@@ -478,6 +481,7 @@ public class Measurement extends MainActivity {
                     leqValueList.add(new Storage.LeqValue(-1, (int) freqValues[idFreq], leqs[idFreq]));
                 }
                 activity.measurementManager.addLeqBatch(new MeasurementManager.LeqBatch(leq, leqValueList));
+                activity.leqAdded.addAndGet(1);
             }
         }
 
@@ -504,6 +508,7 @@ public class Measurement extends MainActivity {
                 activity.canceled.set(false);
                 // Start measurement
                 activity.recordId = activity.measurementManager.addRecord();
+                activity.leqAdded.set(0);
 
                 // Start chronometer
                 Chronometer chronometer = (Chronometer) activity.findViewById(R.id.chronometer_recording_time);

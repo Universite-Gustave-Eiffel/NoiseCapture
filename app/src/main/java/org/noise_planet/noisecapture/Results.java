@@ -28,6 +28,7 @@ import com.github.mikephil.charting.utils.PercentFormatter;
 import org.orbisgis.sos.LeqStats;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -35,6 +36,7 @@ public class Results extends MainActivity {
     public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
     private MeasurementManager measurementManager;
     private Storage.Record record;
+    private static final double[][] CLASS_RANGES = new double[][]{{Double.MIN_VALUE, 45}, {45, 55}, {55, 65}, {65, 75},{75, Double.MAX_VALUE}};
 
     // For the Charts
     public PieChart rneChart;
@@ -68,13 +70,14 @@ public class Results extends MainActivity {
             }
         }
         loadMeasurement();
+        LeqStats.LeqOccurrences leqOccurrences = leqStats.computeLeqOccurrences(CLASS_RANGES);
         setContentView(R.layout.activity_results);
         initDrawer();
 
         // RNE PieChart
         rneChart = (PieChart) findViewById(R.id.RNEChart);
         initRNEChart();
-        setRNEData(5, 100);
+        setRNEData(leqOccurrences.getUserDefinedOccurrences());
         Legend lrne = rneChart.getLegend();
         lrne.setTextColor(Color.WHITE);
         lrne.setTextSize(8f);
@@ -100,6 +103,16 @@ public class Results extends MainActivity {
 
         TextView maxText = (TextView) findViewById(R.id.textView_value_Max_SL);
         maxText.setText(String.format("%.01f", leqStats.getLeqMax()));
+
+        TextView la10Text = (TextView) findViewById(R.id.textView_value_LA10);
+        la10Text.setText(String.format("%.01f", leqOccurrences.getLa10()));
+
+        TextView la50Text = (TextView) findViewById(R.id.textView_value_LA50);
+        la50Text.setText(String.format("%.01f", leqOccurrences.getLa50()));
+
+        TextView la90Text = (TextView) findViewById(R.id.textView_value_LA90);
+        la90Text.setText(String.format("%.01f", leqOccurrences.getLa90()));
+
 
         // Enabled/disabled history button if necessary
         ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
@@ -165,7 +178,7 @@ public class Results extends MainActivity {
                 rms += Math.pow(10, leqValue / 10);
                 idFreq++;
             }
-            leqStats.addRms(rms);
+            leqStats.addLeq(10 * Math.log10(rms));
         }
         splHistogram = new ArrayList<>(leqStatsByFreq.length);
         ltob = new String[leqStatsByFreq.length];
@@ -222,8 +235,10 @@ public class Results extends MainActivity {
         //set1.setBarSpacePercent(35f);
         //set1.setColors(new int[] {Color.rgb(0, 153, 204), Color.rgb(0, 153, 204), Color.rgb(0, 153, 204),
         //        Color.rgb(51, 181, 229), Color.rgb(51, 181, 229), Color.rgb(51, 181, 229)});
-        set1.setColors(new int[] {Color.rgb(0, 128, 255), Color.rgb(0, 128, 255), Color.rgb(0, 128, 255),
-                Color.rgb(102, 178, 255), Color.rgb(102, 178, 255), Color.rgb(102, 178, 255)});
+        set1.setColors(
+                new int[]{Color.rgb(0, 128, 255), Color.rgb(0, 128, 255), Color.rgb(0, 128, 255),
+                        Color.rgb(102, 178, 255), Color.rgb(102, 178, 255),
+                        Color.rgb(102, 178, 255)});
 
         ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
         dataSets.add(set1);
@@ -252,32 +267,41 @@ public class Results extends MainActivity {
     }
 
 
-    // Generate artificial data for RNE
-    private void setRNEData(int count, float range) {
-
-        float mult3 = range;
-        double[] tab = new double[count];
-
+    // Set computed data in chart
+    private void setRNEData(List<Double> classRangeValue) {
         ArrayList<Entry> yVals1 = new ArrayList<Entry>();
 
         // IMPORTANT: In a PieChart, no values (Entry) should have the same
         // xIndex (even if from different DataSets), since no values can be
         // drawn above each other.
-        for (int i = 0; i < count ; i++) {
-            double randomvalue=(Math.random() * mult3) + mult3 / 5;
-            yVals1.add(new Entry((float) randomvalue, i));
-            tab[i]=randomvalue;
-        }
-
-        ArrayList<String> xVals = new ArrayList<String>();
-
         catNE= getResources().getStringArray(R.array.catNE_list_array);
-        for (int i = 0; i < count + 1; i++)
-            xVals.add(catNE[i % catNE.length]);
+        ArrayList<String> xVals = new ArrayList<String>();
+        double maxValue = 0;
+        int maxClassId = 0;
+        List<Integer> usedRanges = new ArrayList<>();
+        int pieInternalIndex = 0;
+        for (int idEntry = 0; idEntry < classRangeValue.size(); idEntry++) {
+            float value = classRangeValue.get(classRangeValue.size() - 1 - idEntry).floatValue();
+            if(value > 0) {
+                yVals1.add(new Entry(value, pieInternalIndex));
+                xVals.add(catNE[idEntry]);
+                usedRanges.add(idEntry);
+                if (value > maxValue) {
+                    maxClassId = pieInternalIndex;
+                    maxValue = value;
+                }
+                pieInternalIndex++;
+            }
+        }
 
         PieDataSet dataSet = new PieDataSet(yVals1, "Sound level");
         dataSet.setSliceSpace(3f);
-        dataSet.setColors(NE_COLORS);
+        int[] usedColors = new int[usedRanges.size()];
+        int internalIndex = 0;
+        for(int index : usedRanges) {
+            usedColors[internalIndex++] = NE_COLORS[index];
+        }
+        dataSet.setColors(usedColors);
 
         PieData data = new PieData(xVals, dataSet);
         data.setValueFormatter(new PercentFormatter());
@@ -287,28 +311,9 @@ public class Results extends MainActivity {
 
         // highlight the maximum value of the RNE
         // Find the maximum of the array, in order to be highlighted
-        int pos=posmax(tab, count);
-        Highlight h = new Highlight(pos, 0);
+        Highlight h = new Highlight(maxClassId, 0);
         rneChart.highlightValues(new Highlight[] { h });
         rneChart.invalidate();
-    }
-
-    // Find the position of the maximum of an array
-    public int posmax(double[] tab, int size){
-        {
-            int pos = 0;
-            int i = 0;
-
-            while (i < size)
-            {
-                if (tab[i] > tab[pos])
-                    pos = i;
-
-                i++;
-            }
-
-            return pos;
-        }
     }
 
     public void initNEIChart() {

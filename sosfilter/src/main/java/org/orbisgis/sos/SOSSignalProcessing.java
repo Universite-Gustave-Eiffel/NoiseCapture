@@ -109,7 +109,7 @@ public class SOSSignalProcessing {
         return samples;
     }
 
-    public static short[] loadShortStream(InputStream inputStream) throws IOException {
+    public static short[] loadShortStream(InputStream inputStream, ByteOrder byteOrder) throws IOException {
         short[] fullArray = new short[0];
         byte[] buffer = new byte[4096];
         int read;
@@ -119,7 +119,7 @@ public class SOSSignalProcessing {
             if (read < buffer.length) {
                 buffer = Arrays.copyOfRange(buffer, 0, read);
             }
-            short[] signal = SOSSignalProcessing.convertBytesToShort(buffer, buffer.length, ByteOrder.LITTLE_ENDIAN);
+            short[] signal = SOSSignalProcessing.convertBytesToShort(buffer, buffer.length, byteOrder);
             short[] nextFullArray = new short[fullArray.length + signal.length];
             if(fullArray.length > 0) {
                 System.arraycopy(fullArray, 0, nextFullArray, 0, fullArray.length);

@@ -1,6 +1,5 @@
 package org.noise_planet.noisecapture;
 
-import android.content.res.Resources;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
@@ -37,6 +36,7 @@ public class AudioProcess implements Runnable {
     private final MovingLeqProcessing fftLeqProcessing;
     private final StandartLeqProcessing standartLeqProcessing;
     private long beginRecordTime;
+    private static final int REALTIME_SAMPLE_RATE_LIMITATION = 16000;
 
 
 
@@ -65,6 +65,7 @@ public class AudioProcess implements Runnable {
                         encoding = tryEncoding;
                         audioChannel = tryAudioChannel;
                         rate = tryRate;
+                        System.out.println("Sample Rate : "+tryRate+" Encoding : "+tryEncoding+" Audio channel : "+tryAudioChannel);
                         this.fftLeqProcessing = new MovingLeqProcessing(this);
                         this.standartLeqProcessing = new StandartLeqProcessing(this);
                         return;
@@ -234,21 +235,17 @@ public class AudioProcess implements Runnable {
         // 0.066 mean 15 fps max
         public final static double FFT_TIMELENGTH_FACTOR = Math.min(1, AcousticIndicators.TIMEPERIOD_FAST);
         public final static double SECOND_FIRE_MOVING_SPECTRUM = FFT_TIMELENGTH_FACTOR;
-        // Target sampling is REALTIME_SAMPLE_RATE_LIMITATION, then sub-sampling the signal if it is greater than needed (taking Nyquist factor)
-        private final double fftSamplingrateFactor;
         // Output only frequency response on this sample rate on the real time result (center + upper band)
-        private static final double REALTIME_SAMPLE_RATE_LIMITATION = 9000;
         private final int expectedFFTSize;
         private final double[] fftCenterFreq;
         private int lastProcessedSpectrum = 0;
         private float[] thirdOctaveSplLevels;
         public MovingLeqProcessing(AudioProcess audioProcess) {
             this.audioProcess = audioProcess;
-            fftSamplingrateFactor = audioProcess.getRate() / (REALTIME_SAMPLE_RATE_LIMITATION * 2);
             expectedFFTSize = (int)(audioProcess.getRate() * FFT_TIMELENGTH_FACTOR);
+            fftCenterFreq = FFTSignalProcessing.computeFFTCenterFrequency(REALTIME_SAMPLE_RATE_LIMITATION);
             this.signalProcessing = new FFTSignalProcessing(audioProcess.getRate(),
-                    computeFFTCenterFrequency(), expectedFFTSize);
-            fftCenterFreq = computeFFTCenterFrequency();
+                    fftCenterFreq, expectedFFTSize);
             thirdOctaveSplLevels = new float[fftCenterFreq.length];
         }
 
@@ -267,26 +264,7 @@ public class AudioProcess implements Runnable {
         }
 
         public double getFFtSamplingRate() {
-            if(fftSamplingrateFactor >= 1) {
-                return REALTIME_SAMPLE_RATE_LIMITATION;
-            } else {
-                return audioProcess.getRate() * fftSamplingrateFactor;
-            }
-        }
-
-        private double[] computeFFTCenterFrequency() {
-            double limitFreq = getFFtSamplingRate();
-            double[] allCenterFreq = ThirdOctaveBandsFiltering.getStandardFrequencies(ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
-            double[] retCenterFreq = new double[allCenterFreq.length];
-            int retSize = 0;
-            for(double centerFreq : allCenterFreq) {
-                if(limitFreq >= centerFreq) {
-                    retCenterFreq[retSize++] = centerFreq;
-                }else {
-                    break;
-                }
-            }
-            return Arrays.copyOfRange(retCenterFreq, 0, retSize);
+            return REALTIME_SAMPLE_RATE_LIMITATION;
         }
 
         public double[] getFftCenterFreq() {
@@ -332,7 +310,7 @@ public class AudioProcess implements Runnable {
                     SECOND_FIRE_MOVING_SPECTRUM) {
                     lastProcessedSpectrum = pushedSamples;
                     FFTSignalProcessing.ProcessingResult result =
-                            signalProcessing.processSample(true, true);
+                            signalProcessing.processSample(false, true);
                     fftResultLvl = result.getFftResult();
                     thirdOctaveSplLevels = result.getdBaLevels();
                     // Compute leq
@@ -381,13 +359,15 @@ public class AudioProcess implements Runnable {
         private boolean processing = false;
         private final AudioProcess audioProcess;
         private FFTSignalProcessing fftSignalProcessing;
-        private static final double windowFactor = 0.5;
+        private static final double windowDelay = 1.;
         private LeqStats leqStats = new LeqStats();
+        private double[] fftCenterFreq;
 
         public StandartLeqProcessing(AudioProcess audioProcess) {
             this.audioProcess = audioProcess;
+            fftCenterFreq = FFTSignalProcessing.computeFFTCenterFrequency(REALTIME_SAMPLE_RATE_LIMITATION);
             this.fftSignalProcessing = new FFTSignalProcessing(audioProcess.getRate(),
-                    ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, audioProcess.getRate());
+                    fftCenterFreq, audioProcess.getRate());
             // Load test file
             /*
             InputStream inputStream = audioProcess.appResources.openRawResource(R.raw.capture_1000hz_16bits_44100hz_signed);
@@ -417,7 +397,9 @@ public class AudioProcess implements Runnable {
         private String bufferToString() {
             StringBuilder str = new StringBuilder();
             for(float val : fftSignalProcessing.getSampleBuffer()) {
-                str.append(",");
+                if(str.length() != 0) {
+                    str.append(",");
+                }
                 str.append(val);
             }
             return str.toString();
@@ -426,7 +408,9 @@ public class AudioProcess implements Runnable {
         @Override
         public void run() {
             long secondCursor = 0;
-            final int processEachSamples = (int)((audioProcess.getRate() * fftSignalProcessing.getSampleDuration()) * windowFactor);
+            final int processEachSamples = (int)((audioProcess.getRate() * fftSignalProcessing.getSampleDuration()) *
+
+                    windowDelay);
             long lastProcessedSamples = 0;
             try {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
@@ -440,9 +424,8 @@ public class AudioProcess implements Runnable {
                     while (!bufferToProcess.isEmpty() && !audioProcess.canceled.get()) {
                         processing = true;
                         short[] buffer = bufferToProcess.poll();
-                        // Cancel Hanning window weighting by overlapping signal by 66%
+                        // Cancel Hanning window weighting by overlapping signal by 50%
                         if(secondCursor + buffer.length - lastProcessedSamples >= processEachSamples) {
-                            long processingBegin = System.currentTimeMillis();
                             // Check if some samples are to be processed in the next batch
                             int remainingSamplesToPostPone = (int)(secondCursor + buffer.length -
                                     lastProcessedSamples - processEachSamples);
@@ -454,7 +437,7 @@ public class AudioProcess implements Runnable {
                             }
                             // Do processing
                             FFTSignalProcessing.ProcessingResult result =
-                                    fftSignalProcessing.processSample(true, true);
+                                    fftSignalProcessing.processSample(false, false);
                             float[] leqs = result.getdBaLevels();
                             leqStats.addLeq(result.getGlobaldBaValue());
                             // Compute record time
@@ -471,7 +454,10 @@ public class AudioProcess implements Runnable {
                                 fftSignalProcessing.addSample(Arrays.copyOfRange(buffer,
                                         buffer.length - remainingSamplesToPostPone, buffer.length));
                             }
-                            System.out.println("Processing time is " + (System.currentTimeMillis() - processingBegin) + " ms");
+                            double rms = fftSignalProcessing.computeRms();
+                            System.out.println("RMS : " + String.format("%.02f", rms));
+                            System.out.println("dB(A) : " + String.format("%.02f",
+                                    result.getGlobaldBaValue()));
                         } else {
                             fftSignalProcessing.addSample(buffer);
                         }

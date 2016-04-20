@@ -69,9 +69,10 @@
     <!--  Ressources for the spinner history !-->
     <string name="title_choice_history_action">Choose action:</string>
     <string-array name="choice_user_history">
+        <!-- <item>Upload to community</item> -->
+        <!-- <item>Export result</item> -->
         <item>Show result</item>
         <item>Show map</item>
-        <item>Upload to community</item>
         <item>Delete</item>
     </string-array>
 

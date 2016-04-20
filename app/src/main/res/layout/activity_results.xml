@@ -192,19 +192,12 @@
             android:scaleType="fitCenter"
             android:background="#00000000" />
 
-        <ImageButton android:id="@+id/cancelBtn"
-            android:layout_width="64dip"
-            android:layout_height="64dip"
-            app:srcCompat="@drawable/button_cancel_disabled"
-            android:scaleType="fitCenter"
-            android:background="#00000000"
-            android:visibility="invisible" />
-
         <ImageButton android:id="@+id/exportBtn"
             android:layout_width="64dip"
             android:layout_height="64dip"
             app:srcCompat="@drawable/button_export"
             android:scaleType="fitCenter"
+            android:visibility="gone"
             android:background="#00000000" />
 
         <ImageButton android:id="@+id/historyBtn"

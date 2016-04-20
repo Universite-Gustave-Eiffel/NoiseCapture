@@ -61,4 +61,35 @@ public class AWeighting {
         return weightedSignal;
     }
 
+
+
+
+
+    /**
+     * A-weighting of the raw time signal
+     * Second order section filtering
+     * @param inputSignal Raw time signal
+     * @return A-weighted time signal
+     */
+    public static float[] aWeightingSignal(float[] inputSignal) {
+
+        int signalLength = inputSignal.length;
+        int order = Math.max(denominator.length, numerator.length);
+        float[] weightedSignal = new float[signalLength];
+        // Filter delays
+        float[][] z = new float[order-1][signalLength];
+
+        for (int idT = 0; idT < signalLength; idT++){
+            // Avoid iteration idT=0 exception (z[0][idT-1]=0)
+            weightedSignal[idT] = (float)(numerator[0]*inputSignal[idT] + (idT == 0 ? 0 : z[0][idT-1]));
+            // Avoid iteration idT=0 exception (z[1][idT-1]=0)
+            z[0][idT] = (float)(numerator[1]*inputSignal[idT] + (idT == 0 ? 0 : z[1][idT-1]) - denominator[1]*inputSignal[idT]);
+            for (int k = 0; k<order-2; k++){
+                // Avoid iteration idT=0 exception (z[k+1][idT-1]=0)
+                z[k][idT] = (float)(numerator[k+1]*inputSignal[idT] + (idT ==0 ? 0 : z[k+1][idT-1]) - denominator[k+1]*weightedSignal[idT]);
+            }
+            z[order-2][idT] = (float)(numerator[order-1]*inputSignal[idT] - denominator[order-1]*weightedSignal[idT]);
+        }
+        return weightedSignal;
+    }
 }

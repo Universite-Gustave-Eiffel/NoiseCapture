@@ -119,13 +119,16 @@ public class History extends MainActivity {
                     launchMap();
                     break;
                 case 2:
-                    // Upload
-                    // TODO upload action
-                    break;
-                case 3:
                     // Delete record
                     measurementManager.deleteRecord(recordId);
                     baseAdapter.reload();
+                    break;
+                case 3:
+                    // Upload
+                    // TODO upload action
+                    break;
+                case 4:
+                    // TODO Share action
                     break;
             }
         }

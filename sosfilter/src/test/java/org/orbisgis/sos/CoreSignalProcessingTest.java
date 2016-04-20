@@ -57,9 +57,18 @@ public class CoreSignalProcessingTest {
         leqStats.addLeq(66.2);
         leqStats.addLeq(67.21);
         leqStats.addLeq(66.25);
-
-        LeqStats.LeqOccurences leqOccurences = leqStats.computeLeqOccurences();
-        assertEquals(50, leqOccurences.getLa10(), 0.01);
+        double[][] classRanges = new double[][]{{Double.MIN_VALUE, 45}, {45, 55}, {55, 65}, {65, 75},{75, Double.MAX_VALUE}};
+        LeqStats.LeqOccurrences leqOccurrences = leqStats.computeLeqOccurrences(classRanges);
+        assertEquals(66.2, leqOccurrences.getLa10(), 0.01);
+        assertEquals(49.8, leqOccurrences.getLa50(), 0.01);
+        assertEquals(45.3, leqOccurrences.getLa90(), 0.01);
+        List<Double> classRangesValues = leqOccurrences.getUserDefinedOccurrences();
+        assertEquals(classRanges.length, classRangesValues.size());
+        assertEquals(0, classRangesValues.get(0), 0.01);    // < 45
+        assertEquals(0.7, classRangesValues.get(1), 0.01);  // [45-55)
+        assertEquals(0, classRangesValues.get(2), 0.01);    // [55-65)
+        assertEquals(0.3, classRangesValues.get(3), 0.01);  // [65-75)
+        assertEquals(0, classRangesValues.get(4), 0.01);    // > 75
     }
 
     @Test

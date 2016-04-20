@@ -15,7 +15,7 @@ public class FFTSignalProcessing {
     private final int windowSize;
     private FloatFFT_1D floatFFT_1D;
     private static final double RMS_REFERENCE_90DB = 2500;
-    private static final double DB_FS_REFERENCE = - (20 * Math.log10((RMS_REFERENCE_90DB * Math.sqrt(2)) / (double)Short.MAX_VALUE)) + 90;
+    private static final double DB_FS_REFERENCE = - (20 * Math.log10(RMS_REFERENCE_90DB)) + 90;
 
     public FFTSignalProcessing(int samplingRate, double[] standardFrequencies, int windowSize) {
         this.windowSize = windowSize;
@@ -23,6 +23,22 @@ public class FFTSignalProcessing {
         this.samplingRate = samplingRate;
         this.sampleBuffer = new short[windowSize];
         this.floatFFT_1D = new FloatFFT_1D(windowSize);
+    }
+
+
+
+    public static double[] computeFFTCenterFrequency(int maxLimitation) {
+        double[] allCenterFreq = ThirdOctaveBandsFiltering.getStandardFrequencies(ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
+        double[] retCenterFreq = new double[allCenterFreq.length];
+        int retSize = 0;
+        for(double centerFreq : allCenterFreq) {
+            if(maxLimitation >= centerFreq) {
+                retCenterFreq[retSize++] = centerFreq;
+            }else {
+                break;
+            }
+        }
+        return Arrays.copyOfRange(retCenterFreq, 0, retSize);
     }
 
     /**
@@ -52,22 +68,31 @@ public class FFTSignalProcessing {
      * @param sample audio sample
      */
     public void addSample(short[] sample) {
-        // Move previous samples backward
-        System.arraycopy(sampleBuffer, sample.length, sampleBuffer, 0 , sampleBuffer.length - sample.length);
-        System.arraycopy(sample, 0 , sampleBuffer, sampleBuffer.length - sample.length ,sample.length);
+        if(sample.length < sampleBuffer.length) {
+            // Move previous samples backward
+            System.arraycopy(sampleBuffer, sample.length, sampleBuffer, 0, sampleBuffer.length - sample.length);
+            System.arraycopy(sample, 0, sampleBuffer, sampleBuffer.length - sample.length, sample.length);
+        } else {
+            // Take last samples
+            System.arraycopy(sample, Math.max(0, sample.length - sampleBuffer.length), sampleBuffer, 0,
+                    sampleBuffer.length);
+        }
     }
 
-    public double computeGlobalLeq() {
+    public double computeRms() {
         double sampleSum = 0;
         for (short sample : sampleBuffer) {
             sampleSum += sample * sample;
         }
-        final double rmsValue = Math.sqrt(sampleSum / sampleBuffer.length);
-        return todBspl(rmsValue * Math.sqrt(2));
+        return Math.sqrt(sampleSum / sampleBuffer.length);
     }
 
-    public static double todBspl(double peakLevel) {
-        return (20 * Math.log10(peakLevel / Short.MAX_VALUE) + DB_FS_REFERENCE);
+    public double computeGlobalLeq() {
+        return todBspl(computeRms());
+    }
+
+    public static double todBspl(double rms) {
+        return (20 * Math.log10(rms) + DB_FS_REFERENCE);
     }
 
     /**
@@ -84,18 +109,21 @@ public class FFTSignalProcessing {
             // Apply Hanning window
             AcousticIndicators.hanningWindow(signal);
         }
+        if(aWeighting) {
+            signal = AWeighting.aWeightingSignal(signal);
+        }
         floatFFT_1D.realForward(signal);
-        final double freqByCell = samplingRate / windowSize;
-        float[] fftResult = new float[signal.length / 2];
+        final double freqByCell = samplingRate / (double)windowSize;
+        float[] squareAbsoluteFFT = new float[signal.length / 2];
         //a[offa+2*k] = Re[k], 0<=k<n/2
-        for(int k = 0; k < fftResult.length; k++) {
+        for(int k = 0; k < squareAbsoluteFFT.length; k++) {
             final float re = signal[k * 2];
             final float im = signal[k * 2 + 1];
-            final double peak = Math.sqrt(re * re + im * im) / fftResult.length;
-            fftResult[k] = (float)(peak);
+            squareAbsoluteFFT[k] = re * re + im * im;
         }
+        //rmsFft = Math.sqrt((rmsFft / 2) / (fftResult.length * fftResult.length));
         // Compute A weighted third octave bands
-        float[] splLevels = thirdOctaveProcessing(fftResult, aWeighting);
+        float[] splLevels = thirdOctaveProcessing(squareAbsoluteFFT, false);
         double globalSpl = 0;
         for(float splLevel : splLevels) {
             globalSpl += Math.pow(10, splLevel / 10);
@@ -103,13 +131,17 @@ public class FFTSignalProcessing {
         // Limit spectrum output by specified frequencies and convert to dBspl
         float[] spectrumSplLevels = new float[(int)(standardFrequencies[standardFrequencies.length - 1] /  freqByCell)];
         for(int i = 0; i < spectrumSplLevels.length; i++) {
-            spectrumSplLevels[i] = (float) todBspl(fftResult[i]);
+            spectrumSplLevels[i] = (float) todBspl(squareAbsoluteFFTToRMS(squareAbsoluteFFT[i], squareAbsoluteFFT.length));
         }
         return new ProcessingResult(spectrumSplLevels, splLevels, (float)(10 * Math.log10(globalSpl)));
     }
 
-    public float[] thirdOctaveProcessing(float[] fftResult, boolean aWeighting) {
-        final double freqByCell = samplingRate / windowSize;
+    private double squareAbsoluteFFTToRMS(double squareAbsoluteFFT, int sampleSize) {
+        return Math.sqrt((squareAbsoluteFFT / 2) / (sampleSize * sampleSize));
+    }
+
+    public float[] thirdOctaveProcessing(float[] squareAbsoluteFFT, boolean thirdOctaveAWeighting) {
+        final double freqByCell = samplingRate / (double)windowSize;
         float[] splLevels = new float[standardFrequencies.length];
         int thirdOctaveId = 0;
         int refFreq = Arrays.binarySearch(standardFrequencies, 1000);
@@ -122,12 +154,12 @@ public class FFTSignalProcessing {
             final double fUpper = fCenter * Math.pow(10, 1. / 20.);
             double sumVal = 0;
             int cellLower = (int)(Math.ceil(fLower / freqByCell));
-            int cellUpper = Math.min(fftResult.length - 1, (int) (Math.floor(fUpper / freqByCell)));
+            int cellUpper = Math.min(squareAbsoluteFFT.length - 1, (int) (Math.floor(fUpper / freqByCell)));
             for(int idCell = cellLower; idCell <= cellUpper; idCell++) {
-                sumVal += fftResult[idCell];
+                sumVal += squareAbsoluteFFT[idCell];
             }
-            sumVal = todBspl(sumVal);
-            if(aWeighting) {
+            sumVal = todBspl(squareAbsoluteFFTToRMS(sumVal, squareAbsoluteFFT.length));
+            if(thirdOctaveAWeighting) {
                 // Apply A weighting
                 int freqIndex = Arrays.binarySearch(
                         ThirdOctaveFrequencies.STANDARD_FREQUENCIES, fNominal);

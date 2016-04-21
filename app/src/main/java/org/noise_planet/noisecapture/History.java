@@ -1,5 +1,7 @@
 package org.noise_planet.noisecapture;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import android.app.Activity;
@@ -9,10 +11,14 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.util.SparseBooleanArray;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
 import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
@@ -22,12 +28,16 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 
-/* Source for example: http://www.codelearn.org/android-tutorial/android-listview
+/* Source for example:
+ * http://www.codelearn.org/android-tutorial/android-listview
+ * http://www.androidbegin.com/tutorial/android-delete-multiple-selected-items-listview-tutorial/
  * @author Pranay Airan
- *
+ * @author Nicolas Fortin
  */
 public class History extends MainActivity {
     private MeasurementManager measurementManager;
+    private ListView infohistory;
+    private SparseBooleanArray mSelectedItemsIds = new SparseBooleanArray();
 
     InformationHistoryAdapter historyListAdapter;
 
@@ -38,73 +48,134 @@ public class History extends MainActivity {
         setContentView(R.layout.activity_history);
         initDrawer();
 
-        // Fill the spinner_history
-        //Spinner spinner = (Spinner) findViewById(R.id.spinner_history);
-        //ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-        //        R.array.choice_user_history, android.R.layout.simple_spinner_item);
-        //adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        //spinner.setAdapter(adapter);
-
         // Fill the listview
         historyListAdapter = new InformationHistoryAdapter(measurementManager, this);
-        ListView infohistory = (ListView)findViewById(R.id.listiew_history);
+        infohistory = (ListView)findViewById(R.id.listiew_history);
+        infohistory.setMultiChoiceModeListener(new HistoryMultiChoiceListener(this));
         infohistory.setAdapter(historyListAdapter);
-        infohistory.setChoiceMode(ListView.CHOICE_MODE_NONE);
-        infohistory.setOnItemClickListener(new HistoryItemListener(this, measurementManager, historyListAdapter));
+        infohistory.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
+        infohistory.setLongClickable(true);
+        infohistory.setOnItemClickListener(new HistoryItemListener(this));
+    }
+
+
+    private static class HistoryMultiChoiceListener implements AbsListView.MultiChoiceModeListener {
+        History history;
+
+        public HistoryMultiChoiceListener(History history) {
+            this.history = history;
+        }
+
+        @Override
+        public void onItemCheckedStateChanged(ActionMode mode,
+                                              int position, long id, boolean checked) {
+            // Capture total checked items
+            final int checkedCount = history.infohistory.getCheckedItemCount();
+            // Set the CAB title according to total checked items
+            mode.setTitle(checkedCount + " Selected");
+            // Calls toggleSelection method from ListViewAdapter Class
+            history.historyListAdapter.toggleSelection(position);
+        }
+
+        @Override
+        public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            switch (item.getItemId()) {
+                case R.id.delete:
+                    // Calls getSelectedIds method from ListViewAdapter Class
+                    SparseBooleanArray selected = history.historyListAdapter
+                            .getSelectedIds();
+                    // Captures all selected ids with a loop
+                    List<Integer> recordIdToDelete = new ArrayList<Integer>();
+                    for (int i = (selected.size() - 1); i >= 0; i--) {
+                        if (selected.valueAt(i)) {
+                            recordIdToDelete.add((int)history.historyListAdapter.getItemId(selected.keyAt(i)));
+
+                        }
+                    }
+                    if(!recordIdToDelete.isEmpty()) {
+                        // Remove selected items following the ids
+                        history.historyListAdapter.remove(recordIdToDelete);
+                    }
+                    // Close CAB
+                    mode.finish();
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        @Override
+        public boolean onCreateActionMode(ActionMode mode, Menu menu) {
+            mode.getMenuInflater().inflate(R.menu.menu_delete, menu);
+            return true;
+        }
+
+        @Override
+        public void onDestroyActionMode(ActionMode mode) {
+            history.historyListAdapter.removeSelection();
+        }
+
+        @Override
+        public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
+            // TODO Auto-generated method stub
+            return false;
+        }
+    }
+
+    private static final class HistoryItemSelectionListener implements View.OnLongClickListener {
+        private History history;
+
+        public HistoryItemSelectionListener(History history) {
+            this.history = history;
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            return false;
+        }
     }
 
     private static final class HistoryItemListener implements OnItemClickListener {
-        private Activity activity;
-        private MeasurementManager measurementManager;
-        private InformationHistoryAdapter baseAdapter;
+        private History historyActivity;
 
-        public HistoryItemListener(Activity activity, MeasurementManager measurementManager,
-                                   InformationHistoryAdapter baseAdapter) {
-            this.activity = activity;
-            this.measurementManager = measurementManager;
-            this.baseAdapter = baseAdapter;
+        public HistoryItemListener(History historyActivity) {
+            this.historyActivity = historyActivity;
         }
 
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             // Show
-            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            AlertDialog.Builder builder = new AlertDialog.Builder(historyActivity);
             builder.setTitle(R.string.history_item_choice_title);
-            ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(activity,
+            ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(historyActivity,
                     R.array.choice_user_history, android.R.layout.simple_selectable_list_item);
             builder.setAdapter(adapter,
-                    new ItemActionOnClickListener(activity, (int) id, measurementManager, baseAdapter));
+                    new ItemActionOnClickListener(historyActivity, (int) id));
             builder.show();
         }
     }
 
     private static class ItemActionOnClickListener implements DialogInterface.OnClickListener {
-        private Activity activity;
+        private History historyActivity;
         private int recordId;
-        private MeasurementManager measurementManager;
-        private InformationHistoryAdapter baseAdapter;
 
-        public ItemActionOnClickListener(Activity activity, int recordId,
-                                         MeasurementManager measurementManager,
-                                         InformationHistoryAdapter baseAdapter) {
-            this.activity = activity;
+        public ItemActionOnClickListener(History historyActivity, int recordId) {
+            this.historyActivity = historyActivity;
             this.recordId = recordId;
-            this.measurementManager = measurementManager;
-            this.baseAdapter = baseAdapter;
         }
 
         private void launchResult() {
-            Intent ir = new Intent(activity.getApplicationContext(), Results.class);
+            Intent ir = new Intent(historyActivity.getApplicationContext(), Results.class);
             ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
-            activity.startActivity(ir);
-            activity.finish();
+            historyActivity.startActivity(ir);
+            historyActivity.finish();
         }
 
         private void launchMap() {
-            Intent ir = new Intent(activity.getApplicationContext(), MapActivity.class);
+            Intent ir = new Intent(historyActivity.getApplicationContext(), MapActivity.class);
             ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
-            activity.startActivity(ir);
-            activity.finish();
+            historyActivity.startActivity(ir);
+            historyActivity.finish();
         }
 
         @Override
@@ -120,8 +191,8 @@ public class History extends MainActivity {
                     break;
                 case 2:
                     // Delete record
-                    measurementManager.deleteRecord(recordId);
-                    baseAdapter.reload();
+                    historyActivity.measurementManager.deleteRecord(recordId);
+                    historyActivity.historyListAdapter.reload();
                     break;
                 case 3:
                     // Upload
@@ -136,16 +207,36 @@ public class History extends MainActivity {
 
     public static class InformationHistoryAdapter extends BaseAdapter {
         private List<Storage.Record> informationHistoryList;
-        private MainActivity activity;
+        private History activity;
         private MeasurementManager measurementManager;
 
-        public InformationHistoryAdapter(MeasurementManager measurementManager, MainActivity activity) {
+        public InformationHistoryAdapter(MeasurementManager measurementManager, History activity) {
             this.informationHistoryList = measurementManager.getRecords();
             this.activity = activity;
             this.measurementManager = measurementManager;
         }
 
+        public SparseBooleanArray getSelectedIds() {
+            return activity.mSelectedItemsIds;
+        }
 
+        public void toggleSelection(int position) {
+            selectView(position, !activity.mSelectedItemsIds.get(position));
+        }
+
+        public void removeSelection() {
+            activity.mSelectedItemsIds.clear();
+            activity.historyListAdapter.notifyDataSetChanged();
+        }
+
+        public void selectView(int position, boolean value) {
+            if (value) {
+                activity.mSelectedItemsIds.put(position, value);
+            } else {
+                activity.mSelectedItemsIds.delete(position);
+            }
+            activity.historyListAdapter.notifyDataSetChanged();
+        }
 
         @Override
         public int getCount() {
@@ -160,6 +251,11 @@ public class History extends MainActivity {
         @Override
         public Object getItem(int position) {
             return informationHistoryList.get(position);
+        }
+
+        public void remove(Collection<Integer> ids) {
+            activity.measurementManager.deleteRecords(ids);
+            reload();
         }
 
         @Override

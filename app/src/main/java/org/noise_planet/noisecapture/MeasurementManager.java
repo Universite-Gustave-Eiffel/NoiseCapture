@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -56,6 +57,30 @@ public class MeasurementManager {
         try {
             database.delete(Storage.Record.TABLE_NAME, Storage.Record.COLUMN_ID + " = ?",
                     new String[]{String.valueOf(recordId)});
+        } finally {
+            database.close();
+        }
+    }
+
+    /**
+     * Delete all data associated with a record
+     * @param recordIds Record identifiers
+     */
+    public void deleteRecords(Collection<Integer> recordIds) {
+        StringBuilder param = new StringBuilder();
+        String[] paramValue = new String[recordIds.size()];
+        int index = 0;
+        for(int recordId : recordIds) {
+            paramValue[index++] = String.valueOf(recordId);
+            if(param.length() != 0) {
+                param.append(",");
+            }
+            param.append("?");
+        }
+        SQLiteDatabase database = storage.getWritableDatabase();
+        try {
+            database.delete(Storage.Record.TABLE_NAME, Storage.Record.COLUMN_ID +
+                            " IN ("+param.toString()+")", paramValue);
         } finally {
             database.close();
         }

@@ -197,7 +197,7 @@
             android:layout_height="64dip"
             app:srcCompat="@drawable/button_export"
             android:scaleType="fitCenter"
-            android:visibility="gone"
+            android:visibility="invisible"
             android:background="#00000000" />
 
         <ImageButton android:id="@+id/historyBtn"

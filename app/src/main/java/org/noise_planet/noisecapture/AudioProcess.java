@@ -65,7 +65,6 @@ public class AudioProcess implements Runnable {
                         encoding = tryEncoding;
                         audioChannel = tryAudioChannel;
                         rate = tryRate;
-                        System.out.println("Sample Rate : "+tryRate+" Encoding : "+tryEncoding+" Audio channel : "+tryAudioChannel);
                         this.fftLeqProcessing = new MovingLeqProcessing(this);
                         this.standartLeqProcessing = new StandartLeqProcessing(this);
                         return;
@@ -121,33 +120,12 @@ public class AudioProcess implements Runnable {
         }
     }
 
-
-    /**
-     * @return Minimal dB(A) value computed from FFT
-     */
-    public double getRealtimeLeqMin() {
-        return fftLeqProcessing.getLeqMin();
+    public LeqStats getStandartLeqStats() {
+        return standartLeqProcessing.leqStats;
     }
 
-    /**
-     * @return Maximal dB(A) value computed from FFT
-     */
-    public double getRealtimeLeqMax() {
-        return fftLeqProcessing.getLeqMax();
-    }
-
-    /**
-     * @return Average dB(A) value computed from FFT
-     */
-    public double getRealtimeLeqMean() {
-        return fftLeqProcessing.getLeqMean();
-    }
-
-    /**
-     * @return Computed mean leq.
-     */
-    public double getLeqMean() {
-        return standartLeqProcessing.leqStats.getLeqMean();
+    public LeqStats getFastLeqStats() {
+        return fftLeqProcessing.leqStats;
     }
 
     public double getFFTDelay() {
@@ -170,6 +148,11 @@ public class AudioProcess implements Runnable {
                     new Thread(fftLeqProcessing).start();
                     new Thread(standartLeqProcessing).start();
                     audioRecord.startRecording();
+
+                    System.out.println("Sample Rate : " + audioRecord.getSampleRate() + " Encoding : " +
+                            audioRecord.getAudioFormat() + " Audio channel : " +
+                            audioRecord.getChannelCount() + "buffer size : " +
+                            audioRecord.getAudioSource());
                     beginRecordTime = System.currentTimeMillis();
                     while (recording.get()) {
                         buffer = new short[bufferSize];
@@ -368,16 +351,6 @@ public class AudioProcess implements Runnable {
             fftCenterFreq = FFTSignalProcessing.computeFFTCenterFrequency(REALTIME_SAMPLE_RATE_LIMITATION);
             this.fftSignalProcessing = new FFTSignalProcessing(audioProcess.getRate(),
                     fftCenterFreq, audioProcess.getRate());
-            // Load test file
-            /*
-            InputStream inputStream = audioProcess.appResources.openRawResource(R.raw.capture_1000hz_16bits_44100hz_signed);
-            try {
-                testArray = SOSSignalProcessing.loadShortStream(inputStream);
-                inputStream.close();
-            } catch (IOException ex) {
-                // ignore
-            }
-            */
         }
 
 
@@ -391,18 +364,6 @@ public class AudioProcess implements Runnable {
 
         public void addSample(short[] sample) {
             bufferToProcess.add(sample);
-        }
-
-        // debug purpose
-        private String bufferToString() {
-            StringBuilder str = new StringBuilder();
-            for(float val : fftSignalProcessing.getSampleBuffer()) {
-                if(str.length() != 0) {
-                    str.append(",");
-                }
-                str.append(val);
-            }
-            return str.toString();
         }
 
         @Override
@@ -454,32 +415,12 @@ public class AudioProcess implements Runnable {
                                 fftSignalProcessing.addSample(Arrays.copyOfRange(buffer,
                                         buffer.length - remainingSamplesToPostPone, buffer.length));
                             }
-                            double rms = fftSignalProcessing.computeRms();
-                            System.out.println("RMS : " + String.format("%.02f", rms));
-                            System.out.println("dB(A) : " + String.format("%.02f",
-                                    result.getGlobaldBaValue()));
                         } else {
                             fftSignalProcessing.addSample(buffer);
                         }
                         secondCursor += buffer.length;
                     }
                     try {
-                        /*
-                        testing
-                        fftSignalProcessing.addSample(testArray);
-                        FFTSignalProcessing.ProcessingResult result =
-                                fftSignalProcessing.processSample(false, true);
-                        float[] leqs = result.getdBaLevels();
-                        leqStats.addLeq(result.getGlobaldBaValue());
-                        // Compute record time
-                        long beginRecordTime = audioProcess.beginRecordTime +
-                                (long) (((secondCursor + testArray.length) /
-                                        (double) audioProcess.getRate()) * 1000);
-                        audioProcess.listeners.firePropertyChange(
-                                AudioProcess.PROP_DELAYED_STANDART_PROCESSING, null,
-                                new DelayedStandardAudioMeasure(leqs, beginRecordTime));
-                        Thread.sleep(1000);
-                        */
                         Thread.sleep(5);
                     } catch (InterruptedException ex) {
                         break;
@@ -488,14 +429,6 @@ public class AudioProcess implements Runnable {
             } finally {
                 processing = false;
             }
-        }
-
-        private static void computeRMS(short[] signal) {
-            double sumPeak = 0;
-            for(short sample : signal) {
-                sumPeak += sample * sample;
-            }
-            System.out.println("RMS :" + Math.sqrt(sumPeak / signal.length));
         }
     }
 

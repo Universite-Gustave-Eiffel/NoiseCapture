@@ -25,6 +25,7 @@ import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.utils.Highlight;
 import com.github.mikephil.charting.utils.PercentFormatter;
 
+import org.noise_planet.noisecapture.util.CustomPercentFormatter;
 import org.orbisgis.sos.LeqStats;
 
 import java.util.ArrayList;
@@ -191,6 +192,7 @@ public class Results extends MainActivity {
     }
 
     public void initSpectrumChart(){
+        sChart.setTouchEnabled(false);
         sChart.setDrawBarShadow(false);
         sChart.setDescription("");
         sChart.setPinchZoom(false);
@@ -278,33 +280,22 @@ public class Results extends MainActivity {
         ArrayList<String> xVals = new ArrayList<String>();
         double maxValue = 0;
         int maxClassId = 0;
-        List<Integer> usedRanges = new ArrayList<>();
-        int pieInternalIndex = 0;
         for (int idEntry = 0; idEntry < classRangeValue.size(); idEntry++) {
             float value = classRangeValue.get(classRangeValue.size() - 1 - idEntry).floatValue();
-            if(value > 0) {
-                yVals1.add(new Entry(value, pieInternalIndex));
-                xVals.add(catNE[idEntry]);
-                usedRanges.add(idEntry);
-                if (value > maxValue) {
-                    maxClassId = pieInternalIndex;
-                    maxValue = value;
-                }
-                pieInternalIndex++;
+            yVals1.add(new Entry(value, idEntry));
+            xVals.add(catNE[idEntry]);
+            if (value > maxValue) {
+                maxClassId = idEntry;
+                maxValue = value;
             }
         }
 
         PieDataSet dataSet = new PieDataSet(yVals1, "Sound level");
         dataSet.setSliceSpace(3f);
-        int[] usedColors = new int[usedRanges.size()];
-        int internalIndex = 0;
-        for(int index : usedRanges) {
-            usedColors[internalIndex++] = NE_COLORS[index];
-        }
-        dataSet.setColors(usedColors);
+        dataSet.setColors(NE_COLORS);
 
         PieData data = new PieData(xVals, dataSet);
-        data.setValueFormatter(new PercentFormatter());
+        data.setValueFormatter(new CustomPercentFormatter());
         data.setValueTextSize(8f);
         data.setValueTextColor(Color.BLACK);
         rneChart.setData(data);

@@ -34,6 +34,8 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.utils.LargeValueFormatter;
 import com.github.mikephil.charting.utils.ValueFormatter;
 
+import org.orbisgis.sos.LeqStats;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
@@ -414,7 +416,7 @@ public class Measurement extends MainActivity {
             if(!activity.canceled.get() || activity.leqAdded.get() == 0) {
                 processingDialog.dismiss();
                 // Update record
-                activity.measurementManager.updateRecordLeqMean(activity.recordId, (float) activity.audioProcess.getLeqMean());
+                activity.measurementManager.updateRecordLeqMean(activity.recordId, (float) activity.audioProcess.getStandartLeqStats().getLeqMean());
                 // Goto the Results activity
                 activity.runOnUiThread(new Runnable() {
                     @Override
@@ -591,14 +593,15 @@ public class Measurement extends MainActivity {
                 activity.setData(leq);
                 // Change the text and the textcolor in the corresponding textview
                 // for the Leqi value
+                LeqStats leqStats = activity.audioProcess.getStandartLeqStats();
                 final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
                 formatdBA(leq, mTextView);
                 final TextView valueMin = (TextView) activity.findViewById(R.id.textView_value_Min_i);
-                formatdBA(activity.audioProcess.getRealtimeLeqMin(), valueMin);
+                formatdBA(leqStats.getLeqMin(), valueMin);
                 final TextView valueMax = (TextView) activity.findViewById(R.id.textView_value_Max_i);
-                formatdBA(activity.audioProcess.getRealtimeLeqMax(), valueMax);
+                formatdBA(leqStats.getLeqMax(), valueMax);
                 final TextView valueMean = (TextView) activity.findViewById(R.id.textView_value_Mean_i);
-                formatdBA(activity.audioProcess.getRealtimeLeqMean(), valueMean);
+                formatdBA(leqStats.getLeqMean(), valueMean);
 
 
                 int nc = activity.getNEcatColors(leq);    // Choose the color category in function of the sound level

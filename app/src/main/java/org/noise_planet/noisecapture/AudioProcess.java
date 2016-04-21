@@ -148,11 +148,6 @@ public class AudioProcess implements Runnable {
                     new Thread(fftLeqProcessing).start();
                     new Thread(standartLeqProcessing).start();
                     audioRecord.startRecording();
-
-                    System.out.println("Sample Rate : " + audioRecord.getSampleRate() + " Encoding : " +
-                            audioRecord.getAudioFormat() + " Audio channel : " +
-                            audioRecord.getChannelCount() + "buffer size : " +
-                            audioRecord.getAudioSource());
                     beginRecordTime = System.currentTimeMillis();
                     while (recording.get()) {
                         buffer = new short[bufferSize];

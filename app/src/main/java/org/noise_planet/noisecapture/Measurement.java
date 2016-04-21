@@ -61,6 +61,7 @@ public class Measurement extends MainActivity {
     private AtomicInteger leqAdded = new AtomicInteger(0);
     private AudioProcess audioProcess;
     private MeasurementManager measurementManager;
+    private DoProcessing doProcessing;
     // This measurement identifier in the long term storage
     private int recordId = -1;
     private boolean mIsBound = false;
@@ -72,10 +73,19 @@ public class Measurement extends MainActivity {
         return recordId;
     }
 
+
+    public void initComponents() {
+        this.audioProcess = new AudioProcess(isRecording, canceled);
+        spectrogram.setTimeStep(audioProcess.getFFTDelay());
+        setData(0);
+        updateSpectrumGUI();
+        Legend ls = sChart.getLegend();
+        ls.setEnabled(false); // Hide legend
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.audioProcess = new AudioProcess(isRecording, canceled);
         this.measurementManager = new MeasurementManager(getApplicationContext());
         setContentView(R.layout.activity_measurement);
         initDrawer();
@@ -135,7 +145,8 @@ public class Measurement extends MainActivity {
         buttonrecord.setEnabled(true);
 
         // Actions on record button
-        buttonrecord.setOnClickListener(new DoProcessing(getApplicationContext(), this));
+        doProcessing = new DoProcessing(getApplicationContext(), this);
+        buttonrecord.setOnClickListener(doProcessing);
 
         // Action on cancel button (during recording)
         buttoncancel.setOnClickListener(onButtonCancel);
@@ -167,7 +178,6 @@ public class Measurement extends MainActivity {
         sChart = (BarChart) findViewById(R.id.spectrumChart);
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
         spectrogram = (Spectrogram) findViewById(R.id.spectrogram_view);
-        spectrogram.setTimeStep(audioProcess.getFFTDelay());
         mChart.setTouchEnabled(false);
         sChart.setTouchEnabled(false);
         // When user click on spectrum control, view are switched
@@ -188,11 +198,7 @@ public class Measurement extends MainActivity {
         }
         initSpectrum();
         // Data (before legend)
-        updateSpectrumGUI();
         // (ltob.length-1) values for each third-octave band// Legend: hide all
-        Legend ls = sChart.getLegend();
-        ls.setEnabled(false); // Hide legend
-        doBindService();
     }
 
     private View.OnClickListener onButtonCancel = new View.OnClickListener() {
@@ -201,27 +207,7 @@ public class Measurement extends MainActivity {
 
             // Stop measurement without waiting for the end of processing
             canceled.set(true);
-            isRecording.set(false);
-
-            // Stop and reset chronometer
-            Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer_recording_time);
-            chronometer.stop();
-            chronometer.setText("00:00");
-
-            // Enabled/disabled buttons after measurement
-            // history enabled or disabled (if isHistory); cancel disable; record button enabled
-            checkHistoryButton();
-            ImageButton buttoncancel = (ImageButton) findViewById(R.id.cancelBtn);
-            buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
-            buttoncancel.setEnabled(false);
-            ImageButton buttonrecord = (ImageButton) findViewById(R.id.recordBtn);
-            buttonrecord.setImageResource(R.drawable.button_record);
-            buttoncancel.setEnabled(true);
-            ImageButton buttonmap = (ImageButton) findViewById(R.id.mapBtn);
-            buttonmap.setImageResource(R.drawable.button_map);
-            buttonmap.setEnabled(true);
-
-
+            doProcessing.onClick(view);
         }
     };
 
@@ -413,7 +399,7 @@ public class Measurement extends MainActivity {
             }
 
             // If canceled or ended before 1s
-            if(!activity.canceled.get() || activity.leqAdded.get() == 0) {
+            if(!activity.canceled.get() && activity.leqAdded.get() != 0) {
                 processingDialog.dismiss();
                 // Update record
                 activity.measurementManager.updateRecordLeqMean(activity.recordId, (float) activity.audioProcess.getStandartLeqStats().getLeqMean());
@@ -430,7 +416,9 @@ public class Measurement extends MainActivity {
 
             } else {
                 // Destroy record
+                System.out.println("Delete record :" + activity.recordId);
                 activity.measurementManager.deleteRecord(activity.recordId);
+                processingDialog.dismiss();
             }
             // Stop gps tracking
             activity.doUnbindService();
@@ -503,7 +491,7 @@ public class Measurement extends MainActivity {
             buttonmap.setImageResource(R.drawable.button_map_disabled);
 
             if (activity.isRecording.compareAndSet(false, true)) {
-
+                activity.initComponents();
                 // Start gps tracking
                 //activity.doBindService(); // Connect to localisation service
 
@@ -539,19 +527,21 @@ public class Measurement extends MainActivity {
 
                 // Show computing progress dialog
                 ProgressDialog myDialog = new ProgressDialog(activity);
-                myDialog.setMessage(resources.getString(R.string.measurement_processlastsamples,
-                        activity.audioProcess.getRemainingNotProcessSamples()));
-                myDialog.setCancelable(false);
-                myDialog.setButton(DialogInterface.BUTTON_NEGATIVE,
-                        resources.getText(R.string.text_CANCEL_data_transfer),
-                        new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                dialog.dismiss();
-                                activity.canceled.set(true);
-                            }
-                        });
-                myDialog.show();
+                if(!activity.canceled.get()) {
+                    myDialog.setMessage(resources.getString(R.string.measurement_processlastsamples,
+                            activity.audioProcess.getRemainingNotProcessSamples()));
+                    myDialog.setCancelable(false);
+                    myDialog.setButton(DialogInterface.BUTTON_NEGATIVE,
+                            resources.getText(R.string.text_CANCEL_data_transfer),
+                            new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    dialog.dismiss();
+                                    activity.canceled.set(true);
+                                }
+                            });
+                    myDialog.show();
+                }
 
                 // Launch processing end activity
                 new Thread(new WaitEndOfProcessing(activity, myDialog)).start();

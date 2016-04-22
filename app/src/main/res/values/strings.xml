@@ -168,4 +168,5 @@
     <string name="local_service_disconnected">Localisation service disconnected</string>
     <string name="local_service_connected">Localisation service connected</string>
     <string name="delete">Delete</string>
+    <string name="no_data_text_description">Start by pressing the record button</string>
 </resources>

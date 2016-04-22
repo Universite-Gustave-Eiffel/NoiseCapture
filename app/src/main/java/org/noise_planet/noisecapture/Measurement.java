@@ -232,7 +232,7 @@ public class Measurement extends MainActivity implements
         sChart.setMaxVisibleValueCount(0);
         sChart.setDrawValuesForWholeStack(true); // Stacked
         sChart.setHighlightEnabled(false);
-        sChart.setNoDataTextDescription("Start by pressing the record button");
+        sChart.setNoDataTextDescription(getText(R.string.no_data_text_description).toString());
         // XAxis parameters:
         XAxis xls = sChart.getXAxis();
         xls.setPosition(XAxisPosition.BOTTOM);
@@ -244,7 +244,7 @@ public class Measurement extends MainActivity implements
         YAxis yls = sChart.getAxisLeft();
         yls.setDrawAxisLine(true);
         yls.setDrawGridLines(true);
-        yls.setAxisMaxValue(141.f);
+        yls.setAxisMaxValue(110.f);
         yls.setStartAtZero(true);
         yls.setTextColor(Color.WHITE);
         yls.setGridColor(Color.WHITE);
@@ -273,7 +273,7 @@ public class Measurement extends MainActivity implements
         YAxis ylv = mChart.getAxisLeft();
         ylv.setDrawAxisLine(false);
         ylv.setDrawGridLines(true);
-        ylv.setAxisMaxValue(141f);
+        ylv.setAxisMaxValue(110.f);
         ylv.setStartAtZero(true);
         ylv.setTextColor(Color.WHITE);
         ylv.setGridColor(Color.WHITE);

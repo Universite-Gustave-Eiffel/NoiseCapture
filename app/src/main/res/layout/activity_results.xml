@@ -169,7 +169,7 @@
 
         </LinearLayout>
 
-        <com.github.mikephil.charting.charts.BarChart
+        <com.github.mikephil.charting.charts.HorizontalBarChart
             android:id="@+id/spectrumChart"
             android:layout_width="wrap_content"
             android:layout_height="match_parent" />

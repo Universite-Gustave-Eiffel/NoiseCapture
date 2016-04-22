@@ -102,7 +102,7 @@ public class Spectrogram extends View {
 
     private static String formatFrequency(int frequency) {
         if(frequency > 1000) {
-            return String.format("%d Khz", frequency / 1000);
+            return String.format("%d kHz", frequency / 1000);
         } else {
             return String.format("%d Hz", frequency);
         }

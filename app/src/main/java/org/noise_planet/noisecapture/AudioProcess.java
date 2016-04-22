@@ -292,7 +292,7 @@ public class AudioProcess implements Runnable {
                     fftResultLvl = result.getFftResult();
                     thirdOctaveSplLevels = result.getdBaLevels();
                     // Compute leq
-                    leq = result.getGlobaldBaValue();
+                    leq = signalProcessing.computeGlobalLeq();
                     leqStats.addLeq(leq);
                     audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
                             null, fftResultLvl);

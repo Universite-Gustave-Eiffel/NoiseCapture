@@ -66,6 +66,7 @@ public class Measurement extends MainActivity implements
     // This measurement identifier in the long term storage
     private int recordId = -1;
     private boolean mIsBound = false;
+    private AtomicBoolean chronometerWaitingToStart = new AtomicBoolean(false);
 
     public final static double MIN_SHOWN_DBA_VALUE = 35;
     public final static double MAX_SHOWN_DBA_VALUE = 120;
@@ -513,9 +514,7 @@ public class Measurement extends MainActivity implements
                 activity.leqAdded.set(0);
 
                 // Start chronometer
-                Chronometer chronometer = (Chronometer) activity.findViewById(R.id.chronometer_recording_time);
-                chronometer.setBase(SystemClock.elapsedRealtime());
-                chronometer.start();
+                activity.chronometerWaitingToStart.set(true);
 
                 // Start recording
                 activity.audioProcess.getListeners().addPropertyChangeListener(this);
@@ -591,6 +590,11 @@ public class Measurement extends MainActivity implements
         @Override
         public void run() {
             try {
+                if(activity.chronometerWaitingToStart.getAndSet(false)) {
+                    Chronometer chronometer = (Chronometer) activity.findViewById(R.id.chronometer_recording_time);
+                    chronometer.setBase(SystemClock.elapsedRealtime());
+                    chronometer.start();
+                }
                 final double leq = activity.audioProcess.getLeq();
                 activity.setData(leq);
                 // Change the text and the textcolor in the corresponding textview

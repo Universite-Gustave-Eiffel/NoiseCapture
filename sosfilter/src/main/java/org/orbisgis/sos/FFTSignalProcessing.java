@@ -100,7 +100,7 @@ public class FFTSignalProcessing {
      * @see "http://stackoverflow.com/questions/18684948/how-to-measure-sound-volume-in-db-scale-android"
      * @return List of double array of equivalent sound pressure level per third octave bands
      */
-    public ProcessingResult processSample(boolean hanningWindow, boolean aWeighting) {
+    public ProcessingResult processSample(boolean hanningWindow, boolean aWeighting, boolean outputThinFrequency) {
         float[] signal = new float[sampleBuffer.length];
         for(int i=0; i < signal.length; i++) {
             signal[i] = sampleBuffer[i];
@@ -129,9 +129,14 @@ public class FFTSignalProcessing {
             globalSpl += Math.pow(10, splLevel / 10);
         }
         // Limit spectrum output by specified frequencies and convert to dBspl
-        float[] spectrumSplLevels = new float[(int)(standardFrequencies[standardFrequencies.length - 1] /  freqByCell)];
-        for(int i = 0; i < spectrumSplLevels.length; i++) {
-            spectrumSplLevels[i] = (float) todBspl(squareAbsoluteFFTToRMS(squareAbsoluteFFT[i], squareAbsoluteFFT.length));
+        float[] spectrumSplLevels = null;
+        if(outputThinFrequency) {
+            spectrumSplLevels = new float[(int) (standardFrequencies[standardFrequencies.length - 1] /
+                    freqByCell)];
+            for (int i = 0; i < spectrumSplLevels.length; i++) {
+                spectrumSplLevels[i] = (float) todBspl(squareAbsoluteFFTToRMS(squareAbsoluteFFT[i
+                        ], squareAbsoluteFFT.length));
+            }
         }
         return new ProcessingResult(spectrumSplLevels, splLevels, (float)(10 * Math.log10(globalSpl)));
     }

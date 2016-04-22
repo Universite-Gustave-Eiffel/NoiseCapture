@@ -288,7 +288,7 @@ public class AudioProcess implements Runnable {
                     SECOND_FIRE_MOVING_SPECTRUM) {
                     lastProcessedSpectrum = pushedSamples;
                     FFTSignalProcessing.ProcessingResult result =
-                            signalProcessing.processSample(false, true);
+                            signalProcessing.processSample(false, true, true);
                     fftResultLvl = result.getFftResult();
                     thirdOctaveSplLevels = result.getdBaLevels();
                     // Compute leq
@@ -393,7 +393,7 @@ public class AudioProcess implements Runnable {
                             }
                             // Do processing
                             FFTSignalProcessing.ProcessingResult result =
-                                    fftSignalProcessing.processSample(false, false);
+                                    fftSignalProcessing.processSample(false, false, false);
                             float[] leqs = result.getdBaLevels();
                             leqStats.addLeq(result.getGlobaldBaValue());
                             // Compute record time

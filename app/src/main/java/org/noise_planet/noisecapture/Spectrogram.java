@@ -16,6 +16,8 @@ import java.util.List;
  * This canvas drawer receive thin or third octave frequency SPL and draw it.
  */
 public class Spectrogram extends View {
+    public enum SCALE_MODE {SCALE_LINEAR, SCALE_LOG};
+    private SCALE_MODE scaleMode = SCALE_MODE.SCALE_LOG;
     private final List<float[]> spectrumData = new ArrayList<>();
     private Bitmap spectrogramBuffer = null;
     private Bitmap frequencyLegend = null;
@@ -28,9 +30,12 @@ public class Spectrogram extends View {
     private int initCanvasWidth = -1;
     private static final float min = 0;
     private static final float max = 70;
-    private int[] frequencyLegendPosition = new int[] {0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000};
+    private static final int[] frequencyLegendPositionLog =  new int[] {63, 125, 250, 500, 1000, 2000, 4000, 8000, 16000};
+    private static final int[] frequencyLegendPositionLinear =  new int[] {0, 1000, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 10000, 12500, 16000};
+    private int[] frequencyLegendPosition = frequencyLegendPositionLog;
     private static final int FREQUENCY_LEGEND_TEXT_SIZE = 18;
     private double timeStep;
+    private boolean doRedraw = false;
     /** Color ramp, using http://www.zonums.com/online/color_ramp/ */
 
     private static final int[] colorRamp = new int[]{
@@ -69,6 +74,11 @@ public class Spectrogram extends View {
         return Color.parseColor(color);
     }
 
+    public void setScaleMode(SCALE_MODE scaleMode) {
+        this.scaleMode = scaleMode;
+        doRedraw = true;
+    }
+
     /**
      * @param timeStep Call delay of addTimeStep for time legend.
      */
@@ -90,6 +100,14 @@ public class Spectrogram extends View {
         }
     }
 
+    private static String formatFrequency(int frequency) {
+        if(frequency > 1000) {
+            return String.format("%d Khz", frequency / 1000);
+        } else {
+            return String.format("%d Hz", frequency);
+        }
+    }
+
     /**
      * Add the spectrum as a new spectrogramImage column
      * @param spectrum FFT response
@@ -100,7 +118,10 @@ public class Spectrogram extends View {
         spectrumData.add(0, spectrum);
         if(canvasWidth > 0 && canvasHeight > 0) {
             if (spectrogramBuffer == null || initCanvasWidth != canvasWidth ||
-                    initCanvasHeight != canvasHeight ) {
+                    initCanvasHeight != canvasHeight || doRedraw ) {
+                doRedraw = false;
+                frequencyLegendPosition = scaleMode == SCALE_MODE.SCALE_LOG ?
+                        frequencyLegendPositionLog : frequencyLegendPositionLinear;
                 initCanvasWidth = canvasWidth;
                 initCanvasHeight = canvasHeight;
                 // Build legend
@@ -116,10 +137,9 @@ public class Spectrogram extends View {
                 int legendWidth = 0;
                 String[] frequencyLegendLabels = new String[frequencyLegendPosition.length];
                 for(int freqIndex = 0; freqIndex < frequencyLegendLabels.length; freqIndex++) {
-                    frequencyLegendLabels[freqIndex] = String.valueOf(frequencyLegendPosition[freqIndex] / 1000)+ " kHz";
-                }
-                for(String labelFreq : frequencyLegendLabels) {
-                    paint.getTextBounds(labelFreq, 0, labelFreq.length(), bounds);
+                    String frequencyLegendLabel = formatFrequency(frequencyLegendPosition[freqIndex]);
+                    frequencyLegendLabels[freqIndex] = frequencyLegendLabel;
+                    paint.getTextBounds(frequencyLegendLabel, 0, frequencyLegendLabel.length(), bounds);
                     legendWidth = Math.max(legendWidth, bounds.width());
                 }
                 legendWidth += frequencyLegendTicWidth;
@@ -154,13 +174,22 @@ public class Spectrogram extends View {
                 // Draw text on legend
                 Canvas legendCanvas = new Canvas(frequencyLegend);
                 final int spectrogramHeight = canvasHeight - timeLegend.getHeight();
+                double fmax = spectrum.length * hertzBySpectrumCell;
+                double fmin = frequencyLegendPosition[0];
                 double cellByPixel = spectrum.length / (double)spectrogramHeight;
-                int freqIndex = 0;
-                for(int frequency : frequencyLegendPosition) {
-                    float tickHeightPos = (float) (frequencyLegend.getHeight() -
-                            frequency / (cellByPixel * hertzBySpectrumCell) );
+                double r = fmax / fmin;
+                for(int freqIndex = 0; freqIndex < frequencyLegendPosition.length; freqIndex++) {
+                    int frequency = frequencyLegendPosition[freqIndex];
+                    float tickHeightPos;
+                    if(scaleMode == SCALE_MODE.SCALE_LOG) {
+                        tickHeightPos = (float) (frequencyLegend.getHeight() - (spectrogramHeight
+                                * Math.log(frequency / fmin) / Math.log(r)));
+                    } else {
+                        tickHeightPos = (float) (frequencyLegend.getHeight() -
+                        frequency / (cellByPixel * hertzBySpectrumCell) );
+                    }
                     float heightPos = Math.max(bounds.height(), tickHeightPos + (bounds.height() / 2));
-                    final String labelFreq = frequencyLegendLabels[freqIndex++];
+                    final String labelFreq = frequencyLegendLabels[freqIndex];
                     paint.getTextBounds(labelFreq, 0, labelFreq.length(), bounds);
                     if(bounds.height() + heightPos > frequencyLegend.getHeight()) {
                         heightPos = frequencyLegend.getHeight() - bounds.height() / 2;
@@ -189,15 +218,29 @@ public class Spectrogram extends View {
 
                 // merge frequencies following the destination resolution
                 double freqByPixel = ticSpectrum.length / (double)spectrogramHeight;
+                double fmax = spectrum.length * hertzBySpectrumCell;
+                double fmin = frequencyLegendPosition[0];
+                double r = fmax / fmin;
+                int lastProcessFrequencyIndex = 0;
                 for(int pixel = 0; pixel < spectrogramHeight; pixel++) {
                     // Compute frequency range covered by this pixel
-                    int freqStart = (int)Math.floor(pixel * freqByPixel);
-                    int freqEnd =(int)Math.min(pixel * freqByPixel + freqByPixel, ticSpectrum.length);
+                    double f = fmin * Math.pow(10, pixel * Math.log10(r) / frequencyLegend.getHeight());
                     float sumVal = 0;
+                    int nextFrequencyIndex = Math.min(spectrum.length, (int)(f / hertzBySpectrumCell));
+                    int freqStart;
+                    int freqEnd;
+                    if(scaleMode == SCALE_MODE.SCALE_LOG) {
+                        freqStart = lastProcessFrequencyIndex;
+                        freqEnd = Math.min(spectrum.length, (int)(f / hertzBySpectrumCell) + 1);
+                    } else {
+                        freqStart = (int)Math.floor(pixel * freqByPixel);
+                        freqEnd =(int) Math.min(pixel * freqByPixel + freqByPixel, ticSpectrum.length);
+                    }
                     for (int idfreq = freqStart; idfreq < freqEnd; idfreq++) {
                         // Rescale value and pick the color in the color ramp
                         sumVal += Math.pow(10, ticSpectrum[idfreq] / 10);
                     }
+                    lastProcessFrequencyIndex = Math.min(spectrum.length, nextFrequencyIndex);
                     sumVal = (float)Math.max(0,
                             (10 * Math.log10(sumVal)));
                     int pixColor = colorRamp[Math.min(colorRamp.length - 1, Math.max(0,

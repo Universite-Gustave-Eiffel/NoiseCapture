@@ -44,7 +44,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class Measurement extends MainActivity {
+public class Measurement extends MainActivity implements
+        SharedPreferences.OnSharedPreferenceChangeListener {
 
     //public ImageButton buttonrecord;
     //public ImageButton buttoncancel;
@@ -84,6 +85,14 @@ public class Measurement extends MainActivity {
     }
 
     @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if(key.equals("settings_spectrogram_logscalemode")) {
+            spectrogram.setScaleMode(sharedPreferences.getBoolean(key, true) ?
+                    Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR);
+        }
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.measurementManager = new MeasurementManager(getApplicationContext());
@@ -97,6 +106,7 @@ public class Measurement extends MainActivity {
         // Check if the dialog box (for caution) must be displayed
         // Depending of the settings
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPref.registerOnSharedPreferenceChangeListener(this);
         Boolean CheckNbRunSettings = sharedPref.getBoolean("settings_caution", true);
         if (CheckNbRun() & CheckNbRunSettings) {
 
@@ -178,6 +188,8 @@ public class Measurement extends MainActivity {
         sChart = (BarChart) findViewById(R.id.spectrumChart);
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
         spectrogram = (Spectrogram) findViewById(R.id.spectrogram_view);
+        spectrogram.setScaleMode(sharedPref.getBoolean("settings_spectrogram_logscalemode", true) ?
+                Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR);
         mChart.setTouchEnabled(false);
         sChart.setTouchEnabled(false);
         // When user click on spectrum control, view are switched

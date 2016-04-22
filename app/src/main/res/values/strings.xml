@@ -43,6 +43,9 @@
     <string name="title_settings_caution">Caution message</string>
     <string name="summary_settings_caution">Check to display the caution message during the launch of the application</string>
     <string name="title_settings_recording_duration">Recording duration</string>
+
+    <string name="title_settings_spectrogram_logscalemode">Spectrogram frequency in Log Scale</string>
+    <string name="summary_settings_spectrogram_logscalemode">Check for frequency scale in log, uncheck for linear</string>
     <string name="summary_settings_recording_duration">Set the recording duration (in second)</string>
     <string name="title_settings_view_mode">Display</string>
     <string name="summary_settings_view_mode">Check to display in the expert mode</string>

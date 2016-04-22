@@ -28,7 +28,7 @@ public class TestJTransforms {
         short[] signal = SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN);
         inputStream.close();
         fftSignalProcessing.addSample(signal);
-        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false, false);
         System.out.println("RMS : " + fftSignalProcessing.computeRms() + "\ndbRMS " +
                 fftSignalProcessing.computeGlobalLeq() + "\nThird octave spl :" + processingResult.getGlobaldBaValue());
     }
@@ -66,7 +66,7 @@ public class TestJTransforms {
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, signal.length);
         fftSignalProcessing.addSample(signal);
-        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false, false);
 
         assertEquals(90, fftSignalProcessing.computeGlobalLeq(), 0.01);
         assertEquals(90,
@@ -95,7 +95,7 @@ public class TestJTransforms {
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, signal.length);
         fftSignalProcessing.addSample(signal);
-        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false, false);
 
         assertEquals(90, fftSignalProcessing.computeGlobalLeq(), 0.01);
         assertEquals(90,
@@ -122,7 +122,7 @@ public class TestJTransforms {
             fftSignalProcessing.addSample(signalPart);
             lastPart += signalPart.length;
         }
-        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(true, true);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false, false);
 
         assertEquals(323.85, fftSignalProcessing.computeRms(), 0.01);
         assertEquals(72.24, processingResult.getGlobaldBaValue(), 1);

@@ -1,14 +1,11 @@
 package org.noise_planet.noisecapture;
 
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-
-//
-// public class Settings extends MainActivity {
-public class Settings extends ActionBarActivity {
+public class Settings extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

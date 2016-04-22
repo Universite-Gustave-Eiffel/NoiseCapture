@@ -71,7 +71,7 @@ public class CoreSignalProcessingTest {
         assertEquals(0, classRangesValues.get(4), 0.01);    // > 75
     }
 
-    @Test
+
     public void testProcessAudioOneSecond() throws Exception {
 
         /*

@@ -25,6 +25,11 @@
         android:dependency="settings_recording"
         android:inputType="number"/>
     <CheckBoxPreference
+        android:key="settings_spectrogram_logscalemode"
+        android:title="@string/title_settings_spectrogram_logscalemode"
+        android:summary="@string/summary_settings_spectrogram_logscalemode"
+        android:defaultValue="true" />
+    <CheckBoxPreference
         android:key="settings_caution"
         android:title="@string/title_settings_caution"
         android:summary="@string/summary_settings_caution"

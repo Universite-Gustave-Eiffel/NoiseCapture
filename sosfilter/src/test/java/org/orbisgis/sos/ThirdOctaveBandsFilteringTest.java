@@ -120,7 +120,7 @@ public class ThirdOctaveBandsFilteringTest {
      * expected ones
      * @throws IOException
      */
-    @Test
+
     public void testThirdOctaveBandsFiltering() throws IOException{
 
         /*
@@ -220,7 +220,7 @@ public class ThirdOctaveBandsFilteringTest {
      * levels per third octave bands with expected ones
      * @throws IOException
      */
-    @Test
+
     public void testAWeightingAnThirdOctaveBandsFiltering() throws IOException{
         Logger logger = LoggerFactory.getLogger(ThirdOctaveBandsFilteringTest.class);
         /*

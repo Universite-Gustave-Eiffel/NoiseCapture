@@ -203,10 +203,8 @@ public class Measurement extends MainActivity implements
     private View.OnClickListener onButtonCancel = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
-
             // Stop measurement without waiting for the end of processing
             measurementService.cancel();
-            doProcessing.onClick(view);
         }
     };
 
@@ -434,8 +432,6 @@ public class Measurement extends MainActivity implements
     }
 
     private void initGuiState() {
-
-        Resources resources = getResources();
         // Update buttons: history disabled; cancel enabled; record button to stop; map disabled
         ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
         buttonhistory.setImageResource(R.drawable.button_history_disabled);
@@ -488,6 +484,10 @@ public class Measurement extends MainActivity implements
                         activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));
+                } else if(AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
+                    if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
+                        activity.initGuiState();
+                    }
                 }
             }
         }

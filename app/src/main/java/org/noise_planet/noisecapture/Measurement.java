@@ -676,6 +676,20 @@ public class Measurement extends MainActivity implements
     }
 
     @Override
+    protected void onRestart() {
+        super.onRestart();
+        // Reconnect from measurement
+        measurementService.addPropertyChangeListener(doProcessing);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Disconnect listener from measurement
+        measurementService.removePropertyChangeListener(doProcessing);
+    }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         doUnbindService();

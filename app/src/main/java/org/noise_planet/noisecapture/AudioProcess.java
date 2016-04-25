@@ -9,6 +9,8 @@ import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.FFTSignalProcessing;
 import org.orbisgis.sos.LeqStats;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeSupport;
@@ -21,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * Processing thread of packets of Audio signal
  */
 public class AudioProcess implements Runnable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AudioProcess.class);
     private AtomicBoolean recording;
     private AtomicBoolean canceled;
     private final int bufferSize;
@@ -83,6 +86,7 @@ public class AudioProcess implements Runnable {
         STATE oldState = currentState;
         currentState = state;
         listeners.firePropertyChange(PROP_STATE_CHANGED, oldState, currentState );
+        LOGGER.info("AudioRecord : "+oldState+" -> "+state.toString());
     }
     /**
      * @return Frequency feed in {@link AudioProcess#PROP_MOVING_SPECTRUM} {@link PropertyChangeEvent#getNewValue()}

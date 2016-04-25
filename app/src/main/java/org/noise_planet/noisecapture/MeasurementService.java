@@ -17,8 +17,10 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.support.v4.content.ContextCompat;
-import android.widget.CompoundButton;
 import android.widget.Toast;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -54,6 +56,7 @@ public class MeasurementService extends Service {
     // This measurement identifier in the long term storage
     private int recordId = -1;
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
+    private static final Logger LOGGER = LoggerFactory.getLogger(MeasurementService.class);
 
     private TreeMap<Long, Location> timeLocation = new TreeMap<Long, Location>();
 
@@ -80,6 +83,8 @@ public class MeasurementService extends Service {
 
     public void cancel() {
         canceled.set(true);
+        isRecording.set(false);
+        stopLocalisationServices();
     }
 
     public boolean isCanceled() {
@@ -108,8 +113,12 @@ public class MeasurementService extends Service {
 
     @Override
     public void onDestroy() {
-        // Tell the user we stopped.
-        Toast.makeText(this, "gps service stop", Toast.LENGTH_SHORT).show();
+        // Stop record
+        if(isRecording()) {
+            cancel();
+            // Tell the user we canceled.
+            Toast.makeText(this, R.string.measurement_service_canceled, Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -172,6 +181,18 @@ public class MeasurementService extends Service {
         initNetworkLocation();
     }
 
+    private void stopLocalisationServices() {
+        stopPassive();
+        stopGPS();
+        stopNetworkLocation();
+    }
+
+    private void restartLocalisationServices() {
+        LOGGER.info("Restart localisation services");
+        stopLocalisationServices();
+        initLocalisationServices();
+    }
+
     private void initPassive() {
         if (passiveLocationListener == null) {
             passiveLocationListener = new CommonLocationListener(this, LISTENER.PASSIVE);
@@ -198,12 +219,40 @@ public class MeasurementService extends Service {
         }
     }
 
-    public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
-        listeners.addPropertyChangeListener(propertyChangeListener);
+    private void stopGPS() {
+        if (gpsLocationListener == null || gpsLocationManager == null) {
+            return;
+        }
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED
+                && passiveLocationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER)) {
+            gpsLocationManager.removeUpdates(gpsLocationListener);
+        }
     }
 
-    public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
-        listeners.removePropertyChangeListener(propertyChangeListener);
+
+    private void stopPassive() {
+        if (passiveLocationListener == null || passiveLocationManager == null) {
+            return;
+        }
+        passiveLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED
+                && passiveLocationManager.isProviderEnabled(LocationManager.PASSIVE_PROVIDER)) {
+            passiveLocationManager.removeUpdates(passiveLocationListener);
+        }
+    }
+
+    private void stopNetworkLocation() {
+        if (networkLocationListener == null || networkLocationManager == null) {
+            return;
+        }
+        networkLocationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) ==
+                PackageManager.PERMISSION_GRANTED
+                && networkLocationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)) {
+            networkLocationManager.removeUpdates(networkLocationListener);
+        }
     }
 
     private void initGPS() {
@@ -218,6 +267,15 @@ public class MeasurementService extends Service {
                     gpsLocationListener);
         }
     }
+
+    public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+        listeners.addPropertyChangeListener(propertyChangeListener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+        listeners.removePropertyChangeListener(propertyChangeListener);
+    }
+
 
     public void addLocation(Location location) {
         timeLocation.put(location.getTime(), location);
@@ -252,7 +310,6 @@ public class MeasurementService extends Service {
         public CommonLocationListener(MeasurementService measurementService, LISTENER listenerId) {
             this.measurementService = measurementService;
             this.listenerId = listenerId;
-            System.out.println(listenerId.toString());
         }
 
         @Override
@@ -272,13 +329,12 @@ public class MeasurementService extends Service {
 
         @Override
         public void onProviderEnabled(String provider) {
-            System.out.println(provider+" enabled");
+            measurementService.restartLocalisationServices();
         }
 
         @Override
         public void onProviderDisabled(String provider) {
-            System.out.println(provider+" disabled");
-
+            measurementService.restartLocalisationServices();
         }
 
 
@@ -351,7 +407,8 @@ public class MeasurementService extends Service {
                     // Recording and processing of audio has been closed
                     // Cancel the persistent notification.
                     measurementService.mNM.cancel(measurementService.NOTIFICATION);
-                    if (measurementService.canceled.get()) {
+                    if (measurementService.canceled.get() || measurementService.leqAdded.get() == 0)
+                    {
                         // Canceled
                         // Destroy record
                         measurementService.measurementManager
@@ -364,6 +421,7 @@ public class MeasurementService extends Service {
                                                 .getStandartLeqStats().getLeqMean());
 
                     }
+                    measurementService.stopLocalisationServices();
                 }
             }
             measurementService.listeners.firePropertyChange(event);

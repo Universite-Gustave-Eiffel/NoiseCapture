@@ -84,7 +84,7 @@ public class LeqStats {
             }
             lastIdClass = idClass;
         }
-        return 0;
+        return classList.get(lastIdClass);
     }
 
     public double getLeqMin() {

@@ -72,6 +72,24 @@ public class CoreSignalProcessingTest {
     }
 
 
+
+    @Test
+    public void testLeqStats2() {
+        LeqStats leqStats = new LeqStats();
+        leqStats.addLeq(45.15);
+        double[][] classRanges = new double[][]{{Double.MIN_VALUE, 45}, {45, 55}, {55, 65}, {65, 75},{75, Double.MAX_VALUE}};
+        LeqStats.LeqOccurrences leqOccurrences = leqStats.computeLeqOccurrences(classRanges);
+        assertEquals(45.1, leqOccurrences.getLa10(), 0.01);
+        assertEquals(45.1, leqOccurrences.getLa50(), 0.01);
+        assertEquals(45.1, leqOccurrences.getLa90(), 0.01);
+        List<Double> classRangesValues = leqOccurrences.getUserDefinedOccurrences();
+        assertEquals(classRanges.length, classRangesValues.size());
+        assertEquals(0, classRangesValues.get(0), 0.01);    // < 45
+        assertEquals(1., classRangesValues.get(1), 0.01);  // [45-55)
+        assertEquals(0, classRangesValues.get(2), 0.01);    // [55-65)
+        assertEquals(0, classRangesValues.get(3), 0.01);  // [65-75)
+        assertEquals(0, classRangesValues.get(4), 0.01);    // > 75
+    }
     public void testProcessAudioOneSecond() throws Exception {
 
         /*

@@ -210,7 +210,7 @@ public class Results extends MainActivity {
         YAxis yls = sChart.getAxisLeft();
         yls.setDrawAxisLine(true);
         yls.setDrawGridLines(true);
-        yls.setAxisMaxValue(141.f);
+        yls.setAxisMaxValue(110.f);
         yls.setStartAtZero(true);
         yls.setTextColor(Color.WHITE);
         yls.setGridColor(Color.WHITE);

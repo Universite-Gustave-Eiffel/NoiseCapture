@@ -486,7 +486,7 @@ public class Measurement extends MainActivity implements
                     activity.runOnUiThread(new UpdateText(activity));
                 } else if(AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
                     if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
-                        activity.initGuiState();
+                        activity.runOnUiThread(new UpdateText(activity));
                     }
                 }
             }
@@ -557,37 +557,46 @@ public class Measurement extends MainActivity implements
         @Override
         public void run() {
             try {
-                if(activity.chronometerWaitingToStart.getAndSet(false)) {
-                    long time = activity.measurementService.getBeginMeasure();
-                    if(time != 0) {
-                        Chronometer chronometer = (Chronometer) activity
-                                .findViewById(R.id.chronometer_recording_time);
-                        chronometer.setBase(time);
-                        chronometer.start();
-                    } else {
-                        activity.chronometerWaitingToStart.set(true);
+                if(activity.measurementService.isRecording()) {
+                    if (activity.chronometerWaitingToStart.getAndSet(false)) {
+                        long time = activity.measurementService.getBeginMeasure();
+                        if (time != 0) {
+                            Chronometer chronometer = (Chronometer) activity
+                                    .findViewById(R.id.chronometer_recording_time);
+                            chronometer.setBase(time);
+                            chronometer.start();
+                        } else {
+                            activity.chronometerWaitingToStart.set(true);
+                        }
                     }
+                    final double leq = activity.measurementService.getAudioProcess().getLeq();
+                    activity.setData(leq);
+                    // Change the text and the textcolor in the corresponding textview
+                    // for the Leqi value
+                    LeqStats leqStats =
+                            activity.measurementService.getAudioProcess().getStandartLeqStats();
+                    final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
+                    formatdBA(leq, mTextView);
+                    final TextView valueMin = (TextView) activity.findViewById(R.id
+                            .textView_value_Min_i);
+                    formatdBA(leqStats.getLeqMin(), valueMin);
+                    final TextView valueMax = (TextView) activity.findViewById(R.id
+                            .textView_value_Max_i);
+                    formatdBA(leqStats.getLeqMax(), valueMax);
+                    final TextView valueMean = (TextView) activity.findViewById(R.id
+                            .textView_value_Mean_i);
+                    formatdBA(leqStats.getLeqMean(), valueMean);
+
+
+                    int nc = Measurement.getNEcatColors(leq);    // Choose the color category in
+                    // function of the sound level
+                    mTextView.setTextColor(activity.NE_COLORS[nc]);
+
+                    // Spectrum data
+                    activity.updateSpectrumGUI();
+                } else {
+                    activity.initGuiState();
                 }
-                final double leq = activity.measurementService.getAudioProcess().getLeq();
-                activity.setData(leq);
-                // Change the text and the textcolor in the corresponding textview
-                // for the Leqi value
-                LeqStats leqStats = activity.measurementService.getAudioProcess().getStandartLeqStats();
-                final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
-                formatdBA(leq, mTextView);
-                final TextView valueMin = (TextView) activity.findViewById(R.id.textView_value_Min_i);
-                formatdBA(leqStats.getLeqMin(), valueMin);
-                final TextView valueMax = (TextView) activity.findViewById(R.id.textView_value_Max_i);
-                formatdBA(leqStats.getLeqMax(), valueMax);
-                final TextView valueMean = (TextView) activity.findViewById(R.id.textView_value_Mean_i);
-                formatdBA(leqStats.getLeqMean(), valueMean);
-
-
-                int nc = Measurement.getNEcatColors(leq);    // Choose the color category in function of the sound level
-                mTextView.setTextColor(activity.NE_COLORS[nc]);
-
-                // Spectrum data
-                activity.updateSpectrumGUI();
 
                 // Debug processing time
             } finally {

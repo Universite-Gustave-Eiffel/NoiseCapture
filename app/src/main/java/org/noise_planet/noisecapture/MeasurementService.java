@@ -15,18 +15,26 @@ import android.location.LocationManager;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.Nullable;
+import android.os.SystemClock;
 import android.support.v4.content.ContextCompat;
+import android.widget.CompoundButton;
 import android.widget.Toast;
 
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Fetch the most precise location from different location services.
  */
-public class LocalisationService extends Service {
+public class MeasurementService extends Service {
 
     private enum LISTENER {GPS, NETWORK, PASSIVE};
     private LocationManager gpsLocationManager;
@@ -36,6 +44,16 @@ public class LocalisationService extends Service {
     private CommonLocationListener networkLocationListener;
     private CommonLocationListener passiveLocationListener;
     private long minTimeDelay = 1000;
+    private AudioProcess audioProcess;
+    private AtomicBoolean isRecording = new AtomicBoolean(false);
+    private AtomicBoolean canceled = new AtomicBoolean(false);
+    private AtomicInteger leqAdded = new AtomicInteger(0);
+    private MeasurementManager measurementManager;
+    private long beginMeasure = 0;
+    private DoProcessing doProcessing = new DoProcessing(this);
+    // This measurement identifier in the long term storage
+    private int recordId = -1;
+    private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
 
     private TreeMap<Long, Location> timeLocation = new TreeMap<Long, Location>();
 
@@ -51,19 +69,35 @@ public class LocalisationService extends Service {
      * IPC.
      */
     public class LocalBinder extends Binder {
-        LocalisationService getService() {
-            return LocalisationService.this;
+        MeasurementService getService() {
+            return MeasurementService.this;
         }
+    }
+
+    public int getRecordId() {
+        return recordId;
+    }
+
+    public void cancel() {
+        canceled.set(true);
+    }
+
+    public boolean isCanceled() {
+        return canceled.get();
+    }
+
+    public int getLeqAdded() {
+        return leqAdded.get();
+    }
+
+    public AudioProcess getAudioProcess() {
+        return audioProcess;
     }
 
     @Override
     public void onCreate() {
         mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-
-        initService();
-
-        // Display a notification about us starting.  We put an icon in the status bar.
-        showNotification();
+        this.measurementManager = new MeasurementManager(getApplicationContext());
     }
 
     @Override
@@ -74,9 +108,6 @@ public class LocalisationService extends Service {
 
     @Override
     public void onDestroy() {
-        // Cancel the persistent notification.
-        mNM.cancel(NOTIFICATION);
-
         // Tell the user we stopped.
         Toast.makeText(this, "gps service stop", Toast.LENGTH_SHORT).show();
     }
@@ -84,6 +115,26 @@ public class LocalisationService extends Service {
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
+    }
+
+    public void startRecording() {
+        canceled.set(false);
+        initLocalisationServices();
+        isRecording.set(true);
+        this.audioProcess = new AudioProcess(isRecording, canceled);
+        audioProcess.getListeners().addPropertyChangeListener(doProcessing);
+
+        // Start measurement
+        recordId = measurementManager.addRecord();
+        leqAdded.set(0);
+        new Thread(audioProcess).start();
+
+        // Display a notification about us starting.  We put an icon in the status bar.
+        showNotification();
+    }
+
+    public void stopRecording() {
+        isRecording.set(false);
     }
 
     // This is the object that receives interactions from clients.  See
@@ -94,8 +145,8 @@ public class LocalisationService extends Service {
      * Show a notification while this service is running.
      */
     private void showNotification() {
-        // In this sample, we'll use the same text for the ticker and the expanded notification
-        CharSequence text = getText(R.string.local_service_started);
+        // Text for the ticker
+        CharSequence text = getText(R.string.title_service_measurement);
 
         // The PendingIntent to launch our activity if the user selects this notification
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
@@ -115,7 +166,7 @@ public class LocalisationService extends Service {
         mNM.notify(NOTIFICATION, notification);
     }
 
-    private void initService() {
+    private void initLocalisationServices() {
         initPassive();
         initGPS();
         initNetworkLocation();
@@ -145,6 +196,14 @@ public class LocalisationService extends Service {
             networkLocationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER,
                     minTimeDelay, 0, networkLocationListener);
         }
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+        listeners.addPropertyChangeListener(propertyChangeListener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+        listeners.removePropertyChangeListener(propertyChangeListener);
     }
 
     private void initGPS() {
@@ -187,12 +246,13 @@ public class LocalisationService extends Service {
 
 
     private static class CommonLocationListener implements LocationListener, GpsStatus.Listener, GpsStatus.NmeaListener {
-        private LocalisationService localisationService;
+        private MeasurementService measurementService;
         private LISTENER listenerId;
 
-        public CommonLocationListener(LocalisationService localisationService, LISTENER listenerId) {
-            this.localisationService = localisationService;
+        public CommonLocationListener(MeasurementService measurementService, LISTENER listenerId) {
+            this.measurementService = measurementService;
             this.listenerId = listenerId;
+            System.out.println(listenerId.toString());
         }
 
         @Override
@@ -202,7 +262,7 @@ public class LocalisationService extends Service {
 
         @Override
         public void onLocationChanged(Location location) {
-            System.out.println(location.toString());
+            measurementService.addLocation(location);
         }
 
         @Override
@@ -212,11 +272,12 @@ public class LocalisationService extends Service {
 
         @Override
         public void onProviderEnabled(String provider) {
-
+            System.out.println(provider+" enabled");
         }
 
         @Override
         public void onProviderDisabled(String provider) {
+            System.out.println(provider+" disabled");
 
         }
 
@@ -241,5 +302,76 @@ public class LocalisationService extends Service {
         }
     }
 
+    /**
+     * @return Start time of measurement
+     */
+    public long getBeginMeasure() {
+        return beginMeasure;
+    }
+
+    private static class DoProcessing implements  PropertyChangeListener {
+        private MeasurementService measurementService;
+
+        public DoProcessing(MeasurementService measurementService) {
+            this.measurementService = measurementService;
+        }
+
+        @Override
+        public void propertyChange(PropertyChangeEvent event) {
+            if(measurementService.beginMeasure == 0) {
+                measurementService.beginMeasure = SystemClock.elapsedRealtime();
+            }
+            if (AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName
+                    ())) {
+                // Delayed audio processing
+                AudioProcess.DelayedStandardAudioMeasure measure =
+                        (AudioProcess.DelayedStandardAudioMeasure) event.getNewValue();
+                Location location = measurementService.fetchLocation(measure.getBeginRecordTime());
+                Storage.Leq leq;
+                if(location == null) {
+                    leq = new Storage.Leq(measurementService.recordId, -1, measure
+                            .getBeginRecordTime(), 0, 0, 0, 0, 0);
+                }else {
+                    leq = new Storage.Leq(measurementService.recordId, -1, measure
+                            .getBeginRecordTime(), location.getLatitude(), location.getLongitude(),
+                            location.getAltitude(), location.getAccuracy(), location.getTime());
+                }
+                double[] freqValues = measurementService.audioProcess.getDelayedCenterFrequency();
+                final float[] leqs = measure.getLeqs();
+                List<Storage.LeqValue> leqValueList = new ArrayList<>(leqs.length);
+                for (int idFreq = 0; idFreq < leqs.length; idFreq++) {
+                    leqValueList
+                            .add(new Storage.LeqValue(-1, (int) freqValues[idFreq], leqs[idFreq]));
+                }
+                measurementService.measurementManager
+                        .addLeqBatch(new MeasurementManager.LeqBatch(leq, leqValueList));
+                measurementService.leqAdded.addAndGet(1);
+            } else if(AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
+                if(AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
+                    // Recording and processing of audio has been closed
+                    // Cancel the persistent notification.
+                    measurementService.mNM.cancel(measurementService.NOTIFICATION);
+                    if (measurementService.canceled.get()) {
+                        // Canceled
+                        // Destroy record
+                        measurementService.measurementManager
+                                .deleteRecord(measurementService.recordId);
+                    } else {
+                        // Update record
+                        measurementService.measurementManager
+                                .updateRecordLeqMean(measurementService.recordId,
+                                        (float) measurementService.audioProcess
+                                                .getStandartLeqStats().getLeqMean());
+
+                    }
+                }
+            }
+            measurementService.listeners.firePropertyChange(event);
+        }
+    }
+
+    public boolean isRecording() {
+        return isRecording.get();
+    }
 
 }

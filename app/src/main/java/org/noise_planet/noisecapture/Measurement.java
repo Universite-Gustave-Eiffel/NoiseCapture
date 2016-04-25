@@ -12,7 +12,6 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.view.View;
 import android.widget.Chronometer;
@@ -40,9 +39,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class Measurement extends MainActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener {
@@ -50,21 +47,14 @@ public class Measurement extends MainActivity implements
     //public ImageButton buttonrecord;
     //public ImageButton buttoncancel;
 
+    private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
     // For the Charts
     protected HorizontalBarChart mChart; // VUMETER representation
     protected BarChart sChart; // Spectrum representation
     protected Spectrogram spectrogram;
+    private DoProcessing doProcessing;
 
     // Other ressources
-    private AtomicBoolean isRecording = new AtomicBoolean(false);
-    private AtomicBoolean canceled = new AtomicBoolean(false);
-    private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
-    private AtomicInteger leqAdded = new AtomicInteger(0);
-    private AudioProcess audioProcess;
-    private MeasurementManager measurementManager;
-    private DoProcessing doProcessing;
-    // This measurement identifier in the long term storage
-    private int recordId = -1;
     private boolean mIsBound = false;
     private AtomicBoolean chronometerWaitingToStart = new AtomicBoolean(false);
 
@@ -72,13 +62,12 @@ public class Measurement extends MainActivity implements
     public final static double MAX_SHOWN_DBA_VALUE = 120;
 
     public int getRecordId() {
-        return recordId;
+        return measurementService.getRecordId();
     }
 
 
     public void initComponents() {
-        this.audioProcess = new AudioProcess(isRecording, canceled);
-        spectrogram.setTimeStep(audioProcess.getFFTDelay());
+        spectrogram.setTimeStep(measurementService.getAudioProcess().getFFTDelay());
         setData(0);
         updateSpectrumGUI();
         Legend ls = sChart.getLegend();
@@ -96,7 +85,7 @@ public class Measurement extends MainActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.measurementManager = new MeasurementManager(getApplicationContext());
+        doBindService();
         setContentView(R.layout.activity_measurement);
         initDrawer();
 
@@ -156,7 +145,7 @@ public class Measurement extends MainActivity implements
         buttonrecord.setEnabled(true);
 
         // Actions on record button
-        doProcessing = new DoProcessing(getApplicationContext(), this);
+        doProcessing = new DoProcessing(this);
         buttonrecord.setOnClickListener(doProcessing);
 
         // Action on cancel button (during recording)
@@ -178,7 +167,6 @@ public class Measurement extends MainActivity implements
                 // Go to map page
                 Intent a = new Intent(getApplicationContext(), MapActivity.class);
                 startActivity(a);
-                finish();
             }
         });
 
@@ -210,8 +198,6 @@ public class Measurement extends MainActivity implements
             sChart.setVisibility(View.GONE);
         }
         initSpectrum();
-        // Data (before legend)
-        // (ltob.length-1) values for each third-octave band// Legend: hide all
     }
 
     private View.OnClickListener onButtonCancel = new View.OnClickListener() {
@@ -219,7 +205,7 @@ public class Measurement extends MainActivity implements
         public void onClick(View view) {
 
             // Stop measurement without waiting for the end of processing
-            canceled.set(true);
+            measurementService.cancel();
             doProcessing.onClick(view);
         }
     };
@@ -358,8 +344,8 @@ public class Measurement extends MainActivity implements
 
         ArrayList<String> xVals = new ArrayList<String>();
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
-        double[] freqLabels = audioProcess.getRealtimeCenterFrequency();
-        float[] freqValues = audioProcess.getThirdOctaveFrequencySPL();
+        double[] freqLabels = measurementService.getAudioProcess().getRealtimeCenterFrequency();
+        float[] freqValues = measurementService.getAudioProcess().getThirdOctaveFrequencySPL();
         LargeValueFormatter largeValueFormatter = new LargeValueFormatter();
 
         for(int idfreq =0; idfreq < freqLabels.length; idfreq++) {
@@ -397,10 +383,11 @@ public class Measurement extends MainActivity implements
         @Override
         public void run() {
             int lastShownProgress = 0;
-            while(activity.audioProcess.getCurrentState() != AudioProcess.STATE.CLOSED && !activity.canceled.get()) {
+            while(activity.measurementService.getAudioProcess().getCurrentState() !=
+                    AudioProcess.STATE.CLOSED && !activity.measurementService.isCanceled()) {
                 try {
                     Thread.sleep(200);
-                    int progress =  activity.audioProcess.getRemainingNotProcessSamples();
+                    int progress =  activity.measurementService.getAudioProcess().getRemainingNotProcessSamples();
                     if(progress != lastShownProgress) {
                         lastShownProgress = progress;
                         activity.runOnUiThread(new SetDialogMessage(processingDialog, activity.getResources().getString(R.string.measurement_processlastsamples,
@@ -412,29 +399,22 @@ public class Measurement extends MainActivity implements
             }
 
             // If canceled or ended before 1s
-            if(!activity.canceled.get() && activity.leqAdded.get() != 0) {
+            if(!activity.measurementService.isCanceled() && activity.measurementService.getLeqAdded() != 0) {
                 processingDialog.dismiss();
-                // Update record
-                activity.measurementManager.updateRecordLeqMean(activity.recordId, (float) activity.audioProcess.getStandartLeqStats().getLeqMean());
                 // Goto the Results activity
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
                         Intent ir = new Intent(activity.getApplicationContext(), Results.class);
-                        ir.putExtra(Results.RESULTS_RECORD_ID, activity.recordId);
+                        ir.putExtra(Results.RESULTS_RECORD_ID,
+                                activity.measurementService.getRecordId());
                         activity.startActivity(ir);
-                        activity.finish();
                     }
                 });
 
             } else {
-                // Destroy record
-                System.out.println("Delete record :" + activity.recordId);
-                activity.measurementManager.deleteRecord(activity.recordId);
                 processingDialog.dismiss();
             }
-            // Stop gps tracking
-            activity.doUnbindService();
         }
     }
 
@@ -453,13 +433,50 @@ public class Measurement extends MainActivity implements
         }
     }
 
-    private static class DoProcessing implements CompoundButton.OnClickListener, PropertyChangeListener {
-        private Context context;
+    private void initGuiState() {
+
+        Resources resources = getResources();
+        // Update buttons: history disabled; cancel enabled; record button to stop; map disabled
+        ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
+        buttonhistory.setImageResource(R.drawable.button_history_disabled);
+        buttonhistory.setEnabled(false);
+        ImageButton buttoncancel= (ImageButton) findViewById(R.id.cancelBtn);
+        buttoncancel.setImageResource(R.drawable.button_cancel_normal);
+        buttoncancel.setEnabled(true);
+        ImageButton buttonrecord= (ImageButton) findViewById(R.id.recordBtn);
+        buttonrecord.setImageResource(R.drawable.button_record_pressed);
+        ImageButton buttonmap= (ImageButton) findViewById(R.id.mapBtn);
+        buttonmap.setImageResource(R.drawable.button_map_disabled);
+
+        if (measurementService.isRecording()) {
+            initComponents();
+
+            // Start chronometer
+            chronometerWaitingToStart.set(true);
+        }
+        else
+        {
+            // Enabled/disabled buttons after measurement
+            // history enabled or disabled (if isHistory); cancel disable; record button enabled
+            buttonhistory.setImageResource(R.drawable.button_history_normal);
+            buttonhistory.setEnabled(true);
+            buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
+            buttoncancel.setEnabled(false);
+            buttonrecord.setImageResource(R.drawable.button_record);
+            buttonrecord.setEnabled(true);
+            buttonmap.setImageResource(R.drawable.button_map);
+            buttonmap.setEnabled(true);
+            // Stop and reset chronometer
+            Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer_recording_time);
+            chronometer.stop();
+        }
+    }
+
+    private static class DoProcessing implements CompoundButton.OnClickListener,
+            PropertyChangeListener {
         private Measurement activity;
 
-
-        private DoProcessing(Context context, Measurement activity) {
-            this.context = context;
+        public DoProcessing(Measurement activity) {
             this.activity = activity;
         }
 
@@ -467,24 +484,11 @@ public class Measurement extends MainActivity implements
         public void propertyChange(PropertyChangeEvent event) {
             if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
                 // Realtime audio processing
-                activity.spectrogram.addTimeStep((float[])event.getNewValue(), activity.audioProcess.getFFTFreqArrayStep());
+                activity.spectrogram.addTimeStep((float[]) event.getNewValue(),
+                        activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));
                 }
-            }else if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName())) {
-                // Delayed audio processing
-                AudioProcess.DelayedStandardAudioMeasure measure =
-                        (AudioProcess.DelayedStandardAudioMeasure)event.getNewValue();
-                Storage.Leq leq = new Storage.Leq(activity.recordId, -1,
-                        measure.getBeginRecordTime(), 0, 0, 0, 0, 0);
-                double[] freqValues = activity.audioProcess.getDelayedCenterFrequency();
-                final float[] leqs = measure.getLeqs();
-                List<Storage.LeqValue> leqValueList = new ArrayList<>(leqs.length);
-                for(int idFreq = 0; idFreq < leqs.length; idFreq++) {
-                    leqValueList.add(new Storage.LeqValue(-1, (int) freqValues[idFreq], leqs[idFreq]));
-                }
-                activity.measurementManager.addLeqBatch(new MeasurementManager.LeqBatch(leq, leqValueList));
-                activity.leqAdded.addAndGet(1);
             }
         }
 
@@ -503,44 +507,18 @@ public class Measurement extends MainActivity implements
             ImageButton buttonmap= (ImageButton) activity.findViewById(R.id.mapBtn);
             buttonmap.setImageResource(R.drawable.button_map_disabled);
 
-            if (activity.isRecording.compareAndSet(false, true)) {
-                activity.initComponents();
-                // Start gps tracking
-                //activity.doBindService(); // Connect to localisation service
-
-                activity.canceled.set(false);
-                // Start measurement
-                activity.recordId = activity.measurementManager.addRecord();
-                activity.leqAdded.set(0);
-
-                // Start chronometer
-                activity.chronometerWaitingToStart.set(true);
-
+            if (!activity.measurementService.isRecording()) {
                 // Start recording
-                activity.audioProcess.getListeners().addPropertyChangeListener(this);
-                new Thread(activity.audioProcess).start();
-            }
-            else
-            {
+                activity.measurementService.startRecording();
+            } else {
                 // Stop measurement
-                activity.isRecording.set(false);
-
-                // Enabled/disabled buttons after measurement
-                // history enabled or disabled (if isHistory); cancel disable; record button enabled
-                buttonhistory.setImageResource(R.drawable.button_history_normal);
-                buttonhistory.setEnabled(true);
-                buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
-                buttoncancel.setEnabled(false);
-                buttonrecord.setImageResource(R.drawable.button_record);
-                buttonrecord.setEnabled(true);
-                buttonmap.setImageResource(R.drawable.button_map);
-                buttonmap.setEnabled(true);
+                activity.measurementService.stopRecording();
 
                 // Show computing progress dialog
                 ProgressDialog myDialog = new ProgressDialog(activity);
-                if(!activity.canceled.get()) {
+                if(!activity.measurementService.isCanceled()) {
                     myDialog.setMessage(resources.getString(R.string.measurement_processlastsamples,
-                            activity.audioProcess.getRemainingNotProcessSamples()));
+                            activity.measurementService.getAudioProcess().getRemainingNotProcessSamples()));
                     myDialog.setCancelable(false);
                     myDialog.setButton(DialogInterface.BUTTON_NEGATIVE,
                             resources.getText(R.string.text_CANCEL_data_transfer),
@@ -548,7 +526,7 @@ public class Measurement extends MainActivity implements
                                 @Override
                                 public void onClick(DialogInterface dialog, int which) {
                                     dialog.dismiss();
-                                    activity.canceled.set(true);
+                                    activity.measurementService.cancel();
                                 }
                             });
                     myDialog.show();
@@ -556,19 +534,8 @@ public class Measurement extends MainActivity implements
 
                 // Launch processing end activity
                 new Thread(new WaitEndOfProcessing(activity, myDialog)).start();
-
-                // Goto the Results activity
-                //activity.isResults = true;
-                //Intent ir = new Intent(context, Results.class);
-                //activity.startActivity(ir);
-
-                // Stop and reset chronometer
-                Chronometer chronometer = (Chronometer) activity.findViewById(R.id.chronometer_recording_time);
-                chronometer.stop();
-                //chronometer.setText("00:00");
-
-                //activity.finish();
             }
+            activity.initGuiState();
         }
     }
 
@@ -591,15 +558,21 @@ public class Measurement extends MainActivity implements
         public void run() {
             try {
                 if(activity.chronometerWaitingToStart.getAndSet(false)) {
-                    Chronometer chronometer = (Chronometer) activity.findViewById(R.id.chronometer_recording_time);
-                    chronometer.setBase(SystemClock.elapsedRealtime());
-                    chronometer.start();
+                    long time = activity.measurementService.getBeginMeasure();
+                    if(time != 0) {
+                        Chronometer chronometer = (Chronometer) activity
+                                .findViewById(R.id.chronometer_recording_time);
+                        chronometer.setBase(time);
+                        chronometer.start();
+                    } else {
+                        activity.chronometerWaitingToStart.set(true);
+                    }
                 }
-                final double leq = activity.audioProcess.getLeq();
+                final double leq = activity.measurementService.getAudioProcess().getLeq();
                 activity.setData(leq);
                 // Change the text and the textcolor in the corresponding textview
                 // for the Leqi value
-                LeqStats leqStats = activity.audioProcess.getStandartLeqStats();
+                LeqStats leqStats = activity.measurementService.getAudioProcess().getStandartLeqStats();
                 final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
                 formatdBA(leq, mTextView);
                 final TextView valueMin = (TextView) activity.findViewById(R.id.textView_value_Min_i);
@@ -610,7 +583,7 @@ public class Measurement extends MainActivity implements
                 formatdBA(leqStats.getLeqMean(), valueMean);
 
 
-                int nc = activity.getNEcatColors(leq);    // Choose the color category in function of the sound level
+                int nc = Measurement.getNEcatColors(leq);    // Choose the color category in function of the sound level
                 mTextView.setTextColor(activity.NE_COLORS[nc]);
 
                 // Spectrum data
@@ -647,7 +620,7 @@ public class Measurement extends MainActivity implements
 
 
 
-    private LocalisationService mBoundService;
+    private MeasurementService measurementService;
 
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -656,11 +629,15 @@ public class Measurement extends MainActivity implements
             // interact with the service.  Because we have bound to a explicit
             // service that we know is running in our own process, we can
             // cast its IBinder to a concrete class and directly access it.
-            mBoundService = ((LocalisationService.LocalBinder)service).getService();
+            measurementService = ((MeasurementService.LocalBinder)service).getService();
 
             // Tell the user about this for our demo.
-            Toast.makeText(Measurement.this, R.string.local_service_connected,
+            Toast.makeText(Measurement.this, R.string.measurement_service_connected,
                     Toast.LENGTH_SHORT).show();
+
+            // Init gui if recording is ongoing
+            measurementService.addPropertyChangeListener(doProcessing);
+            initGuiState();
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -668,8 +645,9 @@ public class Measurement extends MainActivity implements
             // unexpectedly disconnected -- that is, its process crashed.
             // Because it is running in our same process, we should never
             // see this happen.
-            mBoundService = null;
-            Toast.makeText(Measurement.this, R.string.local_service_disconnected,
+            measurementService.removePropertyChangeListener(doProcessing);
+            measurementService = null;
+            Toast.makeText(Measurement.this, R.string.measurement_service_disconnected,
                     Toast.LENGTH_SHORT).show();
         }
     };
@@ -679,16 +657,18 @@ public class Measurement extends MainActivity implements
         // class name because we want a specific service implementation that
         // we know will be running in our own process (and thus won't be
         // supporting component replacement by other applications).
-        if(!bindService(new Intent(this,
-                LocalisationService.class), mConnection, Context.BIND_AUTO_CREATE)) {
-            Toast.makeText(Measurement.this, R.string.local_service_disconnected,
+        if(!bindService(new Intent(this, MeasurementService.class), mConnection,
+                Context.BIND_AUTO_CREATE)) {
+            Toast.makeText(Measurement.this, R.string.measurement_service_disconnected,
                     Toast.LENGTH_SHORT).show();
+        } else {
+            mIsBound = true;
         }
-        mIsBound = true;
     }
 
     void doUnbindService() {
         if (mIsBound) {
+            measurementService.removePropertyChangeListener(doProcessing);
             // Detach our existing connection.
             unbindService(mConnection);
             mIsBound = false;

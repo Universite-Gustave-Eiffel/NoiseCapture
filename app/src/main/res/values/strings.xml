@@ -11,6 +11,7 @@
     <string name="no_history">History is empty. Start a record before.</string>
 
     <string name="title_menu">Menu</string>
+    <string name="title_service_measurement">Measurement</string>
     <string name="title_activity_measurement">Measurement</string>
     <string name="title_activity_results">Results</string>
     <string name="title_activity_history">History</string>
@@ -165,8 +166,8 @@
     <string name="results_histo_freq">%d Hz</string>
     <string name="history_item_choice_title">Record action</string>
     <string name="local_service_started">Localisation service started</string>
-    <string name="local_service_disconnected">Localisation service disconnected</string>
-    <string name="local_service_connected">Localisation service connected</string>
+    <string name="measurement_service_disconnected">Measurement service disconnected</string>
+    <string name="measurement_service_connected">Measurement service connected</string>
     <string name="delete">Delete</string>
     <string name="no_data_text_description">Start by pressing the record button</string>
 </resources>

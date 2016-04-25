@@ -32,6 +32,7 @@ public class AudioProcess implements Runnable {
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
     public static final String PROP_MOVING_SPECTRUM = "PROP_MS";
     public static final String PROP_DELAYED_STANDART_PROCESSING = "PROP_DSP";
+    public static final String PROP_STATE_CHANGED = "PROP_STATE_CHANGED";
     // 1s level evaluation for upload to server
     private final MovingLeqProcessing fftLeqProcessing;
     private final StandartLeqProcessing standartLeqProcessing;
@@ -78,6 +79,11 @@ public class AudioProcess implements Runnable {
         return currentState;
     }
 
+    private void setCurrentState(STATE state) {
+        STATE oldState = currentState;
+        currentState = state;
+        listeners.firePropertyChange(PROP_STATE_CHANGED, oldState, currentState );
+    }
     /**
      * @return Frequency feed in {@link AudioProcess#PROP_MOVING_SPECTRUM} {@link PropertyChangeEvent#getNewValue()}
     */
@@ -135,7 +141,7 @@ public class AudioProcess implements Runnable {
     @Override
     public void run() {
         try {
-            currentState = STATE.PROCESSING;
+            setCurrentState(STATE.PROCESSING);
             AudioRecord audioRecord = createAudioRecord();
             short[] buffer;
             if (recording.get() && audioRecord != null) {
@@ -158,7 +164,7 @@ public class AudioProcess implements Runnable {
                         fftLeqProcessing.addSample(buffer);
                         standartLeqProcessing.addSample(buffer);
                     }
-                    currentState = STATE.WAITING_END_PROCESSING;
+                    setCurrentState(STATE.WAITING_END_PROCESSING);
                     while (fftLeqProcessing.isProcessing() || standartLeqProcessing.isProcessing()) {
                         Thread.sleep(10);
                     }
@@ -172,7 +178,7 @@ public class AudioProcess implements Runnable {
                 }
             }
         } finally {
-            currentState = STATE.CLOSED;
+            setCurrentState(STATE.CLOSED);
         }
     }
 

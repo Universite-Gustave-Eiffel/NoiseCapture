@@ -66,7 +66,6 @@ public class Results extends MainActivity {
                 // Message for starting a record
                 Toast.makeText(getApplicationContext(),
                         getString(R.string.no_results), Toast.LENGTH_LONG).show();
-                finish();
                 return;
             }
         }
@@ -136,7 +135,6 @@ public class Results extends MainActivity {
             public void onClick(View view) {
                 // Go to map page
                 Intent a = new Intent(getApplicationContext(), MapActivity.class);
-                finish();
                 startActivity(a);
             }
         });
@@ -150,7 +148,6 @@ public class Results extends MainActivity {
                 Intent im = new Intent(getApplicationContext(),Measurement.class);
                 mDrawerLayout.closeDrawer(mDrawerList);
                 startActivity(im);
-                finish();
             }
         });
 

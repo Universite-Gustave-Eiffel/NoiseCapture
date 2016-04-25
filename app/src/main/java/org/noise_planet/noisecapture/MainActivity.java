@@ -108,17 +108,14 @@ public class MainActivity extends AppCompatActivity {
                     Intent im = new Intent(getApplicationContext(),Measurement.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(im);
-                    finish();
                     break;
                 case 1:
                     // Results
                     gotoResults();
-                    finish();
                     break;
                 case 2:
                     // History
                     gotoHistory();
-                    finish();
                     break;
                 case 3:
                     // Show the map if data transfer settings is true
@@ -127,7 +124,6 @@ public class MainActivity extends AppCompatActivity {
                         Intent imap = new Intent(getApplicationContext(), MapActivity.class);
                         //mDrawerLayout.closeDrawer(mDrawerList);
                         startActivity(imap);
-                        finish();
                     }
                     else {
                         DialogBoxDataTransfer();
@@ -138,7 +134,6 @@ public class MainActivity extends AppCompatActivity {
                     Intent ics = new Intent(getApplicationContext(), activity_calibration_start.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ics);
-                    finish();
                     break;
                 case 5:
                     Intent ih = new Intent(getApplicationContext(),View_html_page.class);
@@ -148,7 +143,6 @@ public class MainActivity extends AppCompatActivity {
                     ih.putExtra(this.getClass().getPackage().getName() + ".titletosee",
                             getString(R.string.title_activity_help));
                     startActivity(ih);
-                    finish();
                     break;
                 case 6:
                     Intent ia = new Intent(getApplicationContext(),View_html_page.class);
@@ -158,7 +152,6 @@ public class MainActivity extends AppCompatActivity {
                             getString(R.string.title_activity_about));
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ia);
-                    finish();
                     break;
                 default:
                     break;
@@ -275,7 +268,6 @@ public class MainActivity extends AppCompatActivity {
 
         Intent a = new Intent(getApplicationContext(), History.class);
         startActivity(a);
-        finish();
         mDrawerLayout.closeDrawer(mDrawerList);
     }
 
@@ -283,7 +275,6 @@ public class MainActivity extends AppCompatActivity {
         Intent ir = new Intent(getApplicationContext(), Results.class);
         mDrawerLayout.closeDrawer(mDrawerList);
         startActivity(ir);
-        finish();
     }
 
     public final void checkHistoryButton() {

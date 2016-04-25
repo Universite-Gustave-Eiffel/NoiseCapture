@@ -10,6 +10,7 @@ import android.util.AttributeSet;
 import android.view.View;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -18,12 +19,12 @@ import java.util.List;
 public class Spectrogram extends View {
     public enum SCALE_MODE {SCALE_LINEAR, SCALE_LOG};
     private SCALE_MODE scaleMode = SCALE_MODE.SCALE_LOG;
-    private final List<float[]> spectrumData = new ArrayList<>();
+    private final List<float[]> spectrumData = new LinkedList<>();
     private Bitmap spectrogramBuffer = null;
     private Bitmap frequencyLegend = null;
     private Bitmap timeLegend = null;
-    private static final int frequencyLegendTicWidth = 4;
-    private static final int timeLegendTicHeight = 4;
+    private static final int FREQUENCY_LEGEND_TIC_WIDTH = 4;
+    private static final int TIME_LEGEND_TIC_HEIGHT = 4;
     private int canvasHeight = -1;
     private int canvasWidth = -1;
     private int initCanvasHeight = -1;
@@ -36,6 +37,7 @@ public class Spectrogram extends View {
     private static final int FREQUENCY_LEGEND_TEXT_SIZE = 18;
     private double timeStep;
     private boolean doRedraw = false;
+    private static final int MAXIMUM_SPECTROGRAM_BUFFER = 400 / FREQUENCY_LEGEND_TIC_WIDTH;
     /** Color ramp, using http://www.zonums.com/online/color_ramp/ */
 
     private static final int[] colorRamp = new int[]{
@@ -116,6 +118,9 @@ public class Spectrogram extends View {
     public void addTimeStep(float[] spectrum, double hertzBySpectrumCell) {
         final int ticWidth = 4; // Timestep width in pixels
         spectrumData.add(0, spectrum);
+        if(spectrumData.size() > MAXIMUM_SPECTROGRAM_BUFFER) {
+            spectrumData.remove(spectrumData.size() - 1);
+        }
         if(canvasWidth > 0 && canvasHeight > 0) {
             if (spectrogramBuffer == null || initCanvasWidth != canvasWidth ||
                     initCanvasHeight != canvasHeight || doRedraw ) {
@@ -142,10 +147,11 @@ public class Spectrogram extends View {
                     paint.getTextBounds(frequencyLegendLabel, 0, frequencyLegendLabel.length(), bounds);
                     legendWidth = Math.max(legendWidth, bounds.width());
                 }
-                legendWidth += frequencyLegendTicWidth;
+                legendWidth += FREQUENCY_LEGEND_TIC_WIDTH;
                 // Construct time legend
                 paint.getTextBounds("+SS.d", 0, "+SS.d".length(), bounds);
-                timeLegend = Bitmap.createBitmap(canvasWidth, bounds.height() + timeLegendTicHeight,
+                timeLegend = Bitmap.createBitmap(canvasWidth, bounds.height() +
+                        TIME_LEGEND_TIC_HEIGHT,
                         Bitmap.Config.ARGB_8888);
                 Canvas timeLegendCanvas = new Canvas(timeLegend);
                 double timeCursor = 0;
@@ -158,12 +164,12 @@ public class Spectrogram extends View {
                 int ticPrinted = 0;
                 while(timePos > 0) {
                     timePos = (float)((canvasWidth - legendWidth) - ticWidth * (timeCursor / timeStep));
-                    timeLegendCanvas.drawLine(timePos, 0, timePos, timeLegendTicHeight, paint);
+                    timeLegendCanvas.drawLine(timePos, 0, timePos, TIME_LEGEND_TIC_HEIGHT, paint);
                     if(ticPrinted % stepByPrintLabels == 0) {
                         String text = String.format("+%.1f", timeCursor);
                         paint.getTextBounds(text, 0, text.length(), bounds);
                         float textX = timePos - (bounds.width() / 2);
-                        timeLegendCanvas.drawText(text, textX, timeLegendTicHeight + Math.abs(bounds.top), paint);
+                        timeLegendCanvas.drawText(text, textX, TIME_LEGEND_TIC_HEIGHT + Math.abs(bounds.top), paint);
                     }
                     timeCursor += ticStep;
                     ticPrinted++;
@@ -194,8 +200,8 @@ public class Spectrogram extends View {
                     if(bounds.height() + heightPos > frequencyLegend.getHeight()) {
                         heightPos = frequencyLegend.getHeight() - bounds.height() / 2;
                     }
-                    legendCanvas.drawText(labelFreq, frequencyLegendTicWidth+ bounds.left, heightPos, paint);
-                    legendCanvas.drawLine(0, tickHeightPos, frequencyLegendTicWidth, tickHeightPos, paint);
+                    legendCanvas.drawText(labelFreq, FREQUENCY_LEGEND_TIC_WIDTH + bounds.left, heightPos, paint);
+                    legendCanvas.drawLine(0, tickHeightPos, FREQUENCY_LEGEND_TIC_WIDTH, tickHeightPos, paint);
                 }
                 spectrogramBuffer = Bitmap.createBitmap(canvasWidth - legendWidth, spectrogramHeight,
                         Bitmap.Config.ARGB_8888);

@@ -168,14 +168,12 @@ public class History extends MainActivity {
             Intent ir = new Intent(historyActivity.getApplicationContext(), Results.class);
             ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
             historyActivity.startActivity(ir);
-            historyActivity.finish();
         }
 
         private void launchMap() {
             Intent ir = new Intent(historyActivity.getApplicationContext(), MapActivity.class);
             ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
             historyActivity.startActivity(ir);
-            historyActivity.finish();
         }
 
         @Override

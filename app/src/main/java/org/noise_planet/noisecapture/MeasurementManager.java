@@ -199,8 +199,14 @@ public class MeasurementManager {
             database.beginTransaction();
             SQLiteStatement leqStatement = database.compileStatement(
                     "INSERT INTO " + Storage.Leq.TABLE_NAME + "(" +
-                            Storage.Leq.COLUMN_RECORD_ID + "," + Storage.Leq.COLUMN_LEQ_UTC +
-                            ") VALUES (?, ?)");
+                            Storage.Leq.COLUMN_RECORD_ID + "," +
+                            Storage.Leq.COLUMN_LEQ_UTC + "," +
+                            Storage.Leq.COLUMN_LATITUDE  + "," +
+                            Storage.Leq.COLUMN_LONGITUDE  + "," +
+                            Storage.Leq.COLUMN_ALTITUDE  + "," +
+                            Storage.Leq.COLUMN_ACCURACY  + "," +
+                            Storage.Leq.COLUMN_LOCATION_UTC +
+                            ") VALUES (?, ?,?,?,?,?,?)");
             SQLiteStatement leqValueStatement = database.compileStatement("INSERT INTO " +
                     Storage.LeqValue.TABLE_NAME + " VALUES (?,?,?)");
             for(LeqBatch leqBatch : leqBatches) {
@@ -208,6 +214,11 @@ public class MeasurementManager {
                 leqStatement.clearBindings();
                 leqStatement.bindLong(1, leq.getRecordId());
                 leqStatement.bindLong(2, leq.getLeqUtc());
+                leqStatement.bindDouble(3, leq.getLatitude());
+                leqStatement.bindDouble(4, leq.getLongitude());
+                leqStatement.bindDouble(5, leq.getAltitude());
+                leqStatement.bindDouble(6, leq.getAccuracy());
+                leqStatement.bindDouble(7, leq.getLocationUTC());
                 long leqId = leqStatement.executeInsert();
                 for(Storage.LeqValue leqValue : leqBatch.getLeqValues()) {
                     leqValueStatement.clearBindings();

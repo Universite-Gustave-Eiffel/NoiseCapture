@@ -46,6 +46,7 @@ public class MeasurementService extends Service {
     private CommonLocationListener networkLocationListener;
     private CommonLocationListener passiveLocationListener;
     private long minTimeDelay = 1000;
+    private static final long MAXIMUM_LOCATION_HISTORY = 50;
     private AudioProcess audioProcess;
     private AtomicBoolean isRecording = new AtomicBoolean(false);
     private AtomicBoolean canceled = new AtomicBoolean(false);
@@ -279,6 +280,10 @@ public class MeasurementService extends Service {
 
     public void addLocation(Location location) {
         timeLocation.put(location.getTime(), location);
+        if(timeLocation.size() > MAXIMUM_LOCATION_HISTORY) {
+            // Clean old entry
+            timeLocation.remove(timeLocation.firstKey());
+        }
     }
 
     /**

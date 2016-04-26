@@ -138,6 +138,11 @@ public class MeasurementManager {
                         frequency.add(leqValue.getFrequency());
                     }
                 }
+                // Add last leq
+                if(!leqArray.isEmpty()) {
+                    leqs.add(leqArray.toArray(new Float[leqArray.size()]));
+                    leqArray.clear();
+                }
                 return lastId != -1;
             } finally {
                 cursor.close();

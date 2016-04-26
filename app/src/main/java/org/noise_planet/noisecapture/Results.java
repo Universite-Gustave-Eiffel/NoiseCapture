@@ -337,7 +337,7 @@ public class Results extends MainActivity {
 
         PieDataSet dataSet = new PieDataSet(yVals1, "NEI");
         dataSet.setSliceSpace(3f);
-        int nc=getNEcatColors(record.getLeqMean());    // Choose the color category in function of the sound level
+        int nc=getNEcatColors(leqStats.getLeqMean());    // Choose the color category in function of the sound level
         dataSet.setColor(NE_COLORS[nc]);   // Apply color category for the corresponding sound level
 
         PieData data = new PieData(xVals, dataSet);
@@ -347,7 +347,7 @@ public class Results extends MainActivity {
         data.setDrawValues(false);
 
         neiChart.setData(data);
-        neiChart.setCenterText(String.format("%.1f", record.getLeqMean()).concat(" dB(A)"));
+        neiChart.setCenterText(String.format("%.1f", leqStats.getLeqMean()).concat(" dB(A)"));
         rneChart.invalidate();
     }
 

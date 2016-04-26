@@ -16,6 +16,7 @@ public class Storage extends SQLiteOpenHelper {
     // If you change the database schema, you must increment the database version.
     public static final int DATABASE_VERSION = 1;
     public static final String DATABASE_NAME = "Storage.db";
+    private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
     public Storage(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
@@ -23,6 +24,7 @@ public class Storage extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        db.execSQL(ACTIVATE_FOREIGN_KEY);
         db.execSQL(CREATE_RECORD);
         db.execSQL(CREATE_LEQ);
         db.execSQL(CREATE_LEQ_VALUE);
@@ -31,6 +33,16 @@ public class Storage extends SQLiteOpenHelper {
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 
+    }
+
+
+    @Override
+    public void onOpen(SQLiteDatabase db) {
+        super.onOpen(db);
+        if (!db.isReadOnly()) {
+            // Enable foreign key constraints
+            db.execSQL(ACTIVATE_FOREIGN_KEY);
+        }
     }
 
     public static class Record implements BaseColumns {

@@ -172,7 +172,7 @@ public class History extends MainActivity {
 
         private void launchMap() {
             Intent ir = new Intent(historyActivity.getApplicationContext(), MapActivity.class);
-            ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
+            ir.putExtra(MapActivity.RESULTS_RECORD_ID, recordId);
             historyActivity.startActivity(ir);
         }
 

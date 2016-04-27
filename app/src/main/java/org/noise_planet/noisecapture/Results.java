@@ -135,6 +135,7 @@ public class Results extends MainActivity {
             public void onClick(View view) {
                 // Go to map page
                 Intent a = new Intent(getApplicationContext(), MapActivity.class);
+                a.putExtra(MapActivity.RESULTS_RECORD_ID, record.getId());
                 startActivity(a);
             }
         });

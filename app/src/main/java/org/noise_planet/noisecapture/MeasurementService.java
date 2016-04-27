@@ -28,6 +28,7 @@ import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -59,7 +60,7 @@ public class MeasurementService extends Service {
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
     private static final Logger LOGGER = LoggerFactory.getLogger(MeasurementService.class);
 
-    private TreeMap<Long, Location> timeLocation = new TreeMap<Long, Location>();
+    private NavigableMap<Long, Location> timeLocation = new TreeMap<Long, Location>();
 
     private NotificationManager mNM;
 

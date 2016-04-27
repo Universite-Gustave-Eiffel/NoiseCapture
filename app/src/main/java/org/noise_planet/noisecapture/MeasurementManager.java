@@ -152,6 +152,59 @@ public class MeasurementManager {
         }
     }
 
+
+    /**
+     * Fetch all leq that hold a coordinate
+     * @param recordId Record identifier
+     * @param latLong Array of Latitude/Longitude
+     */
+    public boolean getRecordLocations(int recordId, List<double[]> latLong, List<Double> leqs) {
+        SQLiteDatabase database = storage.getReadableDatabase();
+        try {
+            Cursor cursor = database.rawQuery("SELECT L." + Storage.Leq.COLUMN_LEQ_ID + ", LV." +
+                    Storage.LeqValue.COLUMN_FREQUENCY + ", LV." + Storage.LeqValue.COLUMN_SPL +
+                            ", L." + Storage.Leq.COLUMN_LATITUDE + ", L." +
+                            Storage.Leq.COLUMN_LONGITUDE +
+                    " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
+                    " LV WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
+                    Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
+                    " AND L."+ Storage.Leq.COLUMN_ACCURACY+" > 0 ORDER BY L." + Storage.Leq.COLUMN_LEQ_ID + ", " +
+                    Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId)});
+            try {
+                int lastId = -1;
+                double[] lastLatLong = null;
+                double sumLeq = 0;
+                int latIndex = cursor.getColumnIndex(Storage.Leq.COLUMN_LATITUDE);
+                int longIndex = cursor.getColumnIndex(Storage.Leq.COLUMN_LONGITUDE);
+                while (cursor.moveToNext()) {
+                    Storage.LeqValue leqValue = new Storage.LeqValue(cursor);
+                    if(lastId != leqValue.getLeqId() && lastId != -1) {
+                        latLong.add(lastLatLong);
+                        leqs.add(10 * Math.log10(sumLeq));
+                        sumLeq = 0;
+                        lastLatLong = null;
+                    }
+                    lastId = leqValue.getLeqId();
+                    if(lastLatLong == null) {
+                        lastLatLong = new double[]{cursor.getDouble(latIndex),
+                                cursor.getDouble(longIndex)};
+                    }
+                    sumLeq += Math.pow(10, leqValue.getSpl() / 10);
+                }
+                // Add last leq
+                if(lastLatLong != null) {
+                    latLong.add(lastLatLong);
+                    leqs.add(10 * Math.log10(sumLeq));
+                }
+                return lastId != -1;
+            } finally {
+                cursor.close();
+            }
+        } finally {
+            database.close();
+        }
+    }
+
     public Storage.Record getRecord(int recordId) {
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
@@ -260,4 +313,5 @@ public class MeasurementManager {
             return leqValues;
         }
     }
+
 }

@@ -1,6 +1,7 @@
 package org.noise_planet.noisecapture;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Menu;
 import android.widget.ArrayAdapter;
@@ -9,18 +10,24 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
-public class MapActivity extends MainActivity {
+public class MapActivity extends MainActivity implements OnMapReadyCallback,
+        GoogleMap.OnMapLoadedCallback {
     public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
-    private GoogleMap mMap;
     private MeasurementManager measurementManager;
     private Storage.Record record;
+    private GoogleMap mMap;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,27 +70,50 @@ public class MapActivity extends MainActivity {
     }
 
     @Override
+    public void onMapReady(GoogleMap mMap) {
+        // Initialize map options. For example:
+        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mMap.setOnMapLoadedCallback(this);
+        this.mMap = mMap;
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         setUpMapIfNeeded();
     }
 
+    @Override
+    public void onMapLoaded() {
+        // Add markers and move the camera.
+        List<double[]> latLong = new ArrayList<double[]>();
+        List<Double> leqs = new ArrayList<Double>();
+        measurementManager.getRecordLocations(record.getId(), latLong, leqs);
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for(int idMarker = 0; idMarker < latLong.size(); idMarker++) {
+            double[] p = latLong.get(idMarker);
+            LatLng position = new LatLng(p[0], p[1]);
+            MarkerOptions marker = new MarkerOptions();
+            marker.position(position);
+            marker.title(String.format("%.01f dB(A)", leqs.get(idMarker)));
+            int nc=getNEcatColors(leqs.get(idMarker));    // Choose the color category in function of the sound level
+            float[] hsv = new float[3];
+            Color.colorToHSV(NE_COLORS[nc], hsv);  // Apply color category for the corresponding sound level
+            marker.icon(BitmapDescriptorFactory.defaultMarker(hsv[0]));
+            mMap.addMarker(marker);
+            builder.include(position);
+        }
+        if(!latLong.isEmpty()) {
+            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 0));
+        } else {
+            Toast.makeText(getApplicationContext(), getString(R.string.no_gps_results),
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
     private void setUpMapIfNeeded() {
-        if (mMap != null) {
-            return;
-        }
-        mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
-        if (mMap == null) {
-            return;
-        }
-        // Initialize map options. For example:
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
-
-
-        // Add a marker in Sydney, Australia, and move the camera.
-        LatLng sydney = new LatLng(-34, 151);
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+        SupportMapFragment mapFragment = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
+        mapFragment.getMapAsync(this);
     }
 
     @Override

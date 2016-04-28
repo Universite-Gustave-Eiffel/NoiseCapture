@@ -10,6 +10,9 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
+        // Enabling multidex support.
+        multiDexEnabled true
+
 
         // Gradle Plugin 1.5
         // disable limited support for vector drawables fro Android Studio 1.4
@@ -70,6 +73,7 @@ dependencies {
     compile 'com.android.support:support-vector-drawable:23.2.0'
     compile 'com.android.support:animated-vector-drawable:23.2.0'
     compile 'com.google.android.gms:play-services:7.0.0'
+    compile 'com.android.support:multidex:1.0.0'
 
     // Testing-only dependencies
     // Force usage of support annotations in the test app, since it is internally used by the runner module.

@@ -100,18 +100,28 @@ public class Results extends MainActivity {
 
         TextView minText = (TextView) findViewById(R.id.textView_value_Min_SL);
         minText.setText(String.format("%.01f", leqStats.getLeqMin()));
+        findViewById(R.id.textView_color_Min_SL)
+                .setBackgroundColor(NE_COLORS[getNEcatColors(leqStats.getLeqMin())]);
 
         TextView maxText = (TextView) findViewById(R.id.textView_value_Max_SL);
         maxText.setText(String.format("%.01f", leqStats.getLeqMax()));
+        findViewById(R.id.textView_color_Max_SL)
+                .setBackgroundColor(NE_COLORS[getNEcatColors(leqStats.getLeqMax())]);
 
         TextView la10Text = (TextView) findViewById(R.id.textView_value_LA10);
         la10Text.setText(String.format("%.01f", leqOccurrences.getLa10()));
+        findViewById(R.id.textView_color_LA10)
+                .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa10())]);
 
         TextView la50Text = (TextView) findViewById(R.id.textView_value_LA50);
         la50Text.setText(String.format("%.01f", leqOccurrences.getLa50()));
+        findViewById(R.id.textView_color_LA50)
+                .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa50())]);
 
         TextView la90Text = (TextView) findViewById(R.id.textView_value_LA90);
         la90Text.setText(String.format("%.01f", leqOccurrences.getLa90()));
+        findViewById(R.id.textView_color_LA90)
+                .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa90())]);
 
 
         // Enabled/disabled history button if necessary

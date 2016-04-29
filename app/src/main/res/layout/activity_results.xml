@@ -87,6 +87,68 @@
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:id="@+id/linearLayoutColors"
+            android:weightSum="1"
+            android:gravity="center_horizontal" >
+
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="4dp"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:id="@+id/textView_color_LA10"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp"
+                android:background="@color/R2_SL_level"/>
+
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="4dp"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:id="@+id/textView_color_LA50"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp"
+                android:background="@color/R2_SL_level" />
+
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="4dp"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:id="@+id/textView_color_LA90"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp"
+                android:background="@color/R2_SL_level" />
+
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="4dp"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:id="@+id/textView_color_Min_SL"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp"
+                android:background="@color/R2_SL_level"/>
+
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="4dp"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:id="@+id/textView_color_Max_SL"
+                android:gravity="center_horizontal"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textSize="15sp"
+                android:background="@color/R2_SL_level" />
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
             android:id="@+id/linearLayout4"
             android:weightSum="1"
             android:gravity="center_horizontal"

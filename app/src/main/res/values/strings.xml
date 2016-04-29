@@ -58,9 +58,9 @@
     <!--  Ressources for the spinner calibration !-->
     <string name="title_choice_data_map">Choose data:</string>
     <string-array name="choice_user_map">
-        <item>Last one</item>
-        <item>Own from server</item>
-        <item>All from server</item>
+        <item>Selected record</item>
+        <item>All records</item>
+        <item>Community noise map</item>
     </string-array>
 
     <!--  Ressources for the spinner map !-->

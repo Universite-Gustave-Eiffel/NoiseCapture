@@ -1,9 +1,15 @@
 package org.noise_planet.noisecapture;
 
+
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v4.app.FragmentManager;
 import android.view.Menu;
+import android.view.View;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -58,21 +64,17 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
                 R.array.choice_user_map, android.R.layout.simple_spinner_item);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(new MapDropDownChooseListener(this));
 
         // Display the map
         setUpMapIfNeeded();
-        //WebSettings webSettings = leaflet.getSettings();
-        //webSettings.setJavaScriptEnabled(true);
-        //leaflet.clearCache(true);
-        //leaflet.setInitialScale(200);
-        //leaflet.loadUrl("http://webcarto.orbisgis.org/noisemap.html");
 
     }
 
     @Override
     public void onMapReady(GoogleMap mMap) {
         // Initialize map options. For example:
-        mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
         mMap.setOnMapLoadedCallback(this);
         this.mMap = mMap;
     }
@@ -83,12 +85,25 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
         setUpMapIfNeeded();
     }
 
+    public void loadWebView() {
+        WebView leaflet = (WebView) findViewById(R.id.webmapview);
+        WebSettings webSettings = leaflet.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        leaflet.clearCache(true);
+        leaflet.setInitialScale(200);
+        leaflet.loadUrl("http://webcarto.orbisgis.org/noisemap.html");
+
+    }
+
     @Override
     public void onMapLoaded() {
+        mMap.clear();
+        Spinner spinner = (Spinner) findViewById(R.id.spinner_map);
+        boolean onlySelected = spinner.getSelectedItemPosition() == 0;
         // Add markers and move the camera.
         List<double[]> latLong = new ArrayList<double[]>();
         List<Double> leqs = new ArrayList<Double>();
-        measurementManager.getRecordLocations(record.getId(), latLong, leqs);
+        measurementManager.getRecordLocations(onlySelected ? record.getId() : -1, latLong, leqs);
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         for(int idMarker = 0; idMarker < latLong.size(); idMarker++) {
             double[] p = latLong.get(idMarker);
@@ -121,5 +136,44 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
+    }
+
+    private static class MapDropDownChooseListener implements AdapterView.OnItemSelectedListener {
+        private MapActivity mapActivity;
+
+        public MapDropDownChooseListener(MapActivity mapActivity) {
+            this.mapActivity = mapActivity;
+        }
+
+        @Override
+        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+            FragmentManager fragmentManager = mapActivity
+                    .getSupportFragmentManager();
+            SupportMapFragment mapFragment = ((SupportMapFragment)fragmentManager.findFragmentById(R.id.map));
+            WebView webView = (WebView) mapActivity.findViewById(R.id.webmapview);
+            if(position <= 1) {
+                if(mapFragment != null && mapFragment.isHidden()) {
+                    fragmentManager.beginTransaction()
+                                   .show(mapFragment).commit();
+                    webView.setVisibility(View.GONE);
+                }
+                mapActivity.onMapLoaded();
+            } else {
+                // TODO server side map
+                if(mapFragment != null) {
+                    fragmentManager.beginTransaction()
+                                   .hide(mapFragment).commit();
+                    webView.setVisibility(View.VISIBLE);
+                    if(webView != null) {
+                        mapActivity.loadWebView();
+                    }
+                }
+            }
+        }
+
+        @Override
+        public void onNothingSelected(AdapterView<?> parent) {
+
+        }
     }
 }

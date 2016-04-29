@@ -155,21 +155,36 @@ public class MeasurementManager {
 
     /**
      * Fetch all leq that hold a coordinate
-     * @param recordId Record identifier
+     * @param recordId Record identifier, -1 for all
      * @param latLong Array of Latitude/Longitude
      */
     public boolean getRecordLocations(int recordId, List<double[]> latLong, List<Double> leqs) {
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
-            Cursor cursor = database.rawQuery("SELECT L." + Storage.Leq.COLUMN_LEQ_ID + ", LV." +
-                    Storage.LeqValue.COLUMN_FREQUENCY + ", LV." + Storage.LeqValue.COLUMN_SPL +
-                            ", L." + Storage.Leq.COLUMN_LATITUDE + ", L." +
-                            Storage.Leq.COLUMN_LONGITUDE +
-                    " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
-                    " LV WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
-                    Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
-                    " AND L."+ Storage.Leq.COLUMN_ACCURACY+" > 0 ORDER BY L." + Storage.Leq.COLUMN_LEQ_ID + ", " +
-                    Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId)});
+            Cursor cursor;
+            if(recordId >= 0) {
+                cursor = database.rawQuery("SELECT L." + Storage.Leq.COLUMN_LEQ_ID + ", LV." +
+                        Storage.LeqValue.COLUMN_FREQUENCY + ", LV." + Storage.LeqValue.COLUMN_SPL +
+                        ", L." + Storage.Leq.COLUMN_LATITUDE + ", L." +
+                        Storage.Leq.COLUMN_LONGITUDE +
+                        " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
+                        " LV WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
+                        Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
+                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > 0 ORDER BY L." +
+                        Storage.Leq.COLUMN_LEQ_ID + ", " +
+                        Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId)});
+            } else {
+                cursor = database.rawQuery("SELECT L." + Storage.Leq.COLUMN_LEQ_ID + ", LV." +
+                        Storage.LeqValue.COLUMN_FREQUENCY + ", LV." + Storage.LeqValue.COLUMN_SPL +
+                        ", L." + Storage.Leq.COLUMN_LATITUDE + ", L." +
+                        Storage.Leq.COLUMN_LONGITUDE +
+                        " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
+                        " LV WHERE L." +
+                        Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
+                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > 0 ORDER BY L." +
+                        Storage.Leq.COLUMN_LEQ_ID + ", " +
+                        Storage.LeqValue.COLUMN_FREQUENCY, new String[0]);
+            }
             try {
                 int lastId = -1;
                 double[] lastLatLong = null;

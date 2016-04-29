@@ -422,11 +422,13 @@ public class MeasurementService extends Service {
                     } else {
                         // Update record
                         measurementService.measurementManager
-                                .updateRecordLeqMean(measurementService.recordId,
+                                .updateRecordFinal(measurementService.recordId,
                                         (float) measurementService.audioProcess
-                                                .getStandartLeqStats().getLeqMean());
+                                                .getStandartLeqStats().getLeqMean(),
+                                        (int)(SystemClock.elapsedRealtime() - measurementService.beginMeasure) / 1000);
 
                     }
+                    measurementService.beginMeasure = 0;
                     measurementService.stopLocalisationServices();
                 }
             }

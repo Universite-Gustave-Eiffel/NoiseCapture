@@ -238,7 +238,7 @@ public class MeasurementManager {
         return null;
     }
 
-    public void updateRecordLeqMean(int recordId, float leqMean) {
+    public void updateRecordFinal(int recordId, float leqMean, int recordTimeLength) {
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
             ContentValues contentValues = new ContentValues();
@@ -246,8 +246,9 @@ public class MeasurementManager {
             contentValues.put(Storage.Record.COLUMN_UPLOAD_ID, "");
             try {
                 database.execSQL("UPDATE " + Storage.Record.TABLE_NAME + " SET " +
-                        Storage.Record.COLUMN_LEQ_MEAN + " = ? WHERE " +
-                        Storage.Record.COLUMN_ID + " = ?", new Object[]{leqMean, recordId});
+                        Storage.Record.COLUMN_LEQ_MEAN + " = ?," +
+                        Storage.Record.COLUMN_TIME_LENGTH + " = ? WHERE " +
+                        Storage.Record.COLUMN_ID + " = ?", new Object[]{leqMean,recordTimeLength, recordId});
             } catch (SQLException sqlException) {
                 LOGGER.error(sqlException.getLocalizedMessage(), sqlException);
             }

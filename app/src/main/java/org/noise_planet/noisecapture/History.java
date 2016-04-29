@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -146,7 +145,8 @@ public class History extends MainActivity {
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             // Show
             AlertDialog.Builder builder = new AlertDialog.Builder(historyActivity);
-            builder.setTitle(R.string.history_item_choice_title);
+            builder.setTitle(String.format(historyActivity.getText(R.string.history_item_choice_title).toString(),
+                    historyActivity.historyListAdapter.getInformationHistory(position).getUtcDate()));
             ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(historyActivity,
                     R.array.choice_user_history, android.R.layout.simple_selectable_list_item);
             builder.setAdapter(adapter,
@@ -268,7 +268,7 @@ public class History extends MainActivity {
                 LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 convertView = inflater.inflate(R.layout.history_item_layout, parent,false);
             }
-            TextView history_Id = (TextView)convertView.findViewById(R.id.textView_Id_item_history);
+            TextView history_length = (TextView)convertView.findViewById(R.id.textView_length_item_history);
             TextView history_Date = (TextView)convertView.findViewById(R.id.textView_Date_item_history);
             TextView history_SEL = (TextView)convertView.findViewById(R.id.textView_SEL_item_history);
             TextView history_SEL_bar = (TextView)convertView.findViewById(R.id.textView_SEL_bar_item_history);
@@ -276,7 +276,7 @@ public class History extends MainActivity {
 
             // Update history item
             Resources res = activity.getResources();
-            history_Id.setText(res.getString(R.string.history_id, record.getId()));
+            history_length.setText(res.getString(R.string.history_length, record.getTimeLength()));
             history_Date.setText(res.getString(R.string.history_date, record.getUtcDate()));
             history_SEL.setText(res.getString(R.string.history_sel, record.getLeqMean()));
             int nc= getNEcatColors(record.getLeqMean());

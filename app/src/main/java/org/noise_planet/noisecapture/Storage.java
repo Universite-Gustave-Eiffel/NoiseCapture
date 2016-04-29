@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 
+import java.text.DateFormat;
 import java.util.Date;
 
 /**
@@ -14,7 +15,7 @@ import java.util.Date;
 public class Storage extends SQLiteOpenHelper {
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -32,7 +33,15 @@ public class Storage extends SQLiteOpenHelper {
 
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
+        // Upgrade queries
+        // Do not use static table and column names
+        if(oldVersion == 1) {
+            // Upgrade from 1 to version 2
+            // Add record length attribute
+            if (!db.isReadOnly()) {
+                db.execSQL("ALTER TABLE record ADD COLUMN time_length INTEGER");
+            }
+        }
     }
 
 
@@ -51,24 +60,35 @@ public class Storage extends SQLiteOpenHelper {
         public static final String COLUMN_UTC = "record_utc";
         public static final String COLUMN_UPLOAD_ID = "upload_id";
         public static final String COLUMN_LEQ_MEAN = "leq_mean";
+        public static final String COLUMN_TIME_LENGTH = "time_length";
 
         private int id;
         private long utc;
         private String uploadId;
         private float leqMean;
+        private int timeLength;
 
         public Record(Cursor cursor) {
             this(cursor.getInt(cursor.getColumnIndex(COLUMN_ID)),
                     cursor.getLong(cursor.getColumnIndex(COLUMN_UTC)),
                     cursor.getString(cursor.getColumnIndex(COLUMN_UPLOAD_ID)),
-                    cursor.getFloat(cursor.getColumnIndex(COLUMN_LEQ_MEAN)));
+                    cursor.getFloat(cursor.getColumnIndex(COLUMN_LEQ_MEAN)),
+                    cursor.getInt(cursor.getColumnIndex(COLUMN_TIME_LENGTH)));
         }
 
-        public Record(int id, long utc, String uploadId, float leqMean) {
+        public Record(int id, long utc, String uploadId, float leqMean, int timeLength) {
             this.id = id;
             this.utc = utc;
             this.uploadId = uploadId;
             this.leqMean = leqMean;
+            this.timeLength = timeLength;
+        }
+
+        /**
+         * @return Record length in seconds
+         */
+        public int getTimeLength() {
+            return timeLength;
         }
 
         /**
@@ -93,7 +113,7 @@ public class Storage extends SQLiteOpenHelper {
         }
 
         public String getUtcDate() {
-            return new Date(utc).toString();
+            return DateFormat.getDateTimeInstance().format(new Date(utc));
         }
 
         public float getLeqMean() {
@@ -105,7 +125,8 @@ public class Storage extends SQLiteOpenHelper {
             "("+Record.COLUMN_ID +" INTEGER PRIMARY KEY, " +
             Record.COLUMN_UTC +" LONG, " +
             Record.COLUMN_UPLOAD_ID + " TEXT, " +
-            Record.COLUMN_LEQ_MEAN + " FLOAT)";
+            Record.COLUMN_LEQ_MEAN + " FLOAT" +
+            Record.COLUMN_TIME_LENGTH + " INTEGER)";
 
     public static class Leq implements BaseColumns {
         public static final String TABLE_NAME = "leq";

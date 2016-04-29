@@ -692,6 +692,7 @@ public class Measurement extends MainActivity implements
         super.onRestart();
         // Reconnect from measurement
         measurementService.addPropertyChangeListener(doProcessing);
+        initGuiState();
     }
 
     @Override

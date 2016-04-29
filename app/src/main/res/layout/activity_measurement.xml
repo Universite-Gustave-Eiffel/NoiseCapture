@@ -16,7 +16,8 @@
     tools:context="org.noise_planet.noisecapture.Measurement"
     android:layout_alignParentTop="true"
     android:layout_alignParentLeft="true"
-    android:layout_alignParentStart="true">
+    android:layout_alignParentStart="true"
+    android:keepScreenOn="true">
 
     <LinearLayout
         android:orientation="vertical"

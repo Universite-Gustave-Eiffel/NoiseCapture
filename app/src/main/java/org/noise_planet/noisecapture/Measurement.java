@@ -14,6 +14,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
@@ -434,17 +435,18 @@ public class Measurement extends MainActivity implements
     private void initGuiState() {
         // Update buttons: history disabled; cancel enabled; record button to stop; map disabled
         ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
-        buttonhistory.setImageResource(R.drawable.button_history_disabled);
-        buttonhistory.setEnabled(false);
         ImageButton buttoncancel= (ImageButton) findViewById(R.id.cancelBtn);
-        buttoncancel.setImageResource(R.drawable.button_cancel_normal);
-        buttoncancel.setEnabled(true);
         ImageButton buttonrecord= (ImageButton) findViewById(R.id.recordBtn);
-        buttonrecord.setImageResource(R.drawable.button_record_pressed);
         ImageButton buttonmap= (ImageButton) findViewById(R.id.mapBtn);
-        buttonmap.setImageResource(R.drawable.button_map_disabled);
 
         if (measurementService.isRecording()) {
+            buttonhistory.setImageResource(R.drawable.button_history_disabled);
+            buttonhistory.setEnabled(false);
+            buttoncancel.setImageResource(R.drawable.button_cancel_normal);
+            buttoncancel.setEnabled(true);
+            buttonmap.setImageResource(R.drawable.button_map_disabled);
+            buttonrecord.setImageResource(R.drawable.button_record_pressed);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             initComponents();
 
             // Start chronometer
@@ -452,6 +454,7 @@ public class Measurement extends MainActivity implements
         }
         else
         {
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             // Enabled/disabled buttons after measurement
             // history enabled or disabled (if isHistory); cancel disable; record button enabled
             buttonhistory.setImageResource(R.drawable.button_history_normal);
@@ -484,10 +487,10 @@ public class Measurement extends MainActivity implements
                         activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));
-                } else if(AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
-                    if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
-                        activity.runOnUiThread(new UpdateText(activity));
-                    }
+                }
+            } else if(AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
+                if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
+                    activity.runOnUiThread(new UpdateText(activity));
                 }
             }
         }

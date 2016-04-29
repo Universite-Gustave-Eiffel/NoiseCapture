@@ -41,6 +41,7 @@ public class Storage extends SQLiteOpenHelper {
             if (!db.isReadOnly()) {
                 db.execSQL("ALTER TABLE record ADD COLUMN time_length INTEGER");
             }
+            oldVersion = 2;
         }
     }
 
@@ -169,6 +170,17 @@ public class Storage extends SQLiteOpenHelper {
             this.altitude = altitude;
             this.accuracy = accuracy;
             this.locationUTC = locationUTC;
+        }
+
+        public Leq(Cursor cursor) {
+            this(cursor.getInt(cursor.getColumnIndex(COLUMN_RECORD_ID)),
+                    cursor.getInt(cursor.getColumnIndex(COLUMN_LEQ_ID)),
+                    cursor.getLong(cursor.getColumnIndex(COLUMN_LEQ_UTC)),
+                    cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE)),
+                    cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE)),
+                    cursor.getDouble(cursor.getColumnIndex(COLUMN_ALTITUDE)),
+                    cursor.getFloat(cursor.getColumnIndex(COLUMN_ACCURACY)),
+                    cursor.getLong(cursor.getColumnIndex(COLUMN_LOCATION_UTC)));
         }
 
         public int getRecordId() {

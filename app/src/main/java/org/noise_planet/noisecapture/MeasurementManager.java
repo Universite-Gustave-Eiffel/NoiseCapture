@@ -156,17 +156,14 @@ public class MeasurementManager {
     /**
      * Fetch all leq that hold a coordinate
      * @param recordId Record identifier, -1 for all
-     * @param latLong Array of Latitude/Longitude
      */
-    public boolean getRecordLocations(int recordId, List<double[]> latLong, List<Double> leqs) {
+    public List<LeqBatch> getRecordLocations(int recordId) {
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
             Cursor cursor;
             if(recordId >= 0) {
-                cursor = database.rawQuery("SELECT L." + Storage.Leq.COLUMN_LEQ_ID + ", LV." +
-                        Storage.LeqValue.COLUMN_FREQUENCY + ", LV." + Storage.LeqValue.COLUMN_SPL +
-                        ", L." + Storage.Leq.COLUMN_LATITUDE + ", L." +
-                        Storage.Leq.COLUMN_LONGITUDE +
+                cursor = database.rawQuery("SELECT L.*, LV." + Storage.LeqValue.COLUMN_SPL +
+                        ", LV." + Storage.LeqValue.COLUMN_FREQUENCY +
                         " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
                         " LV WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
                         Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
@@ -174,10 +171,8 @@ public class MeasurementManager {
                         Storage.Leq.COLUMN_LEQ_ID + ", " +
                         Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId)});
             } else {
-                cursor = database.rawQuery("SELECT L." + Storage.Leq.COLUMN_LEQ_ID + ", LV." +
-                        Storage.LeqValue.COLUMN_FREQUENCY + ", LV." + Storage.LeqValue.COLUMN_SPL +
-                        ", L." + Storage.Leq.COLUMN_LATITUDE + ", L." +
-                        Storage.Leq.COLUMN_LONGITUDE +
+                cursor = database.rawQuery("SELECT L.*, LV." + Storage.LeqValue.COLUMN_SPL +
+                        ", LV." + Storage.LeqValue.COLUMN_FREQUENCY +
                         " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
                         " LV WHERE L." +
                         Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
@@ -186,32 +181,26 @@ public class MeasurementManager {
                         Storage.LeqValue.COLUMN_FREQUENCY, new String[0]);
             }
             try {
+                List<LeqBatch> leqBatches = new ArrayList<LeqBatch>();
                 int lastId = -1;
-                double[] lastLatLong = null;
-                double sumLeq = 0;
-                int latIndex = cursor.getColumnIndex(Storage.Leq.COLUMN_LATITUDE);
-                int longIndex = cursor.getColumnIndex(Storage.Leq.COLUMN_LONGITUDE);
+                LeqBatch lastLeq = null;
                 while (cursor.moveToNext()) {
                     Storage.LeqValue leqValue = new Storage.LeqValue(cursor);
                     if(lastId != leqValue.getLeqId() && lastId != -1) {
-                        latLong.add(lastLatLong);
-                        leqs.add(10 * Math.log10(sumLeq));
-                        sumLeq = 0;
-                        lastLatLong = null;
+                        leqBatches.add(lastLeq);
+                        lastLeq = null;
                     }
                     lastId = leqValue.getLeqId();
-                    if(lastLatLong == null) {
-                        lastLatLong = new double[]{cursor.getDouble(latIndex),
-                                cursor.getDouble(longIndex)};
+                    if(lastLeq == null) {
+                        lastLeq = new LeqBatch(new Storage.Leq(cursor));
                     }
-                    sumLeq += Math.pow(10, leqValue.getSpl() / 10);
+                    lastLeq.addLeqValue(leqValue);
                 }
                 // Add last leq
-                if(lastLatLong != null) {
-                    latLong.add(lastLatLong);
-                    leqs.add(10 * Math.log10(sumLeq));
+                if(lastLeq != null) {
+                    leqBatches.add(lastLeq);
                 }
-                return lastId != -1;
+                return leqBatches;
             } finally {
                 cursor.close();
             }
@@ -312,13 +301,30 @@ public class MeasurementManager {
         addLeqBatches(Collections.singletonList(leqBatch));
     }
 
-    public static class LeqBatch {
+    public static final class LeqBatch {
         private Storage.Leq leq;
         private List<Storage.LeqValue> leqValues;
 
         public LeqBatch(Storage.Leq leq, List<Storage.LeqValue> leqValues) {
             this.leq = leq;
             this.leqValues = leqValues;
+        }
+
+        public LeqBatch(Storage.Leq leq) {
+            this.leq = leq;
+            this.leqValues = new ArrayList<>();
+        }
+
+        public void addLeqValue(Storage.LeqValue leqValue) {
+            leqValues.add(leqValue);
+        }
+
+        public double computeGlobalLeq() {
+            double globalLeq = 0;
+            for(Storage.LeqValue leqValue : leqValues) {
+                globalLeq += Math.pow(10, leqValue.getSpl() / 10.);
+            }
+            return 10 * Math.log10(globalLeq);
         }
 
         public Storage.Leq getLeq() {
@@ -329,5 +335,4 @@ public class MeasurementManager {
             return leqValues;
         }
     }
-
 }

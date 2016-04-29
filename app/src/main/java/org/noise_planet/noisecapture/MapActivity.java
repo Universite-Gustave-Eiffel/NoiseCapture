@@ -2,6 +2,7 @@ package org.noise_planet.noisecapture;
 
 
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
@@ -97,28 +98,30 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
 
     @Override
     public void onMapLoaded() {
+        Resources res = getResources();
         mMap.clear();
         Spinner spinner = (Spinner) findViewById(R.id.spinner_map);
         boolean onlySelected = spinner.getSelectedItemPosition() == 0;
         // Add markers and move the camera.
-        List<double[]> latLong = new ArrayList<double[]>();
-        List<Double> leqs = new ArrayList<Double>();
-        measurementManager.getRecordLocations(onlySelected ? record.getId() : -1, latLong, leqs);
+        List<MeasurementManager.LeqBatch> measurements = new ArrayList<MeasurementManager.LeqBatch>();
+        measurements = measurementManager.getRecordLocations(onlySelected ? record.getId() : -1);
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
-        for(int idMarker = 0; idMarker < latLong.size(); idMarker++) {
-            double[] p = latLong.get(idMarker);
-            LatLng position = new LatLng(p[0], p[1]);
+        for(int idMarker = 0; idMarker < measurements.size(); idMarker++) {
+            MeasurementManager.LeqBatch leq = measurements.get(idMarker);
+            LatLng position = new LatLng(leq.getLeq().getLatitude(), leq.getLeq().getLongitude());
             MarkerOptions marker = new MarkerOptions();
             marker.position(position);
-            marker.title(String.format("%.01f dB(A)", leqs.get(idMarker)));
-            int nc=getNEcatColors(leqs.get(idMarker));    // Choose the color category in function of the sound level
+            double leqValue = leq.computeGlobalLeq();
+            marker.title(res.getString(R.string.map_marker_label, leqValue,
+                    leq.getLeq().getAccuracy()));
+            int nc=getNEcatColors(leqValue);    // Choose the color category in function of the sound level
             float[] hsv = new float[3];
             Color.colorToHSV(NE_COLORS[nc], hsv);  // Apply color category for the corresponding sound level
             marker.icon(BitmapDescriptorFactory.defaultMarker(hsv[0]));
             mMap.addMarker(marker);
             builder.include(position);
         }
-        if(!latLong.isEmpty()) {
+        if(!measurements.isEmpty()) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 0));
         } else {
             Toast.makeText(getApplicationContext(), getString(R.string.no_gps_results),

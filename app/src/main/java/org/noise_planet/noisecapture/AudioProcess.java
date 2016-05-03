@@ -8,7 +8,6 @@ import android.util.Log;
 import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.FFTSignalProcessing;
 import org.orbisgis.sos.LeqStats;
-import org.orbisgis.sos.ThirdOctaveBandsFiltering;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

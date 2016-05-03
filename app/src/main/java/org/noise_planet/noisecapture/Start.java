@@ -2,10 +2,14 @@ package org.noise_planet.noisecapture;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+
+import java.util.UUID;
 
 
 public class Start extends Activity {
@@ -16,6 +20,13 @@ public class Start extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+        // If first start then create a unique identifier for this install
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        if(!sharedPref.contains(MeasurementExport.PROP_UUID)) {
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString(MeasurementExport.PROP_UUID, UUID.randomUUID().toString());
+            editor.apply();
+        }
 
     final Start myActivity = this;
 

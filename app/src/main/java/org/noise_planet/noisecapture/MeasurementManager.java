@@ -156,8 +156,9 @@ public class MeasurementManager {
     /**
      * Fetch all leq that hold a coordinate
      * @param recordId Record identifier, -1 for all
+     * @param
      */
-    public List<LeqBatch> getRecordLocations(int recordId) {
+    public List<LeqBatch> getRecordLocations(int recordId, boolean withCoordinatesOnly) {
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
             Cursor cursor;
@@ -167,18 +168,18 @@ public class MeasurementManager {
                         " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
                         " LV WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
                         Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
-                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > 0 ORDER BY L." +
+                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? ORDER BY L." +
                         Storage.Leq.COLUMN_LEQ_ID + ", " +
-                        Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId)});
+                        Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId), withCoordinatesOnly ? "0" : "-1"});
             } else {
                 cursor = database.rawQuery("SELECT L.*, LV." + Storage.LeqValue.COLUMN_SPL +
                         ", LV." + Storage.LeqValue.COLUMN_FREQUENCY +
                         " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
                         " LV WHERE L." +
                         Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
-                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > 0 ORDER BY L." +
+                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? ORDER BY L." +
                         Storage.Leq.COLUMN_LEQ_ID + ", " +
-                        Storage.LeqValue.COLUMN_FREQUENCY, new String[0]);
+                        Storage.LeqValue.COLUMN_FREQUENCY, new String[]{withCoordinatesOnly ? "0" : "-1"});
             }
             try {
                 List<LeqBatch> leqBatches = new ArrayList<LeqBatch>();

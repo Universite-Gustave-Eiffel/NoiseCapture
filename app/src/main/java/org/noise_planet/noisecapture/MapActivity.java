@@ -104,7 +104,7 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
         boolean onlySelected = spinner.getSelectedItemPosition() == 0;
         // Add markers and move the camera.
         List<MeasurementManager.LeqBatch> measurements = new ArrayList<MeasurementManager.LeqBatch>();
-        measurements = measurementManager.getRecordLocations(onlySelected ? record.getId() : -1);
+        measurements = measurementManager.getRecordLocations(onlySelected ? record.getId() : -1, true);
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         for(int idMarker = 0; idMarker < measurements.size(); idMarker++) {
             MeasurementManager.LeqBatch leq = measurements.get(idMarker);

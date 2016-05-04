@@ -26,6 +26,7 @@ import java.util.zip.ZipOutputStream;
  * Extract measurements from database and convert into packaged GeoJSON and properties file.
  */
 public class MeasurementExport {
+    public static final String ZIP_FILENAME = "tracks/shared_tracks/track.zip";
     private MeasurementManager measurementManager;
     private Context context;
     public static final String PROPERTY_FILENAME  = "meta.properties";
@@ -68,7 +69,7 @@ public class MeasurementExport {
 
         List<MeasurementManager.LeqBatch> records =
                 measurementManager.getRecordLocations(recordId, false);
-
+        // If Memory problems switch to JSONWriter
         JSONObject main = new JSONObject();
 
         try {

@@ -7,6 +7,7 @@
 
     <string name="record_button_string">Start record</string>
     <string name="record_message">Press the record button to start</string>
+    <string name="fail_share">Generation of the shared file failed</string>
     <string name="no_results">There is no result. Start a record before.</string>
     <string name="no_gps_results">No GPS coordinates in this record</string>
     <string name="no_history">History is empty. Start a record before.</string>
@@ -91,6 +92,7 @@
         <item>Help</item>
         <item>About</item>
     </string-array>
+    <string name="result_share">Share this result</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <string name="url_about">file:///android_asset/html/about.html</string>

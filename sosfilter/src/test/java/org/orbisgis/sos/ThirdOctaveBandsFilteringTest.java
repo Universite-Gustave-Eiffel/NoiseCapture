@@ -2,6 +2,8 @@ package org.orbisgis.sos;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FilenameFilter;
@@ -16,6 +18,7 @@ import java.util.Scanner;
  * Unit tests concerning both the A-weighting and third octave bands filtering (mainly) of audio data
  */
 public class ThirdOctaveBandsFilteringTest {
+    private final static Logger LOGGER = LoggerFactory.getLogger(ThirdOctaveBandsFiltering.class);
 
     /**
      * Get the index of a double value in a double array
@@ -54,12 +57,70 @@ public class ThirdOctaveBandsFilteringTest {
         Assert.assertEquals(24, filtersCoefficients.size());
     }
 
+    @Test
+    public void benchmarkFiltering() throws IOException {
+
+
+        /*
+        Reference data (i.e. expected results)
+         */
+
+        int samplingRate = 44100;
+        ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands = ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED;
+        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, frequencyBands);
+        double[] standardFrequencies = ThirdOctaveBandsFiltering.getStandardFrequencies(frequencyBands);
+        int nbFrequencies = standardFrequencies.length;
+
+        /*
+        Actual results
+         */
+
+        // Loading of the audio signal (i.e. the file pinknoise_1s.txt that refers to pinknoise_1s.wav)
+        Scanner scanAudio = new Scanner(new File("src/test/resources/org/orbisgis/sos/pinknoise_1s.txt"));
+        List<Double> inputSig= new ArrayList<Double>();
+        while (scanAudio.hasNext()) {
+            inputSig.add(Double.parseDouble(scanAudio.next()));
+        }
+        scanAudio.close();
+        double[] audioSignalArr = new double[inputSig.size()];
+        for (int idT = 0; idT < audioSignalArr.length; idT++) {
+            audioSignalArr[idT] = inputSig.get(idT);
+        }
+        // Warmup
+        for(int i = 0; i < 5; i++) {
+            thirdOctaveBandsFiltering.thirdOctaveFiltering(audioSignalArr);
+        }
+
+        long beginFiltering = System.currentTimeMillis();
+
+        // Third octave bands filtering of the audio signal
+//        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, sampleLength);
+        double[][] actualFilteredSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(audioSignalArr);
+
+        LOGGER.info("Filtering done in {} ms", (System.currentTimeMillis() - beginFiltering));
+
+        // Equivalent sound pressure levels of the third octave bands filtered signals
+        // Warmup
+        for(int i = 0; i < 5; i++) {
+            AcousticIndicators.getLeq(actualFilteredSignal[0], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
+        }
+
+        long beginLeq = System.currentTimeMillis();
+        double[] actualLeq = new double[nbFrequencies];
+        for (int idf = 0; idf < nbFrequencies; idf++) {
+            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredSignal[idf], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
+        }
+
+
+        LOGGER.info("Leq done in {} ms", (System.currentTimeMillis() - beginLeq));
+    }
+
     /**
      * Unit test on third octave bands filtering a 1-second pink noise: comparison of the filtered time signals with
      * expected ones
      * @throws IOException
      */
-    @Test
+
     public void testThirdOctaveBandsFiltering() throws IOException{
 
         /*
@@ -71,7 +132,7 @@ public class ThirdOctaveBandsFilteringTest {
         ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands = ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED;
         int nbExpectedSamples = (int)(samplingRate * sampleLength);
         ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, frequencyBands);
-        double[] standardFrequencies = thirdOctaveBandsFiltering.getStandardFrequencies(frequencyBands);
+        double[] standardFrequencies = ThirdOctaveBandsFiltering.getStandardFrequencies(frequencyBands);
         int nbFrequencies = standardFrequencies.length;
 
         // Reference third octave bands filtered signals (i.e. expected results)
@@ -87,13 +148,13 @@ public class ThirdOctaveBandsFilteringTest {
             double ctrFreq = Double.parseDouble(fileName.substring(fileNameRoot.length(), fileName.indexOf("Hz")));
             int idCtrFreq = getIndexOfElementInArray(standardFrequencies, ctrFreq);
             Scanner scanExpectedData = new Scanner(file);
-            List<Double> refData= new ArrayList();
+            List<Double> refData= new ArrayList<Double>();
             while (scanExpectedData.hasNext()) {
                 refData.add(Double.parseDouble(scanExpectedData.next()));
             }
             scanExpectedData.close();
             for (int idT = 0; idT < nbExpectedSamples; idT++) {
-                expectedFilteredSignal[idCtrFreq][idT] = refData.get(idT).doubleValue();
+                expectedFilteredSignal[idCtrFreq][idT] = refData.get(idT);
             }
         }
 
@@ -113,7 +174,7 @@ public class ThirdOctaveBandsFilteringTest {
 
         // Loading of the audio signal (i.e. the file pinknoise_1s.txt that refers to pinknoise_1s.wav)
         Scanner scanAudio = new Scanner(new File("src/test/resources/org/orbisgis/sos/pinknoise_1s.txt"));
-        List<Double> inputSig= new ArrayList();
+        List<Double> inputSig= new ArrayList<Double>();
         while (scanAudio.hasNext()) {
             inputSig.add(Double.parseDouble(scanAudio.next()));
         }
@@ -123,15 +184,23 @@ public class ThirdOctaveBandsFilteringTest {
             audioSignalArr[idT] = inputSig.get(idT);
         }
 
+        long beginFiltering = System.currentTimeMillis();
+
         // Third octave bands filtering of the audio signal
 //        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, sampleLength);
         double[][] actualFilteredSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(audioSignalArr);
 
+        long beginLeq = System.currentTimeMillis();
+        LOGGER.info("Filtering done in {} ms", (beginLeq - beginFiltering));
+
         // Equivalent sound pressure levels of the third octave bands filtered signals
         double[] actualLeq = new double[nbFrequencies];
         for (int idf = 0; idf < nbFrequencies; idf++) {
-            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredSignal[idf]);
+            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredSignal[idf], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
         }
+
+
+        LOGGER.info("Leq done in {} ms", (System.currentTimeMillis() - beginLeq));
 
         /*
         Comparisons of expected and actual results
@@ -151,9 +220,9 @@ public class ThirdOctaveBandsFilteringTest {
      * levels per third octave bands with expected ones
      * @throws IOException
      */
-    @Test
-    public void testAWeightingAnThirdOctaveBandsFiltering() throws IOException{
 
+    public void testAWeightingAnThirdOctaveBandsFiltering() throws IOException{
+        Logger logger = LoggerFactory.getLogger(ThirdOctaveBandsFilteringTest.class);
         /*
         Reference data (i.e. expected results)
          */
@@ -161,7 +230,7 @@ public class ThirdOctaveBandsFilteringTest {
         int samplingRate = 44100;
         ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands = ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED;
         ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, frequencyBands);
-        double[] standardFrequencies = thirdOctaveBandsFiltering.getStandardFrequencies(frequencyBands);
+        double[] standardFrequencies = ThirdOctaveBandsFiltering.getStandardFrequencies(frequencyBands);
         int nbFrequencies = standardFrequencies.length;
         int nbExpectedSamples = (int)(ThirdOctaveBandsFiltering.getSampleBufferDuration(frequencyBands) * samplingRate);
 
@@ -221,18 +290,20 @@ public class ThirdOctaveBandsFilteringTest {
         double[][] actualFilteredAWeightedSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(actualAWeightedSignal);
 
         // Third octave bands filtering of the input signal (i.e. unweighted)
+        long deb = System.currentTimeMillis();
         double[][] actualFilteredInputSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(audioSignalArr);
+        logger.info("Compute Filtering signal in "+(System.currentTimeMillis() - deb)+" ms");
 
         // Equivalent sound pressure levels of the third octave bands filtered A-weighted signals
         double[] actualLAeq = new double[nbFrequencies];
         for (int idf = 0; idf < nbFrequencies; idf++) {
-            actualLAeq[idf] = AcousticIndicators.getLeq(actualFilteredAWeightedSignal[idf]);
+            actualLAeq[idf] = AcousticIndicators.getLeq(actualFilteredAWeightedSignal[idf], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
         }
 
         // Equivalent sound pressure levels of the third octave bands filtered unweighted signals
         double[] actualLeq = new double[nbFrequencies];
         for (int idf = 0; idf < nbFrequencies; idf++) {
-            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredInputSignal[idf]);
+            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredInputSignal[idf], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
         }
 
         /*

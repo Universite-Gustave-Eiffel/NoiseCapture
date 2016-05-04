@@ -1,5 +1,7 @@
 package org.orbisgis.sos;
 
+import java.util.List;
+
 /**
  * Created by G. Guillaume on 18/06/15.
  * Calculation of some acoustic indicators
@@ -16,17 +18,16 @@ public class AcousticIndicators {
     /**
      * Calculation of the equivalent sound pressure level
      * @param inputSignal time signal [Pa]
-     * @return equivalent sound pressure level [dB]
+     * @return equivalent sound pressure level [dB] not normalised by reference pressure.
      */
-    public static double getLeq(double[] inputSignal) {
-        double rms = 0.0;
-
+    public static double getLeq(double[] inputSignal, double refSoundPressure) {
+        double sqrRms = 0.0;
+        final double sqrRefSoundPressure = refSoundPressure * refSoundPressure;
         for (int idT = 1; idT < inputSignal.length; idT++) {
-            rms += Math.pow(inputSignal[idT], 2);    // Math.pow(inputSignal[i], 2.);
+            sqrRms += inputSignal[idT] * inputSignal[idT];
         }
-        return 10 * Math.log10(rms / (inputSignal.length* REF_SOUND_PRESSURE));
+        return 10 * Math.log10(sqrRms / (inputSignal.length * sqrRefSoundPressure));
     }
-
 
     /**
      * Calculation of the equivalent sound pressure levels over a time period
@@ -35,32 +36,18 @@ public class AcousticIndicators {
      * @param timePeriod time period (s)
      * @return double array of equivalent sound pressure levels [dB]
      */
-    public static double[] getLeqT(double[] inputSignal, int sampleRate, double timePeriod) {
+    public static double[] getLeqT(double[] inputSignal, int sampleRate, double timePeriod, double refSoundPressure) {
         int subSamplesLength = (int)(timePeriod * sampleRate);      // Sub-samples length
         int nbSubSamples = inputSignal.length / subSamplesLength;
         double[] leqT = new double[nbSubSamples];
         int idStartForSub = 0;
         for (int idSub = 0; idSub < nbSubSamples; idSub++) {
             double[] subSample = new double[subSamplesLength];
-            System.arraycopy(inputSignal, idStartForSub + 0, subSample, 0, subSamplesLength);
-            leqT[idSub] = getLeq(subSample);
+            System.arraycopy(inputSignal, idStartForSub, subSample, 0, subSamplesLength);
+            leqT[idSub] = getLeq(subSample, refSoundPressure);
             idStartForSub += subSamplesLength;
         }
         return leqT;
-    }
-
-    /**
-     * Calculation of the averaged equivalent sound pressure level
-     * @param spl sound pressure level [dB]
-     * @return averaged equivalent sound pressure level [dB]
-     */
-    public static double getAverageSpl(double[] spl) {
-        int splLength = spl.length;
-        double sumSpl = 0.0;
-        for (int idSpl = 0; idSpl < splLength; idSpl++) {
-            sumSpl += Math.pow(10.0, spl[idSpl] / 10.0);
-        }
-        return Math.log10((1.0/splLength) * sumSpl);
     }
 
     /**
@@ -77,5 +64,34 @@ public class AcousticIndicators {
         }
         // Return modified buffer
         return signal;
+    }
+
+    /**
+     * Apply a Hanning window to a signal
+     * @param signal time signal
+     * @return the windowed signal
+     */
+    public static float[] hanningWindow(float[] signal) {
+
+        // Iterate until the last line of the data buffer
+        for (int n = 1; n < signal.length; n++) {
+            // reduce unnecessarily performed frequency part of each and every frequency
+            signal[n] *= 0.5 * (1 - Math.cos((2 * Math.PI * n) / (signal.length - 1)));
+        }
+        // Return modified buffer
+        return signal;
+    }
+
+
+    public final static class SplStatistics {
+        public final double min;
+        public final double max;
+        public final double mean;
+
+        public SplStatistics(double min, double max, double mean) {
+            this.min = min;
+            this.max = max;
+            this.mean = mean;
+        }
     }
 }

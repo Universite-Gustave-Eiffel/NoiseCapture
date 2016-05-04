@@ -11,6 +11,9 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -26,6 +29,7 @@ public class MeasurementExport {
     private MeasurementManager measurementManager;
     private Context context;
     public static final String PROPERTY_FILENAME  = "meta.properties";
+    public static final String GEOJSON_FILENAME  = "track.json";
     public static final String PROP_MANUFACTURER  = "DEVICE_MANUFACTURER";
     public static final String PROP_PRODUCT  = "DEVICE_PRODUCT";
     public static final String PROP_MODEL  = "DEVICE_MODEL";
@@ -109,8 +113,15 @@ public class MeasurementExport {
                 features.add(feature);
             }
             main.put("features", new JSONArray(features));
+            zipOutputStream.putNextEntry(new ZipEntry(GEOJSON_FILENAME));
+            Writer writer = new OutputStreamWriter(zipOutputStream);
+            writer.write(main.toString(2));
+            writer.flush();
+            zipOutputStream.closeEntry();
         } catch (JSONException ex ) {
             throw new IOException(ex);
+        } finally {
+            zipOutputStream.close();
         }
     }
 

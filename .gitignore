@@ -3,6 +3,7 @@ local.properties
 app/local.properties
 .DS_Store
 app/build
+sosfilter/build
 /build
 *.iml
 .idea/

@@ -1,15 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent" android:layout_height="match_parent">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent" android:layout_height="match_parent"
+                android:background="?android:attr/activatedBackgroundIndicator">
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:gravity="left|center_vertical"
+        android:gravity="start|center_vertical"
         android:weightSum="1"
         android:id="@+id/linearLayout6"
-        android:layout_below="@+id/linearLayout7"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:layout_alignParentRight="true"
@@ -20,7 +21,7 @@
             android:layout_height="match_parent"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:id="@+id/textView_SEL_bar_item_history"
-            android:layout_marginRight="4dp" />
+            android:layout_marginRight="4sp" />
 
         <LinearLayout
             android:orientation="vertical"
@@ -31,18 +32,16 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="SEL dB(A)"
+                android:text="@string/history_sel"
                 android:id="@+id/textView_SEL_item_history"
                 android:textStyle="bold"
-                android:textSize="12dp"
-                android:gravity="center_vertical|center_horizontal"
-                android:elegantTextHeight="false"
-                android:phoneNumber="false" />
+                android:textSize="12sp"
+                android:gravity="center_vertical|center_horizontal" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="New Text"
+                android:text="@string/history_date"
                 android:id="@+id/textView_Date_item_history"
                 android:textSize="12dp"
                 android:textStyle="bold"
@@ -51,20 +50,17 @@
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="New Text"
-                    android:id="@+id/textView_Id_item_history"
+                    android:text="@string/history_length"
+                    android:id="@+id/textView_length_item_history"
                     android:textSize="12sp" />
         </LinearLayout>
 
-        <CheckBox
+        <ImageView
             android:layout_width="wrap_content"
-            android:layout_height="45dp"
-            android:id="@+id/checkBox_item_history"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="true"
-            android:gravity="center_vertical|right"
-            android:layout_alignBottom="@+id/linearLayout6" />
-
+            android:layout_height="wrap_content"
+            android:id="@+id/history_uploaded"
+            app:srcCompat="@drawable/uploaded"
+            android:contentDescription="@string/history_uploadeddescr" />
 
     </LinearLayout>
 

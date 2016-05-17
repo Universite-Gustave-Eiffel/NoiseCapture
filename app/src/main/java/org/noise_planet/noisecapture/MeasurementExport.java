@@ -107,6 +107,12 @@ public class MeasurementExport {
                 featureProperties.put(Storage.Leq.COLUMN_LOCATION_UTC, leq.getLocationUTC());
                 featureProperties.put(Storage.Leq.COLUMN_LEQ_UTC, leq.getLeqUtc());
                 featureProperties.put(Storage.Leq.COLUMN_LEQ_ID, leq.getLeqId());
+                if(leq.getBearing() != null) {
+                    featureProperties.put(Storage.Leq.COLUMN_BEARING, leq.getBearing());
+                }
+                if(leq.getSpeed() != null) {
+                    featureProperties.put(Storage.Leq.COLUMN_SPEED, leq.getSpeed());
+                }
                 for(Storage.LeqValue leqValue : entry.getLeqValues()) {
                     featureProperties.put("leq_"+leqValue.getFrequency(), leqValue.getSpl());
                 }

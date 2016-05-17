@@ -265,7 +265,9 @@ public class MeasurementManager {
                             Storage.Leq.COLUMN_ALTITUDE  + "," +
                             Storage.Leq.COLUMN_ACCURACY  + "," +
                             Storage.Leq.COLUMN_LOCATION_UTC +
-                            ") VALUES (?, ?,?,?,?,?,?)");
+                            Storage.Leq.COLUMN_BEARING +
+                            Storage.Leq.COLUMN_SPEED +
+                            ") VALUES (?, ?,?,?,?,?,?,?,?)");
             SQLiteStatement leqValueStatement = database.compileStatement("INSERT INTO " +
                     Storage.LeqValue.TABLE_NAME + " VALUES (?,?,?)");
             for(LeqBatch leqBatch : leqBatches) {
@@ -278,6 +280,16 @@ public class MeasurementManager {
                 leqStatement.bindDouble(5, leq.getAltitude());
                 leqStatement.bindDouble(6, leq.getAccuracy());
                 leqStatement.bindDouble(7, leq.getLocationUTC());
+                if(leq.getSpeed() != null) {
+                    leqStatement.bindDouble(8, leq.getSpeed());
+                } else {
+                    leqStatement.bindNull(8);
+                }
+                if(leq.getBearing() != null) {
+                    leqStatement.bindDouble(9, leq.getBearing());
+                } else {
+                    leqStatement.bindNull(9);
+                }
                 long leqId = leqStatement.executeInsert();
                 for(Storage.LeqValue leqValue : leqBatch.getLeqValues()) {
                     leqValueStatement.clearBindings();

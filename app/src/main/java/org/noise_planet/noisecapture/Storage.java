@@ -15,7 +15,7 @@ import java.util.Date;
 public class Storage extends SQLiteOpenHelper {
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 2;
+    public static final int DATABASE_VERSION = 3;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -43,6 +43,14 @@ public class Storage extends SQLiteOpenHelper {
             }
             oldVersion = 2;
         }
+        if(oldVersion == 2) {
+            // Add gps speed and bearing attribute
+            if (!db.isReadOnly()) {
+                db.execSQL("ALTER TABLE leq ADD COLUMN speed FLOAT");
+                db.execSQL("ALTER TABLE leq ADD COLUMN bearing FLOAT");
+            }
+            oldVersion = 3;
+        }
     }
 
 
@@ -52,6 +60,32 @@ public class Storage extends SQLiteOpenHelper {
         if (!db.isReadOnly()) {
             // Enable foreign key constraints
             db.execSQL(ACTIVATE_FOREIGN_KEY);
+        }
+    }
+
+    private static Double getDouble(Cursor cursor, String field) {
+        int colIndex = cursor.getColumnIndex(field);
+        if(colIndex != -1) {
+            if(cursor.isNull(colIndex)) {
+                return null;
+            } else {
+                return cursor.getDouble(colIndex);
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private static Float getFloat(Cursor cursor, String field) {
+        int colIndex = cursor.getColumnIndex(field);
+        if(colIndex != -1) {
+            if(cursor.isNull(colIndex)) {
+                return null;
+            } else {
+                return cursor.getFloat(colIndex);
+            }
+        } else {
+            return null;
         }
     }
 
@@ -138,6 +172,8 @@ public class Storage extends SQLiteOpenHelper {
         public static final String COLUMN_LONGITUDE = "longitude";
         public static final String COLUMN_ALTITUDE = "altitude";
         public static final String COLUMN_ACCURACY = "accuracy"; // location precision estimation
+        public static final String COLUMN_SPEED = "speed"; // device speed estimation
+        public static final String COLUMN_BEARING = "bearing"; // device orientation estimation
         public static final String COLUMN_LOCATION_UTC = "location_utc"; // date of last obtained location
 
         private int recordId;
@@ -145,7 +181,9 @@ public class Storage extends SQLiteOpenHelper {
         private long leqUtc;
         private double latitude;
         private double longitude;
-        private double altitude;
+        private Double altitude;
+        private Float speed;
+        private Float bearing;
         private float accuracy;
         private long locationUTC;
 
@@ -157,17 +195,21 @@ public class Storage extends SQLiteOpenHelper {
          * @param latitude
          * @param longitude
          * @param altitude
+         * @param speed
+         * @param bearing
          * @param accuracy
          * @param locationUTC
          */
         public Leq(int recordId, int leqId, long leqUtc, double latitude, double longitude,
-                   double altitude, float accuracy, long locationUTC) {
+                   Double altitude, Float speed, Float bearing, float accuracy, long locationUTC) {
             this.recordId = recordId;
             this.leqId = leqId;
             this.leqUtc = leqUtc;
             this.latitude = latitude;
             this.longitude = longitude;
             this.altitude = altitude;
+            this.speed = speed;
+            this.bearing = bearing;
             this.accuracy = accuracy;
             this.locationUTC = locationUTC;
         }
@@ -178,10 +220,13 @@ public class Storage extends SQLiteOpenHelper {
                     cursor.getLong(cursor.getColumnIndex(COLUMN_LEQ_UTC)),
                     cursor.getDouble(cursor.getColumnIndex(COLUMN_LATITUDE)),
                     cursor.getDouble(cursor.getColumnIndex(COLUMN_LONGITUDE)),
-                    cursor.getDouble(cursor.getColumnIndex(COLUMN_ALTITUDE)),
+                    getDouble(cursor, COLUMN_ALTITUDE),
+                    getFloat(cursor, COLUMN_SPEED),
+                    getFloat(cursor, COLUMN_BEARING),
                     cursor.getFloat(cursor.getColumnIndex(COLUMN_ACCURACY)),
                     cursor.getLong(cursor.getColumnIndex(COLUMN_LOCATION_UTC)));
         }
+
 
         public int getRecordId() {
             return recordId;
@@ -203,12 +248,26 @@ public class Storage extends SQLiteOpenHelper {
             return longitude;
         }
 
-        public double getAltitude() {
+        public Double getAltitude() {
             return altitude;
         }
 
         public float getAccuracy() {
             return accuracy;
+        }
+
+        /**
+         * @return Device speed in ground m/s
+         */
+        public Float getSpeed() {
+            return speed;
+        }
+
+        /**
+         * @return Device orientation
+         */
+        public Float getBearing() {
+            return bearing;
         }
 
         public long getLocationUTC() {
@@ -223,6 +282,7 @@ public class Storage extends SQLiteOpenHelper {
             Leq.COLUMN_LATITUDE + " DOUBLE, " +
             Leq.COLUMN_LONGITUDE + " DOUBLE, " +
             Leq.COLUMN_ALTITUDE + " DOUBLE, " +
+            Leq.COLUMN_SPEED + " FLOAT, " +
             Leq.COLUMN_ACCURACY + " FLOAT, " +
             Leq.COLUMN_LOCATION_UTC + " LONG, " +
             "FOREIGN KEY(" + Leq.COLUMN_RECORD_ID + ") REFERENCES record("+Record.COLUMN_ID+") ON DELETE CASCADE)";

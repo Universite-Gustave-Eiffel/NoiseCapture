@@ -3,17 +3,22 @@ package org.noise_planet.noisecapture;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
+import android.widget.TextView;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.UUID;
 
 
 public class Start extends Activity {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(Start.class);
     private Thread thread;
 
     @Override
@@ -27,10 +32,17 @@ public class Start extends Activity {
             editor.putString(MeasurementExport.PROP_UUID, UUID.randomUUID().toString());
             editor.apply();
         }
+    // read app version name
+    try {
+        String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        TextView versionText = (TextView) findViewById(R.id.textView_appversion);
+        versionText.setText(getString(R.string.title_appversion, versionName));
+    } catch (PackageManager.NameNotFoundException ex) {
+        LOGGER.error(ex.getLocalizedMessage(), ex);
+    }
 
     final Start myActivity = this;
 
-    /* TODO : check GPS, Data Transfer, microphone... */
     thread=  new Thread(){
         @Override
         public void run(){

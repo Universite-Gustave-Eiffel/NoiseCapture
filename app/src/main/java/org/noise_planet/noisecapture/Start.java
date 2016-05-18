@@ -14,6 +14,8 @@ import android.widget.TextView;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.DateFormat;
+import java.util.Date;
 import java.util.UUID;
 
 
@@ -35,8 +37,10 @@ public class Start extends Activity {
     // read app version name
     try {
         String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        Date buildDate = new Date(BuildConfig.TIMESTAMP);
         TextView versionText = (TextView) findViewById(R.id.textView_appversion);
-        versionText.setText(getString(R.string.title_appversion, versionName));
+        versionText.setText(getString(R.string.title_appversion, versionName,
+                DateFormat.getDateInstance().format(buildDate)));
     } catch (PackageManager.NameNotFoundException ex) {
         LOGGER.error(ex.getLocalizedMessage(), ex);
     }

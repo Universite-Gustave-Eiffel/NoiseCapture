@@ -156,8 +156,9 @@ public class MeasurementManager {
     /**
      * Fetch all leq that hold a coordinate
      * @param recordId Record identifier, -1 for all
+     * @param
      */
-    public List<LeqBatch> getRecordLocations(int recordId) {
+    public List<LeqBatch> getRecordLocations(int recordId, boolean withCoordinatesOnly) {
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
             Cursor cursor;
@@ -167,18 +168,18 @@ public class MeasurementManager {
                         " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
                         " LV WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
                         Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
-                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > 0 ORDER BY L." +
+                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? ORDER BY L." +
                         Storage.Leq.COLUMN_LEQ_ID + ", " +
-                        Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId)});
+                        Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId), withCoordinatesOnly ? "0" : "-1"});
             } else {
                 cursor = database.rawQuery("SELECT L.*, LV." + Storage.LeqValue.COLUMN_SPL +
                         ", LV." + Storage.LeqValue.COLUMN_FREQUENCY +
                         " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
                         " LV WHERE L." +
                         Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
-                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > 0 ORDER BY L." +
+                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? ORDER BY L." +
                         Storage.Leq.COLUMN_LEQ_ID + ", " +
-                        Storage.LeqValue.COLUMN_FREQUENCY, new String[0]);
+                        Storage.LeqValue.COLUMN_FREQUENCY, new String[]{withCoordinatesOnly ? "0" : "-1"});
             }
             try {
                 List<LeqBatch> leqBatches = new ArrayList<LeqBatch>();
@@ -263,8 +264,10 @@ public class MeasurementManager {
                             Storage.Leq.COLUMN_LONGITUDE  + "," +
                             Storage.Leq.COLUMN_ALTITUDE  + "," +
                             Storage.Leq.COLUMN_ACCURACY  + "," +
-                            Storage.Leq.COLUMN_LOCATION_UTC +
-                            ") VALUES (?, ?,?,?,?,?,?)");
+                            Storage.Leq.COLUMN_LOCATION_UTC + "," +
+                            Storage.Leq.COLUMN_BEARING + "," +
+                            Storage.Leq.COLUMN_SPEED +
+                            ") VALUES (?, ?,?,?,?,?,?,?,?)");
             SQLiteStatement leqValueStatement = database.compileStatement("INSERT INTO " +
                     Storage.LeqValue.TABLE_NAME + " VALUES (?,?,?)");
             for(LeqBatch leqBatch : leqBatches) {
@@ -274,9 +277,23 @@ public class MeasurementManager {
                 leqStatement.bindLong(2, leq.getLeqUtc());
                 leqStatement.bindDouble(3, leq.getLatitude());
                 leqStatement.bindDouble(4, leq.getLongitude());
-                leqStatement.bindDouble(5, leq.getAltitude());
+                if(leq.getAltitude() != null) {
+                    leqStatement.bindDouble(5, leq.getAltitude());
+                } else {
+                    leqStatement.bindNull(5);
+                }
                 leqStatement.bindDouble(6, leq.getAccuracy());
                 leqStatement.bindDouble(7, leq.getLocationUTC());
+                if(leq.getSpeed() != null) {
+                    leqStatement.bindDouble(8, leq.getSpeed());
+                } else {
+                    leqStatement.bindNull(8);
+                }
+                if(leq.getBearing() != null) {
+                    leqStatement.bindDouble(9, leq.getBearing());
+                } else {
+                    leqStatement.bindNull(9);
+                }
                 long leqId = leqStatement.executeInsert();
                 for(Storage.LeqValue leqValue : leqBatch.getLeqValues()) {
                     leqValueStatement.clearBindings();

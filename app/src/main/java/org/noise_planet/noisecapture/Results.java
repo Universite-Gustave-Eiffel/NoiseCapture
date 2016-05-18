@@ -1,9 +1,16 @@
 package org.noise_planet.noisecapture;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.FileProvider;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -27,17 +34,23 @@ import com.github.mikephil.charting.utils.PercentFormatter;
 
 import org.noise_planet.noisecapture.util.CustomPercentFormatter;
 import org.orbisgis.sos.LeqStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-public class Results extends MainActivity {
+public class Results extends MainActivity implements ShareActionProvider.OnShareTargetSelectedListener{
     public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
+    private static final Logger LOGGER = LoggerFactory.getLogger(Results.class);
     private MeasurementManager measurementManager;
     private Storage.Record record;
     private static final double[][] CLASS_RANGES = new double[][]{{Double.MIN_VALUE, 45}, {45, 55}, {55, 65}, {65, 75},{75, Double.MAX_VALUE}};
+
 
     // For the Charts
     public PieChart rneChart;
@@ -69,6 +82,8 @@ public class Results extends MainActivity {
                 return;
             }
         }
+
+
         loadMeasurement();
         LeqStats.LeqOccurrences leqOccurrences = leqStats.computeLeqOccurrences(CLASS_RANGES);
         setContentView(R.layout.activity_results);
@@ -161,8 +176,62 @@ public class Results extends MainActivity {
                 startActivity(im);
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_result, menu);
 
 
+        // Locate MenuItem with ShareActionProvider
+        MenuItem item = menu.findItem(R.id.menu_item_share);
+
+        // Fetch and store ShareActionProvider
+        ShareActionProvider mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
+
+        File requestFile = getSharedFile();
+        Uri fileUri = FileProvider.getUriForFile(
+        this,
+        "org.noise_planet.noisecapture.fileprovider",
+        requestFile);
+
+
+        Intent mResultIntent = new Intent(Intent.ACTION_SEND);
+
+        mResultIntent.setDataAndType(fileUri, "application/zip");
+        mResultIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+        mResultIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+        mShareActionProvider.setShareIntent(mResultIntent);
+        mShareActionProvider.setOnShareTargetSelectedListener(this);
+        // Return true to display menu
+        return true;
+    }
+
+    private File getSharedFile() {
+        return new File(getCacheDir().getAbsolutePath() ,MeasurementExport.ZIP_FILENAME);
+    }
+
+    @Override
+    public boolean onShareTargetSelected(ShareActionProvider source, Intent intent) {
+        // Write file
+        try {
+            File file = getSharedFile();
+            // Create parent dirs if necessary
+            file.getParentFile().mkdirs();
+            FileOutputStream fop = new FileOutputStream(file);
+            try {
+                MeasurementExport measurementExport = new MeasurementExport(this);
+                measurementExport.exportRecord(record.getId(), fop);
+            } finally {
+                fop.close();
+            }
+        } catch (IOException ex) {
+            Toast.makeText(getApplicationContext(),
+                    getString(R.string.fail_share), Toast.LENGTH_LONG).show();
+            LOGGER.error(ex.getLocalizedMessage(), ex);
+        }
+        return false;
     }
 
     private void loadMeasurement() {

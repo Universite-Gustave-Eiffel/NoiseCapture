@@ -9,6 +9,10 @@
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
+    <!-- Save shared file permission on privte folder -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18" />
+
     <permission
         android:name="org.noise_planet.noisecapture.MAPS_RECEIVE"
         android:protectionLevel="signature"/>
@@ -26,6 +30,17 @@
         android:theme="@style/Theme.AppCompat"
 
     >
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="org.noise_planet.noisecapture.fileprovider"
+            android:grantUriPermissions="true"
+            android:exported="false">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/filepaths" />
+        </provider>
+
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />

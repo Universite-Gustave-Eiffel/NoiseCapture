@@ -264,8 +264,8 @@ public class MeasurementManager {
                             Storage.Leq.COLUMN_LONGITUDE  + "," +
                             Storage.Leq.COLUMN_ALTITUDE  + "," +
                             Storage.Leq.COLUMN_ACCURACY  + "," +
-                            Storage.Leq.COLUMN_LOCATION_UTC +
-                            Storage.Leq.COLUMN_BEARING +
+                            Storage.Leq.COLUMN_LOCATION_UTC + "," +
+                            Storage.Leq.COLUMN_BEARING + "," +
                             Storage.Leq.COLUMN_SPEED +
                             ") VALUES (?, ?,?,?,?,?,?,?,?)");
             SQLiteStatement leqValueStatement = database.compileStatement("INSERT INTO " +
@@ -277,7 +277,11 @@ public class MeasurementManager {
                 leqStatement.bindLong(2, leq.getLeqUtc());
                 leqStatement.bindDouble(3, leq.getLatitude());
                 leqStatement.bindDouble(4, leq.getLongitude());
-                leqStatement.bindDouble(5, leq.getAltitude());
+                if(leq.getAltitude() != null) {
+                    leqStatement.bindDouble(5, leq.getAltitude());
+                } else {
+                    leqStatement.bindNull(5);
+                }
                 leqStatement.bindDouble(6, leq.getAccuracy());
                 leqStatement.bindDouble(7, leq.getLocationUTC());
                 if(leq.getSpeed() != null) {

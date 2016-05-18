@@ -392,7 +392,7 @@ public class MeasurementService extends Service {
                 Storage.Leq leq;
                 if(location == null) {
                     leq = new Storage.Leq(measurementService.recordId, -1, measure
-                            .getBeginRecordTime(), 0, 0, 0.,0.f, 0.f, 0.f, 0);
+                            .getBeginRecordTime(), 0, 0, null, null, null, 0.f, 0);
                 }else {
                     leq = new Storage.Leq(measurementService.recordId, -1, measure
                             .getBeginRecordTime(), location.getLatitude(), location.getLongitude(),

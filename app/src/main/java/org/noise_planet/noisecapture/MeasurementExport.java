@@ -89,16 +89,16 @@ public class MeasurementExport {
                 JSONObject feature = new JSONObject();
                 feature.put("type", "Feature");
 
-                // Add coordinate
-                JSONObject point = new JSONObject();
-                point.put("type", "Point");
                 if(leq.getAccuracy() > 0) {
-                    point.put("coordinates", new JSONArray(Arrays.asList(leq.getLatitude(),
-                            leq.getLongitude(), leq.getAltitude())));
+                    // Add coordinate
+                    JSONObject point = new JSONObject();
+                    point.put("type", "Point");
+                    point.put("coordinates", new JSONArray(Arrays.asList(
+                            leq.getLongitude(), leq.getLatitude(), leq.getAltitude())));
+                    feature.put("geometry", point);
                 } else {
-                    point.put("coordinates", new JSONArray(Collections.emptyList()));
+                    feature.put("geometry", JSONObject.NULL);
                 }
-                feature.put("geometry", point);
 
                 // Add properties
                 JSONObject featureProperties = new JSONObject();

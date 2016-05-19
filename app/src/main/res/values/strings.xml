@@ -10,7 +10,10 @@
     <string name="fail_share">Generation of the shared file failed</string>
     <string name="no_results">There is no result. Start a record before.</string>
     <string name="no_gps_results">No GPS coordinates in this record</string>
+    <string name="no_gps_hint">No GPS</string>
+    <string name="gps_hint_precision">%1$d m</string>
     <string name="no_history">History is empty. Start a record before.</string>
+    <string name="loc_hint">Location status hint</string>
 
     <string name="title_menu">Menu</string>
     <string name="title_service_measurement">Measurement</string>

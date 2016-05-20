@@ -222,7 +222,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
             FileOutputStream fop = new FileOutputStream(file);
             try {
                 MeasurementExport measurementExport = new MeasurementExport(this);
-                measurementExport.exportRecord(record.getId(), fop);
+                measurementExport.exportRecord(this, record.getId(), fop);
             } finally {
                 fop.close();
             }

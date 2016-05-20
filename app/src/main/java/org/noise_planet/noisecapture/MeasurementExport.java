@@ -1,22 +1,25 @@
 package org.noise_planet.noisecapture;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Build;
 import android.preference.PreferenceManager;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
@@ -26,15 +29,20 @@ import java.util.zip.ZipOutputStream;
  * Extract measurements from database and convert into packaged GeoJSON and properties file.
  */
 public class MeasurementExport {
+    private static final Logger LOGGER = LoggerFactory.getLogger(MeasurementExport.class);
     public static final String ZIP_FILENAME = "tracks/shared_tracks/track.zip";
     private MeasurementManager measurementManager;
     private Context context;
     public static final String PROPERTY_FILENAME  = "meta.properties";
+    public static final String README_FILENAME  = "README";
     public static final String GEOJSON_FILENAME  = "track.json";
     public static final String PROP_MANUFACTURER  = "DEVICE_MANUFACTURER";
     public static final String PROP_PRODUCT  = "DEVICE_PRODUCT";
     public static final String PROP_MODEL  = "DEVICE_MODEL";
     public static final String PROP_UUID = "UUID"; // Random anonymous ID that link non identified user's measure.
+    public static final String PROP_VERSION_NAME  = "version_name";
+    public static final String PROP_BUILD_TIME  = "build_date";
+    public static final String PROP_VERSION_INT  = "version_number";
 
     public MeasurementExport(Context context) {
         this.measurementManager = new MeasurementManager(context);
@@ -47,13 +55,25 @@ public class MeasurementExport {
      * @param outputStream Data output target
      * @throws IOException output error
      */
-    public void exportRecord(int recordId, OutputStream outputStream) throws IOException {
+    public void exportRecord(Activity activity, int recordId, OutputStream outputStream) throws IOException {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
         Storage.Record record = measurementManager.getRecord(recordId);
 
         // Property file
         Properties properties = new Properties();
+        String versionName = "NONE";
+        int versionCode = -1;
+        try {
+            PackageInfo packageInfo = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0);
+            versionName = packageInfo.versionName;
+            versionCode = packageInfo.versionCode;
+        } catch (PackageManager.NameNotFoundException ex) {
+            LOGGER.error(ex.getLocalizedMessage(), ex);
+        }
+        properties.setProperty(PROP_VERSION_NAME, versionName);
+        properties.setProperty(PROP_BUILD_TIME, String.valueOf(BuildConfig.TIMESTAMP));
+        properties.setProperty(PROP_VERSION_INT, String.valueOf(versionCode));
         properties.setProperty(PROP_MANUFACTURER, Build.MANUFACTURER);
         properties.setProperty(PROP_PRODUCT, Build.PRODUCT);
         properties.setProperty(PROP_MODEL, Build.MODEL);
@@ -107,6 +127,9 @@ public class MeasurementExport {
                 featureProperties.put(Storage.Leq.COLUMN_LOCATION_UTC, leq.getLocationUTC());
                 featureProperties.put(Storage.Leq.COLUMN_LEQ_UTC, leq.getLeqUtc());
                 featureProperties.put(Storage.Leq.COLUMN_LEQ_ID, leq.getLeqId());
+                //marker-color tag for geojson.io
+                featureProperties.put("marker-color", String.format("#%06X",
+                        (0xFFFFFF & Spectrogram.getColor((float)entry.computeGlobalLeq(), 45, 100))));
                 if(leq.getBearing() != null) {
                     featureProperties.put(Storage.Leq.COLUMN_BEARING, leq.getBearing());
                 }
@@ -123,6 +146,13 @@ public class MeasurementExport {
             zipOutputStream.putNextEntry(new ZipEntry(GEOJSON_FILENAME));
             Writer writer = new OutputStreamWriter(zipOutputStream);
             writer.write(main.toString(2));
+            writer.flush();
+            zipOutputStream.closeEntry();
+
+            // Readme file
+            zipOutputStream.putNextEntry(new ZipEntry(README_FILENAME));
+            writer = new OutputStreamWriter(zipOutputStream);
+            writer.write(activity.getString(R.string.export_zip_info));
             writer.flush();
             zipOutputStream.closeEntry();
         } catch (JSONException ex ) {

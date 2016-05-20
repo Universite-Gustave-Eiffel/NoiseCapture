@@ -249,8 +249,7 @@ public class Spectrogram extends View {
                     lastProcessFrequencyIndex = Math.min(spectrum.length, nextFrequencyIndex);
                     sumVal = (float)Math.max(0,
                             (10 * Math.log10(sumVal)));
-                    int pixColor = colorRamp[Math.min(colorRamp.length - 1, Math.max(0,
-                            (int) (((sumVal - min) / (max - min)) * colorRamp.length)))];
+                    int pixColor = getColor(sumVal, min, max);
                     for(int y = 0; y < ticWidth; y++) {
                         ticColors[((spectrogramHeight - 1) - pixel) * ticWidth + y] = pixColor;
                     }
@@ -262,5 +261,10 @@ public class Spectrogram extends View {
             }
             postInvalidate(); // redraws the view calling onDraw()
         }
+    }
+
+    public static int getColor(float sel, float min, float max) {
+        return colorRamp[Math.min(colorRamp.length - 1, Math.max(0,
+                (int) (((sel - min) / (max - min)) * colorRamp.length)))];
     }
 }

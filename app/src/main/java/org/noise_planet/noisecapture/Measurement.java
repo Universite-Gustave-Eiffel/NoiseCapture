@@ -18,6 +18,7 @@ import android.view.WindowManager;
 import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -54,8 +55,10 @@ public class Measurement extends MainActivity implements
     protected BarChart sChart; // Spectrum representation
     protected Spectrogram spectrogram;
     private DoProcessing doProcessing;
+    // From this accuracy the location hint color is orange
+    private static final float APROXIMATE_LOCATION_ACCURACY = 10.f;
 
-    // Other ressources
+    // Other resources
     private boolean mIsBound = false;
     private AtomicBoolean chronometerWaitingToStart = new AtomicBoolean(false);
 
@@ -571,6 +574,25 @@ public class Measurement extends MainActivity implements
                         } else {
                             activity.chronometerWaitingToStart.set(true);
                         }
+                    }
+                    //Update accuracy hint
+                    final TextView accuracyText = (TextView) activity.findViewById(R.id.textView_value_gps_precision);
+                    final ImageView accuracyImageHint = (ImageView) activity.findViewById(R.id.imageView_value_gps_precision);
+                    Float lastPrecision = activity.measurementService.getLastPrecision();
+                    if(lastPrecision == null) {
+                        accuracyImageHint.setImageResource(R.drawable.gps_off);
+                        accuracyText.setText(R.string.no_gps_hint);
+                    } else if(lastPrecision < APROXIMATE_LOCATION_ACCURACY) {
+                        accuracyImageHint.setImageResource(R.drawable.gps_fixed);
+                        accuracyText.setText(activity.getString(R.string.gps_hint_precision,
+                                lastPrecision.intValue()));
+                    } else {
+                        accuracyImageHint.setImageResource(R.drawable.gps_not_fixed);
+                        accuracyText.setText(activity.getString(R.string.gps_hint_precision,
+                                lastPrecision.intValue()));
+                    }
+                    if(accuracyImageHint.getVisibility() == View.INVISIBLE) {
+                        accuracyImageHint.setVisibility(View.VISIBLE);
                     }
                     final double leq = activity.measurementService.getAudioProcess().getLeq();
                     activity.setData(leq);

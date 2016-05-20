@@ -13,6 +13,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Binder;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
@@ -123,6 +124,13 @@ public class MeasurementService extends Service {
         }
     }
 
+    /***
+     * @return Get last precision in meters. Null if no available location
+     */
+    public Float getLastPrecision() {
+        return timeLocation.isEmpty() ? null : timeLocation.lastEntry().getValue().getAccuracy();
+    }
+
     @Override
     public IBinder onBind(Intent intent) {
         return mBinder;
@@ -164,17 +172,20 @@ public class MeasurementService extends Service {
                 new Intent(this, Measurement.class), 0);
 
         // Set the info for the views that show in the notification panel.
-        Notification notification = new Notification.Builder(this)
+        Notification.Builder notification = new Notification.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)  // the status icon
+                .setWhen(beginMeasure)
                 .setTicker(text)  // the status text
                 .setWhen(System.currentTimeMillis())  // the time stamp
                 .setContentTitle("NoiseCapture")  // the label of the entry
                 .setContentText(text)  // the contents of the entry
                 .setContentIntent(contentIntent)  // The intent to send when the entry is clicked
-                .getNotification();
-
+                ;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
+            notification.setUsesChronometer(true);
+        }
         // Send the notification.
-        mNM.notify(NOTIFICATION, notification);
+        mNM.notify(NOTIFICATION, notification.getNotification());
     }
 
     private void initLocalisationServices() {
@@ -280,10 +291,20 @@ public class MeasurementService extends Service {
 
 
     public void addLocation(Location location) {
-        timeLocation.put(location.getTime(), location);
-        if(timeLocation.size() > MAXIMUM_LOCATION_HISTORY) {
-            // Clean old entry
-            timeLocation.remove(timeLocation.firstKey());
+        // Check if the previous location is inside the precision range of the new location
+        // Keep the new location only if the new location is 60% chance away from previous location
+        // and if the new location precision is at least with better accuracy and at most worst
+        // than two times of old location
+        // see https://developer.android.com/guide/topics/location/strategies.html
+        Location previousLocation = timeLocation.isEmpty() ? null : timeLocation.lastEntry().getValue();
+        if(previousLocation == null || (location.getAccuracy() < previousLocation.distanceTo(location)
+                && (location.getAccuracy() < previousLocation.getAccuracy()
+                || previousLocation.getAccuracy() < location.getAccuracy() * 2))) {
+            timeLocation.put(location.getTime(), location);
+            if (timeLocation.size() > MAXIMUM_LOCATION_HISTORY) {
+                // Clean old entry
+                timeLocation.remove(timeLocation.firstKey());
+            }
         }
     }
 

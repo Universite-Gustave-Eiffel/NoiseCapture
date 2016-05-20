@@ -48,8 +48,7 @@
         <activity
             android:name="org.noise_planet.noisecapture.Measurement"
             android:label="@string/title_activity_measurement"
-            android:screenOrientation="portrait"
-            android:noHistory="true">
+            android:screenOrientation="portrait">
         </activity>
         <activity
             android:name="org.noise_planet.noisecapture.Results"

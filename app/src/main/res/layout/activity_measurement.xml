@@ -165,7 +165,7 @@
                     android:contentDescription="@string/loc_hint"
                     android:paddingBottom="4dp"
                     android:visibility="invisible"
-                    app:srcCompat="@drawable/location_hint_enabled" />
+                    app:srcCompat="@drawable/gps_off" />
 
                 <TextView
                     android:id="@+id/textView_value_gps_precision"

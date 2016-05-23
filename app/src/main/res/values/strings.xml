@@ -179,6 +179,9 @@
     <string name="measurement_service_canceled">Measurement canceled</string>
 
     <string name="delete">Delete</string>
+    <string name="hint_userinput">Tap here to set a description</string>
+    <string name="user_input_description">Description</string>
+    <string name="add_tag">+</string>
     <string name="no_data_text_description">Start by pressing the record button</string>
     <string name="export_zip_info">Export archive description\n\n
 meta.properties file are general info on device and record:\n
@@ -200,4 +203,8 @@ track.json 1s samples of measures. Using the geojson format (http://geojson.io)
 - bearing Movement orientation.See https://developer.android.com/reference/android/location/Location.html#getBearing()\n
 - speed Estimated device speed in m/s\n
 - leq_frequency 1s mean equivalent sound level in dB(A) for the specified frequency\n</string>
+    <string name="title_activity_comment">CommentActivity</string>
+    <string name="userinfo_unpleasant">Unpleasant</string>
+    <string name="userinfo_pleasant">Pleasant</string>
+    <string name="userinfo_pleasantness">Pleasantness</string>
 </resources>

@@ -4,6 +4,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.provider.BaseColumns;
 
 import java.text.DateFormat;
@@ -15,7 +18,7 @@ import java.util.Date;
 public class Storage extends SQLiteOpenHelper {
 
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 3;
+    public static final int DATABASE_VERSION = 4;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -51,6 +54,16 @@ public class Storage extends SQLiteOpenHelper {
             }
             oldVersion = 3;
         }
+        if(oldVersion == 3) {
+            if(db.isReadOnly()) {
+                // New feature, user input
+                db.execSQL("ALTER TABLE leq ADD COLUMN description TEXT");
+                db.execSQL("ALTER TABLE leq ADD COLUMN pleasantness SMALLINT DEFAULT 2");
+                db.execSQL("ALTER TABLE leq ADD COLUMN photo_miniature BLOB");
+                db.execSQL("ALTER TABLE leq ADD COLUMN photo_uri TEXT");
+            }
+            oldVersion = 4;
+        }
     }
 
 
@@ -83,6 +96,20 @@ public class Storage extends SQLiteOpenHelper {
                 return null;
             } else {
                 return cursor.getFloat(colIndex);
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private static Bitmap getBitmap(Cursor cursor, String field) {
+        int colIndex = cursor.getColumnIndex(field);
+        if(colIndex != -1) {
+            if(cursor.isNull(colIndex)) {
+                return null;
+            } else {
+                byte[] byteData = cursor.getBlob(colIndex);
+                return BitmapFactory.decodeByteArray(byteData, 0, byteData.length);
             }
         } else {
             return null;
@@ -163,6 +190,14 @@ public class Storage extends SQLiteOpenHelper {
             Record.COLUMN_LEQ_MEAN + " FLOAT" +
             Record.COLUMN_TIME_LENGTH + " INTEGER)";
 
+    /*
+    *
+                    // New feature, user input
+                    db.execSQL("ALTER TABLE leq ADD COLUMN description TEXT");
+                    db.execSQL("ALTER TABLE leq ADD COLUMN pleasantness SMALLINT");
+                    db.execSQL("ALTER TABLE leq ADD COLUMN photo_miniature BLOB");
+                    db.execSQL("ALTER TABLE leq ADD COLUMN photo_uri TEXT");
+    * */
     public static class Leq implements BaseColumns {
         public static final String TABLE_NAME = "leq";
         public static final String COLUMN_RECORD_ID = "record_id";
@@ -175,6 +210,10 @@ public class Storage extends SQLiteOpenHelper {
         public static final String COLUMN_SPEED = "speed"; // device speed estimation
         public static final String COLUMN_BEARING = "bearing"; // device orientation estimation
         public static final String COLUMN_LOCATION_UTC = "location_utc"; // date of last obtained location
+        public static final String COLUMN_DESCRIPTION = "description";
+        public static final String COLUMN_PLEASANTNESS = "pleasantness";
+        public static final String COLUMN_PHOTO_MINIATURE = "photo_miniature";
+        public static final String COLUMN_PHOTO_URI = "photo_uri";
 
         private int recordId;
         private int leqId;
@@ -186,9 +225,12 @@ public class Storage extends SQLiteOpenHelper {
         private Float bearing;
         private float accuracy;
         private long locationUTC;
+        private String description;
+        private int pleasantness;
+        private Bitmap miniature;
+        private Uri photoUri;
 
         /**
-         *
          * @param recordId Record id or -1 if unknown
          * @param leqId
          * @param leqUtc

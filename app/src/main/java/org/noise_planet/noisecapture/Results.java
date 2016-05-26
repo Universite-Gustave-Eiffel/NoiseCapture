@@ -141,7 +141,6 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
 
         // Enabled/disabled history button if necessary
         ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
-        checkHistoryButton();
         // Action on History button
         buttonhistory.setOnClickListener(new View.OnClickListener() {
             @Override

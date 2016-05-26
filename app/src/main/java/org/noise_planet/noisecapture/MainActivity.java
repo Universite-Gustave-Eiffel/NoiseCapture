@@ -279,12 +279,4 @@ public class MainActivity extends AppCompatActivity {
         startActivity(ir);
     }
 
-    public final void checkHistoryButton() {
-        // Enabled/disabled buttons
-        // history disabled; cancel enabled; record button enabled
-        ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
-        buttonhistory.setImageResource(R.drawable.button_history_normal);
-        buttonhistory.setEnabled(true);
-    }
-
 }

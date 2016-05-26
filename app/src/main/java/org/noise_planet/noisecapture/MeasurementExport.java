@@ -58,7 +58,7 @@ public class MeasurementExport {
     public void exportRecord(Activity activity, int recordId, OutputStream outputStream) throws IOException {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
-        Storage.Record record = measurementManager.getRecord(recordId);
+        Storage.Record record = measurementManager.getRecord(recordId, false);
 
         // Property file
         Properties properties = new Properties();

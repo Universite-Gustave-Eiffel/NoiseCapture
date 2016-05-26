@@ -85,4 +85,7 @@ dependencies {
     androidTestCompile 'com.android.support.test:runner:0.4.1'
     androidTestCompile 'com.android.support.test:rules:0.4.1'
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
+
+    // unit test on jvm
+    testCompile "org.robolectric:robolectric:3.0"
 }

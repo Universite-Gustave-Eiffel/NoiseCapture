@@ -69,10 +69,10 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         this.measurementManager = new MeasurementManager(getApplicationContext());
         Intent intent = getIntent();
         if(intent != null && intent.hasExtra(RESULTS_RECORD_ID)) {
-            record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1));
+            record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1), false);
         } else {
             // Read the last stored record
-            List<Storage.Record> recordList = measurementManager.getRecords();
+            List<Storage.Record> recordList = measurementManager.getRecords(false);
             if(!recordList.isEmpty()) {
                 record = recordList.get(recordList.size() - 1);
             } else {

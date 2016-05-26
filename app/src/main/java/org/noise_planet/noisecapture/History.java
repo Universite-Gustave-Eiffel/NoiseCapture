@@ -209,7 +209,7 @@ public class History extends MainActivity {
         private MeasurementManager measurementManager;
 
         public InformationHistoryAdapter(MeasurementManager measurementManager, History activity) {
-            this.informationHistoryList = measurementManager.getRecords();
+            this.informationHistoryList = measurementManager.getRecords(false);
             this.activity = activity;
             this.measurementManager = measurementManager;
         }
@@ -229,7 +229,7 @@ public class History extends MainActivity {
 
         public void selectView(int position, boolean value) {
             if (value) {
-                activity.mSelectedItemsIds.put(position, value);
+                activity.mSelectedItemsIds.put(position, true);
             } else {
                 activity.mSelectedItemsIds.delete(position);
             }
@@ -242,7 +242,7 @@ public class History extends MainActivity {
         }
 
         public void reload() {
-            informationHistoryList = measurementManager.getRecords();
+            informationHistoryList = measurementManager.getRecords(false);
             notifyDataSetChanged();
         }
 

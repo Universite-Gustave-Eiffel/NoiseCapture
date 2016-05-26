@@ -6,13 +6,14 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.graphics.Bitmap;
+import android.net.Uri;
 
-import org.orbisgis.sos.LeqStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -29,7 +30,6 @@ public class MeasurementManager {
         // Connect to local database
     }
 
-    public List<Storage.Record> getRecords() {
         List<Storage.Record> records = new ArrayList<>();
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
@@ -37,7 +37,6 @@ public class MeasurementManager {
                     " ORDER BY " + Storage.Record.COLUMN_ID, null);
             try {
                 while (cursor.moveToNext()) {
-                    records.add(new Storage.Record(cursor));
                 }
             } finally {
                 cursor.close();
@@ -210,14 +209,14 @@ public class MeasurementManager {
         }
     }
 
-    public Storage.Record getRecord(int recordId) {
+    public Storage.Record getRecord(int recordId, boolean loadThumbnail) {
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
             Cursor cursor = database.rawQuery("SELECT * FROM " + Storage.Record.TABLE_NAME +
                     " WHERE " + Storage.Record.COLUMN_ID + " = ?", new String[]{String.valueOf(recordId)});
             try {
                 if (cursor.moveToNext()) {
-                    return new Storage.Record(cursor);
+                    return new Storage.Record(cursor, loadThumbnail);
                 }
             } finally {
                 cursor.close();
@@ -303,6 +302,34 @@ public class MeasurementManager {
                     leqValueStatement.execute();
                 }
             }
+            database.setTransactionSuccessful();
+            database.endTransaction();
+        } finally {
+            database.close();
+        }
+    }
+
+    public void updateRecordUserInput(int recordId, String description, short pleasantness, int[] tags,
+
+        SQLiteDatabase database = storage.getWritableDatabase();
+        try {
+            database.beginTransaction();
+            SQLiteStatement recordStatement = database.compileStatement(
+                    "UPDATE " + Storage.Record.TABLE_NAME +
+                            " SET "+ Storage.Record.COLUMN_DESCRIPTION + " = ?, " +
+                            Storage.Record.COLUMN_PLEASANTNESS + " = ?, " +
+                            Storage.Record.COLUMN_PHOTO_URI + " = ?, " +
+                            Storage.Record.COLUMN_PHOTO_THUMBNAIL + " = ? " +
+                            " WHERE " + Storage.Record.COLUMN_ID + " = ?");
+            recordStatement.clearBindings();
+            recordStatement.bindString(1, description);
+            recordStatement.bindLong(2, pleasantness);
+            recordStatement.bindString(3, photo_uri.toString());
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            recordStatement.bindBlob(4, byteArrayOutputStream.toByteArray());
+            byteArrayOutputStream = null;
+            recordStatement.bindLong(5, recordId);
+            recordStatement.executeUpdateDelete();
             database.setTransactionSuccessful();
             database.endTransaction();
         } finally {

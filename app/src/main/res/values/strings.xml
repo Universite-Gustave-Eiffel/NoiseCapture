@@ -146,6 +146,17 @@
         <item>45-55 dB(A)</item>
         <item>Less 45 dB(A)</item>
     </string-array>
+    <!-- Add new tags at the end, update also this array Storage.TAGS -->
+    <string-array name="tags">
+        <item>urban</item>
+        <item>nature</item>
+        <item>traffic</item>
+        <item>roadworks</item>
+        <item>construction site</item>
+        <item>train</item>
+        <item>air-traffic</item>
+        <item>industry</item>
+    </string-array>
 
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_webview">webview</string>

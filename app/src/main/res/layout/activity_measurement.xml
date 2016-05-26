@@ -210,37 +210,14 @@
                 app:srcCompat="@drawable/button_record" />
 
             <ImageButton
-                android:id="@+id/cancelBtn"
+                android:id="@+id/pauseBtn"
                 android:layout_width="64dip"
                 android:layout_height="64dip"
                 android:background="#00000000"
                 android:scaleType="fitCenter"
-                app:srcCompat="@drawable/button_cancel_disabled" />
+                app:srcCompat="@drawable/button_pause"
+                />
 
-            <ImageButton
-                android:id="@+id/exportBtn"
-                android:layout_width="64dip"
-                android:layout_height="64dip"
-                android:background="#00000000"
-                android:scaleType="fitCenter"
-                android:visibility="invisible"
-                app:srcCompat="@drawable/button_export_disabled" />
-
-            <ImageButton
-                android:id="@+id/historyBtn"
-                android:layout_width="64dip"
-                android:layout_height="64dip"
-                android:background="#00000000"
-                android:scaleType="fitCenter"
-                app:srcCompat="@drawable/button_history" />
-
-            <ImageButton
-                android:id="@+id/mapBtn"
-                android:layout_width="64dip"
-                android:layout_height="64dip"
-                android:background="#00000000"
-                android:scaleType="fitCenter"
-                app:srcCompat="@drawable/button_map" />
 
         </LinearLayout>
 

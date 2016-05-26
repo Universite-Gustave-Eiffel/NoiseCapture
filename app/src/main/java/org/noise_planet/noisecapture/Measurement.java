@@ -117,12 +117,10 @@ public class Measurement extends MainActivity implements
         // history disabled; cancel enabled; record button enabled; map enabled
         ImageButton buttonhistory = (ImageButton) findViewById(R.id.historyBtn);
         checkHistoryButton();
-        ImageButton buttoncancel = (ImageButton) findViewById(R.id.cancelBtn);
-        buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
-        buttoncancel.setEnabled(false);
+        ImageButton buttonPause = (ImageButton) findViewById(R.id.pauseBtn);
+        buttonPause.setEnabled(false);
         ImageButton buttonmap = (ImageButton) findViewById(R.id.mapBtn);
         buttonmap.setImageResource(R.drawable.button_map_normal);
-        buttoncancel.setEnabled(true);
 
         // Display element in expert mode or not
         Boolean CheckViewModeSettings = sharedPref.getBoolean("settings_view_mode", true);
@@ -153,7 +151,7 @@ public class Measurement extends MainActivity implements
         buttonrecord.setOnClickListener(doProcessing);
 
         // Action on cancel button (during recording)
-        buttoncancel.setOnClickListener(onButtonCancel);
+        buttonPause.setOnClickListener(onButtonPause);
 
         // Action on History button
         buttonhistory.setOnClickListener(new View.OnClickListener() {
@@ -204,11 +202,11 @@ public class Measurement extends MainActivity implements
         initSpectrum();
     }
 
-    private View.OnClickListener onButtonCancel = new View.OnClickListener() {
+    private View.OnClickListener onButtonPause = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             // Stop measurement without waiting for the end of processing
-            measurementService.cancel();
+            measurementService.pause(!view.isPressed());
         }
     };
 
@@ -407,7 +405,7 @@ public class Measurement extends MainActivity implements
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Intent ir = new Intent(activity.getApplicationContext(), Results.class);
+                        Intent ir = new Intent(activity.getApplicationContext(), CommentActivity.class);
                         ir.putExtra(Results.RESULTS_RECORD_ID,
                                 activity.measurementService.getRecordId());
                         activity.startActivity(ir);
@@ -438,15 +436,14 @@ public class Measurement extends MainActivity implements
     private void initGuiState() {
         // Update buttons: history disabled; cancel enabled; record button to stop; map disabled
         ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
-        ImageButton buttoncancel= (ImageButton) findViewById(R.id.cancelBtn);
+        ImageButton buttonpause= (ImageButton) findViewById(R.id.pauseBtn);
         ImageButton buttonrecord= (ImageButton) findViewById(R.id.recordBtn);
         ImageButton buttonmap= (ImageButton) findViewById(R.id.mapBtn);
 
         if (measurementService.isRecording()) {
             buttonhistory.setImageResource(R.drawable.button_history_disabled);
             buttonhistory.setEnabled(false);
-            buttoncancel.setImageResource(R.drawable.button_cancel_normal);
-            buttoncancel.setEnabled(true);
+            buttonpause.setEnabled(true);
             buttonmap.setImageResource(R.drawable.button_map_disabled);
             buttonrecord.setImageResource(R.drawable.button_record_pressed);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -462,8 +459,7 @@ public class Measurement extends MainActivity implements
             // history enabled or disabled (if isHistory); cancel disable; record button enabled
             buttonhistory.setImageResource(R.drawable.button_history_normal);
             buttonhistory.setEnabled(true);
-            buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
-            buttoncancel.setEnabled(false);
+            buttonpause.setEnabled(false);
             buttonrecord.setImageResource(R.drawable.button_record);
             buttonrecord.setEnabled(true);
             buttonmap.setImageResource(R.drawable.button_map);
@@ -505,9 +501,8 @@ public class Measurement extends MainActivity implements
             ImageButton buttonhistory= (ImageButton) activity.findViewById(R.id.historyBtn);
             buttonhistory.setImageResource(R.drawable.button_history_disabled);
             buttonhistory.setEnabled(false);
-            ImageButton buttoncancel= (ImageButton) activity.findViewById(R.id.cancelBtn);
-            buttoncancel.setImageResource(R.drawable.button_cancel_normal);
-            buttoncancel.setEnabled(true);
+            ImageButton buttonPause= (ImageButton) activity.findViewById(R.id.pauseBtn);
+            buttonPause.setEnabled(true);
             ImageButton buttonrecord= (ImageButton) activity.findViewById(R.id.recordBtn);
             buttonrecord.setImageResource(R.drawable.button_record_pressed);
             ImageButton buttonmap= (ImageButton) activity.findViewById(R.id.mapBtn);

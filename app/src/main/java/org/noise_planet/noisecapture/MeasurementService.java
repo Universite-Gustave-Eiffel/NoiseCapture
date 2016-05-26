@@ -8,10 +8,12 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
@@ -287,6 +289,10 @@ public class MeasurementService extends Service {
 
     public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
         listeners.removePropertyChangeListener(propertyChangeListener);
+    }
+
+    public void pause(boolean newState) {
+        //TODO
     }
 
 

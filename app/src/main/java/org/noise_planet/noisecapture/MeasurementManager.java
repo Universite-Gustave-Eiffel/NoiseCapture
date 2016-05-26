@@ -30,6 +30,7 @@ public class MeasurementManager {
         // Connect to local database
     }
 
+    public List<Storage.Record> getRecords(boolean loadThumbnail) {
         List<Storage.Record> records = new ArrayList<>();
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
@@ -37,6 +38,7 @@ public class MeasurementManager {
                     " ORDER BY " + Storage.Record.COLUMN_ID, null);
             try {
                 while (cursor.moveToNext()) {
+                    records.add(new Storage.Record(cursor, loadThumbnail));
                 }
             } finally {
                 cursor.close();
@@ -310,6 +312,7 @@ public class MeasurementManager {
     }
 
     public void updateRecordUserInput(int recordId, String description, short pleasantness, int[] tags,
+                                      Bitmap photoThumbnail, Uri photo_uri) {
 
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
@@ -326,6 +329,7 @@ public class MeasurementManager {
             recordStatement.bindLong(2, pleasantness);
             recordStatement.bindString(3, photo_uri.toString());
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            photoThumbnail.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
             recordStatement.bindBlob(4, byteArrayOutputStream.toByteArray());
             byteArrayOutputStream = null;
             recordStatement.bindLong(5, recordId);

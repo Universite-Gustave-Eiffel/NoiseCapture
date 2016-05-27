@@ -4,7 +4,10 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:fillViewport="true">
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
@@ -15,7 +18,6 @@
         android:layout_height="wrap_content"
         android:layout_margin="5dp"
         android:orientation="horizontal"
-        android:paddingTop="5dp"
         android:weightSum="1">
         <EditText
             android:layout_width="wrap_content"
@@ -24,7 +26,7 @@
             android:layout_weight="1"
             android:hint="@string/hint_userinput"
             android:inputType="textMultiLine"
-            android:lines="6"
+            android:lines="5"
             android:scrollbars="vertical"
             android:textSize="14sp"/>
 
@@ -58,7 +60,6 @@
             android:id="@+id/linearLayout5"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="5dp"
             android:weightSum="1">
 
             <TextView
@@ -87,7 +88,6 @@
             android:id="@+id/pleasantness_slider"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingTop="5dp"
             android:progress="50"
             android:max="100"
             android:progressDrawable="@drawable/seekguess_scrubber_progress_horizontal_holo_dark"
@@ -102,10 +102,6 @@
             android:paddingRight="5dp"
             android:text="Tags"
             android:textSize="15sp" />
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:fillViewport="true">
         <LinearLayout
             android:id="@+id/tags_grid"
             android:layout_width="match_parent"
@@ -119,7 +115,6 @@
             <LinearLayout android:orientation="vertical" android:id="@+id/tags_grid_col3"  android:layout_width="wrap_content"
                 android:layout_height="wrap_content"/>
             </LinearLayout>
-        </ScrollView>
         <Space android:layout_height="0dp" android:layout_width="wrap_content" android:layout_weight="1"/>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/linearLayout"
@@ -129,7 +124,7 @@
 
             <ImageButton
                 android:id="@+id/resultsBtn"
-                android:layout_width="64dip"
+                android:layout_width="0dp"
                 android:layout_height="64dip"
                 android:background="#00000000"
                 android:layout_weight="1"
@@ -139,7 +134,7 @@
 
         </LinearLayout>
     </LinearLayout>
-
+</ScrollView>
     <ListView
         android:id="@+id/left_drawer"
         android:layout_width="@dimen/list_view_layout_width"

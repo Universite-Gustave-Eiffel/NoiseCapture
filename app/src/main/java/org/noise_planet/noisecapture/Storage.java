@@ -21,7 +21,7 @@ public class Storage extends SQLiteOpenHelper {
             "air-traffic", "crowd", "rain", "indoor", "traffic", "two-wheeled", "heavy vehicle",
             "animated", "silent", "birds", "noisy", "big street", "small street"};
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 4;
+    public static final int DATABASE_VERSION = 5;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -68,9 +68,15 @@ public class Storage extends SQLiteOpenHelper {
                 db.execSQL("ALTER TABLE leq ADD COLUMN pleasantness SMALLINT DEFAULT 2");
                 db.execSQL("ALTER TABLE leq ADD COLUMN photo_miniature BLOB");
                 db.execSQL("ALTER TABLE leq ADD COLUMN photo_uri TEXT");
-                addTagTable(db);
+                db.execSQL( "CREATE TABLE record_tag(tag_id INTEGER PRIMARY KEY, record_id INTEGER, " +
+                            "PRIMARY KEY(tag_id, record_id) " +
+                            "FOREIGN KEY(record_id) REFERENCES  record(record_id) ON DELETE CASCADE);");
             }
             oldVersion = 4;
+        }
+        if(oldVersion == 4) {
+            db.execSQL("ALTER TABLE record ADD COLUMN tag_system_name TEXT");
+            oldVersion = 5;
         }
     }
 
@@ -423,13 +429,14 @@ public class Storage extends SQLiteOpenHelper {
     public static final class RecordTag {
         public static final String TABLE_NAME = "record_tag";
         public static final String COLUMN_TAG_ID = "tag_id";
+        public static final String COLUMN_TAG_SYSTEM_NAME = "tag_system_name";
         public static final String COLUMN_RECORD_ID = "record_id";
     }
 
     public static final String CREATE_RECORD_TAG = "CREATE TABLE " + RecordTag.TABLE_NAME + "(" +
-            RecordTag.COLUMN_TAG_ID + " INTEGER, " +
+            RecordTag.COLUMN_TAG_ID + " INTEGER PRIMARY KEY, " +
+            RecordTag.COLUMN_TAG_SYSTEM_NAME + " TEXT, " +
             RecordTag.COLUMN_RECORD_ID + " INTEGER, " +
-            "PRIMARY KEY(" + RecordTag.COLUMN_TAG_ID + ", " + RecordTag.COLUMN_RECORD_ID + "), " +
             "FOREIGN KEY(" + RecordTag.COLUMN_RECORD_ID + ") REFERENCES " + Record.TABLE_NAME +
             "(" + Record.COLUMN_ID + ") ON DELETE CASCADE);";
 

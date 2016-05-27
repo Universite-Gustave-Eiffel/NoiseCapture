@@ -17,7 +17,8 @@
     <permission
         android:name="org.noise_planet.noisecapture.MAPS_RECEIVE"
         android:protectionLevel="signature" />
-    <uses-feature android:name="android.hardware.camera"
+    <uses-feature
+        android:name="android.hardware.camera"
         android:required="false" />
 
     <uses-permission android:name="com.example.hellomap.permission.MAPS_RECEIVE" />
@@ -51,24 +52,24 @@
         <activity
             android:name=".Measurement"
             android:label="@string/title_activity_measurement"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".Results"
             android:label="@string/title_activity_results"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".MainActivity"
-            android:label="@string/title_activity_main"></activity>
+            android:label="@string/title_activity_main"/>
         <activity
             android:name=".View_html_page"
-            android:label="@string/title_activity_view_html_page"></activity>
+            android:label="@string/title_activity_view_html_page"/>
         <activity
             android:name=".Settings"
-            android:label="@string/title_activity_settings"></activity>
+            android:label="@string/title_activity_settings"/>
         <activity
             android:name=".MapActivity"
             android:label="@string/title_activity_map"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".Start"
             android:label="@string/title_activity_start"
@@ -82,10 +83,10 @@
         </activity>
         <activity
             android:name=".History"
-            android:label="@string/title_activity_history"></activity>
+            android:label="@string/title_activity_history"/>
         <activity
             android:name=".activity_calibration_start"
-            android:label="@string/title_activity_calibration_start"></activity>
+            android:label="@string/title_activity_calibration_start"/>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -93,7 +94,8 @@
 
         <activity
             android:name=".CommentActivity"
-            android:label="@string/title_activity_comment"></activity>
+            android:label="@string/title_activity_comment"
+            android:windowSoftInputMode="adjustPan"/>
     </application>
 
 </manifest>

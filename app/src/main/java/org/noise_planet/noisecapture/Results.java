@@ -138,18 +138,6 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         findViewById(R.id.textView_color_LA90)
                 .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa90())]);
 
-
-        // Enabled/disabled history button if necessary
-        ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
-        // Action on History button
-        buttonhistory.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Go to history page
-                gotoHistory();
-            }
-        });
-
         // Action on Map button
         ImageButton buttonmap=(ImageButton)findViewById(R.id.mapBtn);
         buttonmap.setImageResource(R.drawable.button_map);
@@ -161,18 +149,6 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
                 Intent a = new Intent(getApplicationContext(), MapActivity.class);
                 a.putExtra(MapActivity.RESULTS_RECORD_ID, record.getId());
                 startActivity(a);
-            }
-        });
-
-        // Action on record button
-        ImageButton buttonrecord= (ImageButton) findViewById(R.id.recordBtn);
-        buttonrecord.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Go to Measurement activity
-                Intent im = new Intent(getApplicationContext(),Measurement.class);
-                mDrawerLayout.closeDrawer(mDrawerList);
-                startActivity(im);
             }
         });
     }

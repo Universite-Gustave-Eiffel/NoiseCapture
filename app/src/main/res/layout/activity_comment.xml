@@ -24,7 +24,7 @@
             android:layout_weight="1"
             android:hint="@string/hint_userinput"
             android:inputType="textMultiLine"
-            android:lines="4"
+            android:lines="6"
             android:scrollbars="vertical"
             android:textSize="14sp"/>
 
@@ -88,8 +88,11 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingTop="5dp"
-            android:progress="2"
-            android:max="4"/>
+            android:progress="50"
+            android:max="100"
+            android:progressDrawable="@drawable/seekguess_scrubber_progress_horizontal_holo_dark"
+            android:thumb="@drawable/seekguess_scrubber_control_disabled_holo"
+            />
 
 
         <TextView
@@ -99,39 +102,30 @@
             android:paddingRight="5dp"
             android:text="Tags"
             android:textSize="15sp" />
-
-        <LinearLayout
-            android:id="@+id/tags_container"
-            android:layout_width="fill_parent"
+        <ScrollView
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:orientation="horizontal"
-            android:paddingTop="5dp"
-            android:weightSum="1">
-
-            <Button
-                android:id="@+id/button_add_tag"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:minHeight="0dp"
-                android:minWidth="0dp"
-                android:text="@string/add_tag" />
-        </LinearLayout>
+            android:fillViewport="true">
+        <LinearLayout
+            android:id="@+id/tags_grid"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="horizontal">
+            <LinearLayout android:orientation="vertical" android:id="@+id/tags_grid_col1" android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <LinearLayout android:orientation="vertical" android:id="@+id/tags_grid_col2"  android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            <LinearLayout android:orientation="vertical" android:id="@+id/tags_grid_col3"  android:layout_width="wrap_content"
+                android:layout_height="wrap_content"/>
+            </LinearLayout>
+        </ScrollView>
         <Space android:layout_height="0dp" android:layout_width="wrap_content" android:layout_weight="1"/>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/linearLayout"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
             android:orientation="horizontal">
-            <ImageButton
-                android:id="@+id/saveBtn"
-                android:layout_width="64dip"
-                android:layout_height="64dip"
-                android:background="#00000000"
-                android:layout_weight="1"
-                android:scaleType="fitCenter"
-                app:srcCompat="@drawable/save_userinput" />
 
             <ImageButton
                 android:id="@+id/resultsBtn"

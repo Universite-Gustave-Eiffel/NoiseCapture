@@ -148,16 +148,24 @@
     </string-array>
     <!-- Add new tags at the end, update also this array Storage.TAGS -->
     <string-array name="tags">
+        <item>test</item>
         <item>urban</item>
         <item>nature</item>
-        <item>traffic</item>
-        <item>roadworks</item>
         <item>construction site</item>
-        <item>train</item>
         <item>air-traffic</item>
-        <item>industry</item>
+        <item>crowd</item>
+        <item>rain</item>
+        <item>indoor</item>
+        <item>traffic</item>
+        <item>two-wheeled</item>
+        <item>heavy vehicle</item>
+        <item>animated</item>
+        <item>silent</item>
+        <item>birds</item>
+        <item>noisy</item>
+        <item>big street</item>
+        <item>small street</item>
     </string-array>
-
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_webview">webview</string>
 

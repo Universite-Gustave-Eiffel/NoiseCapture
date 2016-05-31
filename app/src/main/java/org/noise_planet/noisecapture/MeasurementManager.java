@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -114,7 +115,7 @@ public class MeasurementManager {
      * @param leqs Leq value by time and frequency in the same order of frequency list
      * @return True if recordId has been found
      */
-    public boolean getRecordValues(int recordId, List<Integer> frequency, List<Float[]> leqs) {
+    public boolean getRecordLeqs(int recordId, List<Integer> frequency, List<Float[]> leqs) {
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
             Cursor cursor = database.rawQuery("SELECT L." + Storage.Leq.COLUMN_LEQ_ID + ", LV." +
@@ -229,6 +230,31 @@ public class MeasurementManager {
         return null;
     }
 
+    /**
+     * @param recordId Record identifier
+     * @return Associated tags
+     */
+    public List<String> getTags(int recordId) {
+        ArrayList<String> tags = new ArrayList<>();
+        SQLiteDatabase database = storage.getReadableDatabase();
+        try {
+            Cursor cursor = database.rawQuery("SELECT * FROM " + Storage.RecordTag.TABLE_NAME +
+                    " WHERE " + Storage.RecordTag.COLUMN_RECORD_ID + " = ? ORDER BY " +
+                    Storage.RecordTag.COLUMN_TAG_ID, new String[]{String.valueOf(recordId)});
+            try {
+                int tagId = cursor.getColumnIndex(Storage.RecordTag.COLUMN_TAG_SYSTEM_NAME);
+                while (cursor.moveToNext()) {
+                    tags.add(cursor.getString(tagId));
+                }
+            } finally {
+                cursor.close();
+            }
+        } finally {
+            database.close();
+        }
+        return tags;
+    }
+
     public void updateRecordFinal(int recordId, float leqMean, int recordTimeLength) {
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
@@ -311,7 +337,7 @@ public class MeasurementManager {
         }
     }
 
-    public void updateRecordUserInput(int recordId, String description, short pleasantness, int[] tags,
+    public void updateRecordUserInput(int recordId, String description, short pleasantness, String[] tags,
                                       Bitmap photoThumbnail, Uri photo_uri) {
 
         SQLiteDatabase database = storage.getWritableDatabase();
@@ -327,13 +353,31 @@ public class MeasurementManager {
             recordStatement.clearBindings();
             recordStatement.bindString(1, description);
             recordStatement.bindLong(2, pleasantness);
-            recordStatement.bindString(3, photo_uri.toString());
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            photoThumbnail.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-            recordStatement.bindBlob(4, byteArrayOutputStream.toByteArray());
-            byteArrayOutputStream = null;
+            recordStatement.bindString(3, photo_uri != null ? photo_uri.toString() : "");
+            if(photoThumbnail != null) {
+                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                photoThumbnail.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
+                recordStatement.bindBlob(4, byteArrayOutputStream.toByteArray());
+                byteArrayOutputStream = null;
+            } else {
+                recordStatement.bindNull(4);
+            }
             recordStatement.bindLong(5, recordId);
             recordStatement.executeUpdateDelete();
+            database.delete(Storage.RecordTag.TABLE_NAME,
+                    Storage.RecordTag.COLUMN_RECORD_ID + " = ?" +
+                            "", new String[] {String.valueOf(recordId)});
+            SQLiteStatement tagStatement = database.compileStatement(
+                    "INSERT INTO " + Storage.RecordTag.TABLE_NAME +
+                            "(" + Storage.RecordTag.COLUMN_RECORD_ID + ", " +
+                            Storage.RecordTag.COLUMN_TAG_SYSTEM_NAME + ") " +
+                            " VALUES (?, ?)");
+            for(String sysTag : tags) {
+                tagStatement.clearBindings();
+                tagStatement.bindLong(1, recordId);
+                tagStatement.bindString(2, sysTag);
+                tagStatement.executeInsert();
+            }
             database.setTransactionSuccessful();
             database.endTransaction();
         } finally {

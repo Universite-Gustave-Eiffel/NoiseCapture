@@ -4,6 +4,9 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_about">About</string>
+    <string name="comment_cancel_change">Cancel</string>
+    <string name="comment_save_change">Save</string>
+    <string name="comment_title_save_change">Save changes ?</string>
 
     <string name="record_button_string">Start record</string>
     <string name="record_message">Press the record button to start</string>
@@ -89,6 +92,7 @@
     <!--  Ressources for the Drawer and option menu !-->
     <string-array name="dm_list_array">
         <item>Measurement</item>
+        <item>Description</item>
         <item>Results</item>
         <item>History</item>
         <item>Map</item>

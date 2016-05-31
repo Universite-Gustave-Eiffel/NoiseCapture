@@ -35,7 +35,7 @@ public class MeasurementExport {
     private Context context;
     public static final String PROPERTY_FILENAME  = "meta.properties";
     public static final String README_FILENAME  = "README";
-    public static final String GEOJSON_FILENAME  = "track.json";
+    public static final String GEOJSON_FILENAME  = "track.geojson";
     public static final String PROP_MANUFACTURER  = "DEVICE_MANUFACTURER";
     public static final String PROP_PRODUCT  = "DEVICE_PRODUCT";
     public static final String PROP_MODEL  = "DEVICE_MODEL";

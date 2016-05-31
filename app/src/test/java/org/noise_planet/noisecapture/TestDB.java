@@ -73,13 +73,17 @@ public class TestDB {
         Bitmap bitmap = BitmapFactory.decodeFile(
                 TestDB.class.getResource("calibration.png").getPath(),options);
         measurementManager.updateRecordUserInput(recordId, "This is a description",
-                (short)2,new int[]{0, 1, 4},bitmap , Uri.parse("") );
+                (short)2,new String[]{Storage.TAGS[0], Storage.TAGS[4]},bitmap , Uri.parse("") );
         Storage.Record record = measurementManager.getRecord(recordId, true);
         assertTrue(record.getThumbnail() != null);
         Bitmap thumbFromDb = record.getThumbnail();
         assertEquals(bitmap.getHeight(), thumbFromDb.getHeight());
         assertEquals(bitmap.getWidth(), thumbFromDb.getWidth());
         assertEquals(bitmap.getPixel(5,5), thumbFromDb.getPixel(5,5));
+
+        List<String> selectedTags = measurementManager.getTags(recordId);
+        assertEquals(Storage.TAGS[0], selectedTags.get(0));
+        assertEquals(Storage.TAGS[4], selectedTags.get(1));
 
     }
 

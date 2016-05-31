@@ -17,7 +17,7 @@ import java.util.Date;
  */
 public class Storage extends SQLiteOpenHelper {
     // Untranslated Tags in the same order as string.xml used when exporting to zip file
-    private static final String[] TAGS = {"test", "urban", "nature", "work area",
+    public static final String[] TAGS = {"test", "urban", "nature", "work area",
             "air-traffic", "crowd", "rain", "indoor", "traffic", "two-wheeled", "heavy vehicle",
             "animated", "silent", "birds", "noisy", "big street", "small street"};
     // If you change the database schema, you must increment the database version.
@@ -35,9 +35,6 @@ public class Storage extends SQLiteOpenHelper {
         db.execSQL(CREATE_RECORD);
         db.execSQL(CREATE_LEQ);
         db.execSQL(CREATE_LEQ_VALUE);
-    }
-
-    private void addTagTable(SQLiteDatabase db) {
         db.execSQL(CREATE_RECORD_TAG);
     }
 
@@ -75,7 +72,7 @@ public class Storage extends SQLiteOpenHelper {
             oldVersion = 4;
         }
         if(oldVersion == 4) {
-            db.execSQL("ALTER TABLE record ADD COLUMN tag_system_name TEXT");
+            db.execSQL("ALTER TABLE record_tag ADD COLUMN tag_system_name TEXT");
             oldVersion = 5;
         }
     }
@@ -97,6 +94,32 @@ public class Storage extends SQLiteOpenHelper {
                 return null;
             } else {
                 return cursor.getDouble(colIndex);
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private static Long getLong(Cursor cursor, String field) {
+        int colIndex = cursor.getColumnIndex(field);
+        if(colIndex != -1) {
+            if(cursor.isNull(colIndex)) {
+                return null;
+            } else {
+                return cursor.getLong(colIndex);
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private static Integer getInt(Cursor cursor, String field) {
+        int colIndex = cursor.getColumnIndex(field);
+        if(colIndex != -1) {
+            if(cursor.isNull(colIndex)) {
+                return null;
+            } else {
+                return (int) cursor.getLong(colIndex);
             }
         } else {
             return null;
@@ -162,7 +185,7 @@ public class Storage extends SQLiteOpenHelper {
         private float leqMean;
         private int timeLength;
         private String description;
-        private int pleasantness;
+        private Integer pleasantness;
         private Bitmap thumbnail;
         private Uri photoUri;
 
@@ -180,7 +203,7 @@ public class Storage extends SQLiteOpenHelper {
             if(loadThumbnail) {
                 thumbnail = getBitmap(cursor, COLUMN_PHOTO_THUMBNAIL);
             }
-            pleasantness = cursor.getInt(cursor.getColumnIndex(COLUMN_PLEASANTNESS));
+            pleasantness = getInt(cursor, COLUMN_PLEASANTNESS);
         }
 
         public Record(int id, long utc, String uploadId, float leqMean, int timeLength) {
@@ -195,7 +218,7 @@ public class Storage extends SQLiteOpenHelper {
             return description;
         }
 
-        public int getPleasantness() {
+        public Integer getPleasantness() {
             return pleasantness;
         }
 

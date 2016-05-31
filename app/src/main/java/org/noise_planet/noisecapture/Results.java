@@ -1,6 +1,5 @@
 package org.noise_planet.noisecapture;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -66,7 +65,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.measurementManager = new MeasurementManager(getApplicationContext());
+        this.measurementManager = new MeasurementManager(this);
         Intent intent = getIntent();
         if(intent != null && intent.hasExtra(RESULTS_RECORD_ID)) {
             record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1), false);
@@ -215,7 +214,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         // Query database
         List<Integer> frequencies = new ArrayList<Integer>();
         List<Float[]> leqValues = new ArrayList<Float[]>();
-        measurementManager.getRecordValues(record.getId(), frequencies, leqValues);
+        measurementManager.getRecordLeqs(record.getId(), frequencies, leqValues);
 
         // Create leq statistics by frequency
         LeqStats[] leqStatsByFreq = new LeqStats[frequencies.size()];

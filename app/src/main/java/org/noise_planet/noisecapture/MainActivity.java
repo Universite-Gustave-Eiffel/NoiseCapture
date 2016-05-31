@@ -43,8 +43,7 @@ public class MainActivity extends AppCompatActivity {
                 res.getColor(R.color.R5_SL_level)};
     }
 
-    // Drawer navigation
-    void initDrawer() {
+    void initDrawer(Integer recordId) {
         try {
             // List view
             mMenuLeft = getResources().getStringArray(R.array.dm_list_array);
@@ -54,7 +53,7 @@ public class MainActivity extends AppCompatActivity {
             mDrawerList.setAdapter(new ArrayAdapter<String>(this,
                     R.layout.drawer_list_item, mMenuLeft));
             // Set the list's click listener
-            mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+            mDrawerList.setOnItemClickListener(new DrawerItemClickListener(recordId));
             // Display the List view into the action bar
             mDrawerToggle = new ActionBarDrawerToggle(
                     this,                  /* host Activity */
@@ -90,6 +89,10 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
     }
+    // Drawer navigation
+    void initDrawer() {
+        initDrawer(null);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -99,6 +102,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
+
+        Integer recordId;
+
+        public DrawerItemClickListener(Integer recordId) {
+            this.recordId = recordId;
+        }
 
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
@@ -111,13 +120,26 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case 1:
                     // Results
-                    gotoResults();
+                    Intent ir = new Intent(getApplicationContext(), CommentActivity.class);
+                    if(recordId != null) {
+                        ir.putExtra(CommentActivity.COMMENT_RECORD_ID, recordId);
+                    }
+                    mDrawerLayout.closeDrawer(mDrawerList);
+                    startActivity(ir);
                     break;
                 case 2:
-                    // History
-                    gotoHistory();
+                    // Results
+                    ir = new Intent(getApplicationContext(), Results.class);
+                    mDrawerLayout.closeDrawer(mDrawerList);
+                    startActivity(ir);
                     break;
                 case 3:
+                    // History
+                    Intent a = new Intent(getApplicationContext(), History.class);
+                    startActivity(a);
+                    mDrawerLayout.closeDrawer(mDrawerList);
+                    break;
+                case 4:
                     // Show the map if data transfer settings is true
                     // TODO: Check also if data transfer using wifi
                     if (CheckDataTransfer()) {
@@ -130,12 +152,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
                     break;
-                case 4:
+                case 5:
                     Intent ics = new Intent(getApplicationContext(), activity_calibration_start.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ics);
                     break;
-                case 5:
+                case 6:
                     Intent ih = new Intent(getApplicationContext(),View_html_page.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     ih.putExtra(this.getClass().getPackage().getName() + ".pagetosee",
@@ -144,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
                             getString(R.string.title_activity_help));
                     startActivity(ih);
                     break;
-                case 6:
+                case 7:
                     Intent ia = new Intent(getApplicationContext(),View_html_page.class);
                     ia.putExtra(this.getClass().getPackage().getName() + ".pagetosee",
                             getString(R.string.url_about));
@@ -264,19 +286,6 @@ public class MainActivity extends AppCompatActivity {
             NbNEcat = 4;
         }
         return NbNEcat;
-    }
-
-    public final void gotoHistory(){
-
-        Intent a = new Intent(getApplicationContext(), History.class);
-        startActivity(a);
-        mDrawerLayout.closeDrawer(mDrawerList);
-    }
-
-    public final void gotoResults() {
-        Intent ir = new Intent(getApplicationContext(), Results.class);
-        mDrawerLayout.closeDrawer(mDrawerList);
-        startActivity(ir);
     }
 
 }

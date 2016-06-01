@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
                     startActivity(im);
                     break;
                 case 1:
-                    // Results
+                    // Comment
                     Intent ir = new Intent(getApplicationContext(), CommentActivity.class);
                     if(recordId != null) {
                         ir.putExtra(CommentActivity.COMMENT_RECORD_ID, recordId);
@@ -130,6 +130,9 @@ public class MainActivity extends AppCompatActivity {
                 case 2:
                     // Results
                     ir = new Intent(getApplicationContext(), Results.class);
+                    if(recordId != null) {
+                        ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
+                    }
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ir);
                     break;

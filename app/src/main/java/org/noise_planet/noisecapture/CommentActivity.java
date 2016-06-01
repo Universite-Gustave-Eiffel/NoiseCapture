@@ -74,6 +74,8 @@ public class CommentActivity extends MainActivity {
         if(record != null) {
             ImageButton addPhoto = (ImageButton) findViewById(R.id.btn_add_photo);
             addPhoto.setOnClickListener(new OnAddPhotoClickListener(this));
+            ImageButton resultsBtn = (ImageButton) findViewById(R.id.resultsBtn);
+            resultsBtn.setOnClickListener(new OnGoToResultPage(this));
         }
         initDrawer(record != null ? record.getId() : null);
         SeekBar seekBar = (SeekBar) findViewById(R.id.pleasantness_slider);
@@ -106,6 +108,7 @@ public class CommentActivity extends MainActivity {
                 seekBar.setProgress(pleasantness);
                 seekBar.setThumb(seekBar.getResources().getDrawable(
                         R.drawable.seekguess_scrubber_control_selector_holo_dark));
+                userInputSeekBar.set(true);
             }
             photo_uri = record.getPhotoUri();
             // User can only update not uploaded data
@@ -192,7 +195,7 @@ public class CommentActivity extends MainActivity {
                 tags[tagCounter++] = Storage.TAGS[tagId];
             }
             measurementManager.updateRecordUserInput(record.getId(), description.getText().toString(),
-                    (short)seekBar.getProgress(), tags, photo_uri);
+                  userInputSeekBar.get() ? (short)seekBar.getProgress() : null, tags, photo_uri);
         }
     }
 
@@ -262,7 +265,7 @@ public class CommentActivity extends MainActivity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            new LoadThumbnail(this).execute(photo_uri);
+            thumbnailImageLayoutDoneObserver.activated.set(true);
         }
     }
     private static final class OnAddPhotoClickListener implements View.OnClickListener {
@@ -287,6 +290,22 @@ public class CommentActivity extends MainActivity {
             if (takePictureIntent.resolveActivity(activity.getPackageManager()) != null) {
                 activity.startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
             }
+        }
+    }
+
+    private static final class OnGoToResultPage implements View.OnClickListener {
+        private CommentActivity activity;
+
+        public OnGoToResultPage(CommentActivity activity) {
+            this.activity = activity;
+        }
+
+        @Override
+        public void onClick(View v) {
+            //Open result page
+            Intent ir = new Intent(activity, Results.class);
+            ir.putExtra(Results.RESULTS_RECORD_ID, activity.record.getId());
+            activity.startActivity(ir);
         }
     }
 
@@ -360,6 +379,7 @@ public class CommentActivity extends MainActivity {
                 activity.thumbnailBitmap.recycle();
             }
             activity.thumbnailBitmap = result;
+            thumbnail.setBackgroundResource(android.R.color.transparent);
             thumbnail.setImageBitmap(result);
             thumbnail.invalidate();
         }
@@ -394,7 +414,9 @@ public class CommentActivity extends MainActivity {
         @Override
         public void onGlobalLayout() {
             if(activated.getAndSet(false)) {
-                new LoadThumbnail(activity).execute(activity.photo_uri);
+                if(activity.photo_uri != null) {
+                    new LoadThumbnail(activity).execute(activity.photo_uri);
+                }
             }
         }
     }

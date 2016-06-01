@@ -337,7 +337,7 @@ public class MeasurementManager {
         }
     }
 
-    public void updateRecordUserInput(int recordId, String description, short pleasantness,
+    public void updateRecordUserInput(int recordId, String description, Short pleasantness,
                                       String[] tags, Uri photo_uri) {
 
         SQLiteDatabase database = storage.getWritableDatabase();

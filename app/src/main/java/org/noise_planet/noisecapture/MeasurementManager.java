@@ -39,7 +39,7 @@ public class MeasurementManager {
                     " ORDER BY " + Storage.Record.COLUMN_ID, null);
             try {
                 while (cursor.moveToNext()) {
-                    records.add(new Storage.Record(cursor, loadThumbnail));
+                    records.add(new Storage.Record(cursor));
                 }
             } finally {
                 cursor.close();
@@ -219,7 +219,7 @@ public class MeasurementManager {
                     " WHERE " + Storage.Record.COLUMN_ID + " = ?", new String[]{String.valueOf(recordId)});
             try {
                 if (cursor.moveToNext()) {
-                    return new Storage.Record(cursor, loadThumbnail);
+                    return new Storage.Record(cursor);
                 }
             } finally {
                 cursor.close();
@@ -337,8 +337,8 @@ public class MeasurementManager {
         }
     }
 
-    public void updateRecordUserInput(int recordId, String description, short pleasantness, String[] tags,
-                                      Bitmap photoThumbnail, Uri photo_uri) {
+    public void updateRecordUserInput(int recordId, String description, short pleasantness,
+                                      String[] tags, Uri photo_uri) {
 
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
@@ -347,22 +347,13 @@ public class MeasurementManager {
                     "UPDATE " + Storage.Record.TABLE_NAME +
                             " SET "+ Storage.Record.COLUMN_DESCRIPTION + " = ?, " +
                             Storage.Record.COLUMN_PLEASANTNESS + " = ?, " +
-                            Storage.Record.COLUMN_PHOTO_URI + " = ?, " +
-                            Storage.Record.COLUMN_PHOTO_THUMBNAIL + " = ? " +
+                            Storage.Record.COLUMN_PHOTO_URI + " = ?" +
                             " WHERE " + Storage.Record.COLUMN_ID + " = ?");
             recordStatement.clearBindings();
             recordStatement.bindString(1, description);
             recordStatement.bindLong(2, pleasantness);
             recordStatement.bindString(3, photo_uri != null ? photo_uri.toString() : "");
-            if(photoThumbnail != null) {
-                ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                photoThumbnail.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream);
-                recordStatement.bindBlob(4, byteArrayOutputStream.toByteArray());
-                byteArrayOutputStream = null;
-            } else {
-                recordStatement.bindNull(4);
-            }
-            recordStatement.bindLong(5, recordId);
+            recordStatement.bindLong(4, recordId);
             recordStatement.executeUpdateDelete();
             database.delete(Storage.RecordTag.TABLE_NAME,
                     Storage.RecordTag.COLUMN_RECORD_ID + " = ?" +

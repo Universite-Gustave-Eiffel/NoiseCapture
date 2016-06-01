@@ -21,7 +21,7 @@ public class Storage extends SQLiteOpenHelper {
             "air-traffic", "crowd", "rain", "indoor", "traffic", "two-wheeled", "heavy vehicle",
             "animated", "silent", "birds", "noisy", "big street", "small street"};
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 5;
+    public static final int DATABASE_VERSION = 6;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -74,6 +74,17 @@ public class Storage extends SQLiteOpenHelper {
         if(oldVersion == 4) {
             db.execSQL("ALTER TABLE record_tag ADD COLUMN tag_system_name TEXT");
             oldVersion = 5;
+        }
+        if(oldVersion == 5) {
+            // Copy content to new table
+            db.execSQL("ALTER TABLE record rename to record_old;");
+            db.execSQL( "CREATE TABLE record(record_id INTEGER PRIMARY KEY, record_utc LONG," +
+                    " upload_id TEXT, leq_mean FLOAT, time_length INTEGER, description TEXT," +
+                    " photo_uri TEXT, pleasantness SMALLINT DEFAULT 2);");
+            db.execSQL("INSERT INTO record SELECT record_id , record_utc ,upload_id , leq_mean ," +
+                    " time_length , description ,photo_uri , pleasantness from record_old;");
+            db.execSQL("DROP TABLE IF EXISTS record_old;");
+            oldVersion = 6;
         }
     }
 
@@ -176,7 +187,6 @@ public class Storage extends SQLiteOpenHelper {
         public static final String COLUMN_TIME_LENGTH = "time_length";
         public static final String COLUMN_DESCRIPTION = "description";
         public static final String COLUMN_PLEASANTNESS = "pleasantness";
-        public static final String COLUMN_PHOTO_THUMBNAIL = "photo_thumbnail";
         public static final String COLUMN_PHOTO_URI = "photo_uri";
 
         private int id;
@@ -186,10 +196,9 @@ public class Storage extends SQLiteOpenHelper {
         private int timeLength;
         private String description;
         private Integer pleasantness;
-        private Bitmap thumbnail;
         private Uri photoUri;
 
-        public Record(Cursor cursor, boolean loadThumbnail) {
+        public Record(Cursor cursor) {
             this(cursor.getInt(cursor.getColumnIndex(COLUMN_ID)),
                     cursor.getLong(cursor.getColumnIndex(COLUMN_UTC)),
                     cursor.getString(cursor.getColumnIndex(COLUMN_UPLOAD_ID)),
@@ -199,9 +208,6 @@ public class Storage extends SQLiteOpenHelper {
             String uriString = getString(cursor, COLUMN_PHOTO_URI);
             if(uriString != null && !uriString.isEmpty()) {
                 photoUri = Uri.parse(uriString);
-            }
-            if(loadThumbnail) {
-                thumbnail = getBitmap(cursor, COLUMN_PHOTO_THUMBNAIL);
             }
             pleasantness = getInt(cursor, COLUMN_PLEASANTNESS);
         }
@@ -220,10 +226,6 @@ public class Storage extends SQLiteOpenHelper {
 
         public Integer getPleasantness() {
             return pleasantness;
-        }
-
-        public Bitmap getThumbnail() {
-            return thumbnail;
         }
 
         public Uri getPhotoUri() {
@@ -275,8 +277,7 @@ public class Storage extends SQLiteOpenHelper {
             Record.COLUMN_TIME_LENGTH + " INTEGER, " +
             Record.COLUMN_DESCRIPTION + " TEXT, " +
             Record.COLUMN_PHOTO_URI + " TEXT, " +
-            Record.COLUMN_PLEASANTNESS + " SMALLINT DEFAULT 2, " +
-            Record.COLUMN_PHOTO_THUMBNAIL + " BLOB)";
+            Record.COLUMN_PLEASANTNESS + " SMALLINT DEFAULT 2)";
 
 
     public static class Leq implements BaseColumns {

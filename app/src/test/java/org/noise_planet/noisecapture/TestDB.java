@@ -11,6 +11,8 @@ import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import java.io.File;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,7 +27,7 @@ import static org.junit.Assert.assertTrue;
 public class TestDB {
 
     @Test
-    public void testCreate() {
+    public void testCreate() throws URISyntaxException {
         MeasurementManager measurementManager =
                 new MeasurementManager(RuntimeEnvironment.application);
 
@@ -68,18 +70,12 @@ public class TestDB {
 
 
         // Check update user input
-        BitmapFactory.Options options = new BitmapFactory.Options();
-        options.inScaled = false;
-        Bitmap bitmap = BitmapFactory.decodeFile(
-                TestDB.class.getResource("calibration.png").getPath(),options);
         measurementManager.updateRecordUserInput(recordId, "This is a description",
-                (short)2,new String[]{Storage.TAGS[0], Storage.TAGS[4]},bitmap , Uri.parse("") );
+                (short)2,new String[]{Storage.TAGS[0], Storage.TAGS[4]},
+                Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())));
         Storage.Record record = measurementManager.getRecord(recordId, true);
-        assertTrue(record.getThumbnail() != null);
-        Bitmap thumbFromDb = record.getThumbnail();
-        assertEquals(bitmap.getHeight(), thumbFromDb.getHeight());
-        assertEquals(bitmap.getWidth(), thumbFromDb.getWidth());
-        assertEquals(bitmap.getPixel(5,5), thumbFromDb.getPixel(5,5));
+        assertEquals(Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())),
+                record.getPhotoUri());
 
         List<String> selectedTags = measurementManager.getTags(recordId);
         assertEquals(Storage.TAGS[0], selectedTags.get(0));

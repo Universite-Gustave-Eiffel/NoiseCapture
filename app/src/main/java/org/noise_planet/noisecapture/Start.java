@@ -4,6 +4,8 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.view.Menu;
@@ -27,6 +29,9 @@ public class Start extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_start);
+        // Upgrade DB if necessary
+        SQLiteDatabase database = new Storage(this).getWritableDatabase();
+        database.close();
         // If first start then create a unique identifier for this install
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         if(!sharedPref.contains(MeasurementExport.PROP_UUID)) {

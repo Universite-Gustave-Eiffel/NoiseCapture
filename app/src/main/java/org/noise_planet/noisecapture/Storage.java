@@ -277,7 +277,7 @@ public class Storage extends SQLiteOpenHelper {
             Record.COLUMN_TIME_LENGTH + " INTEGER, " +
             Record.COLUMN_DESCRIPTION + " TEXT, " +
             Record.COLUMN_PHOTO_URI + " TEXT, " +
-            Record.COLUMN_PLEASANTNESS + " SMALLINT DEFAULT 2)";
+            Record.COLUMN_PLEASANTNESS + " SMALLINT)";
 
 
     public static class Leq implements BaseColumns {

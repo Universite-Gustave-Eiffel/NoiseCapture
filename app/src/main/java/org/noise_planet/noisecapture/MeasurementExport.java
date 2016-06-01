@@ -81,6 +81,17 @@ public class MeasurementExport {
         properties.setProperty(Storage.Record.COLUMN_UTC, String.valueOf(record.getUtc()));
         properties.setProperty(Storage.Record.COLUMN_LEQ_MEAN, String.format("%.02f", record.getLeqMean()));
         properties.setProperty(Storage.Record.COLUMN_TIME_LENGTH, String.valueOf(record.getTimeLength()));
+        if(record.getPleasantness() != null) {
+            properties.setProperty(Storage.Record.COLUMN_PLEASANTNESS, String.valueOf(record.getPleasantness()));
+        }
+        List<String> tags = measurementManager.getTags(recordId);
+        StringBuilder tagsString = new StringBuilder();
+        for(String tag : tags) {
+            if(tagsString.length() != 0) {
+                tagsString.append(",");
+            }
+            tagsString.append(tag);
+        }
         zipOutputStream.putNextEntry(new ZipEntry(PROPERTY_FILENAME));
         properties.store(zipOutputStream, "NoiseCapture export header file");
         zipOutputStream.closeEntry();

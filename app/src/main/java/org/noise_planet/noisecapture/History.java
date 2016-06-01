@@ -164,6 +164,12 @@ public class History extends MainActivity {
             this.recordId = recordId;
         }
 
+        private void launchComment() {
+            Intent ir = new Intent(historyActivity.getApplicationContext(), CommentActivity.class);
+            ir.putExtra(CommentActivity.COMMENT_RECORD_ID, recordId);
+            historyActivity.startActivity(ir);
+        }
+
         private void launchResult() {
             Intent ir = new Intent(historyActivity.getApplicationContext(), Results.class);
             ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
@@ -180,23 +186,27 @@ public class History extends MainActivity {
         public void onClick(DialogInterface dialog, int which) {
             switch (which) {
                 case 0:
+                    // Comment
+                    launchComment();
+                    break;
+                case 1:
                     // Result
                     launchResult();
                     break;
-                case 1:
+                case 2:
                     // Map
                     launchMap();
                     break;
-                case 2:
+                case 3:
                     // Delete record
                     historyActivity.measurementManager.deleteRecord(recordId);
                     historyActivity.historyListAdapter.reload();
                     break;
-                case 3:
+                case 4:
                     // Upload
                     // TODO upload action
                     break;
-                case 4:
+                case 5:
                     // TODO Share action
                     break;
             }

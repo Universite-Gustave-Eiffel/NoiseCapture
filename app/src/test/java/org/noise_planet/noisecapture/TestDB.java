@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -67,6 +68,10 @@ public class TestDB {
         // Check update ending measure
 
         measurementManager.updateRecordFinal(recordId, 49, 2);
+
+
+        Storage.Record incompleteRecord = measurementManager.getRecord(recordId, true);
+        assertNull(incompleteRecord.getPleasantness());
 
 
         // Check update user input

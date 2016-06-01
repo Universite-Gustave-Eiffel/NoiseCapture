@@ -48,7 +48,8 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
     private static final Logger LOGGER = LoggerFactory.getLogger(Results.class);
     private MeasurementManager measurementManager;
     private Storage.Record record;
-    private static final double[][] CLASS_RANGES = new double[][]{{Double.MIN_VALUE, 45}, {45, 55}, {55, 65}, {65, 75},{75, Double.MAX_VALUE}};
+    private static final double[][] CLASS_RANGES = new double[][]{{Double.MIN_VALUE, 45}, {45, 55},
+            {55, 65}, {65, 75},{75, Double.MAX_VALUE}};
 
 
     // For the Charts
@@ -139,7 +140,6 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
 
         // Action on Map button
         ImageButton buttonmap=(ImageButton)findViewById(R.id.mapBtn);
-        buttonmap.setImageResource(R.drawable.button_map);
         buttonmap.setEnabled(true);
         buttonmap.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -150,6 +150,19 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
                 startActivity(a);
             }
         });
+
+        // Action on comment button
+        ImageButton buttonComment=(ImageButton)findViewById(R.id.userCommentBtn);
+        buttonComment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Go to map page
+                Intent a = new Intent(getApplicationContext(), CommentActivity.class);
+                a.putExtra(CommentActivity.COMMENT_RECORD_ID, record.getId());
+                startActivity(a);
+            }
+        });
+
     }
 
     @Override

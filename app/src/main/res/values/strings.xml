@@ -84,6 +84,7 @@
     <string-array name="choice_user_history">
         <!-- <item>Upload to community</item> -->
         <!-- <item>Export result</item> -->
+        <item>Edit description</item>
         <item>Show result</item>
         <item>Show map</item>
         <item>Delete</item>

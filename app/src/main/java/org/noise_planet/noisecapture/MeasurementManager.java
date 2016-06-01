@@ -351,7 +351,11 @@ public class MeasurementManager {
                             " WHERE " + Storage.Record.COLUMN_ID + " = ?");
             recordStatement.clearBindings();
             recordStatement.bindString(1, description);
-            recordStatement.bindLong(2, pleasantness);
+            if(pleasantness != null) {
+                recordStatement.bindLong(2, pleasantness);
+            } else {
+                recordStatement.bindNull(2);
+            }
             recordStatement.bindString(3, photo_uri != null ? photo_uri.toString() : "");
             recordStatement.bindLong(4, recordId);
             recordStatement.executeUpdateDelete();

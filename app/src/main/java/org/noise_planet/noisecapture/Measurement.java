@@ -114,15 +114,8 @@ public class Measurement extends MainActivity implements
         }
 
         // Enabled/disabled buttons
-        // history disabled; cancel enabled; record button enabled; map enabled
-        ImageButton buttonhistory = (ImageButton) findViewById(R.id.historyBtn);
-        checkHistoryButton();
-        ImageButton buttoncancel = (ImageButton) findViewById(R.id.cancelBtn);
-        buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
-        buttoncancel.setEnabled(false);
-        ImageButton buttonmap = (ImageButton) findViewById(R.id.mapBtn);
-        buttonmap.setImageResource(R.drawable.button_map_normal);
-        buttoncancel.setEnabled(true);
+        ImageButton buttonPause = (ImageButton) findViewById(R.id.pauseBtn);
+        buttonPause.setEnabled(false);
 
         // Display element in expert mode or not
         Boolean CheckViewModeSettings = sharedPref.getBoolean("settings_view_mode", true);
@@ -153,26 +146,7 @@ public class Measurement extends MainActivity implements
         buttonrecord.setOnClickListener(doProcessing);
 
         // Action on cancel button (during recording)
-        buttoncancel.setOnClickListener(onButtonCancel);
-
-        // Action on History button
-        buttonhistory.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Go to history page
-                gotoHistory();
-            }
-        });
-
-        // Action on Map button
-        buttonmap.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Go to map page
-                Intent a = new Intent(getApplicationContext(), MapActivity.class);
-                startActivity(a);
-            }
-        });
+        buttonPause.setOnClickListener(onButtonPause);
 
         // Instantaneous sound level VUMETER
         // Stacked bars are used for represented Min, Current and Max values
@@ -204,11 +178,11 @@ public class Measurement extends MainActivity implements
         initSpectrum();
     }
 
-    private View.OnClickListener onButtonCancel = new View.OnClickListener() {
+    private View.OnClickListener onButtonPause = new View.OnClickListener() {
         @Override
         public void onClick(View view) {
             // Stop measurement without waiting for the end of processing
-            measurementService.cancel();
+            measurementService.pause(!view.isPressed());
         }
     };
 
@@ -407,7 +381,7 @@ public class Measurement extends MainActivity implements
                 activity.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        Intent ir = new Intent(activity.getApplicationContext(), Results.class);
+                        Intent ir = new Intent(activity.getApplicationContext(), CommentActivity.class);
                         ir.putExtra(Results.RESULTS_RECORD_ID,
                                 activity.measurementService.getRecordId());
                         activity.startActivity(ir);
@@ -436,18 +410,12 @@ public class Measurement extends MainActivity implements
     }
 
     private void initGuiState() {
-        // Update buttons: history disabled; cancel enabled; record button to stop; map disabled
-        ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
-        ImageButton buttoncancel= (ImageButton) findViewById(R.id.cancelBtn);
+        // Update buttons: cancel enabled; record button to stop;
+        ImageButton buttonpause= (ImageButton) findViewById(R.id.pauseBtn);
         ImageButton buttonrecord= (ImageButton) findViewById(R.id.recordBtn);
-        ImageButton buttonmap= (ImageButton) findViewById(R.id.mapBtn);
 
         if (measurementService.isRecording()) {
-            buttonhistory.setImageResource(R.drawable.button_history_disabled);
-            buttonhistory.setEnabled(false);
-            buttoncancel.setImageResource(R.drawable.button_cancel_normal);
-            buttoncancel.setEnabled(true);
-            buttonmap.setImageResource(R.drawable.button_map_disabled);
+            buttonpause.setEnabled(true);
             buttonrecord.setImageResource(R.drawable.button_record_pressed);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             initComponents();
@@ -459,15 +427,9 @@ public class Measurement extends MainActivity implements
         {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             // Enabled/disabled buttons after measurement
-            // history enabled or disabled (if isHistory); cancel disable; record button enabled
-            buttonhistory.setImageResource(R.drawable.button_history_normal);
-            buttonhistory.setEnabled(true);
-            buttoncancel.setImageResource(R.drawable.button_cancel_disabled);
-            buttoncancel.setEnabled(false);
+            buttonpause.setEnabled(false);
             buttonrecord.setImageResource(R.drawable.button_record);
             buttonrecord.setEnabled(true);
-            buttonmap.setImageResource(R.drawable.button_map);
-            buttonmap.setEnabled(true);
             // Stop and reset chronometer
             Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer_recording_time);
             chronometer.stop();
@@ -501,17 +463,10 @@ public class Measurement extends MainActivity implements
         @Override
         public void onClick(View v) {
             Resources resources = activity.getResources();
-            // Update buttons: history disabled; cancel enabled; record button to stop; map disabled
-            ImageButton buttonhistory= (ImageButton) activity.findViewById(R.id.historyBtn);
-            buttonhistory.setImageResource(R.drawable.button_history_disabled);
-            buttonhistory.setEnabled(false);
-            ImageButton buttoncancel= (ImageButton) activity.findViewById(R.id.cancelBtn);
-            buttoncancel.setImageResource(R.drawable.button_cancel_normal);
-            buttoncancel.setEnabled(true);
+            ImageButton buttonPause= (ImageButton) activity.findViewById(R.id.pauseBtn);
+            buttonPause.setEnabled(true);
             ImageButton buttonrecord= (ImageButton) activity.findViewById(R.id.recordBtn);
             buttonrecord.setImageResource(R.drawable.button_record_pressed);
-            ImageButton buttonmap= (ImageButton) activity.findViewById(R.id.mapBtn);
-            buttonmap.setImageResource(R.drawable.button_map_disabled);
 
             if (!activity.measurementService.isRecording()) {
                 // Start recording
@@ -665,10 +620,6 @@ public class Measurement extends MainActivity implements
             // cast its IBinder to a concrete class and directly access it.
             measurementService = ((MeasurementService.LocalBinder)service).getService();
 
-            // Tell the user about this for our demo.
-            Toast.makeText(Measurement.this, R.string.measurement_service_connected,
-                    Toast.LENGTH_SHORT).show();
-
             // Init gui if recording is ongoing
             measurementService.addPropertyChangeListener(doProcessing);
             initGuiState();
@@ -681,8 +632,6 @@ public class Measurement extends MainActivity implements
             // see this happen.
             measurementService.removePropertyChangeListener(doProcessing);
             measurementService = null;
-            Toast.makeText(Measurement.this, R.string.measurement_service_disconnected,
-                    Toast.LENGTH_SHORT).show();
         }
     };
 

@@ -4,6 +4,9 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.provider.BaseColumns;
 
 import java.text.DateFormat;
@@ -13,9 +16,12 @@ import java.util.Date;
  * Handle database schema creation and upgrade
  */
 public class Storage extends SQLiteOpenHelper {
-
+    // Untranslated Tags in the same order as string.xml used when exporting to zip file
+    public static final String[] TAGS = {"test", "urban", "nature", "work area",
+            "air-traffic", "crowd", "rain", "indoor", "traffic", "two-wheeled", "heavy vehicle",
+            "animated", "silent", "birds", "noisy", "big street", "small street"};
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 3;
+    public static final int DATABASE_VERSION = 6;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -29,6 +35,7 @@ public class Storage extends SQLiteOpenHelper {
         db.execSQL(CREATE_RECORD);
         db.execSQL(CREATE_LEQ);
         db.execSQL(CREATE_LEQ_VALUE);
+        db.execSQL(CREATE_RECORD_TAG);
     }
 
     @Override
@@ -50,6 +57,34 @@ public class Storage extends SQLiteOpenHelper {
                 db.execSQL("ALTER TABLE leq ADD COLUMN bearing FLOAT");
             }
             oldVersion = 3;
+        }
+        if(oldVersion == 3) {
+            if(db.isReadOnly()) {
+                // New feature, user input
+                db.execSQL("ALTER TABLE leq ADD COLUMN description TEXT");
+                db.execSQL("ALTER TABLE leq ADD COLUMN pleasantness SMALLINT DEFAULT 2");
+                db.execSQL("ALTER TABLE leq ADD COLUMN photo_miniature BLOB");
+                db.execSQL("ALTER TABLE leq ADD COLUMN photo_uri TEXT");
+                db.execSQL( "CREATE TABLE record_tag(tag_id INTEGER PRIMARY KEY, record_id INTEGER, " +
+                            "PRIMARY KEY(tag_id, record_id) " +
+                            "FOREIGN KEY(record_id) REFERENCES  record(record_id) ON DELETE CASCADE);");
+            }
+            oldVersion = 4;
+        }
+        if(oldVersion == 4) {
+            db.execSQL("ALTER TABLE record_tag ADD COLUMN tag_system_name TEXT");
+            oldVersion = 5;
+        }
+        if(oldVersion == 5) {
+            // Copy content to new table
+            db.execSQL("ALTER TABLE record rename to record_old;");
+            db.execSQL( "CREATE TABLE record(record_id INTEGER PRIMARY KEY, record_utc LONG," +
+                    " upload_id TEXT, leq_mean FLOAT, time_length INTEGER, description TEXT," +
+                    " photo_uri TEXT, pleasantness SMALLINT DEFAULT 2);");
+            db.execSQL("INSERT INTO record SELECT record_id , record_utc ,upload_id , leq_mean ," +
+                    " time_length , description ,photo_uri , pleasantness from record_old;");
+            db.execSQL("DROP TABLE IF EXISTS record_old;");
+            oldVersion = 6;
         }
     }
 
@@ -76,6 +111,32 @@ public class Storage extends SQLiteOpenHelper {
         }
     }
 
+    private static Long getLong(Cursor cursor, String field) {
+        int colIndex = cursor.getColumnIndex(field);
+        if(colIndex != -1) {
+            if(cursor.isNull(colIndex)) {
+                return null;
+            } else {
+                return cursor.getLong(colIndex);
+            }
+        } else {
+            return null;
+        }
+    }
+
+    private static Integer getInt(Cursor cursor, String field) {
+        int colIndex = cursor.getColumnIndex(field);
+        if(colIndex != -1) {
+            if(cursor.isNull(colIndex)) {
+                return null;
+            } else {
+                return (int) cursor.getLong(colIndex);
+            }
+        } else {
+            return null;
+        }
+    }
+
     private static Float getFloat(Cursor cursor, String field) {
         int colIndex = cursor.getColumnIndex(field);
         if(colIndex != -1) {
@@ -89,6 +150,34 @@ public class Storage extends SQLiteOpenHelper {
         }
     }
 
+    private static String getString(Cursor cursor, String field) {
+        int colIndex = cursor.getColumnIndex(field);
+        if(colIndex != -1) {
+            if(cursor.isNull(colIndex)) {
+                return null;
+            } else {
+                return cursor.getString(colIndex);
+            }
+        } else {
+            return null;
+        }
+    }
+    private static Bitmap getBitmap(Cursor cursor, String field) {
+        int colIndex = cursor.getColumnIndex(field);
+        if(colIndex != -1) {
+            if(cursor.isNull(colIndex)) {
+                return null;
+            } else {
+                byte[] byteData = cursor.getBlob(colIndex);
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inScaled = false;
+                return BitmapFactory.decodeByteArray(byteData, 0, byteData.length, options);
+            }
+        } else {
+            return null;
+        }
+    }
+
     public static class Record implements BaseColumns {
         public static final String TABLE_NAME = "record";
         public static final String COLUMN_ID = "record_id";
@@ -96,12 +185,18 @@ public class Storage extends SQLiteOpenHelper {
         public static final String COLUMN_UPLOAD_ID = "upload_id";
         public static final String COLUMN_LEQ_MEAN = "leq_mean";
         public static final String COLUMN_TIME_LENGTH = "time_length";
+        public static final String COLUMN_DESCRIPTION = "description";
+        public static final String COLUMN_PLEASANTNESS = "pleasantness";
+        public static final String COLUMN_PHOTO_URI = "photo_uri";
 
         private int id;
         private long utc;
         private String uploadId;
         private float leqMean;
         private int timeLength;
+        private String description;
+        private Integer pleasantness;
+        private Uri photoUri;
 
         public Record(Cursor cursor) {
             this(cursor.getInt(cursor.getColumnIndex(COLUMN_ID)),
@@ -109,6 +204,12 @@ public class Storage extends SQLiteOpenHelper {
                     cursor.getString(cursor.getColumnIndex(COLUMN_UPLOAD_ID)),
                     cursor.getFloat(cursor.getColumnIndex(COLUMN_LEQ_MEAN)),
                     cursor.getInt(cursor.getColumnIndex(COLUMN_TIME_LENGTH)));
+            description = getString(cursor, COLUMN_DESCRIPTION);
+            String uriString = getString(cursor, COLUMN_PHOTO_URI);
+            if(uriString != null && !uriString.isEmpty()) {
+                photoUri = Uri.parse(uriString);
+            }
+            pleasantness = getInt(cursor, COLUMN_PLEASANTNESS);
         }
 
         public Record(int id, long utc, String uploadId, float leqMean, int timeLength) {
@@ -117,6 +218,18 @@ public class Storage extends SQLiteOpenHelper {
             this.uploadId = uploadId;
             this.leqMean = leqMean;
             this.timeLength = timeLength;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public Integer getPleasantness() {
+            return pleasantness;
+        }
+
+        public Uri getPhotoUri() {
+            return photoUri;
         }
 
         /**
@@ -160,8 +273,12 @@ public class Storage extends SQLiteOpenHelper {
             "("+Record.COLUMN_ID +" INTEGER PRIMARY KEY, " +
             Record.COLUMN_UTC +" LONG, " +
             Record.COLUMN_UPLOAD_ID + " TEXT, " +
-            Record.COLUMN_LEQ_MEAN + " FLOAT" +
-            Record.COLUMN_TIME_LENGTH + " INTEGER)";
+            Record.COLUMN_LEQ_MEAN + " FLOAT, " +
+            Record.COLUMN_TIME_LENGTH + " INTEGER, " +
+            Record.COLUMN_DESCRIPTION + " TEXT, " +
+            Record.COLUMN_PHOTO_URI + " TEXT, " +
+            Record.COLUMN_PLEASANTNESS + " SMALLINT)";
+
 
     public static class Leq implements BaseColumns {
         public static final String TABLE_NAME = "leq";
@@ -188,7 +305,6 @@ public class Storage extends SQLiteOpenHelper {
         private long locationUTC;
 
         /**
-         *
          * @param recordId Record id or -1 if unknown
          * @param leqId
          * @param leqUtc
@@ -226,7 +342,6 @@ public class Storage extends SQLiteOpenHelper {
                     cursor.getFloat(cursor.getColumnIndex(COLUMN_ACCURACY)),
                     cursor.getLong(cursor.getColumnIndex(COLUMN_LOCATION_UTC)));
         }
-
 
         public int getRecordId() {
             return recordId;
@@ -281,13 +396,14 @@ public class Storage extends SQLiteOpenHelper {
             Leq.COLUMN_LEQ_UTC + " LONG, " +
             Leq.COLUMN_LATITUDE + " DOUBLE, " +
             Leq.COLUMN_LONGITUDE + " DOUBLE, " +
+            Leq.COLUMN_BEARING + " FLOAT, " +
             Leq.COLUMN_ALTITUDE + " DOUBLE, " +
             Leq.COLUMN_SPEED + " FLOAT, " +
             Leq.COLUMN_ACCURACY + " FLOAT, " +
             Leq.COLUMN_LOCATION_UTC + " LONG, " +
             "FOREIGN KEY(" + Leq.COLUMN_RECORD_ID + ") REFERENCES record("+Record.COLUMN_ID+") ON DELETE CASCADE)";
 
-    public static class LeqValue implements BaseColumns {
+    public static final class LeqValue implements BaseColumns {
         public static final String TABLE_NAME = "leq_value";
         public static final String COLUMN_LEQ_ID = "leq_id";
         public static final String COLUMN_FREQUENCY = "frequency";
@@ -333,4 +449,19 @@ public class Storage extends SQLiteOpenHelper {
             LeqValue.COLUMN_SPL +" FLOAT, " +
             "PRIMARY KEY("+LeqValue.COLUMN_LEQ_ID +", "+LeqValue.COLUMN_FREQUENCY +"), " +
             "FOREIGN KEY("+LeqValue.COLUMN_LEQ_ID +") REFERENCES leq("+Leq.COLUMN_LEQ_ID+") ON DELETE CASCADE);";
+
+    public static final class RecordTag {
+        public static final String TABLE_NAME = "record_tag";
+        public static final String COLUMN_TAG_ID = "tag_id";
+        public static final String COLUMN_TAG_SYSTEM_NAME = "tag_system_name";
+        public static final String COLUMN_RECORD_ID = "record_id";
+    }
+
+    public static final String CREATE_RECORD_TAG = "CREATE TABLE " + RecordTag.TABLE_NAME + "(" +
+            RecordTag.COLUMN_TAG_ID + " INTEGER PRIMARY KEY, " +
+            RecordTag.COLUMN_TAG_SYSTEM_NAME + " TEXT, " +
+            RecordTag.COLUMN_RECORD_ID + " INTEGER, " +
+            "FOREIGN KEY(" + RecordTag.COLUMN_RECORD_ID + ") REFERENCES " + Record.TABLE_NAME +
+            "(" + Record.COLUMN_ID + ") ON DELETE CASCADE);";
+
 }

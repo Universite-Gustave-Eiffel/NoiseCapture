@@ -240,38 +240,23 @@
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="horizontal"
-        android:layout_width="wrap_content"
+        android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
         android:id="@+id/linearLayout">
 
-        <ImageButton android:id="@+id/recordBtn"
+        <ImageButton android:id="@+id/userCommentBtn"
             android:layout_width="64dip"
             android:layout_height="64dip"
-            app:srcCompat="@drawable/button_record"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/user_input_activity"
             android:scaleType="fitCenter"
             android:background="#00000000" />
-
-        <ImageButton android:id="@+id/exportBtn"
-            android:layout_width="64dip"
-            android:layout_height="64dip"
-            app:srcCompat="@drawable/button_export"
-            android:scaleType="fitCenter"
-            android:visibility="invisible"
-            android:background="#00000000" />
-
-        <ImageButton android:id="@+id/historyBtn"
-            android:layout_width="64dip"
-            android:layout_height="64dip"
-            app:srcCompat="@drawable/button_history"
-            android:scaleType="fitCenter"
-            android:background="#00000000" />
-
         <ImageButton android:id="@+id/mapBtn"
             android:layout_width="64dip"
             android:layout_height="64dip"
+            android:layout_weight="1"
             app:srcCompat="@drawable/button_map"
             android:scaleType="fitCenter"
             android:background="#00000000" />

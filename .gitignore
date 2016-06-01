@@ -9,3 +9,4 @@ sosfilter/build
 .idea/
 *target/
 *.apk
+*.bat

@@ -35,7 +35,7 @@ public class MeasurementExport {
     private Context context;
     public static final String PROPERTY_FILENAME  = "meta.properties";
     public static final String README_FILENAME  = "README";
-    public static final String GEOJSON_FILENAME  = "track.json";
+    public static final String GEOJSON_FILENAME  = "track.geojson";
     public static final String PROP_MANUFACTURER  = "DEVICE_MANUFACTURER";
     public static final String PROP_PRODUCT  = "DEVICE_PRODUCT";
     public static final String PROP_MODEL  = "DEVICE_MODEL";
@@ -58,7 +58,7 @@ public class MeasurementExport {
     public void exportRecord(Activity activity, int recordId, OutputStream outputStream) throws IOException {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
-        Storage.Record record = measurementManager.getRecord(recordId);
+        Storage.Record record = measurementManager.getRecord(recordId, false);
 
         // Property file
         Properties properties = new Properties();
@@ -81,6 +81,17 @@ public class MeasurementExport {
         properties.setProperty(Storage.Record.COLUMN_UTC, String.valueOf(record.getUtc()));
         properties.setProperty(Storage.Record.COLUMN_LEQ_MEAN, String.format("%.02f", record.getLeqMean()));
         properties.setProperty(Storage.Record.COLUMN_TIME_LENGTH, String.valueOf(record.getTimeLength()));
+        if(record.getPleasantness() != null) {
+            properties.setProperty(Storage.Record.COLUMN_PLEASANTNESS, String.valueOf(record.getPleasantness()));
+        }
+        List<String> tags = measurementManager.getTags(recordId);
+        StringBuilder tagsString = new StringBuilder();
+        for(String tag : tags) {
+            if(tagsString.length() != 0) {
+                tagsString.append(",");
+            }
+            tagsString.append(tag);
+        }
         zipOutputStream.putNextEntry(new ZipEntry(PROPERTY_FILENAME));
         properties.store(zipOutputStream, "NoiseCapture export header file");
         zipOutputStream.closeEntry();

@@ -1,6 +1,5 @@
 package org.noise_planet.noisecapture;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -49,7 +48,8 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
     private static final Logger LOGGER = LoggerFactory.getLogger(Results.class);
     private MeasurementManager measurementManager;
     private Storage.Record record;
-    private static final double[][] CLASS_RANGES = new double[][]{{Double.MIN_VALUE, 45}, {45, 55}, {55, 65}, {65, 75},{75, Double.MAX_VALUE}};
+    private static final double[][] CLASS_RANGES = new double[][]{{Double.MIN_VALUE, 45}, {45, 55},
+            {55, 65}, {65, 75},{75, Double.MAX_VALUE}};
 
 
     // For the Charts
@@ -66,13 +66,13 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.measurementManager = new MeasurementManager(getApplicationContext());
+        this.measurementManager = new MeasurementManager(this);
         Intent intent = getIntent();
         if(intent != null && intent.hasExtra(RESULTS_RECORD_ID)) {
-            record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1));
+            record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1), false);
         } else {
             // Read the last stored record
-            List<Storage.Record> recordList = measurementManager.getRecords();
+            List<Storage.Record> recordList = measurementManager.getRecords(false);
             if(!recordList.isEmpty()) {
                 record = recordList.get(recordList.size() - 1);
             } else {
@@ -138,22 +138,8 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         findViewById(R.id.textView_color_LA90)
                 .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa90())]);
 
-
-        // Enabled/disabled history button if necessary
-        ImageButton buttonhistory= (ImageButton) findViewById(R.id.historyBtn);
-        checkHistoryButton();
-        // Action on History button
-        buttonhistory.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Go to history page
-                gotoHistory();
-            }
-        });
-
         // Action on Map button
         ImageButton buttonmap=(ImageButton)findViewById(R.id.mapBtn);
-        buttonmap.setImageResource(R.drawable.button_map);
         buttonmap.setEnabled(true);
         buttonmap.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -165,17 +151,18 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
             }
         });
 
-        // Action on record button
-        ImageButton buttonrecord= (ImageButton) findViewById(R.id.recordBtn);
-        buttonrecord.setOnClickListener(new View.OnClickListener() {
+        // Action on comment button
+        ImageButton buttonComment=(ImageButton)findViewById(R.id.userCommentBtn);
+        buttonComment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Go to Measurement activity
-                Intent im = new Intent(getApplicationContext(),Measurement.class);
-                mDrawerLayout.closeDrawer(mDrawerList);
-                startActivity(im);
+                // Go to map page
+                Intent a = new Intent(getApplicationContext(), CommentActivity.class);
+                a.putExtra(CommentActivity.COMMENT_RECORD_ID, record.getId());
+                startActivity(a);
             }
         });
+
     }
 
     @Override
@@ -240,7 +227,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         // Query database
         List<Integer> frequencies = new ArrayList<Integer>();
         List<Float[]> leqValues = new ArrayList<Float[]>();
-        measurementManager.getRecordValues(record.getId(), frequencies, leqValues);
+        measurementManager.getRecordLeqs(record.getId(), frequencies, leqValues);
 
         // Create leq statistics by frequency
         LeqStats[] leqStatsByFreq = new LeqStats[frequencies.size()];

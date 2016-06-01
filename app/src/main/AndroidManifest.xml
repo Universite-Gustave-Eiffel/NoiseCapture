@@ -1,41 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.noise_planet.noisecapture" >
+    package="org.noise_planet.noisecapture">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <!-- <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />-->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <!-- <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" /> -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <!-- Save shared file permission on privte folder -->
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="18" />
 
     <permission
         android:name="org.noise_planet.noisecapture.MAPS_RECEIVE"
-        android:protectionLevel="signature"/>
-    <uses-permission android:name="com.example.hellomap.permission.MAPS_RECEIVE"/>
+        android:protectionLevel="signature" />
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
 
+    <uses-permission android:name="com.example.hellomap.permission.MAPS_RECEIVE" />
 
     <uses-feature
         android:glEsVersion="0x00020000"
-        android:required="true"/>
+        android:required="true" />
+
     <!-- android:name="android.support.multidex.MultiDexApplication" -->
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.AppCompat"
-
-    >
-
+        android:theme="@style/Theme.AppCompat">
         <provider
             android:name="android.support.v4.content.FileProvider"
             android:authorities="org.noise_planet.noisecapture.fileprovider"
-            android:grantUriPermissions="true"
-            android:exported="false">
+            android:exported="false"
+            android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/filepaths" />
@@ -44,39 +46,35 @@
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
-        <service android:name=".MeasurementService"/>
+
+        <service android:name=".MeasurementService" />
+
         <activity
-            android:name="org.noise_planet.noisecapture.Measurement"
+            android:name=".Measurement"
             android:label="@string/title_activity_measurement"
-            android:screenOrientation="portrait">
-        </activity>
+            android:screenOrientation="portrait"/>
         <activity
-            android:name="org.noise_planet.noisecapture.Results"
+            android:name=".Results"
             android:label="@string/title_activity_results"
-            android:screenOrientation="portrait" >
-        </activity>
+            android:screenOrientation="portrait"/>
         <activity
-            android:name="org.noise_planet.noisecapture.MainActivity"
-            android:label="@string/title_activity_main" >
-        </activity>
+            android:name=".MainActivity"
+            android:label="@string/title_activity_main"/>
         <activity
-            android:name="org.noise_planet.noisecapture.View_html_page"
-            android:label="@string/title_activity_view_html_page" >
-        </activity>
+            android:name=".View_html_page"
+            android:label="@string/title_activity_view_html_page"/>
         <activity
-            android:name="org.noise_planet.noisecapture.Settings"
-            android:label="@string/title_activity_settings" >
-        </activity>
+            android:name=".Settings"
+            android:label="@string/title_activity_settings"/>
         <activity
             android:name=".MapActivity"
             android:label="@string/title_activity_map"
-            android:screenOrientation="portrait" >
-        </activity>
+            android:screenOrientation="portrait"/>
         <activity
-            android:name="org.noise_planet.noisecapture.Start"
+            android:name=".Start"
             android:label="@string/title_activity_start"
             android:noHistory="true"
-            android:screenOrientation="portrait" >
+            android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -84,17 +82,20 @@
             </intent-filter>
         </activity>
         <activity
-            android:name="org.noise_planet.noisecapture.History"
-            android:label="@string/title_activity_history" >
-        </activity>
+            android:name=".History"
+            android:label="@string/title_activity_history"/>
         <activity
-            android:name="org.noise_planet.noisecapture.activity_calibration_start"
-            android:label="@string/title_activity_calibration_start" >
-        </activity>
+            android:name=".activity_calibration_start"
+            android:label="@string/title_activity_calibration_start"/>
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAYoxRofWQ-HVerF_Bb1ysuiXajgYcWlNM"/>
+            android:value="AIzaSyAYoxRofWQ-HVerF_Bb1ysuiXajgYcWlNM" />
 
+        <activity
+            android:name=".CommentActivity"
+            android:label="@string/title_activity_comment"
+            android:windowSoftInputMode="adjustPan"/>
     </application>
 
 </manifest>

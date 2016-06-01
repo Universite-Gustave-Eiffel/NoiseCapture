@@ -6,11 +6,13 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.graphics.Bitmap;
+import android.net.Uri;
 
-import org.orbisgis.sos.LeqStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -29,7 +31,7 @@ public class MeasurementManager {
         // Connect to local database
     }
 
-    public List<Storage.Record> getRecords() {
+    public List<Storage.Record> getRecords(boolean loadThumbnail) {
         List<Storage.Record> records = new ArrayList<>();
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
@@ -113,7 +115,7 @@ public class MeasurementManager {
      * @param leqs Leq value by time and frequency in the same order of frequency list
      * @return True if recordId has been found
      */
-    public boolean getRecordValues(int recordId, List<Integer> frequency, List<Float[]> leqs) {
+    public boolean getRecordLeqs(int recordId, List<Integer> frequency, List<Float[]> leqs) {
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
             Cursor cursor = database.rawQuery("SELECT L." + Storage.Leq.COLUMN_LEQ_ID + ", LV." +
@@ -210,7 +212,7 @@ public class MeasurementManager {
         }
     }
 
-    public Storage.Record getRecord(int recordId) {
+    public Storage.Record getRecord(int recordId, boolean loadThumbnail) {
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
             Cursor cursor = database.rawQuery("SELECT * FROM " + Storage.Record.TABLE_NAME +
@@ -226,6 +228,31 @@ public class MeasurementManager {
             database.close();
         }
         return null;
+    }
+
+    /**
+     * @param recordId Record identifier
+     * @return Associated tags
+     */
+    public List<String> getTags(int recordId) {
+        ArrayList<String> tags = new ArrayList<>();
+        SQLiteDatabase database = storage.getReadableDatabase();
+        try {
+            Cursor cursor = database.rawQuery("SELECT * FROM " + Storage.RecordTag.TABLE_NAME +
+                    " WHERE " + Storage.RecordTag.COLUMN_RECORD_ID + " = ? ORDER BY " +
+                    Storage.RecordTag.COLUMN_TAG_ID, new String[]{String.valueOf(recordId)});
+            try {
+                int tagId = cursor.getColumnIndex(Storage.RecordTag.COLUMN_TAG_SYSTEM_NAME);
+                while (cursor.moveToNext()) {
+                    tags.add(cursor.getString(tagId));
+                }
+            } finally {
+                cursor.close();
+            }
+        } finally {
+            database.close();
+        }
+        return tags;
     }
 
     public void updateRecordFinal(int recordId, float leqMean, int recordTimeLength) {
@@ -302,6 +329,49 @@ public class MeasurementManager {
                     leqValueStatement.bindDouble(3, leqValue.getSpl());
                     leqValueStatement.execute();
                 }
+            }
+            database.setTransactionSuccessful();
+            database.endTransaction();
+        } finally {
+            database.close();
+        }
+    }
+
+    public void updateRecordUserInput(int recordId, String description, Short pleasantness,
+                                      String[] tags, Uri photo_uri) {
+
+        SQLiteDatabase database = storage.getWritableDatabase();
+        try {
+            database.beginTransaction();
+            SQLiteStatement recordStatement = database.compileStatement(
+                    "UPDATE " + Storage.Record.TABLE_NAME +
+                            " SET "+ Storage.Record.COLUMN_DESCRIPTION + " = ?, " +
+                            Storage.Record.COLUMN_PLEASANTNESS + " = ?, " +
+                            Storage.Record.COLUMN_PHOTO_URI + " = ?" +
+                            " WHERE " + Storage.Record.COLUMN_ID + " = ?");
+            recordStatement.clearBindings();
+            recordStatement.bindString(1, description);
+            if(pleasantness != null) {
+                recordStatement.bindLong(2, pleasantness);
+            } else {
+                recordStatement.bindNull(2);
+            }
+            recordStatement.bindString(3, photo_uri != null ? photo_uri.toString() : "");
+            recordStatement.bindLong(4, recordId);
+            recordStatement.executeUpdateDelete();
+            database.delete(Storage.RecordTag.TABLE_NAME,
+                    Storage.RecordTag.COLUMN_RECORD_ID + " = ?" +
+                            "", new String[] {String.valueOf(recordId)});
+            SQLiteStatement tagStatement = database.compileStatement(
+                    "INSERT INTO " + Storage.RecordTag.TABLE_NAME +
+                            "(" + Storage.RecordTag.COLUMN_RECORD_ID + ", " +
+                            Storage.RecordTag.COLUMN_TAG_SYSTEM_NAME + ") " +
+                            " VALUES (?, ?)");
+            for(String sysTag : tags) {
+                tagStatement.clearBindings();
+                tagStatement.bindLong(1, recordId);
+                tagStatement.bindString(2, sysTag);
+                tagStatement.executeInsert();
             }
             database.setTransactionSuccessful();
             database.endTransaction();

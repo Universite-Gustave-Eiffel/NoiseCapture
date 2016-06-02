@@ -105,7 +105,8 @@
 
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="0dp"
+            android:layout_weight="1"
             android:fillViewport="true">
             <LinearLayout
                 android:id="@+id/tags_grid"
@@ -121,7 +122,7 @@
                     android:layout_height="wrap_content"/>
                 </LinearLayout>
         </ScrollView>
-        <Space android:layout_height="0dp" android:layout_width="wrap_content" android:layout_weight="1"/>
+        <!-- <Space android:layout_height="0dp" android:layout_width="wrap_content" android:layout_weight="1"/> -->
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/linearLayout"
             android:layout_width="fill_parent"

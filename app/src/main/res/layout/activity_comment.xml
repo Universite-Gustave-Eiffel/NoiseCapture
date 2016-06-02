@@ -4,10 +4,6 @@
     android:id="@+id/drawer_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-<ScrollView
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:fillViewport="true">
     <LinearLayout
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
@@ -106,19 +102,25 @@
             android:paddingRight="5dp"
             android:text="Tags"
             android:textSize="15sp" />
-        <LinearLayout
-            android:id="@+id/tags_grid"
+
+        <ScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="horizontal">
-            <LinearLayout android:orientation="vertical" android:id="@+id/tags_grid_col1" android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-            <LinearLayout android:orientation="vertical" android:id="@+id/tags_grid_col2"  android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-            <LinearLayout android:orientation="vertical" android:id="@+id/tags_grid_col3"  android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
-            </LinearLayout>
+            android:fillViewport="true">
+            <LinearLayout
+                android:id="@+id/tags_grid"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
+                <LinearLayout android:orientation="vertical" android:id="@+id/tags_grid_col1" android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <LinearLayout android:orientation="vertical" android:id="@+id/tags_grid_col2"  android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                <LinearLayout android:orientation="vertical" android:id="@+id/tags_grid_col3"  android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"/>
+                </LinearLayout>
+        </ScrollView>
         <Space android:layout_height="0dp" android:layout_width="wrap_content" android:layout_weight="1"/>
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/linearLayout"
@@ -138,7 +140,6 @@
 
         </LinearLayout>
     </LinearLayout>
-</ScrollView>
     <ListView
         android:id="@+id/left_drawer"
         android:layout_width="@dimen/list_view_layout_width"

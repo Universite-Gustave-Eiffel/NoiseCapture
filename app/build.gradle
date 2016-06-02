@@ -8,8 +8,8 @@ android {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 3
-        versionName "0.2.0 (alpha)"
+        versionCode 4
+        versionName "0.2.1 (alpha)"
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
         // Enabling multidex support.

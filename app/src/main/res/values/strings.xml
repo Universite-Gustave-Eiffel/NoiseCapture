@@ -217,7 +217,7 @@ meta.properties file are general info on device and record:\n
 - leq_mean Mean equivalent sound level in dB(A) of the measure\n
 - record_utc Record time in epoch millisecond\n
 - DEVICE_MANUFACTURER DEVICE_MODEL DEVICE_PRODUCT Generic Hardware information of measure device\n\n
-track.json 1s samples of measures. Using the geojson format (http://geojson.io)
+track.geojson 1s samples of measures. Using the geojson format (http://geojson.io)
 - leq_mean 1s mean equivalent sound level in dB(A)\n
 - accuracy Localisation precision in m (provided by gps, network or gsm)\n
 - location_utc Localisation fix time in epoch millisecond\n

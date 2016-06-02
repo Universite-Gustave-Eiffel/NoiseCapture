@@ -34,12 +34,13 @@ public class MeasurementExport {
     private MeasurementManager measurementManager;
     private Context context;
     public static final String PROPERTY_FILENAME  = "meta.properties";
-    public static final String README_FILENAME  = "README";
+    public static final String README_FILENAME  = "README.txt";
     public static final String GEOJSON_FILENAME  = "track.geojson";
-    public static final String PROP_MANUFACTURER  = "DEVICE_MANUFACTURER";
-    public static final String PROP_PRODUCT  = "DEVICE_PRODUCT";
-    public static final String PROP_MODEL  = "DEVICE_MODEL";
-    public static final String PROP_UUID = "UUID"; // Random anonymous ID that link non identified user's measure.
+    public static final String PROP_MANUFACTURER  = "device_manufacturer";
+    public static final String PROP_PRODUCT  = "device_product";
+    public static final String PROP_MODEL  = "device_model";
+    public static final String PROP_TAGS  = "tags";
+    public static final String PROP_UUID = "uuid"; // Random anonymous ID that link non identified user's measure.
     public static final String PROP_VERSION_NAME  = "version_name";
     public static final String PROP_BUILD_TIME  = "build_date";
     public static final String PROP_VERSION_INT  = "version_number";
@@ -92,6 +93,7 @@ public class MeasurementExport {
             }
             tagsString.append(tag);
         }
+        properties.setProperty(PROP_TAGS, tagsString.toString());
         zipOutputStream.putNextEntry(new ZipEntry(PROPERTY_FILENAME));
         properties.store(zipOutputStream, "NoiseCapture export header file");
         zipOutputStream.closeEntry();

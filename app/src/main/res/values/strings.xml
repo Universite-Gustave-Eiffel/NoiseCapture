@@ -213,10 +213,12 @@ meta.properties file are general info on device and record:\n
 - build_date Date of APK assembly\n
 - version_number Application version integer\n
 - time_length Record length in seconds\n
-- UUID Random identifier set on first application start\n
+- uuid Random identifier set on first application start\n
 - leq_mean Mean equivalent sound level in dB(A) of the measure\n
 - record_utc Record time in epoch millisecond\n
-- DEVICE_MANUFACTURER DEVICE_MODEL DEVICE_PRODUCT Generic Hardware information of measure device\n\n
+- device_manufacturer device_model device_product Generic Hardware information of measure device\n\n
+- pleasantness User input pleasantness 1-100
+- tags Comma separated values of user selected tags (english only)
 track.geojson 1s samples of measures. Using the geojson format (http://geojson.io)
 - leq_mean 1s mean equivalent sound level in dB(A)\n
 - accuracy Localisation precision in m (provided by gps, network or gsm)\n

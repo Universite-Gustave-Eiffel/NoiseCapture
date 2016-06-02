@@ -43,9 +43,15 @@ public class Start extends Activity {
     try {
         String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
         Date buildDate = new Date(BuildConfig.TIMESTAMP);
+        String gitHash = BuildConfig.GITHASH;
+        if(gitHash == null || gitHash.isEmpty()) {
+            gitHash = "";
+        } else {
+            gitHash = gitHash.substring(0, 7);
+        }
         TextView versionText = (TextView) findViewById(R.id.textView_appversion);
         versionText.setText(getString(R.string.title_appversion, versionName,
-                DateFormat.getDateInstance().format(buildDate)));
+                DateFormat.getDateInstance().format(buildDate), gitHash));
     } catch (PackageManager.NameNotFoundException ex) {
         LOGGER.error(ex.getLocalizedMessage(), ex);
     }

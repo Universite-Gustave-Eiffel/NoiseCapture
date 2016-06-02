@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:text="@string/start_text_title"
             android:id="@+id/textView_title_start_activity"
-            android:textSize="50dp"
+            android:textSize="45sp"
             android:textColor="#0099CC"
             android:layout_gravity="center_horizontal"
             android:gravity="center_horizontal"
@@ -35,7 +35,7 @@
             android:gravity="center_horizontal"
             android:layout_gravity="center_horizontal"
             android:textColor="#0099CC"
-            android:textSize="20dp" />
+            android:textSize="20sp" />
 
         <TextView
             android:layout_width="match_parent"
@@ -44,7 +44,7 @@
             android:gravity="center_horizontal"
             android:layout_gravity="center_horizontal"
             android:textColor="#000000"
-            android:textSize="20dp" />
+            android:textSize="20sp" />
         <ProgressBar
             style="?android:attr/progressBarStyleSmall"
             android:layout_width="match_parent"
@@ -65,7 +65,7 @@
                 android:gravity="center_horizontal"
                 android:layout_gravity="center_horizontal"
                 android:textColor="#000"
-                android:textSize="15dp"
+                android:textSize="15sp"
                 android:layout_marginTop="40dp"
                 android:textStyle="italic" />
 
@@ -116,7 +116,7 @@
                     android:gravity="center_horizontal"
                     android:layout_gravity="center_horizontal"
                     android:textColor="#000"
-                    android:textSize="15dp"
+                    android:textSize="15sp"
                     android:layout_marginTop="40dp"
                     android:layout_marginBottom="0dp"
                     android:textStyle="italic" />

@@ -25,7 +25,7 @@
     <string name="title_activity_history">History</string>
     <string name="title_activity_about">About</string>
     <string name="title_activity_help">Help</string>
-    <string name="title_appversion">Version %1$s %2$s</string>
+    <string name="title_appversion">Version %1$s\n%2$s\nr.%3$s</string>
 
     <!-- Caution dialog box at app launch !-->
     <string name="text_OK">YES, I understand</string>

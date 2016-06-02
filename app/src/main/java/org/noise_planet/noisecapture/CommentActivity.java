@@ -10,9 +10,11 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -52,6 +54,9 @@ public class CommentActivity extends MainActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_comment);
+
+        View mainView = findViewById(R.id.mainLayout);
+        mainView.setOnTouchListener(new MainOnTouchListener(this));
 
         // Read record activity parameter
         // Use last record of no parameter provided
@@ -418,6 +423,23 @@ public class CommentActivity extends MainActivity {
                     new LoadThumbnail(activity).execute(activity.photo_uri);
                 }
             }
+        }
+    }
+
+    private static class MainOnTouchListener implements View.OnTouchListener {
+        CommentActivity activity;
+
+        public MainOnTouchListener(CommentActivity activity) {
+            this.activity = activity;
+        }
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            InputMethodManager imm = (InputMethodManager) activity.getSystemService(INPUT_METHOD_SERVICE);
+            if(activity.getCurrentFocus() != null) {
+                imm.hideSoftInputFromWindow(activity.getCurrentFocus().getWindowToken(), 0);
+            }
+            return false;
         }
     }
 }

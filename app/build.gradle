@@ -1,5 +1,22 @@
 apply plugin: 'com.android.application'
 
+def getCheckedOutGitCommitHash() {
+    def gitFolder = "$rootProject.projectDir/.git/"
+    /*
+     * '.git/HEAD' contains either
+     *      in case of detached head: the currently checked out commit hash
+     *      otherwise: a reference to a file containing the current commit hash
+     */
+    def head = new File(gitFolder + "HEAD").text.split(":") // .git/HEAD
+    def isCommit = head.length == 1 // e5a7c79edabbf7dd39888442df081b1c9d8e88fd
+    // def isRef = head.length > 1     // ref: refs/heads/master
+
+    if(isCommit) return head[0].trim()
+
+    def refHead = new File(gitFolder + head[1].trim()) // .git/refs/heads/master
+    refHead.text.trim()
+}
+
 android {
     compileSdkVersion 23
     buildToolsVersion "23.0.3"
@@ -12,6 +29,7 @@ android {
         versionName "0.2.1 (alpha)"
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
+        buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""
         // Enabling multidex support.
         multiDexEnabled false
 

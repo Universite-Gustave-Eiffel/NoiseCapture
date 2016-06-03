@@ -28,18 +28,19 @@
 
 package org.noise_planet.noisecapture;
 
-import android.os.Bundle;
-import android.preference.PreferenceFragment;
+import android.content.Context;
 
 /**
- * Created by picaut on 15/04/2015.
+ * Communicate with WPS server in order to upload measurements
  */
-public class SettingsFragment extends PreferenceFragment {
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+public class MeasurementUploadWPS {
+    Context context;
 
-        // Load the preferences from an XML resource
-        addPreferencesFromResource(R.xml.settings);
+    public MeasurementUploadWPS(Context context) {
+        this.context = context;
+    }
+
+    public void uploadRecord(int recordId) {
+
     }
 }

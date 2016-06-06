@@ -13,8 +13,7 @@
         android:orientation="vertical"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        android:weightSum="1"
-        android:gravity="center_vertical">
+        android:gravity="center">
 
         <TextView
             android:layout_width="match_parent"
@@ -24,8 +23,9 @@
             android:textSize="45sp"
             android:textColor="#0099CC"
             android:layout_gravity="center_horizontal"
-            android:gravity="center_horizontal"
-            android:textStyle="bold" />
+            android:gravity="center"
+            android:textStyle="bold"
+            android:paddingTop="15dp"/>
 
         <TextView
             android:layout_width="match_parent"
@@ -35,78 +35,70 @@
             android:gravity="center_horizontal"
             android:layout_gravity="center_horizontal"
             android:textColor="#0099CC"
-            android:textSize="20sp" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/textView_appversion"
-            android:gravity="center_horizontal"
-            android:layout_gravity="center_horizontal"
-            android:textColor="#000000"
-            android:textSize="20sp" />
+            android:textSize="15sp" />
         <ProgressBar
             style="?android:attr/progressBarStyleSmall"
             android:layout_width="match_parent"
-            android:layout_height="100dp"
+            android:layout_height="0dp"
             android:id="@+id/progressBar"
-            android:layout_marginTop="20dp" />
+            android:layout_marginTop="5dp"
+            android:layout_weight="3"
+            />
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="fill_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_weight="1">
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/start_text_developed_by"
                 android:id="@+id/textView_Power_by"
-                android:gravity="center_horizontal"
-                android:layout_gravity="center_horizontal"
                 android:textColor="#000"
                 android:textSize="15sp"
-                android:layout_marginTop="40dp"
+                android:gravity="center"
                 android:textStyle="italic" />
 
             <LinearLayout
                 android:orientation="horizontal"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:gravity="center_vertical|center_horizontal"
-                android:weightSum="1">
+                android:gravity="center">
 
                 <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:scaleType="fitCenter"
+                    android:layout_weight="1"
                     android:id="@+id/imageView_CNRS"
-                    android:src="@drawable/cnrs"
-                    android:layout_marginRight="10dp"
-                    android:scaleType="fitXY"
-                    android:minWidth="60dp"
-                    android:minHeight="60dp" />
+                    android:src="@drawable/cnrs" />
 
                 <ImageView
-                    android:layout_width="131dp"
-                    android:layout_height="match_parent"
+                    android:layout_width="80dp"
+                    android:layout_height="80dp"
+                    android:scaleType="fitCenter"
+                    android:layout_weight="2"
+                    android:scaleY="1.8"
+                    android:scaleX="1.8"
                     android:id="@+id/imageView_Ifsttar"
-                    android:src="@drawable/ifsttar"
-                    android:layout_marginLeft="10dp"
-                    android:adjustViewBounds="true"
-                    android:scaleType="centerCrop"
-                    android:maxWidth="50dp"
-                    android:layout_marginTop="0dp" />
+                    android:src="@drawable/ifsttar"/>
 
             </LinearLayout>
+        </LinearLayout>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_weight="1"
+                android:layout_height="wrap_content">
 
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="right"
-                android:id="@+id/LinearLayout"
-                android:weightSum="1">
+                android:id="@+id/LinearLayout">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -117,41 +109,41 @@
                     android:layout_gravity="center_horizontal"
                     android:textColor="#000"
                     android:textSize="15sp"
-                    android:layout_marginTop="40dp"
+                    android:layout_marginTop="15dp"
                     android:layout_marginBottom="0dp"
                     android:textStyle="italic" />
 
                 <LinearLayout
                     android:orientation="horizontal"
                     android:layout_width="fill_parent"
-                    android:layout_height="80dp"
-                    android:layout_gravity="center_horizontal"
-                    android:gravity="center_vertical|center_horizontal"
-                    android:weightSum="1"
-                    android:layout_weight="0.55">
-
-                    <ImageView
-                        android:layout_width="wrap_content"
-                        android:layout_height="78dp"
-                        android:id="@+id/imageView_europe"
-                        android:src="@drawable/europe"
-                        android:layout_marginRight="10dp"
-                        android:layout_weight="0.12"
-                        android:scaleType="centerCrop" />
+                    android:layout_height="wrap_content">
 
                     <ImageView
                         android:layout_width="80dp"
-                        android:layout_height="wrap_content"
+                        android:layout_height="80dp"
+                        android:scaleType="fitCenter"
+                        android:id="@+id/imageView_europe"
+                        android:src="@drawable/europe"
+                        android:layout_weight="1"/>
+
+                    <ImageView
+                        android:layout_width="80dp"
+                        android:layout_height="80dp"
+                        android:scaleType="fitCenter"
+                        android:layout_weight="1"
                         android:id="@+id/imageView_geopal"
-                        android:src="@drawable/geopal"
-                        android:layout_marginLeft="10dp"
-                        android:scaleType="centerCrop"
-                        android:layout_weight="0.16" />
+                        android:src="@drawable/geopal"/>
                 </LinearLayout>
             </LinearLayout>
+            </LinearLayout>
 
-        </LinearLayout>
-
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView_appversion"
+            android:gravity="center"
+            android:textColor="#000000"
+            android:textSize="12sp"/>
     </LinearLayout>
 
 </RelativeLayout>

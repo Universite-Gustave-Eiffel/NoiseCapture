@@ -11,7 +11,7 @@ def getCheckedOutGitCommitHash() {
     def isCommit = head.length == 1 // e5a7c79edabbf7dd39888442df081b1c9d8e88fd
     // def isRef = head.length > 1     // ref: refs/heads/master
 
-    if(isCommit) return head[0].trim()
+    if (isCommit) return head[0].trim()
 
     def refHead = new File(gitFolder + head[1].trim()) // .git/refs/heads/master
     refHead.text.trim()
@@ -32,7 +32,6 @@ android {
         buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""
         // Enabling multidex support.
         multiDexEnabled false
-
 
         // Gradle Plugin 1.5
         // disable limited support for vector drawables fro Android Studio 1.4
@@ -84,16 +83,16 @@ repositories {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.github.PhilJay:MPAndroidChart:v2.0.8'
+    compile 'com.github.PhilJay:MPAndroidChart:v2.2.5'
     compile 'org.slf4j:slf4j-simple:1.7.12'
+    compile 'org.orbisgis:sosfilter:1.0-SNAPSHOT'
     // multithreaded FFT for realtime visualisation of spectrum only
     compile 'com.github.wendykierp:JTransforms:3.1'
     compile 'com.android.support:appcompat-v7:23.2.0'
     compile 'com.android.support:design:23.2.0'
     compile 'com.android.support:support-vector-drawable:23.2.0'
     compile 'com.android.support:animated-vector-drawable:23.2.0'
-    compile 'com.google.android.gms:play-services:7.0.0'
+    compile 'com.google.android.gms:play-services-maps:8.4.0'
     //compile 'com.android.support:multidex:1.0.0'
     // Testing-only dependencies
     // Force usage of support annotations in the test app, since it is internally used by the runner module.
@@ -103,5 +102,4 @@ dependencies {
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
     // unit test on jvm
     testCompile 'org.robolectric:robolectric:3.0'
-    compile project(':sosfilter')
 }

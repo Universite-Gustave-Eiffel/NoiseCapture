@@ -28,7 +28,10 @@
 
 package org.noise_planet.noisecapture.util;
 
-import com.github.mikephil.charting.utils.PercentFormatter;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.formatter.PercentFormatter;
+import com.github.mikephil.charting.utils.ViewPortHandler;
 
 /**
  * Do not show 0% labels
@@ -38,11 +41,21 @@ public class CustomPercentFormatter extends PercentFormatter {
     }
 
     @Override
-    public String getFormattedValue(float value) {
+    public String getFormattedValue(float value, Entry entry, int dataSetIndex, ViewPortHandler viewPortHandler) {
         if(value > 0.00001) {
-            return super.getFormattedValue(value);
+            return super.getFormattedValue(value, entry, dataSetIndex, viewPortHandler);
         } else {
             return "";
         }
     }
+
+    @Override
+    public String getFormattedValue(float value, YAxis yAxis) {
+        if(value > 0.00001) {
+            return super.getFormattedValue(value, yAxis);
+        } else {
+            return "";
+        }
+    }
+
 }

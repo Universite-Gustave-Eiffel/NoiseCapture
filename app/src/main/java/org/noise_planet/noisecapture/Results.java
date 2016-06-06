@@ -56,8 +56,10 @@ import com.github.mikephil.charting.components.Legend.LegendPosition;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.utils.Highlight;
-import com.github.mikephil.charting.utils.PercentFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.formatter.LargeValueFormatter;
+import com.github.mikephil.charting.formatter.PercentFormatter;
+import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
 import org.noise_planet.noisecapture.util.CustomPercentFormatter;
 import org.orbisgis.sos.LeqStats;
@@ -279,7 +281,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         ltob = new String[leqStatsByFreq.length];
         int idFreq = 0;
         for (LeqStats aLeqStatsByFreq : leqStatsByFreq) {
-            ltob[idFreq] = resources.getString(R.string.results_histo_freq, frequencies.get(idFreq));
+            ltob[idFreq] = Spectrogram.formatFrequency(frequencies.get(idFreq));
             splHistogram.add((float) aLeqStatsByFreq.getLeqMean());
             idFreq++;
         }
@@ -292,12 +294,12 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         sChart.setPinchZoom(false);
         sChart.setDrawGridBackground(false);
         sChart.setMaxVisibleValueCount(0);
-        sChart.setHighlightEnabled(false);
         // XAxis parameters: hide all
         XAxis xls = sChart.getXAxis();
         xls.setPosition(XAxisPosition.BOTTOM);
         xls.setDrawAxisLine(true);
         xls.setDrawGridLines(false);
+        xls.setLabelRotationAngle(-90);
         xls.setDrawLabels(true);
         xls.setTextColor(Color.WHITE);
         // YAxis parameters (left): main axis for dB values representation
@@ -336,7 +338,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
                         Color.rgb(102, 178, 255), Color.rgb(102, 178, 255),
                         Color.rgb(102, 178, 255)});
 
-        ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
+        ArrayList<IBarDataSet> dataSets = new ArrayList<IBarDataSet>();
         dataSets.add(set1);
 
         BarData data = new BarData(xVals, dataSets);
@@ -349,7 +351,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
     // Init RNE Pie Chart
     public void initRNEChart(){
         rneChart.setUsePercentValues(true);
-        rneChart.setHoleColorTransparent(true);
+        rneChart.setHoleColor(Color.TRANSPARENT);
         rneChart.setHoleRadius(40f);
         rneChart.setDescription("");
         rneChart.setDrawCenterText(true);
@@ -404,7 +406,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
     public void initNEIChart() {
         // NEI PieChart
         neiChart.setUsePercentValues(true);
-        neiChart.setHoleColorTransparent(true);
+        neiChart.setHoleColor(Color.TRANSPARENT);
         neiChart.setHoleRadius(75f);
         neiChart.setDescription("");
         neiChart.setDrawCenterText(true);

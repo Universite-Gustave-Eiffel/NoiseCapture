@@ -28,15 +28,16 @@
 
 package org.noise_planet.noisecapture;
 
-import com.github.mikephil.charting.utils.ValueFormatter;
+import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.formatter.YAxisValueFormatter;
 
 /**
  * Format value for spectrum histogram
  */
-public class SPLValueFormatter implements ValueFormatter {
+public class SPLValueFormatter implements YAxisValueFormatter {
 
     @Override
-    public String getFormattedValue(float value) {
+    public String getFormattedValue(float value, YAxis yAxis) {
         return String.valueOf((int)value);
     }
 }

@@ -130,7 +130,7 @@ public class Spectrogram extends View {
         }
     }
 
-    private static String formatFrequency(int frequency) {
+    public static String formatFrequency(int frequency) {
         if(frequency > 1000) {
             return String.format("%d kHz", frequency / 1000);
         } else {

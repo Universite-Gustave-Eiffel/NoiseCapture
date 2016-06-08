@@ -1,0 +1,15 @@
+apply plugin: 'groovy'
+
+
+repositories {
+    mavenCentral()
+
+    maven {
+        url "http://repo.boundlessgeo.com/main"
+    }
+}
+
+dependencies {
+    compile 'org.codehaus.groovy:groovy-all:2.4.7'
+    compile group: 'org.eclipse.emf', name: 'org.eclipse.emf.ecore', version: '2.10.1'
+}

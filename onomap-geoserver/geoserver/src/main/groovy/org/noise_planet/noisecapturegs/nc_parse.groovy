@@ -11,7 +11,8 @@
  * Community. The application work is also supported by the French geographic portal GEOPAL of the
  * Pays de la Loire region (http://www.geopal.org).
  *
- * Copyright (C) IFSTTAR - LAE and Lab-STICC – CNRS UMR 6285 Equipe DECIDE Vannes
+ * Copyright (C) 2007-2016 - IFSTTAR - LAE
+ * Lab-STICC – CNRS UMR 6285 Equipe DECIDE Vannes
  *
  * NoiseCapture is a free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation; either version 3 of
@@ -25,18 +26,52 @@
  *  or write to scientific.computing@ifsttar.fr
  */
 
-package org.noise_planet.noisecapture;
+package org.noise_planet.noisecapturegs
 
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.formatter.YAxisValueFormatter;
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 
-/**
- * Format value for spectrum histogram
- */
-public class SPLValueFormatter implements YAxisValueFormatter {
+title = 'nc_parse'
+description = 'Parse uploaded zip files'
 
+inputs = [
+]
+
+outputs = [
+        result: [name: 'result', title: 'Processed files',  type: Integer.class]
+]
+
+class ZipFileFilter implements FilenameFilter {
     @Override
-    public String getFormattedValue(float value, YAxis yAxis) {
-        return String.valueOf((int)value);
+    boolean accept(File dir, String name) {
+        return name.toLowerCase().endsWith(".zip")
     }
+}
+def processFile(File zipFile) {
+    zipFile.withInputStream { is ->
+        ZipInputStream zipInputStream = new ZipInputStream(is)
+        ZipEntry zipEntry
+        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+            if ("track.geojson".equals(zipEntry.getName())) {
+
+            } else if ("metadata.properties".equals(zipEntry.getName())) {
+
+            } else if ("readme.txt".equals(zipEntry.getName())) {
+                //pass
+            } else {
+                // Weird file, ignore it
+                break;
+            }
+        }
+    }
+}
+
+def run(input) {
+    File dataDir = new File("data_dir/onomap_uploading");
+    if(dataDir.exists()) {
+        for(File zipFile : dataDir.listFiles(new ZipFileFilter())) {
+            processFile(zipFile)
+        }
+    }
+    return 0;
 }

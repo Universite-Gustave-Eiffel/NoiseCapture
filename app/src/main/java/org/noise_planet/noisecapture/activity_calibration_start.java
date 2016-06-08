@@ -11,8 +11,7 @@
  * Community. The application work is also supported by the French geographic portal GEOPAL of the
  * Pays de la Loire region (http://www.geopal.org).
  *
- * Copyright (C) 2007-2016 - IFSTTAR - LAE
- * Lab-STICC – CNRS UMR 6285 Equipe DECIDE Vannes
+ * Copyright (C) IFSTTAR - LAE and Lab-STICC – CNRS UMR 6285 Equipe DECIDE Vannes
  *
  * NoiseCapture is a free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation; either version 3 of

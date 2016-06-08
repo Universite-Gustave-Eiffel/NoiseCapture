@@ -11,7 +11,8 @@
  * Community. The application work is also supported by the French geographic portal GEOPAL of the
  * Pays de la Loire region (http://www.geopal.org).
  *
- * Copyright (C) IFSTTAR - LAE and Lab-STICC – CNRS UMR 6285 Equipe DECIDE Vannes
+ * Copyright (C) 2007-2016 - IFSTTAR - LAE
+ * Lab-STICC – CNRS UMR 6285 Equipe DECIDE Vannes
  *
  * NoiseCapture is a free software; you can redistribute it and/or modify it under the terms of the
  * GNU General Public License as published by the Free Software Foundation; either version 3 of
@@ -25,18 +26,33 @@
  *  or write to scientific.computing@ifsttar.fr
  */
 
-package org.noise_planet.noisecapture;
+package org.noise_planet.noisecapturegs
 
-import com.github.mikephil.charting.components.YAxis;
-import com.github.mikephil.charting.formatter.YAxisValueFormatter;
+import org.eclipse.emf.ecore.xml.type.internal.DataValue;
+import java.util.UUID;
 
-/**
- * Format value for spectrum histogram
- */
-public class SPLValueFormatter implements YAxisValueFormatter {
 
-    @Override
-    public String getFormattedValue(float value, YAxis yAxis) {
-        return String.valueOf((int)value);
+title = 'nc_upload'
+description = 'Receive uploaded zip file from NoiseCapture client'
+
+inputs = [
+        encode64ZIP: [name: 'encode64ZIP', title: 'encode64ZIP', type: String.class]
+]
+
+outputs = [
+        result: [name: 'result', title: 'measurement id',  type: String.class]
+]
+
+def Map run(input) {
+    // Archive zip for further processing
+    // build unique identifier of provided zip file
+    id = UUID.randomUUID()
+    File file = new File("data_dir/onomap_uploading", "track_" + id + ".tmp")
+    if(!file.getParentFile().exists()) {
+        file.mkdirs()
     }
+    file << DataValue.Base64.decode(input.encode64ZIP)
+    // write complete, rename file
+    file.renameTo(new File("data_dir/onomap_uploading", "track_" + id + ".zip"))
+    return [result : id]
 }

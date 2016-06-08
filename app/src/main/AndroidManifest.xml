@@ -87,9 +87,11 @@
         </activity>
         <activity
             android:name=".History"
+            android:noHistory="true"
             android:label="@string/title_activity_history"/>
         <activity
             android:name=".activity_calibration_start"
+            android:noHistory="true"
             android:label="@string/title_activity_calibration_start"/>
 
         <meta-data
@@ -98,6 +100,7 @@
 
         <activity
             android:name=".CommentActivity"
+            android:noHistory="true"
             android:label="@string/title_activity_comment"
             android:windowSoftInputMode="adjustPan"/>
     </application>

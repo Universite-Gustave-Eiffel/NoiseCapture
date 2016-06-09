@@ -218,10 +218,12 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         mResultIntent.setDataAndType(fileUri, "application/zip");
         mResultIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
         mResultIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        if(mShareActionProvider != null) {
-            mShareActionProvider.setShareIntent(mResultIntent);
-            mShareActionProvider.setOnShareTargetSelectedListener(this);
+        if(mShareActionProvider == null) {
+            mShareActionProvider = new ShareActionProvider(this);
+            MenuItemCompat.setActionProvider(item, mShareActionProvider);
         }
+        mShareActionProvider.setShareIntent(mResultIntent);
+        mShareActionProvider.setOnShareTargetSelectedListener(this);
         // Return true to display menu
         return true;
     }

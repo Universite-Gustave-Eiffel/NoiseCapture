@@ -28,6 +28,9 @@
 
 package org.noise_planet.noisecapturegs
 
+import java.sql.Connection
+import java.sql.DriverManager
+import java.sql.SQLException
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 
@@ -47,30 +50,69 @@ class ZipFileFilter implements FilenameFilter {
         return name.toLowerCase().endsWith(".zip")
     }
 }
-def processFile(File zipFile) {
-    zipFile.withInputStream { is ->
-        ZipInputStream zipInputStream = new ZipInputStream(is)
-        ZipEntry zipEntry
-        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-            if ("track.geojson".equals(zipEntry.getName())) {
 
-            } else if ("metadata.properties".equals(zipEntry.getName())) {
+def processFile(Connection connection, File zipFile) {
+    try {
+        connection.setAutoCommit(false)
+        zipFile.withInputStream { is ->
+            ZipInputStream zipInputStream = new ZipInputStream(is)
+            ZipEntry zipEntry
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                if ("track.geojson".equals(zipEntry.getName())) {
 
-            } else if ("readme.txt".equals(zipEntry.getName())) {
-                //pass
-            } else {
-                // Weird file, ignore it
-                break;
+                } else if ("metadata.properties".equals(zipEntry.getName())) {
+
+                } else if ("readme.txt".equals(zipEntry.getName())) {
+                    // pass
+                } else {
+                    // Weird file, ignore whole zip file
+                    return;
+                }
             }
         }
+        // Accept changes
+        connection.commit();
+    } catch (SQLException ex) {
+        connection.rollback();
+    } finally {
+        // Move file to processed folder
+        File processedDir = new File("data_dir/onomap_archive");
+        if(!processedDir.exists()) {
+            processedDir.mkdirs()
+        }
+        zipFile.renameTo(new File(processedDir, zipFile.getName()))
     }
 }
-
+def Connection openPostgreSQLConnection() {
+    // Init driver
+    Class.forName("org.postgresql.Driver");
+    // Read login/pass/dbname
+    Properties properties = new Properties();
+    File configFile = new File("onomapdb.properties")
+    if(configFile.exists()) {
+        properties.load(new FileReader(configFile))
+        Connection connection = null;
+        return DriverManager.getConnection(
+                "jdbc:postgresql://localhost:"+properties.getProperty("port")+"/"+properties.getProperty("dbname"),
+                properties.getProperty("username"), properties.getProperty("password"));
+    } else {
+        return null
+    }
+}
 def run(input) {
     File dataDir = new File("data_dir/onomap_uploading");
     if(dataDir.exists()) {
-        for(File zipFile : dataDir.listFiles(new ZipFileFilter())) {
-            processFile(zipFile)
+        File[] files = dataDir.listFiles(new ZipFileFilter())
+        if (files.length != 0) {
+            // Open PostgreSQL connection
+            Connection connection = openPostgreSQLConnection()
+            try {
+                for (File zipFile : files) {
+                    processFile(connection, zipFile)
+                }
+            } finally {
+                connection.close()
+            }
         }
     }
     return 0;

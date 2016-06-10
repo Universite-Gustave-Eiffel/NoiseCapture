@@ -28,9 +28,12 @@
 
 package org.noise_planet.noisecapturegs
 
+import geoserver.catalog.Store
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import geoserver.GeoServer
+import org.geotools.data.DataAccess
+import org.geotools.jdbc.JDBCDataStore
 
 import java.security.InvalidParameterException
 import java.sql.Connection
@@ -118,14 +121,15 @@ def processFile(Connection connection, File zipFile) {
                 " :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
                 " :device_manufacturer, :noise_level, :time_length)", record)[0][0]
         // insert tags
-        if (meta.hasProperty("tags")) {
+        String tags = meta.getProperty("tags", "")
+        if (!tags.isEmpty()) {
             // Cache tags
             Map<String, Integer> tagToIdTag = new HashMap<>()
             sql.eachRow("SELECT pk_tag, tag_name FROM noisecapture_tag") { GroovyRowResult row ->
                 tagToIdTag.put(row.tag_name, row.pk_tag)
             }
             // Insert tags
-            meta.getProperty("tags").tokenize(",").each () { String tag ->
+            tags.tokenize(",").each () { String tag ->
                 def tagId = tagToIdTag.get(tag.toLowerCase())
                 if(tagId == null) {
                     // Insert new tag
@@ -173,15 +177,18 @@ def Connection openPostgreSQLConnection() {
 
 
 def Connection openPostgreSQLDataStoreConnection() {
-    new GeoServer().catalog.getStore("postgis").
+    Store store = new GeoServer().catalog.getStore("postgis")
+    JDBCDataStore jdbcDataStore = (JDBCDataStore)store.getDataStoreInfo().getDataStore(null)
+    return jdbcDataStore.getDataSource().getConnection()
 }
+
 def run(input) {
     File dataDir = new File("data_dir/onomap_uploading");
     if (dataDir.exists()) {
         File[] files = dataDir.listFiles(new ZipFileFilter())
         if (files.length != 0) {
             // Open PostgreSQL connection
-            Connection connection = openPostgreSQLConnection()
+            Connection connection = openPostgreSQLDataStoreConnection()
             try {
                 for (File zipFile : files) {
                     processFile(connection, zipFile)

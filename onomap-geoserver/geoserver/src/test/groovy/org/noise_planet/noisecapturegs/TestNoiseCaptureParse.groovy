@@ -89,7 +89,7 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
             def expected = ["test","indoor","silent"] as Set
             sql.eachRow("SELECT tag_name FROM noisecapture_track_tag TT, noisecapture_tag T WHERE T.PK_TAG = TT.PK_TAG" +
                     " AND TT.PK_TRACK = :pktrack", [pktrack:idTrack]) { ResultSet rowTag ->
-                tagStored.add(rowTag.tag_name)
+                tagStored.add(rowTag.getString("tag_name"))
             }
             assertEquals(expected, tagStored)
         }

@@ -29,6 +29,7 @@
 package org.noise_planet.noisecapturegs
 
 import geoserver.catalog.Store
+import groovy.json.JsonSlurper
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import geoserver.GeoServer
@@ -118,10 +119,10 @@ def processFile(Connection connection, File zipFile) {
                       device_manufacturer: meta.get("device_manufacturer"),
                       noise_level        : Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")),
                       time_length        : meta.get("time_length") as int]
-        int recordId = sql.executeInsert("INSERT INTO noisecapture_track(pk_user, version_number, record_utc," +
+        def recordId = sql.executeInsert("INSERT INTO noisecapture_track(pk_user, version_number, record_utc," +
                 " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length) VALUES (" +
                 " :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
-                " :device_manufacturer, :noise_level, :time_length)", record)[0][0]
+                " :device_manufacturer, :noise_level, :time_length)", record)[0][0] as Integer
         // insert tags
         String tags = meta.getProperty("tags", "")
         if (!tags.isEmpty()) {
@@ -144,6 +145,54 @@ def processFile(Connection connection, File zipFile) {
             }
         }
         // Fetch GeoJSON
+        def jsonSlurper = new JsonSlurper()
+        def jsonRoot
+        zipFile.withInputStream { is ->
+            ZipInputStream zipInputStream = new ZipInputStream(is)
+            ZipEntry zipEntry
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                if ("track.geojson".equals(zipEntry.getName())) {
+                    jsonRoot = jsonSlurper.parse(zipInputStream)
+                    break
+                }
+            }
+        }
+        if(jsonRoot == null) {
+            throw new InvalidParameterException("No track.geojson file")
+        }
+        /*
+        * sql.withBatch(20, """update some_table
+                        set some_column = :newvalue
+                      where id = :key """) { ps ->
+          mymap.each { k,v ->
+              ps.addBatch(key:k, newvalue:v)
+          }
+}
+        * */
+        jsonRoot.features.each() { feature ->
+            def theGeom = "GEOMETRYCOLLECTION EMPTY"
+            if(feature.geometry != null) {
+                def (x, y, z) = feature.geometry.coordinates
+                theGeom = "POINT($x, $y, $z)"
+            }
+            def p = feature.properties
+            def fields = [the_geom     : theGeom,
+                      pk_track     : recordId,
+                      noise_level  : p.leq_mean as Double,
+                      speed        : p.speed as Double,
+                      accuracy     : p.accuracy as Double,
+                      orientation  : p.bearing as Double,
+                      time_date    : new Timestamp(p.leq_utc as Long),
+                      time_location: new Timestamp(p.location_utc as Long)]
+            def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
+                    " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
+                    " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location", fields)[0][0] as Integer
+            // Insert frequency
+            p.findAll{ it.key.startsWith("leq_")}.each { String key, spl ->
+                freq = key.substring("leq_".length())
+            }
+        }
+
 
         // Accept changes
         connection.commit();

@@ -47,6 +47,8 @@ title = 'nc_parse'
 description = 'Parse uploaded zip files'
 
 inputs = [
+        processFileLimit: [name: 'processFileLimit', title: 'Maximum number of file to process, 0 for unlimited',
+                           type: Integer.class]
 ]
 
 outputs = [
@@ -108,14 +110,14 @@ def processFile(Connection connection, File zipFile) {
         }
         // insert record
         Map record = [pk_user            : idUser,
-                      version_number     : meta.getProperty("version_number"),
+                      version_number     : meta.getProperty("version_number") as int,
                       record_utc         : new Timestamp(Long.valueOf(meta.getProperty("record_utc"))),
-                      pleasantness       : meta.getOrDefault("pleasantness", null),
+                      pleasantness       : meta.getOrDefault("pleasantness", null) as int,
                       device_product     : meta.get("device_product"),
                       device_model       : meta.get("device_model"),
                       device_manufacturer: meta.get("device_manufacturer"),
                       noise_level        : Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")),
-                      time_length        : meta.get("time_length")]
+                      time_length        : meta.get("time_length") as int]
         int recordId = sql.executeInsert("INSERT INTO noisecapture_track(pk_user, version_number, record_utc," +
                 " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length) VALUES (" +
                 " :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
@@ -130,7 +132,7 @@ def processFile(Connection connection, File zipFile) {
             }
             // Insert tags
             tags.tokenize(",").each () { String tag ->
-                def tagId = tagToIdTag.get(tag.toLowerCase())
+                def tagId = tagToIdTag.get(tag.toLowerCase()) as Integer
                 if(tagId == null) {
                     // Insert new tag
                     tagId = sql.executeInsert("INSERT INTO noisecapture_tag (tag_name) VALUES (:tag_name)",
@@ -184,6 +186,7 @@ def Connection openPostgreSQLDataStoreConnection() {
 
 def run(input) {
     File dataDir = new File("data_dir/onomap_uploading");
+    int processed = 0
     if (dataDir.exists()) {
         File[] files = dataDir.listFiles(new ZipFileFilter())
         if (files.length != 0) {
@@ -192,11 +195,12 @@ def run(input) {
             try {
                 for (File zipFile : files) {
                     processFile(connection, zipFile)
+                    processed++
                 }
             } finally {
                 connection.close()
             }
         }
     }
-    return 0;
+    return [result : processed]
 }

@@ -1,3 +1,30 @@
+/*
+ * This file is part of the NoiseCapture application and OnoMap system.
+ *
+ * The 'OnoMaP' system is led by Lab-STICC and Ifsttar and generates noise maps via
+ * citizen-contributed noise data.
+ *
+ * This application is co-funded by the ENERGIC-OD Project (European Network for
+ * Redistributing Geospatial Information to user Communities - Open Data). ENERGIC-OD
+ * (http://www.energic-od.eu/) is partially funded under the ICT Policy Support Programme (ICT
+ * PSP) as part of the Competitiveness and Innovation Framework Programme by the European
+ * Community. The application work is also supported by the French geographic portal GEOPAL of the
+ * Pays de la Loire region (http://www.geopal.org).
+ *
+ * Copyright (C) IFSTTAR - LAE and Lab-STICC – CNRS UMR 6285 Equipe DECIDE Vannes
+ *
+ * NoiseCapture is a free software; you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation; either version 3 of
+ * the License, or(at your option) any later version. NoiseCapture is distributed in the hope that
+ * it will be useful,but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.You should have received a copy of the GNU General Public License along with this
+ * program; if not, write to the Free Software Foundation,Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301  USA or see For more information,  write to Ifsttar,
+ * 14-20 Boulevard Newton Cite Descartes, Champs sur Marne F-77447 Marne la Vallee Cedex 2 FRANCE
+ *  or write to scientific.computing@ifsttar.fr
+ */
+
 package org.noise_planet.noisecapture;
 
 import android.app.AlertDialog;
@@ -32,8 +59,10 @@ import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
-import com.github.mikephil.charting.utils.LargeValueFormatter;
-import com.github.mikephil.charting.utils.ValueFormatter;
+import com.github.mikephil.charting.formatter.LargeValueFormatter;
+import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.formatter.YAxisValueFormatter;
+import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
 import org.orbisgis.sos.LeqStats;
 
@@ -193,8 +222,6 @@ public class Measurement extends MainActivity implements
         sChart.setPinchZoom(false);
         sChart.setDrawGridBackground(false);
         sChart.setMaxVisibleValueCount(0);
-        sChart.setDrawValuesForWholeStack(true); // Stacked
-        sChart.setHighlightEnabled(false);
         sChart.setNoDataTextDescription(getText(R.string.no_data_text_description).toString());
         // XAxis parameters:
         XAxis xls = sChart.getXAxis();
@@ -225,7 +252,6 @@ public class Measurement extends MainActivity implements
         mChart.setDrawGridBackground(false);
         mChart.setMaxVisibleValueCount(0);
         mChart.setScaleXEnabled(false); // Disable scaling on the X-axis
-        mChart.setHighlightEnabled(false);
         // XAxis parameters: hide all
         XAxis xlv = mChart.getXAxis();
         xlv.setPosition(XAxisPosition.BOTTOM);
@@ -276,7 +302,7 @@ public class Measurement extends MainActivity implements
     }
 
     // Fix the format of the dB Axis of the vumeter
-    public class dBValueFormatter implements ValueFormatter {
+    public class dBValueFormatter implements YAxisValueFormatter {
 
         private DecimalFormat mFormat;
 
@@ -285,7 +311,7 @@ public class Measurement extends MainActivity implements
         }
 
         @Override
-        public String getFormattedValue(float value) {
+        public String getFormattedValue(float value, YAxis yAxis) {
             return mFormat.format(value);
         }
     }
@@ -305,7 +331,7 @@ public class Measurement extends MainActivity implements
         int nc=getNEcatColors(val);    // Choose the color category in function of the sound level
         set1.setColor(NE_COLORS[nc]);
 
-        ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
+        ArrayList<IBarDataSet> dataSets = new ArrayList<IBarDataSet>();
         dataSets.add(set1);
 
         BarData data = new BarData(xVals, dataSets);
@@ -322,10 +348,8 @@ public class Measurement extends MainActivity implements
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
         double[] freqLabels = measurementService.getAudioProcess().getRealtimeCenterFrequency();
         float[] freqValues = measurementService.getAudioProcess().getThirdOctaveFrequencySPL();
-        LargeValueFormatter largeValueFormatter = new LargeValueFormatter();
-
         for(int idfreq =0; idfreq < freqLabels.length; idfreq++) {
-            xVals.add(largeValueFormatter.getFormattedValue((float)freqLabels[idfreq]));
+            xVals.add(Spectrogram.formatFrequency((int)freqLabels[idfreq]));
             // Sum values
             // Compute frequency range covered by frequency
             yVals1.add(new BarEntry(new float[] {freqValues[idfreq]}, idfreq));
@@ -337,7 +361,7 @@ public class Measurement extends MainActivity implements
                 "SL"
         });
 
-        ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
+        ArrayList<IBarDataSet> dataSets = new ArrayList<IBarDataSet>();
         dataSets.add(set1);
 
         BarData data = new BarData(xVals, dataSets);

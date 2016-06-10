@@ -1,3 +1,30 @@
+/*
+ * This file is part of the NoiseCapture application and OnoMap system.
+ *
+ * The 'OnoMaP' system is led by Lab-STICC and Ifsttar and generates noise maps via
+ * citizen-contributed noise data.
+ *
+ * This application is co-funded by the ENERGIC-OD Project (European Network for
+ * Redistributing Geospatial Information to user Communities - Open Data). ENERGIC-OD
+ * (http://www.energic-od.eu/) is partially funded under the ICT Policy Support Programme (ICT
+ * PSP) as part of the Competitiveness and Innovation Framework Programme by the European
+ * Community. The application work is also supported by the French geographic portal GEOPAL of the
+ * Pays de la Loire region (http://www.geopal.org).
+ *
+ * Copyright (C) IFSTTAR - LAE and Lab-STICC – CNRS UMR 6285 Equipe DECIDE Vannes
+ *
+ * NoiseCapture is a free software; you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation; either version 3 of
+ * the License, or(at your option) any later version. NoiseCapture is distributed in the hope that
+ * it will be useful,but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.You should have received a copy of the GNU General Public License along with this
+ * program; if not, write to the Free Software Foundation,Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301  USA or see For more information,  write to Ifsttar,
+ * 14-20 Boulevard Newton Cite Descartes, Champs sur Marne F-77447 Marne la Vallee Cedex 2 FRANCE
+ *  or write to scientific.computing@ifsttar.fr
+ */
+
 package org.noise_planet.noisecapture;
 
 import android.content.Intent;
@@ -28,8 +55,10 @@ import com.github.mikephil.charting.components.Legend.LegendPosition;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.utils.Highlight;
-import com.github.mikephil.charting.utils.PercentFormatter;
+import com.github.mikephil.charting.highlight.Highlight;
+import com.github.mikephil.charting.formatter.LargeValueFormatter;
+import com.github.mikephil.charting.formatter.PercentFormatter;
+import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
 import org.noise_planet.noisecapture.util.CustomPercentFormatter;
 import org.orbisgis.sos.LeqStats;
@@ -189,10 +218,12 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         mResultIntent.setDataAndType(fileUri, "application/zip");
         mResultIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
         mResultIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        if(mShareActionProvider != null) {
-            mShareActionProvider.setShareIntent(mResultIntent);
-            mShareActionProvider.setOnShareTargetSelectedListener(this);
+        if(mShareActionProvider == null) {
+            mShareActionProvider = new ShareActionProvider(this);
+            MenuItemCompat.setActionProvider(item, mShareActionProvider);
         }
+        mShareActionProvider.setShareIntent(mResultIntent);
+        mShareActionProvider.setOnShareTargetSelectedListener(this);
         // Return true to display menu
         return true;
     }
@@ -251,7 +282,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         ltob = new String[leqStatsByFreq.length];
         int idFreq = 0;
         for (LeqStats aLeqStatsByFreq : leqStatsByFreq) {
-            ltob[idFreq] = resources.getString(R.string.results_histo_freq, frequencies.get(idFreq));
+            ltob[idFreq] = Spectrogram.formatFrequency(frequencies.get(idFreq));
             splHistogram.add((float) aLeqStatsByFreq.getLeqMean());
             idFreq++;
         }
@@ -264,12 +295,12 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         sChart.setPinchZoom(false);
         sChart.setDrawGridBackground(false);
         sChart.setMaxVisibleValueCount(0);
-        sChart.setHighlightEnabled(false);
         // XAxis parameters: hide all
         XAxis xls = sChart.getXAxis();
         xls.setPosition(XAxisPosition.BOTTOM);
         xls.setDrawAxisLine(true);
         xls.setDrawGridLines(false);
+        xls.setLabelRotationAngle(-90);
         xls.setDrawLabels(true);
         xls.setTextColor(Color.WHITE);
         // YAxis parameters (left): main axis for dB values representation
@@ -308,7 +339,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
                         Color.rgb(102, 178, 255), Color.rgb(102, 178, 255),
                         Color.rgb(102, 178, 255)});
 
-        ArrayList<BarDataSet> dataSets = new ArrayList<BarDataSet>();
+        ArrayList<IBarDataSet> dataSets = new ArrayList<IBarDataSet>();
         dataSets.add(set1);
 
         BarData data = new BarData(xVals, dataSets);
@@ -321,7 +352,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
     // Init RNE Pie Chart
     public void initRNEChart(){
         rneChart.setUsePercentValues(true);
-        rneChart.setHoleColorTransparent(true);
+        rneChart.setHoleColor(Color.TRANSPARENT);
         rneChart.setHoleRadius(40f);
         rneChart.setDescription("");
         rneChart.setDrawCenterText(true);
@@ -376,7 +407,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
     public void initNEIChart() {
         // NEI PieChart
         neiChart.setUsePercentValues(true);
-        neiChart.setHoleColorTransparent(true);
+        neiChart.setHoleColor(Color.TRANSPARENT);
         neiChart.setHoleRadius(75f);
         neiChart.setDescription("");
         neiChart.setDrawCenterText(true);

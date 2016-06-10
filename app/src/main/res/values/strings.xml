@@ -25,7 +25,7 @@
     <string name="title_activity_history">History</string>
     <string name="title_activity_about">About</string>
     <string name="title_activity_help">Help</string>
-    <string name="title_appversion">Version %1$s %2$s</string>
+    <string name="title_appversion">Version %1$s %2$s r.%3$s</string>
 
     <!-- Caution dialog box at app launch !-->
     <string name="text_OK">YES, I understand</string>
@@ -62,6 +62,9 @@
     <string name="measurement_dba_min">Min</string>
     <string name="measurement_dba_max">Max</string>
     <string name="measurement_dba_mean">Mean</string>
+    <string name="measurement_dba_la10">LA10</string>
+    <string name="measurement_dba_la50">LA50</string>
+    <string name="measurement_dba_la90">LA90</string>
 
     <!--  Ressources for the spinner calibration !-->
     <string name="title_choice_data_map">Choose data:</string>
@@ -201,6 +204,7 @@
     <string name="measurement_service_disconnected">Measurement service disconnected</string>
     <string name="measurement_service_connected">Measurement service connected</string>
     <string name="measurement_service_canceled">Measurement canceled</string>
+    w
 
     <string name="delete">Delete</string>
     <string name="hint_userinput">Tap here to set a description</string>

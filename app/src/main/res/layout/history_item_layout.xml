@@ -56,7 +56,7 @@
         </LinearLayout>
 
         <ImageView
-            android:layout_width="wrap_content"
+            android:layout_width="@dimen/list_view_layout_width"
             android:layout_height="wrap_content"
             android:id="@+id/history_uploaded"
             app:srcCompat="@drawable/uploaded"

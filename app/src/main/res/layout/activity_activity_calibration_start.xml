@@ -172,7 +172,7 @@
     <ListView
     android:id="@+id/left_drawer"
     android:layout_width="@dimen/list_view_layout_width"
-    android:layout_height="@dimen/list_view_layout_height"
+    android:layout_height="wrap_content"
     android:layout_gravity="start"
     android:choiceMode="singleChoice"
     android:divider="@android:color/transparent"

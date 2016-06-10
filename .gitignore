@@ -4,9 +4,12 @@ app/local.properties
 .DS_Store
 app/build
 sosfilter/build
+onomap-geoserver/geoserver/build
+onomap-geoserver/geoserver/gradle
 /build
 *.iml
 .idea/
 *target/
 *.apk
 *.bat
+onomap-geoserver/geoserver/data_dir

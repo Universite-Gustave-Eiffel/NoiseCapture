@@ -48,6 +48,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -107,7 +108,7 @@ public class MeasurementExport {
         properties.setProperty(PROP_MODEL, Build.MODEL);
         properties.setProperty(PROP_UUID, sharedPref.getString(PROP_UUID, ""));
         properties.setProperty(Storage.Record.COLUMN_UTC, String.valueOf(record.getUtc()));
-        properties.setProperty(Storage.Record.COLUMN_LEQ_MEAN, String.format("%.02f", record.getLeqMean()));
+        properties.setProperty(Storage.Record.COLUMN_LEQ_MEAN, String.format(Locale.US, "%.02f", record.getLeqMean()));
         properties.setProperty(Storage.Record.COLUMN_TIME_LENGTH, String.valueOf(record.getTimeLength()));
         if(record.getPleasantness() != null) {
             properties.setProperty(Storage.Record.COLUMN_PLEASANTNESS, String.valueOf(record.getPleasantness()));

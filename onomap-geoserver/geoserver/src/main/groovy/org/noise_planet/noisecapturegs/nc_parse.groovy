@@ -139,7 +139,7 @@ def processFile(Connection connection, File zipFile) {
         if (!tags.isEmpty()) {
             // Cache tags
             Map<String, Integer> tagToIdTag = new HashMap<>()
-            sql.eachRow("SELECT pk_tag, tag_name FROM noisecapture_tag") { GroovyRowResult row ->
+            sql.eachRow("SELECT pk_tag, tag_name FROM noisecapture_tag") { row ->
                 tagToIdTag.put(row.tag_name, row.pk_tag)
             }
             // Insert tags
@@ -155,6 +155,7 @@ def processFile(Connection connection, File zipFile) {
                         [pktrack:recordId, pktag:tagId])
             }
         }
+
         // Fetch GeoJSON
         def jsonSlurper = new JsonSlurper()
         def jsonRoot

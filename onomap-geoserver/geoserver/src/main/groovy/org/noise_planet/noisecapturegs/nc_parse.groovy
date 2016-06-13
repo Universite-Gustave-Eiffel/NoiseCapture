@@ -33,7 +33,6 @@ import groovy.json.JsonSlurper
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import geoserver.GeoServer
-import org.geotools.data.DataAccess
 import org.geotools.jdbc.JDBCDataStore
 
 import java.security.InvalidParameterException
@@ -113,11 +112,12 @@ def processFile(Connection connection, File zipFile) {
             idUser = res.get("pk_user")
         }
         // Check if this measurement has not been already uploaded
-        def previousTrack = sql.firstRow("SELECT track_uuid FROM  noisecapture_point where record_utc=:recordutc and pk_user=:userid",
-                [recordutc:new Timestamp(Long.valueOf(meta.getProperty("record_utc"))), userid:idUser])
-        if(previousTrack != null) {
-            LOGGER.error("User tried to reupload "+ previousTrack.get("track_uuid"))
-            return;
+        def oldTrackCount = sql.firstRow("SELECT count(*) cpt FROM  noisecapture_track where record_utc=:recordutc and pk_user=:userid",
+                [recordutc:new Timestamp(Long.valueOf(meta.getProperty("record_utc"))), userid:idUser]).cpt as Integer
+        if(oldTrackCount > 0) {
+            def previousTrack = sql.firstRow("SELECT track_uuid FROM  noisecapture_track where record_utc=:recordutc and pk_user=:userid",
+                    [recordutc:new Timestamp(Long.valueOf(meta.getProperty("record_utc"))), userid:idUser])
+            throw new InvalidParameterException("User tried to reupload "+ previousTrack.get("track_uuid"))
         }
         // insert record
         Map record = [track_uuid         : recordUUID,

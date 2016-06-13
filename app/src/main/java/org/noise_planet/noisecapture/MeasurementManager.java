@@ -239,7 +239,7 @@ public class MeasurementManager {
         }
     }
 
-    public Storage.Record getRecord(int recordId, boolean loadThumbnail) {
+    public Storage.Record getRecord(int recordId) {
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
             Cursor cursor = database.rawQuery("SELECT * FROM " + Storage.Record.TABLE_NAME +
@@ -285,9 +285,6 @@ public class MeasurementManager {
     public void updateRecordFinal(int recordId, float leqMean, int recordTimeLength) {
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
-            ContentValues contentValues = new ContentValues();
-            contentValues.put(Storage.Record.COLUMN_UTC, System.currentTimeMillis());
-            contentValues.put(Storage.Record.COLUMN_UPLOAD_ID, "");
             try {
                 database.execSQL("UPDATE " + Storage.Record.TABLE_NAME + " SET " +
                         Storage.Record.COLUMN_LEQ_MEAN + " = ?," +
@@ -300,6 +297,22 @@ public class MeasurementManager {
             database.close();
         }
 
+    }
+
+
+    public void updateRecordUUID(int recordId, String uuid) {
+        SQLiteDatabase database = storage.getWritableDatabase();
+        try {
+            try {
+                database.execSQL("UPDATE " + Storage.Record.TABLE_NAME + " SET " +
+                        Storage.Record.COLUMN_UPLOAD_ID + " = ? WHERE " +
+                        Storage.Record.COLUMN_ID + " = ?", new Object[]{uuid, recordId});
+            } catch (SQLException sqlException) {
+                LOGGER.error(sqlException.getLocalizedMessage(), sqlException);
+            }
+        } finally {
+            database.close();
+        }
     }
 
     /**

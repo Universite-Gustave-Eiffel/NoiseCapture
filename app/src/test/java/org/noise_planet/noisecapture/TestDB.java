@@ -97,7 +97,7 @@ public class TestDB {
         measurementManager.updateRecordFinal(recordId, 49, 2);
 
 
-        Storage.Record incompleteRecord = measurementManager.getRecord(recordId, true);
+        Storage.Record incompleteRecord = measurementManager.getRecord(recordId);
         assertNull(incompleteRecord.getPleasantness());
 
 
@@ -105,7 +105,7 @@ public class TestDB {
         measurementManager.updateRecordUserInput(recordId, "This is a description",
                 (short)2,new String[]{Storage.TAGS[0], Storage.TAGS[4]},
                 Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())));
-        Storage.Record record = measurementManager.getRecord(recordId, true);
+        Storage.Record record = measurementManager.getRecord(recordId);
         assertEquals(Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())),
                 record.getPhotoUri());
 

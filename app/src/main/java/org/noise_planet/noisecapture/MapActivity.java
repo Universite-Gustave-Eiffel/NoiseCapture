@@ -72,7 +72,7 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
         this.measurementManager = new MeasurementManager(getApplicationContext());
         Intent intent = getIntent();
         if(intent != null && intent.hasExtra(RESULTS_RECORD_ID)) {
-            record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1), false);
+            record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1));
         } else {
             // Read the last stored record
             List<Storage.Record> recordList = measurementManager.getRecords(false);

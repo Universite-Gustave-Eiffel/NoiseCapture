@@ -27,11 +27,14 @@
 
 package org.noise_planet.noisecapture;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -52,6 +55,10 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /* Source for example:
@@ -64,6 +71,8 @@ public class History extends MainActivity {
     private MeasurementManager measurementManager;
     private ListView infohistory;
     private SparseBooleanArray mSelectedItemsIds = new SparseBooleanArray();
+    private static final Logger LOGGER = LoggerFactory.getLogger(History.class);
+    private ProgressDialog progress;
 
     InformationHistoryAdapter historyListAdapter;
 
@@ -197,6 +206,12 @@ public class History extends MainActivity {
             historyActivity.startActivity(ir);
         }
 
+        private void launchUpload() {
+            historyActivity.progress = ProgressDialog.show(historyActivity, historyActivity.getText(R.string.upload_progress_title),
+                    historyActivity.getText(R.string.upload_progress_message), true);
+            new Thread(new SendZipToServer(historyActivity, recordId)).start();
+        }
+
         private void launchResult() {
             Intent ir = new Intent(historyActivity.getApplicationContext(), Results.class);
             ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
@@ -213,29 +228,61 @@ public class History extends MainActivity {
         public void onClick(DialogInterface dialog, int which) {
             switch (which) {
                 case 0:
+                    // Upload
+                    launchUpload();
+                    break;
+                case 1:
                     // Comment
                     launchComment();
                     break;
-                case 1:
+                case 2:
                     // Result
                     launchResult();
                     break;
-                case 2:
+                case 3:
                     // Map
                     launchMap();
                     break;
-                case 3:
+                case 4:
                     // Delete record
                     historyActivity.measurementManager.deleteRecord(recordId);
                     historyActivity.historyListAdapter.reload();
                     break;
-                case 4:
-                    // Upload
-                    // TODO upload action
-                    break;
-                case 5:
-                    // TODO Share action
-                    break;
+            }
+        }
+    }
+
+    public static class SendZipToServer implements Runnable {
+        History historyActivity;
+        int recordId;
+
+        public SendZipToServer(History historyActivity, int recordId) {
+            this.historyActivity = historyActivity;
+            this.recordId = recordId;
+        }
+
+        @Override
+        public void run() {
+            MeasurementUploadWPS measurementUploadWPS = new MeasurementUploadWPS(historyActivity);
+            try {
+                measurementUploadWPS.uploadRecord(recordId);
+                historyActivity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        historyActivity.historyListAdapter.reload();
+                    }
+                });
+            } catch (final IOException ex) {
+                LOGGER.error(ex.getLocalizedMessage(), ex);
+                historyActivity.runOnUiThread(new Runnable() {
+                  @Override
+                  public void run() {
+                      Toast.makeText(historyActivity,
+                              ex.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                  }
+              });
+            } finally {
+                historyActivity.progress.dismiss();
             }
         }
     }

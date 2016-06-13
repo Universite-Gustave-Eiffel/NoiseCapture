@@ -100,6 +100,7 @@ def processFile(Connection connection, File zipFile) {
                 Integer.valueOf(meta.getProperty("pleasantness")) <= 100)) {
             throw new InvalidParameterException("Wrong pleasantness \"" + meta.getProperty("pleasantness") + "\"")
         }
+
         // Fetch or insert user
         GroovyRowResult res = sql.firstRow("SELECT * FROM noisecapture_user WHERE user_uuid=:uuid",
                 [uuid: meta.getProperty("uuid")])
@@ -110,6 +111,13 @@ def processFile(Connection connection, File zipFile) {
                     [uuid: meta.getProperty("uuid")])[0][0]
         } else {
             idUser = res.get("pk_user")
+        }
+        // Check if this measurement has not been already uploaded
+        def previousTrack = sql.firstRow("SELECT track_uuid FROM  noisecapture_point where record_utc=:recordutc and pk_user=:userid",
+                [recordutc:new Timestamp(Long.valueOf(meta.getProperty("record_utc"))), userid:idUser])
+        if(previousTrack != null) {
+            LOGGER.error("User tried to reupload "+ previousTrack.get("track_uuid"))
+            return;
         }
         // insert record
         Map record = [track_uuid         : recordUUID,

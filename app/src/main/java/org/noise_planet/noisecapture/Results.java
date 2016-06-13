@@ -98,7 +98,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         this.measurementManager = new MeasurementManager(this);
         Intent intent = getIntent();
         if(intent != null && intent.hasExtra(RESULTS_RECORD_ID)) {
-            record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1), false);
+            record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1));
         } else {
             // Read the last stored record
             List<Storage.Record> recordList = measurementManager.getRecords(false);
@@ -242,7 +242,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
             FileOutputStream fop = new FileOutputStream(file);
             try {
                 MeasurementExport measurementExport = new MeasurementExport(this);
-                measurementExport.exportRecord(this, record.getId(), fop);
+                measurementExport.exportRecord(this, record.getId(), fop, true);
             } finally {
                 fop.close();
             }

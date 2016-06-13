@@ -65,6 +65,8 @@ class ZipFileFilter implements FilenameFilter {
 
 def processFile(Connection connection, File zipFile) {
     try {
+        def zipFileName = zipFile.getName()
+        def recordUUID = zipFileName.substring("track_".length(), zipFileName.length() - ".zip".length())
         connection.setAutoCommit(false)
         def sql = new Sql(connection)
         // Fetch metadata
@@ -110,7 +112,8 @@ def processFile(Connection connection, File zipFile) {
             idUser = res.get("pk_user")
         }
         // insert record
-        Map record = [pk_user            : idUser,
+        Map record = [track_uuid         : recordUUID,
+                      pk_user            : idUser,
                       version_number     : meta.getProperty("version_number") as int,
                       record_utc         : new Timestamp(Long.valueOf(meta.getProperty("record_utc"))),
                       pleasantness       : meta.getOrDefault("pleasantness", null) as int,
@@ -119,9 +122,9 @@ def processFile(Connection connection, File zipFile) {
                       device_manufacturer: meta.get("device_manufacturer"),
                       noise_level        : Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")),
                       time_length        : meta.get("time_length") as int]
-        def recordId = sql.executeInsert("INSERT INTO noisecapture_track(pk_user, version_number, record_utc," +
+        def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
                 " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length) VALUES (" +
-                " :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
+                ":track_uuid, :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
                 " :device_manufacturer, :noise_level, :time_length)", record)[0][0] as Integer
         // insert tags
         String tags = meta.getProperty("tags", "")
@@ -160,15 +163,7 @@ def processFile(Connection connection, File zipFile) {
         if(jsonRoot == null) {
             throw new InvalidParameterException("No track.geojson file")
         }
-        /*
-        * sql.withBatch(20, """update some_table
-                        set some_column = :newvalue
-                      where id = :key """) { ps ->
-          mymap.each { k,v ->
-              ps.addBatch(key:k, newvalue:v)
-          }
-}
-        * */
+
         jsonRoot.features.each() { feature ->
             def theGeom = "GEOMETRYCOLLECTION EMPTY"
             if(feature.geometry != null) {

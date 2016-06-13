@@ -69,7 +69,8 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
     }
 
     void testParse1() {
-        new nc_parse().processFile(connection, new File(TestNoiseCaptureParse.getResource("track1.zip").file))
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
         // Read db; check content
         Sql sql = new Sql(connection)
         assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
@@ -82,6 +83,7 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
             assertEquals(69, row.getInt("pleasantness"))
             assertEquals(84, row.getDouble("time_length"), 0.01)
             assertEquals(72.94, row.getDouble("noise_level"), 0.01)
+            assertEquals("f7ff7498-ddfd-46a3-ab17-36a96c01ba1b", row.getString("track_uuid"))
             assertEquals(new Timestamp(1465474618170), row.getTimestamp("record_utc"))
             // Check tags
             assertEquals(3, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_tag").get("cpt"))
@@ -102,7 +104,8 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
 
     void testWrongUUID() {
         shouldFail(IllegalArgumentException.class) {
-            new nc_parse().processFile(connection, new File(TestNoiseCaptureParse.getResource("track_wrong_uuid.zip").file))
+            new nc_parse().processFile(connection, new File(
+                    TestNoiseCaptureParse.getResource("track_f7ff7498-zzfd-46a3-ab17-36a96c01ba1b.zip.zip").file))
         }
     }
 }

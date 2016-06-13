@@ -105,7 +105,34 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
     void testWrongUUID() {
         shouldFail(IllegalArgumentException.class) {
             new nc_parse().processFile(connection, new File(
-                    TestNoiseCaptureParse.getResource("track_f7ff7498-zzfd-46a3-ab17-36a96c01ba1b.zip.zip").file))
+                    TestNoiseCaptureParse.getResource("track_f7ff7498-zzfd-46a3-ab17-36a96c01ba1b.zip").file))
+        }
+    }
+
+    // Test parse without user feedback
+    void testParseNull() {
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_426f00da-dd68-408f-bd7b-f166ba022f4d.zip").file))
+        // Read db; check content
+        Sql sql = new Sql(connection)
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        sql.eachRow("SELECT * FROM noisecapture_track") { ResultSet row ->
+            Integer idTrack = row.pk_track
+            assertNotNull(idTrack)
+            assertEquals("LGE", row.getString("device_manufacturer"))
+            assertEquals("iproj_vdf_de", row.getString("device_product"))
+            assertEquals("LG-P936", row.getString("device_model"))
+            assertNull(row.getObject("pleasantness"))
+            assertEquals(11, row.getDouble("time_length"), 0.01)
+            assertEquals(73.7, row.getDouble("noise_level"), 0.01)
+            assertEquals("426f00da-dd68-408f-bd7b-f166ba022f4d", row.getString("track_uuid"))
+            assertEquals(new Timestamp(1465826253538), row.getTimestamp("record_utc"))
+            // Check tags
+            assertEquals(0, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_tag").get("cpt"))
+            // Check records
+            assertEquals(11, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_point where pk_track=:idtrack",
+                    [idtrack: idTrack]).get("cpt"))
+            assertEquals(23 * 11, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_freq").get("cpt"))
         }
     }
 }

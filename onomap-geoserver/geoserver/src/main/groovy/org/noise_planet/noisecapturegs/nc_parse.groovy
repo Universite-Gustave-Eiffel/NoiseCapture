@@ -95,7 +95,7 @@ def processFile(Connection connection, File zipFile) {
         if (!(Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")) > 0)) {
             throw new InvalidParameterException("Wrong leq_mean \"" + meta.getProperty("leq_mean") + "\"")
         }
-        if (!(Integer.valueOf(meta.getProperty("pleasantness")) >= 0 &&
+        if (!(meta.getProperty("pleasantness") == null || Integer.valueOf(meta.getProperty("pleasantness")) >= 0 &&
                 Integer.valueOf(meta.getProperty("pleasantness")) <= 100)) {
             throw new InvalidParameterException("Wrong pleasantness \"" + meta.getProperty("pleasantness") + "\"")
         }
@@ -124,7 +124,7 @@ def processFile(Connection connection, File zipFile) {
                       pk_user            : idUser,
                       version_number     : meta.getProperty("version_number") as int,
                       record_utc         : new Timestamp(Long.valueOf(meta.getProperty("record_utc"))),
-                      pleasantness       : meta.getOrDefault("pleasantness", null) as int,
+                      pleasantness       : meta.getOrDefault("pleasantness", null) as Integer,
                       device_product     : meta.get("device_product"),
                       device_model       : meta.get("device_model"),
                       device_manufacturer: meta.get("device_manufacturer"),

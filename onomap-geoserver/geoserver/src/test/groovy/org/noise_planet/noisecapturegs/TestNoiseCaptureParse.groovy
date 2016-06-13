@@ -92,6 +92,11 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
                 tagStored.add(rowTag.getString("tag_name"))
             }
             assertEquals(expected, tagStored)
+            // Check records
+            assertEquals(87, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_point where pk_track=:idtrack",
+                    [idtrack:idTrack]).get("cpt"))
+            assertEquals(23 * 87, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_freq").get("cpt"))
+            
         }
     }
 

@@ -173,7 +173,7 @@ def processFile(Connection connection, File zipFile) {
             def theGeom = "GEOMETRYCOLLECTION EMPTY"
             if(feature.geometry != null) {
                 def (x, y, z) = feature.geometry.coordinates
-                theGeom = "POINT($x, $y, $z)"
+                theGeom = "POINT($x $y $z)" as String
             }
             def p = feature.properties
             def fields = [the_geom     : theGeom,
@@ -186,10 +186,14 @@ def processFile(Connection connection, File zipFile) {
                       time_location: new Timestamp(p.location_utc as Long)]
             def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
                     " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
-                    " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location", fields)[0][0] as Integer
+                    " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location)", fields)[0][0] as Integer
             // Insert frequency
-            p.findAll{ it.key.startsWith("leq_")}.each { String key, spl ->
-                freq = key.substring("leq_".length())
+            sql.withBatch("INSERT INTO noisecapture_freq VALUES (:pkpoint, :freq, :noiselvl)") { batch ->
+                p.findAll { it.key ==~ 'leq_[0-9]{3,5}'}.each { key, spl ->
+                    freq = key.substring("leq_".length()) as Integer
+                    batch.addBatch([pkpoint:ptId, freq:freq, noiselvl:spl as Double])
+                }
+                batch.executeBatch()
             }
         }
 

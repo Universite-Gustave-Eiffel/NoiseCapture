@@ -69,7 +69,8 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
     }
 
     void testParse1() {
-        new nc_parse().processFile(connection, new File(TestNoiseCaptureParse.getResource("track1.zip").file))
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
         // Read db; check content
         Sql sql = new Sql(connection)
         assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
@@ -82,6 +83,7 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
             assertEquals(69, row.getInt("pleasantness"))
             assertEquals(84, row.getDouble("time_length"), 0.01)
             assertEquals(72.94, row.getDouble("noise_level"), 0.01)
+            assertEquals("f7ff7498-ddfd-46a3-ab17-36a96c01ba1b", row.getString("track_uuid"))
             assertEquals(new Timestamp(1465474618170), row.getTimestamp("record_utc"))
             // Check tags
             assertEquals(3, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_tag").get("cpt"))
@@ -89,15 +91,86 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
             def expected = ["test","indoor","silent"] as Set
             sql.eachRow("SELECT tag_name FROM noisecapture_track_tag TT, noisecapture_tag T WHERE T.PK_TAG = TT.PK_TAG" +
                     " AND TT.PK_TRACK = :pktrack", [pktrack:idTrack]) { ResultSet rowTag ->
-                tagStored.add(rowTag.tag_name)
+                tagStored.add(rowTag.getString("tag_name"))
             }
             assertEquals(expected, tagStored)
+            // Check records
+            assertEquals(87, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_point where pk_track=:idtrack",
+                    [idtrack:idTrack]).get("cpt"))
+            assertEquals(23 * 87, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_freq").get("cpt"))
+            
         }
     }
 
     void testWrongUUID() {
         shouldFail(IllegalArgumentException.class) {
-            new nc_parse().processFile(connection, new File(TestNoiseCaptureParse.getResource("track_wrong_uuid.zip").file))
+            new nc_parse().processFile(connection, new File(
+                    TestNoiseCaptureParse.getResource("track_f7ff7498-zzfd-46a3-ab17-36a96c01ba1b.zip").file))
+        }
+    }
+
+    // Test parse without user feedback
+    void testParseNull() {
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_426f00da-dd68-408f-bd7b-f166ba022f4d.zip").file))
+        // Read db; check content
+        Sql sql = new Sql(connection)
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        sql.eachRow("SELECT * FROM noisecapture_track") { ResultSet row ->
+            Integer idTrack = row.pk_track
+            assertNotNull(idTrack)
+            assertEquals("LGE", row.getString("device_manufacturer"))
+            assertEquals("iproj_vdf_de", row.getString("device_product"))
+            assertEquals("LG-P936", row.getString("device_model"))
+            assertNull(row.getObject("pleasantness"))
+            assertEquals(11, row.getDouble("time_length"), 0.01)
+            assertEquals(73.7, row.getDouble("noise_level"), 0.01)
+            assertEquals("426f00da-dd68-408f-bd7b-f166ba022f4d", row.getString("track_uuid"))
+            assertEquals(new Timestamp(1465826253538), row.getTimestamp("record_utc"))
+            // Check tags
+            assertEquals(0, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_tag").get("cpt"))
+            // Check records
+            assertEquals(11, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_point where pk_track=:idtrack",
+                    [idtrack: idTrack]).get("cpt"))
+            assertEquals(23 * 11, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_freq").get("cpt"))
+        }
+    }
+
+
+
+    void testParseWidthExistingTags() {
+        Sql sql = new Sql(connection)
+        sql.executeInsert("INSERT INTO noisecapture_tag (tag_name) VALUES (:tag_name)",
+                [tag_name:"nature"])
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
+        // Read db; check content
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        sql.eachRow("SELECT * FROM noisecapture_track") { ResultSet row ->
+            Integer idTrack = row.pk_track
+            assertNotNull(idTrack)
+            assertEquals("Logicom", row.getString("device_manufacturer"))
+            assertEquals("L-ITE502", row.getString("device_product"))
+            assertEquals("L-ITE 502", row.getString("device_model"))
+            assertEquals(69, row.getInt("pleasantness"))
+            assertEquals(84, row.getDouble("time_length"), 0.01)
+            assertEquals(72.94, row.getDouble("noise_level"), 0.01)
+            assertEquals("f7ff7498-ddfd-46a3-ab17-36a96c01ba1b", row.getString("track_uuid"))
+            assertEquals(new Timestamp(1465474618170), row.getTimestamp("record_utc"))
+            // Check tags
+            assertEquals(4, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_tag").get("cpt"))
+            Set<String> tagStored = new HashSet()
+            def expected = ["test","indoor","silent"] as Set
+            sql.eachRow("SELECT tag_name FROM noisecapture_track_tag TT, noisecapture_tag T WHERE T.PK_TAG = TT.PK_TAG" +
+                    " AND TT.PK_TRACK = :pktrack", [pktrack:idTrack]) { ResultSet rowTag ->
+                tagStored.add(rowTag.getString("tag_name"))
+            }
+            assertEquals(expected, tagStored)
+            // Check records
+            assertEquals(87, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_point where pk_track=:idtrack",
+                    [idtrack:idTrack]).get("cpt"))
+            assertEquals(23 * 87, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_freq").get("cpt"))
+
         }
     }
 }

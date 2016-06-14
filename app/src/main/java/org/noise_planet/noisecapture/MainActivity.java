@@ -28,7 +28,9 @@
 package org.noise_planet.noisecapture;
 
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -45,13 +47,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Toast;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 
 public class MainActivity extends AppCompatActivity {
     // Color for noise exposition representation
     public int[] NE_COLORS;
+    protected static final Logger MAINLOGGER = LoggerFactory.getLogger(MainActivity.class);
 
     // For the list view
     public ListView mDrawerList;
@@ -128,6 +136,18 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    @Override
+    public void onBackPressed() {
+        if(!(this instanceof Measurement)) {
+            Intent im = new Intent(getApplicationContext(),Measurement.class);
+            mDrawerLayout.closeDrawer(mDrawerList);
+            startActivity(im);
+            finish();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
 
         Integer recordId;
@@ -144,6 +164,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent im = new Intent(getApplicationContext(),Measurement.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(im);
+                    finish();
                     break;
                 case 1:
                     // Comment
@@ -153,6 +174,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ir);
+                    finish();
                     break;
                 case 2:
                     // Results
@@ -162,11 +184,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ir);
+                    finish();
                     break;
                 case 3:
                     // History
                     Intent a = new Intent(getApplicationContext(), History.class);
                     startActivity(a);
+                    finish();
                     mDrawerLayout.closeDrawer(mDrawerList);
                     break;
                 case 4:
@@ -176,6 +200,7 @@ public class MainActivity extends AppCompatActivity {
                         Intent imap = new Intent(getApplicationContext(), MapActivity.class);
                         //mDrawerLayout.closeDrawer(mDrawerList);
                         startActivity(imap);
+                        finish();
                     }
                     else {
                         DialogBoxDataTransfer();
@@ -186,6 +211,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent ics = new Intent(getApplicationContext(), activity_calibration_start.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ics);
+                    finish();
                     break;
                 case 6:
                     Intent ih = new Intent(getApplicationContext(),View_html_page.class);
@@ -195,6 +221,7 @@ public class MainActivity extends AppCompatActivity {
                     ih.putExtra(this.getClass().getPackage().getName() + ".titletosee",
                             getString(R.string.title_activity_help));
                     startActivity(ih);
+                    finish();
                     break;
                 case 7:
                     Intent ia = new Intent(getApplicationContext(),View_html_page.class);
@@ -204,6 +231,7 @@ public class MainActivity extends AppCompatActivity {
                             getString(R.string.title_activity_about));
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ia);
+                    finish();
                     break;
                 default:
                     break;
@@ -299,6 +327,50 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    public static final class SendZipToServer implements Runnable {
+        private Activity activity;
+        private int recordId;
+        private ProgressDialog progress;
+        private final OnUploadedListener listener;
+
+        public SendZipToServer(Activity activity, int recordId, ProgressDialog progress, OnUploadedListener listener) {
+            this.activity = activity;
+            this.recordId = recordId;
+            this.progress = progress;
+            this.listener = listener;
+        }
+
+        @Override
+        public void run() {
+            MeasurementUploadWPS measurementUploadWPS = new MeasurementUploadWPS(activity);
+            try {
+                measurementUploadWPS.uploadRecord(recordId);
+                if(listener != null) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onMeasurementUploaded();
+                        }
+                    });
+                }
+            } catch (final IOException ex) {
+                MAINLOGGER.error(ex.getLocalizedMessage(), ex);
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(activity,
+                                ex.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+            } finally {
+                progress.dismiss();
+            }
+        }
+    }
+
+    public interface OnUploadedListener {
+        void onMeasurementUploaded();
+    }
     // Choose color category in function of sound level
     public static int getNEcatColors(double SL) {
 

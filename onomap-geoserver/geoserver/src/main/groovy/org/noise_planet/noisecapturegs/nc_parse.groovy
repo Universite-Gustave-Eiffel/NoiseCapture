@@ -28,9 +28,12 @@
 
 package org.noise_planet.noisecapturegs
 
+import geoserver.catalog.Store
+import groovy.json.JsonSlurper
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import geoserver.GeoServer
+import org.geotools.jdbc.JDBCDataStore
 
 import java.security.InvalidParameterException
 import java.sql.Connection
@@ -44,6 +47,8 @@ title = 'nc_parse'
 description = 'Parse uploaded zip files'
 
 inputs = [
+        processFileLimit: [name: 'processFileLimit', title: 'Maximum number of file to process, 0 for unlimited',
+                           type: Integer.class]
 ]
 
 outputs = [
@@ -59,6 +64,8 @@ class ZipFileFilter implements FilenameFilter {
 
 def processFile(Connection connection, File zipFile) {
     try {
+        def zipFileName = zipFile.getName()
+        def recordUUID = zipFileName.substring("track_".length(), zipFileName.length() - ".zip".length())
         connection.setAutoCommit(false)
         def sql = new Sql(connection)
         // Fetch metadata
@@ -88,10 +95,11 @@ def processFile(Connection connection, File zipFile) {
         if (!(Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")) > 0)) {
             throw new InvalidParameterException("Wrong leq_mean \"" + meta.getProperty("leq_mean") + "\"")
         }
-        if (!(Integer.valueOf(meta.getProperty("pleasantness")) >= 0 &&
+        if (!(meta.getProperty("pleasantness") == null || Integer.valueOf(meta.getProperty("pleasantness")) >= 0 &&
                 Integer.valueOf(meta.getProperty("pleasantness")) <= 100)) {
             throw new InvalidParameterException("Wrong pleasantness \"" + meta.getProperty("pleasantness") + "\"")
         }
+
         // Fetch or insert user
         GroovyRowResult res = sql.firstRow("SELECT * FROM noisecapture_user WHERE user_uuid=:uuid",
                 [uuid: meta.getProperty("uuid")])
@@ -103,30 +111,40 @@ def processFile(Connection connection, File zipFile) {
         } else {
             idUser = res.get("pk_user")
         }
+        // Check if this measurement has not been already uploaded
+        def oldTrackCount = sql.firstRow("SELECT count(*) cpt FROM  noisecapture_track where record_utc=:recordutc and pk_user=:userid",
+                [recordutc:new Timestamp(Long.valueOf(meta.getProperty("record_utc"))), userid:idUser]).cpt as Integer
+        if(oldTrackCount > 0) {
+            def previousTrack = sql.firstRow("SELECT track_uuid FROM  noisecapture_track where record_utc=:recordutc and pk_user=:userid",
+                    [recordutc:new Timestamp(Long.valueOf(meta.getProperty("record_utc"))), userid:idUser])
+            throw new InvalidParameterException("User tried to reupload "+ previousTrack.get("track_uuid"))
+        }
         // insert record
-        Map record = [pk_user            : idUser,
-                      version_number     : meta.getProperty("version_number"),
+        Map record = [track_uuid         : recordUUID,
+                      pk_user            : idUser,
+                      version_number     : meta.getProperty("version_number") as int,
                       record_utc         : new Timestamp(Long.valueOf(meta.getProperty("record_utc"))),
-                      pleasantness       : meta.getOrDefault("pleasantness", null),
+                      pleasantness       : meta.getOrDefault("pleasantness", null) as Integer,
                       device_product     : meta.get("device_product"),
                       device_model       : meta.get("device_model"),
                       device_manufacturer: meta.get("device_manufacturer"),
                       noise_level        : Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")),
-                      time_length        : meta.get("time_length")]
-        int recordId = sql.executeInsert("INSERT INTO noisecapture_track(pk_user, version_number, record_utc," +
+                      time_length        : meta.get("time_length") as int]
+        def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
                 " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length) VALUES (" +
-                " :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
-                " :device_manufacturer, :noise_level, :time_length)", record)[0][0]
+                ":track_uuid, :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
+                " :device_manufacturer, :noise_level, :time_length)", record)[0][0] as Integer
         // insert tags
-        if (meta.hasProperty("tags")) {
+        String tags = meta.getProperty("tags", "")
+        if (!tags.isEmpty()) {
             // Cache tags
             Map<String, Integer> tagToIdTag = new HashMap<>()
-            sql.eachRow("SELECT pk_tag, tag_name FROM noisecapture_tag") { GroovyRowResult row ->
+            sql.eachRow("SELECT pk_tag, tag_name FROM noisecapture_tag") { row ->
                 tagToIdTag.put(row.tag_name, row.pk_tag)
             }
             // Insert tags
-            meta.getProperty("tags").tokenize(",").each () { String tag ->
-                def tagId = tagToIdTag.get(tag.toLowerCase())
+            tags.tokenize(",").each () { String tag ->
+                def tagId = tagToIdTag.get(tag.toLowerCase()) as Integer
                 if(tagId == null) {
                     // Insert new tag
                     tagId = sql.executeInsert("INSERT INTO noisecapture_tag (tag_name) VALUES (:tag_name)",
@@ -137,7 +155,52 @@ def processFile(Connection connection, File zipFile) {
                         [pktrack:recordId, pktag:tagId])
             }
         }
+
         // Fetch GeoJSON
+        def jsonSlurper = new JsonSlurper()
+        def jsonRoot
+        zipFile.withInputStream { is ->
+            ZipInputStream zipInputStream = new ZipInputStream(is)
+            ZipEntry zipEntry
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                if ("track.geojson".equals(zipEntry.getName())) {
+                    jsonRoot = jsonSlurper.parse(zipInputStream)
+                    break
+                }
+            }
+        }
+        if(jsonRoot == null) {
+            throw new InvalidParameterException("No track.geojson file")
+        }
+
+        jsonRoot.features.each() { feature ->
+            def theGeom = "GEOMETRYCOLLECTION EMPTY"
+            if(feature.geometry != null) {
+                def (x, y, z) = feature.geometry.coordinates
+                theGeom = "POINT($x $y $z)" as String
+            }
+            def p = feature.properties
+            def fields = [the_geom     : theGeom,
+                      pk_track     : recordId,
+                      noise_level  : p.leq_mean as Double,
+                      speed        : p.speed as Double,
+                      accuracy     : p.accuracy as Double,
+                      orientation  : p.bearing as Double,
+                      time_date    : new Timestamp(p.leq_utc as Long),
+                      time_location: new Timestamp(p.location_utc as Long)]
+            def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
+                    " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
+                    " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location)", fields)[0][0] as Integer
+            // Insert frequency
+            sql.withBatch("INSERT INTO noisecapture_freq VALUES (:pkpoint, :freq, :noiselvl)") { batch ->
+                p.findAll { it.key ==~ 'leq_[0-9]{3,5}'}.each { key, spl ->
+                    freq = key.substring("leq_".length()) as Integer
+                    batch.addBatch([pkpoint:ptId, freq:freq, noiselvl:spl as Double])
+                }
+                batch.executeBatch()
+            }
+        }
+
 
         // Accept changes
         connection.commit();
@@ -173,23 +236,28 @@ def Connection openPostgreSQLConnection() {
 
 
 def Connection openPostgreSQLDataStoreConnection() {
-    new GeoServer().catalog.getStore("postgis").
+    Store store = new GeoServer().catalog.getStore("postgis")
+    JDBCDataStore jdbcDataStore = (JDBCDataStore)store.getDataStoreInfo().getDataStore(null)
+    return jdbcDataStore.getDataSource().getConnection()
 }
+
 def run(input) {
     File dataDir = new File("data_dir/onomap_uploading");
+    int processed = 0
     if (dataDir.exists()) {
         File[] files = dataDir.listFiles(new ZipFileFilter())
         if (files.length != 0) {
             // Open PostgreSQL connection
-            Connection connection = openPostgreSQLConnection()
+            Connection connection = openPostgreSQLDataStoreConnection()
             try {
                 for (File zipFile : files) {
                     processFile(connection, zipFile)
+                    processed++
                 }
             } finally {
                 connection.close()
             }
         }
     }
-    return 0;
+    return [result : processed]
 }

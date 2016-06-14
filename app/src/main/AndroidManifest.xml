@@ -56,7 +56,6 @@
         <activity
             android:name=".Results"
             android:label="@string/title_activity_results"
-            android:noHistory="true"
             android:screenOrientation="portrait"/>
         <activity
             android:name=".MainActivity"
@@ -72,7 +71,6 @@
         <activity
             android:name=".MapActivity"
             android:label="@string/title_activity_map"
-            android:noHistory="true"
             android:screenOrientation="portrait"/>
         <activity
             android:name=".Start"
@@ -87,11 +85,9 @@
         </activity>
         <activity
             android:name=".History"
-            android:noHistory="true"
             android:label="@string/title_activity_history"/>
         <activity
             android:name=".activity_calibration_start"
-            android:noHistory="true"
             android:label="@string/title_activity_calibration_start"/>
 
         <meta-data
@@ -100,7 +96,6 @@
 
         <activity
             android:name=".CommentActivity"
-            android:noHistory="true"
             android:label="@string/title_activity_comment"
             android:windowSoftInputMode="adjustPan"/>
     </application>

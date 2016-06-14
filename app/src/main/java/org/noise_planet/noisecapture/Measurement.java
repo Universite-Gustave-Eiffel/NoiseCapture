@@ -39,7 +39,9 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.os.Process;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentManager;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Chronometer;
@@ -409,6 +411,7 @@ public class Measurement extends MainActivity implements
                         ir.putExtra(Results.RESULTS_RECORD_ID,
                                 activity.measurementService.getRecordId());
                         activity.startActivity(ir);
+                        activity.finish();
                     }
                 });
 

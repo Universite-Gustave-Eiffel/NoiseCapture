@@ -84,10 +84,10 @@ public class MeasurementExport {
      * @param outputStream Data output target
      * @throws IOException output error
      */
-    public void exportRecord(Activity activity, int recordId, OutputStream outputStream) throws IOException {
+    public void exportRecord(Activity activity, int recordId, OutputStream outputStream,boolean exportReadme) throws IOException {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
-        Storage.Record record = measurementManager.getRecord(recordId, false);
+        Storage.Record record = measurementManager.getRecord(recordId);
 
         // Property file
         Properties properties = new Properties();
@@ -190,16 +190,18 @@ public class MeasurementExport {
             writer.flush();
             zipOutputStream.closeEntry();
 
-            // Readme file
-            zipOutputStream.putNextEntry(new ZipEntry(README_FILENAME));
-            writer = new OutputStreamWriter(zipOutputStream);
-            writer.write(activity.getString(R.string.export_zip_info));
-            writer.flush();
-            zipOutputStream.closeEntry();
+            if(exportReadme) {
+                // Readme file
+                zipOutputStream.putNextEntry(new ZipEntry(README_FILENAME));
+                writer = new OutputStreamWriter(zipOutputStream);
+                writer.write(activity.getString(R.string.export_zip_info));
+                writer.flush();
+                zipOutputStream.closeEntry();
+            }
         } catch (JSONException ex ) {
             throw new IOException(ex);
         } finally {
-            zipOutputStream.close();
+            zipOutputStream.finish();
         }
     }
 

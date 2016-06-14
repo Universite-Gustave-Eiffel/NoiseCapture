@@ -1,0 +1,10 @@
+</wps:LiteralData>
+    </wps:Data>
+    </wps:Input>
+    </wps:DataInputs>
+<wps:ResponseForm>
+    <wps:RawDataOutput>
+        <ows:Identifier>result</ows:Identifier>
+    </wps:RawDataOutput>
+</wps:ResponseForm>
+    </wps:Execute>

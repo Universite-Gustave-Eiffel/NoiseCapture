@@ -247,6 +247,13 @@
             app:srcCompat="@drawable/user_input_activity"
             android:scaleType="fitCenter"
             android:background="#00000000" />
+        <ImageButton android:id="@+id/uploadBtn"
+            android:layout_width="64dip"
+            android:layout_height="64dip"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/button_export"
+            android:scaleType="fitCenter"
+            android:background="#00000000" />
         <ImageButton android:id="@+id/mapBtn"
             android:layout_width="64dip"
             android:layout_height="64dip"

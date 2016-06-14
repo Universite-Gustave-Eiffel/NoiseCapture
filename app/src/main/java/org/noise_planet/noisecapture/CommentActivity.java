@@ -90,7 +90,7 @@ public class CommentActivity extends MainActivity {
         this.measurementManager = new MeasurementManager(this);
         Intent intent = getIntent();
         if(intent != null && intent.hasExtra(COMMENT_RECORD_ID)) {
-            record = measurementManager.getRecord(intent.getIntExtra(COMMENT_RECORD_ID, -1), false);
+            record = measurementManager.getRecord(intent.getIntExtra(COMMENT_RECORD_ID, -1));
         } else {
             // Read the last stored record
             List<Storage.Record> recordList = measurementManager.getRecords(false);

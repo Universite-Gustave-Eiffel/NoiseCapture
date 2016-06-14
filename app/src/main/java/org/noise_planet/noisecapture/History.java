@@ -27,11 +27,14 @@
 
 package org.noise_planet.noisecapture;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -52,6 +55,10 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 /* Source for example:
@@ -64,6 +71,8 @@ public class History extends MainActivity {
     private MeasurementManager measurementManager;
     private ListView infohistory;
     private SparseBooleanArray mSelectedItemsIds = new SparseBooleanArray();
+    private static final Logger LOGGER = LoggerFactory.getLogger(History.class);
+    private ProgressDialog progress;
 
     InformationHistoryAdapter historyListAdapter;
 
@@ -194,18 +203,27 @@ public class History extends MainActivity {
         private void launchComment() {
             Intent ir = new Intent(historyActivity.getApplicationContext(), CommentActivity.class);
             ir.putExtra(CommentActivity.COMMENT_RECORD_ID, recordId);
+            historyActivity.finish();
             historyActivity.startActivity(ir);
+        }
+
+        private void launchUpload() {
+            historyActivity.progress = ProgressDialog.show(historyActivity, historyActivity.getText(R.string.upload_progress_title),
+                    historyActivity.getText(R.string.upload_progress_message), true);
+            new Thread(new SendZipToServer(historyActivity, recordId, historyActivity.progress, new RefreshListener(historyActivity.historyListAdapter))).start();
         }
 
         private void launchResult() {
             Intent ir = new Intent(historyActivity.getApplicationContext(), Results.class);
             ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
+            historyActivity.finish();
             historyActivity.startActivity(ir);
         }
 
         private void launchMap() {
             Intent ir = new Intent(historyActivity.getApplicationContext(), MapActivity.class);
             ir.putExtra(MapActivity.RESULTS_RECORD_ID, recordId);
+            historyActivity.finish();
             historyActivity.startActivity(ir);
         }
 
@@ -213,33 +231,44 @@ public class History extends MainActivity {
         public void onClick(DialogInterface dialog, int which) {
             switch (which) {
                 case 0:
+                    // Upload
+                    launchUpload();
+                    break;
+                case 1:
                     // Comment
                     launchComment();
                     break;
-                case 1:
+                case 2:
                     // Result
                     launchResult();
                     break;
-                case 2:
+                case 3:
                     // Map
                     launchMap();
                     break;
-                case 3:
+                case 4:
                     // Delete record
                     historyActivity.measurementManager.deleteRecord(recordId);
                     historyActivity.historyListAdapter.reload();
-                    break;
-                case 4:
-                    // Upload
-                    // TODO upload action
-                    break;
-                case 5:
-                    // TODO Share action
                     break;
             }
         }
     }
 
+
+    private static final class RefreshListener implements OnUploadedListener {
+
+        private InformationHistoryAdapter historyListAdapter;
+
+        public RefreshListener(InformationHistoryAdapter historyListAdapter) {
+            this.historyListAdapter = historyListAdapter;
+        }
+
+        @Override
+        public void onMeasurementUploaded() {
+            historyListAdapter.reload();
+        }
+    }
     public static class InformationHistoryAdapter extends BaseAdapter {
         private List<Storage.Record> informationHistoryList;
         private History activity;

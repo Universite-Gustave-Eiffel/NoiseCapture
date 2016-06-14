@@ -35,6 +35,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
@@ -128,6 +129,18 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    @Override
+    public void onBackPressed() {
+        if(!(this instanceof Measurement)) {
+            Intent im = new Intent(getApplicationContext(),Measurement.class);
+            mDrawerLayout.closeDrawer(mDrawerList);
+            startActivity(im);
+            finish();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
     private class DrawerItemClickListener implements ListView.OnItemClickListener {
 
         Integer recordId;
@@ -144,6 +157,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent im = new Intent(getApplicationContext(),Measurement.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(im);
+                    finish();
                     break;
                 case 1:
                     // Comment
@@ -153,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ir);
+                    finish();
                     break;
                 case 2:
                     // Results
@@ -162,11 +177,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ir);
+                    finish();
                     break;
                 case 3:
                     // History
                     Intent a = new Intent(getApplicationContext(), History.class);
                     startActivity(a);
+                    finish();
                     mDrawerLayout.closeDrawer(mDrawerList);
                     break;
                 case 4:
@@ -176,6 +193,7 @@ public class MainActivity extends AppCompatActivity {
                         Intent imap = new Intent(getApplicationContext(), MapActivity.class);
                         //mDrawerLayout.closeDrawer(mDrawerList);
                         startActivity(imap);
+                        finish();
                     }
                     else {
                         DialogBoxDataTransfer();
@@ -186,6 +204,7 @@ public class MainActivity extends AppCompatActivity {
                     Intent ics = new Intent(getApplicationContext(), activity_calibration_start.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ics);
+                    finish();
                     break;
                 case 6:
                     Intent ih = new Intent(getApplicationContext(),View_html_page.class);
@@ -195,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
                     ih.putExtra(this.getClass().getPackage().getName() + ".titletosee",
                             getString(R.string.title_activity_help));
                     startActivity(ih);
+                    finish();
                     break;
                 case 7:
                     Intent ia = new Intent(getApplicationContext(),View_html_page.class);
@@ -204,6 +224,7 @@ public class MainActivity extends AppCompatActivity {
                             getString(R.string.title_activity_about));
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ia);
+                    finish();
                     break;
                 default:
                     break;

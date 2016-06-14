@@ -177,6 +177,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
                 Intent a = new Intent(getApplicationContext(), MapActivity.class);
                 a.putExtra(MapActivity.RESULTS_RECORD_ID, record.getId());
                 startActivity(a);
+                finish();
             }
         });
 
@@ -189,6 +190,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
                 Intent a = new Intent(getApplicationContext(), CommentActivity.class);
                 a.putExtra(CommentActivity.COMMENT_RECORD_ID, record.getId());
                 startActivity(a);
+                finish();
             }
         });
 

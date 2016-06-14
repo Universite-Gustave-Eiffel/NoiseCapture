@@ -28,14 +28,15 @@
 package org.noise_planet.noisecapture;
 
 
+import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
@@ -46,13 +47,19 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Toast;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 
 public class MainActivity extends AppCompatActivity {
     // Color for noise exposition representation
     public int[] NE_COLORS;
+    protected static final Logger MAINLOGGER = LoggerFactory.getLogger(MainActivity.class);
 
     // For the list view
     public ListView mDrawerList;
@@ -320,6 +327,50 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    public static final class SendZipToServer implements Runnable {
+        private Activity activity;
+        private int recordId;
+        private ProgressDialog progress;
+        private final OnUploadedListener listener;
+
+        public SendZipToServer(Activity activity, int recordId, ProgressDialog progress, OnUploadedListener listener) {
+            this.activity = activity;
+            this.recordId = recordId;
+            this.progress = progress;
+            this.listener = listener;
+        }
+
+        @Override
+        public void run() {
+            MeasurementUploadWPS measurementUploadWPS = new MeasurementUploadWPS(activity);
+            try {
+                measurementUploadWPS.uploadRecord(recordId);
+                if(listener != null) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            listener.onMeasurementUploaded();
+                        }
+                    });
+                }
+            } catch (final IOException ex) {
+                MAINLOGGER.error(ex.getLocalizedMessage(), ex);
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(activity,
+                                ex.getLocalizedMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+            } finally {
+                progress.dismiss();
+            }
+        }
+    }
+
+    public interface OnUploadedListener {
+        void onMeasurementUploaded();
+    }
     // Choose color category in function of sound level
     public static int getNEcatColors(double SL) {
 

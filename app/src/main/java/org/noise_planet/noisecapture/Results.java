@@ -27,6 +27,7 @@
 
 package org.noise_planet.noisecapture;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Color;
@@ -91,6 +92,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
     private String[] catNE; // List of noise level category (defined as ressources)
     private List<Float> splHistogram;
     private LeqStats leqStats = new LeqStats();
+    private ProgressDialog progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -194,6 +196,40 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
             }
         });
 
+        // Action on export button
+
+        ImageButton exportComment=(ImageButton)findViewById(R.id.uploadBtn);
+        exportComment.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                // Export
+                progress = ProgressDialog.show(Results.this,
+                        Results.this.getText(R.string.upload_progress_title),
+                        Results.this.getText(R.string.upload_progress_message), true);
+                new Thread(new SendZipToServer(Results.this, Results.this.record.getId(), progress,
+                        new RefreshListener(Results.this))).start();
+            }
+        });
+
+        exportComment.setEnabled(record.getUploadId().isEmpty());
+    }
+
+    private static final class RefreshListener implements OnUploadedListener {
+
+        private Results resultsActivity;
+
+        public RefreshListener(Results resultsActivity) {
+            this.resultsActivity = resultsActivity;
+        }
+
+        @Override
+        public void onMeasurementUploaded() {
+            // Change upload state
+            ImageButton exportComment=(ImageButton)resultsActivity.findViewById(R.id.uploadBtn);
+            // Refresh record
+            resultsActivity.record = resultsActivity.measurementManager.getRecord(resultsActivity.record.getId());
+            exportComment.setEnabled(resultsActivity.record.getUploadId().isEmpty());
+        }
     }
 
     @Override

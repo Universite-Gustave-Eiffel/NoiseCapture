@@ -210,7 +210,7 @@ public class History extends MainActivity {
         private void launchUpload() {
             historyActivity.progress = ProgressDialog.show(historyActivity, historyActivity.getText(R.string.upload_progress_title),
                     historyActivity.getText(R.string.upload_progress_message), true);
-            new Thread(new SendZipToServer(historyActivity, recordId)).start();
+            new Thread(new SendZipToServer(historyActivity, recordId, historyActivity.progress, new RefreshListener(historyActivity.historyListAdapter))).start();
         }
 
         private void launchResult() {
@@ -255,41 +255,20 @@ public class History extends MainActivity {
         }
     }
 
-    public static class SendZipToServer implements Runnable {
-        History historyActivity;
-        int recordId;
 
-        public SendZipToServer(History historyActivity, int recordId) {
-            this.historyActivity = historyActivity;
-            this.recordId = recordId;
+    private static final class RefreshListener implements OnUploadedListener {
+
+        private InformationHistoryAdapter historyListAdapter;
+
+        public RefreshListener(InformationHistoryAdapter historyListAdapter) {
+            this.historyListAdapter = historyListAdapter;
         }
 
         @Override
-        public void run() {
-            MeasurementUploadWPS measurementUploadWPS = new MeasurementUploadWPS(historyActivity);
-            try {
-                measurementUploadWPS.uploadRecord(recordId);
-                historyActivity.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        historyActivity.historyListAdapter.reload();
-                    }
-                });
-            } catch (final IOException ex) {
-                LOGGER.error(ex.getLocalizedMessage(), ex);
-                historyActivity.runOnUiThread(new Runnable() {
-                  @Override
-                  public void run() {
-                      Toast.makeText(historyActivity,
-                              ex.getLocalizedMessage(), Toast.LENGTH_LONG).show();
-                  }
-              });
-            } finally {
-                historyActivity.progress.dismiss();
-            }
+        public void onMeasurementUploaded() {
+            historyListAdapter.reload();
         }
     }
-
     public static class InformationHistoryAdapter extends BaseAdapter {
         private List<Storage.Record> informationHistoryList;
         private History activity;

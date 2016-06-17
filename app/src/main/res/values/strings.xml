@@ -206,7 +206,6 @@
     <string name="local_service_started">Localisation service started</string>
     <string name="measurement_service_disconnected">Measurement service disconnected</string>
     <string name="measurement_service_connected">Measurement service connected</string>
-    <string name="measurement_service_canceled">Measurement canceled</string>
     w
 
     <string name="delete">Delete</string>

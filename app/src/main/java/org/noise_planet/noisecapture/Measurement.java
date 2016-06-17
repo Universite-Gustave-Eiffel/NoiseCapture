@@ -441,11 +441,11 @@ public class Measurement extends MainActivity implements
         ImageButton buttonpause= (ImageButton) findViewById(R.id.pauseBtn);
         ImageButton buttonrecord= (ImageButton) findViewById(R.id.recordBtn);
 
-        if (measurementService.isRecording()) {
+        initComponents();
+        if (measurementService.isStoring()) {
             buttonpause.setEnabled(true);
             buttonrecord.setImageResource(R.drawable.button_record_pressed);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            initComponents();
 
             // Start chronometer
             chronometerWaitingToStart.set(true);
@@ -495,9 +495,9 @@ public class Measurement extends MainActivity implements
             ImageButton buttonrecord= (ImageButton) activity.findViewById(R.id.recordBtn);
             buttonrecord.setImageResource(R.drawable.button_record_pressed);
 
-            if (!activity.measurementService.isRecording()) {
+            if (!activity.measurementService.isStoring()) {
                 // Start recording
-                activity.measurementService.startRecording();
+                activity.measurementService.startStorage();
             } else {
                 // Stop measurement
                 activity.measurementService.stopRecording();
@@ -581,18 +581,21 @@ public class Measurement extends MainActivity implements
                     // Change the text and the textcolor in the corresponding textview
                     // for the Leqi value
                     LeqStats leqStats =
-                            activity.measurementService.getAudioProcess().getStandartLeqStats();
+                            activity.measurementService.getLeqStats();
                     final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
                     formatdBA(leq, mTextView);
-                    final TextView valueMin = (TextView) activity.findViewById(R.id
-                            .textView_value_Min_i);
-                    formatdBA(leqStats.getLeqMin(), valueMin);
-                    final TextView valueMax = (TextView) activity.findViewById(R.id
-                            .textView_value_Max_i);
-                    formatdBA(leqStats.getLeqMax(), valueMax);
-                    final TextView valueMean = (TextView) activity.findViewById(R.id
-                            .textView_value_Mean_i);
-                    formatdBA(leqStats.getLeqMean(), valueMean);
+                    if(activity.measurementService.getLeqAdded() != 0) {
+                        // Stats are only available if the recording of previous leq are activated
+                        final TextView valueMin = (TextView) activity.findViewById(R.id
+                                .textView_value_Min_i);
+                        formatdBA(leqStats.getLeqMin(), valueMin);
+                        final TextView valueMax = (TextView) activity.findViewById(R.id
+                                .textView_value_Max_i);
+                        formatdBA(leqStats.getLeqMax(), valueMax);
+                        final TextView valueMean = (TextView) activity.findViewById(R.id
+                                .textView_value_Mean_i);
+                        formatdBA(leqStats.getLeqMean(), valueMean);
+                    }
 
 
                     int nc = Measurement.getNEcatColors(leq);    // Choose the color category in
@@ -649,6 +652,10 @@ public class Measurement extends MainActivity implements
 
             // Init gui if recording is ongoing
             measurementService.addPropertyChangeListener(doProcessing);
+
+            if(!measurementService.isRecording()) {
+                measurementService.startRecording();
+            }
             initGuiState();
         }
 

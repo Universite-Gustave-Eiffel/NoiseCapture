@@ -156,14 +156,6 @@ public class AudioProcess implements Runnable {
         }
     }
 
-    public LeqStats getStandartLeqStats() {
-        return standartLeqProcessing.leqStats;
-    }
-
-    public LeqStats getFastLeqStats() {
-        return fftLeqProcessing.leqStats;
-    }
-
     public double getFFTDelay() {
         return MovingLeqProcessing.SECOND_FIRE_MOVING_SPECTRUM;
     }
@@ -233,10 +225,6 @@ public class AudioProcess implements Runnable {
         return rate;
     }
 
-    public long getBeginRecordTime() {
-        return beginRecordTime;
-    }
-
     private static final class MovingLeqProcessing implements Runnable {
         private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
         private final AudioProcess audioProcess;
@@ -244,7 +232,6 @@ public class AudioProcess implements Runnable {
         private FFTSignalProcessing signalProcessing;
         private float[] fftResultLvl = new float[0];
         private double leq = 0;
-        private LeqStats leqStats = new LeqStats();
 
         // 0.066 mean 15 fps max
         public final static double FFT_TIMELENGTH_FACTOR = Math.min(1, AcousticIndicators.TIMEPERIOD_FAST);
@@ -270,19 +257,12 @@ public class AudioProcess implements Runnable {
             return 1 / FFT_TIMELENGTH_FACTOR;
         }
 
-        /**
-         * @return Live FFT result up to REALTIME_SAMPLE_RATE_LIMITATION Hz
-         */
-        public float[] getFineFrequencyLevels() {
-            return fftResultLvl;
-        }
-
-        public double getFFtSamplingRate() {
-            return REALTIME_SAMPLE_RATE_LIMITATION;
-        }
-
         public double[] getFftCenterFreq() {
             return fftCenterFreq;
+        }
+
+        public double getLeq() {
+            return leq;
         }
 
         /**
@@ -292,32 +272,9 @@ public class AudioProcess implements Runnable {
             return thirdOctaveSplLevels;
         }
 
-        public double getLeq() {
-            return leq;
-        }
-
-        public double getLeqMin() {
-            return leqStats.getLeqMin();
-        }
-
-        public double getLeqMax() {
-            return leqStats.getLeqMax();
-        }
-
-        public double getLeqMean() {
-            return leqStats.getLeqMean();
-        }
-
-
-
         public void addSample(short[] sample) {
             bufferToProcess.add(sample);
         }
-
-        public boolean isTaskQueueEmpty() {
-            return bufferToProcess.isEmpty() && !processing.get();
-        }
-
 
         private void processSample(int pushedSamples) {
             if((pushedSamples - lastProcessedSpectrum) / (double)audioProcess.getRate() >
@@ -329,7 +286,6 @@ public class AudioProcess implements Runnable {
                     thirdOctaveSplLevels = result.getdBaLevels();
                     // Compute leq
                     leq = signalProcessing.computeGlobalLeq();
-                    leqStats.addLeq(leq);
                     audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
                             null, fftResultLvl);
             }
@@ -374,7 +330,6 @@ public class AudioProcess implements Runnable {
         private final AudioProcess audioProcess;
         private FFTSignalProcessing fftSignalProcessing;
         private static final double windowDelay = 1.;
-        private LeqStats leqStats = new LeqStats();
         private double[] fftCenterFreq;
 
         public StandartLeqProcessing(AudioProcess audioProcess) {
@@ -431,7 +386,6 @@ public class AudioProcess implements Runnable {
                             FFTSignalProcessing.ProcessingResult result =
                                     fftSignalProcessing.processSample(false, false, false);
                             float[] leqs = result.getdBaLevels();
-                            leqStats.addLeq(result.getGlobaldBaValue());
                             // Compute record time
                             long beginRecordTime = audioProcess.beginRecordTime +
                                     (long) (((secondCursor + buffer.length
@@ -439,7 +393,7 @@ public class AudioProcess implements Runnable {
                                             (double) audioProcess.getRate()) * 1000);
                             audioProcess.listeners.firePropertyChange(
                                     AudioProcess.PROP_DELAYED_STANDART_PROCESSING, null,
-                                    new DelayedStandardAudioMeasure(leqs,  beginRecordTime));
+                                    new DelayedStandardAudioMeasure(result,  beginRecordTime));
                             lastProcessedSamples = secondCursor;
                             // Add not processed samples for the next batch
                             if(remainingSamplesToPostPone > 0) {
@@ -464,11 +418,11 @@ public class AudioProcess implements Runnable {
     }
 
     public static final class DelayedStandardAudioMeasure {
-        private final float[] leqs;
+        private final FFTSignalProcessing.ProcessingResult result;
         private final long beginRecordTime;
 
-        public DelayedStandardAudioMeasure(float[] leqs, long beginRecordTime) {
-            this.leqs = leqs;
+        public DelayedStandardAudioMeasure(FFTSignalProcessing.ProcessingResult result, long beginRecordTime) {
+            this.result = result;
             this.beginRecordTime = beginRecordTime;
         }
 
@@ -476,7 +430,11 @@ public class AudioProcess implements Runnable {
          * @return Leq value
          */
         public float[] getLeqs() {
-            return leqs;
+            return result.getdBaLevels();
+        }
+
+        public float getGlobaldBaValue() {
+            return result.getGlobaldBaValue();
         }
 
         /**

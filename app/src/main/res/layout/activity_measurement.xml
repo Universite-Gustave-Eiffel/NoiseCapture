@@ -176,17 +176,29 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <org.noise_planet.noisecapture.Spectrogram
-                android:id="@+id/spectrogram_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:visibility="gone" />
 
-
-            <com.github.mikephil.charting.charts.HorizontalBarChart
-                android:id="@+id/spectrumChart"
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"/>
+                android:layout_height="match_parent">
+                <org.noise_planet.noisecapture.Spectrogram
+                    android:id="@+id/spectrogram_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="gone" />
+                <com.github.mikephil.charting.charts.HorizontalBarChart
+                    android:id="@+id/spectrumChart"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"/>
+
+                <TextView
+                    android:id="@+id/textView_message_overlay"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="#ff000000"
+                    android:layout_centerInParent="true"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+            </RelativeLayout>
 
         </LinearLayout>
 

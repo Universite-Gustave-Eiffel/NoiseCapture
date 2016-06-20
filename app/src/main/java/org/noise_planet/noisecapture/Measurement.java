@@ -44,6 +44,7 @@ import android.preference.PreferenceManager;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.AnimationUtils;
 import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
@@ -457,9 +458,12 @@ public class Measurement extends MainActivity implements
         // Update buttons: cancel enabled; record button to stop;
         ImageButton buttonpause= (ImageButton) findViewById(R.id.pauseBtn);
         ImageButton buttonrecord= (ImageButton) findViewById(R.id.recordBtn);
+        // Show start measure hint
+        TextView overlayMessage = (TextView) findViewById(R.id.textView_message_overlay);
 
         initComponents();
         if (measurementService.isStoring()) {
+            overlayMessage.setText("");
             buttonpause.setEnabled(true);
             buttonrecord.setImageResource(R.drawable.button_record_pressed);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -477,6 +481,7 @@ public class Measurement extends MainActivity implements
             // Stop and reset chronometer
             Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer_recording_time);
             chronometer.stop();
+            overlayMessage.setText(R.string.no_data_text_description);
         }
     }
 
@@ -571,10 +576,15 @@ public class Measurement extends MainActivity implements
                         int seconds = activity.measurementService.getLeqAdded();
                         if (seconds != 0) {
                             chronometer.setBase(SystemClock.elapsedRealtime() - seconds * 1000);
+                            TextView overlayMessage = (TextView) activity.findViewById(R.id.textView_message_overlay);
                             if(activity.measurementService.isPaused()) {
                                 chronometer.stop();
+                                chronometer.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.pause_anim));
+                                overlayMessage.setText(R.string.measurement_pause);
                             } else {
+                                chronometer.clearAnimation();
                                 chronometer.start();
+                                overlayMessage.setText("");
                             }
                         } else {
                             activity.chronometerWaitingToStart.set(true);

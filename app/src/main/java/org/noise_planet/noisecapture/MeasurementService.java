@@ -81,11 +81,13 @@ public class MeasurementService extends Service {
     private static final long MAXIMUM_LOCATION_HISTORY = 50;
     private AudioProcess audioProcess;
     private AtomicBoolean isRecording = new AtomicBoolean(false);  // Is microphone activated
+    private AtomicBoolean isPaused = new AtomicBoolean(false);  // Recording is temporary paused
     private AtomicBoolean isStorageActivated = new AtomicBoolean(false); // Is leq are stored into database
+
     private AtomicBoolean canceled = new AtomicBoolean(false);
+    // 1s leq recorded in db
     private AtomicInteger leqAdded = new AtomicInteger(0);
     private MeasurementManager measurementManager;
-    private long beginMeasure = 0;
     private DoProcessing doProcessing = new DoProcessing(this);
     // This measurement identifier in the long term storage
     private int recordId = -1;
@@ -184,6 +186,13 @@ public class MeasurementService extends Service {
         // Start measurement
         new Thread(audioProcess).start();
 
+        // Change notification icon message
+        showNotification();
+
+    }
+
+    public boolean isPaused() {
+        return isPaused.get();
     }
 
     public void stopRecording() {
@@ -199,7 +208,8 @@ public class MeasurementService extends Service {
      */
     private void showNotification() {
         // Text for the ticker
-        CharSequence text = getText(R.string.title_service_measurement);
+        CharSequence text = isStoring() ? getText(R.string.title_service_measurement) :
+                getText(R.string.record_message);
 
         // The PendingIntent to launch our activity if the user selects this notification
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
@@ -208,7 +218,7 @@ public class MeasurementService extends Service {
         // Set the info for the views that show in the notification panel.
         Notification.Builder notification = new Notification.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)  // the status icon
-                .setWhen(beginMeasure)
+                .setWhen(System.currentTimeMillis())
                 .setTicker(text)  // the status text
                 .setWhen(System.currentTimeMillis())  // the time stamp
                 .setContentTitle("NoiseCapture")  // the label of the entry
@@ -323,8 +333,8 @@ public class MeasurementService extends Service {
         listeners.removePropertyChangeListener(propertyChangeListener);
     }
 
-    public void pause(boolean newState) {
-        isStorageActivated.set(false);
+    public void setPause(boolean newState) {
+        isPaused.set(newState);
     }
 
 
@@ -418,16 +428,10 @@ public class MeasurementService extends Service {
                 return;
             }
             StringTokenizer stringTokenizer = new StringTokenizer(nmea, ",");
-
+            //TODO read NMEA
+            // Used by bluetooth GPS receivers
 
         }
-    }
-
-    /**
-     * @return Start time of measurement
-     */
-    public long getBeginMeasure() {
-        return beginMeasure;
     }
 
     private static class DoProcessing implements  PropertyChangeListener {
@@ -439,12 +443,10 @@ public class MeasurementService extends Service {
 
         @Override
         public void propertyChange(PropertyChangeEvent event) {
-            if (measurementService.isStoring()) {
-                if (measurementService.beginMeasure == 0) {
-                    measurementService.beginMeasure = SystemClock.elapsedRealtime();
-                }
-                if (AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName
-                        ())) {
+            // Skip event if we do not record or if the pause is active
+            if (AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName
+                    ())) {
+                if (measurementService.isStoring() && !measurementService.isPaused.get()) {
                     // Delayed audio processing
                     AudioProcess.DelayedStandardAudioMeasure measure =
                             (AudioProcess.DelayedStandardAudioMeasure) event.getNewValue();
@@ -473,8 +475,10 @@ public class MeasurementService extends Service {
                     measurementService.measurementManager
                             .addLeqBatch(new MeasurementManager.LeqBatch(leq, leqValueList));
                     measurementService.leqAdded.addAndGet(1);
-                } else if (AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
-                    if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
+                }
+            } else if (AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
+                if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
+                    if(measurementService.recordId > -1) {
                         // Recording and processing of audio has been closed
                         // Cancel the persistent notification.
                         if (measurementService.canceled.get() || measurementService.leqAdded.get() == 0) {
@@ -487,12 +491,11 @@ public class MeasurementService extends Service {
                             measurementService.measurementManager
                                     .updateRecordFinal(measurementService.recordId,
                                             (float) measurementService.leqStats.getLeqMean(),
-                                            (int) (SystemClock.elapsedRealtime() - measurementService.beginMeasure) / 1000);
+                                            measurementService.leqAdded.get());
                         }
-                        measurementService.isRecording.set(false);
-                        measurementService.beginMeasure = 0;
-                        measurementService.stopLocalisationServices();
                     }
+                    measurementService.isRecording.set(false);
+                    measurementService.stopLocalisationServices();
                 }
             }
             measurementService.listeners.firePropertyChange(event);

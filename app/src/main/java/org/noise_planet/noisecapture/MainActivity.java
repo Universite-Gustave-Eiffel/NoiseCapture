@@ -29,6 +29,7 @@ package org.noise_planet.noisecapture;
 
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -37,6 +38,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
@@ -140,10 +142,16 @@ public class MainActivity extends AppCompatActivity {
     public void onBackPressed() {
         if(!(this instanceof Measurement)) {
             Intent im = new Intent(getApplicationContext(),Measurement.class);
-            mDrawerLayout.closeDrawer(mDrawerList);
+            if(mDrawerLayout != null) {
+                mDrawerLayout.closeDrawer(mDrawerList);
+            }
             startActivity(im);
             finish();
         } else {
+            FragmentManager activityManager = getSupportFragmentManager();
+            while(activityManager.popBackStackImmediate()) {
+                //loop
+            }
             super.onBackPressed();
         }
     }

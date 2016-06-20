@@ -39,9 +39,9 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Process;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentManager;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Chronometer;
@@ -61,8 +61,6 @@ import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
-import com.github.mikephil.charting.formatter.LargeValueFormatter;
-import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.formatter.YAxisValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
@@ -178,6 +176,7 @@ public class Measurement extends MainActivity implements
 
         // Action on cancel button (during recording)
         buttonPause.setOnClickListener(onButtonPause);
+        buttonPause.setOnTouchListener(new ToggleButtonTouch(this));
 
         // Instantaneous sound level VUMETER
         // Stacked bars are used for represented Min, Current and Max values
@@ -213,9 +212,27 @@ public class Measurement extends MainActivity implements
         @Override
         public void onClick(View view) {
             // Stop measurement without waiting for the end of processing
-            measurementService.pause(!view.isPressed());
+            measurementService.setPause(!measurementService.isPaused());
+            chronometerWaitingToStart.set(true);
         }
     };
+
+    private static class ToggleButtonTouch implements View.OnTouchListener {
+        Measurement measurement;
+
+        public ToggleButtonTouch(Measurement measurement) {
+            this.measurement = measurement;
+        }
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                v.setPressed(!measurement.measurementService.isPaused());
+                v.performClick();
+            }
+            return true;
+        }
+    }
 
 
     private void initSpectrum() {
@@ -475,8 +492,10 @@ public class Measurement extends MainActivity implements
         public void propertyChange(PropertyChangeEvent event) {
             if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
                 // Realtime audio processing
-                activity.spectrogram.addTimeStep((float[]) event.getNewValue(),
-                        activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
+                if(!activity.measurementService.isPaused()) {
+                    activity.spectrogram.addTimeStep((float[]) event.getNewValue(),
+                            activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
+                }
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));
                 }
@@ -546,17 +565,22 @@ public class Measurement extends MainActivity implements
         public void run() {
             try {
                 if(activity.measurementService.isRecording()) {
+                    Chronometer chronometer = (Chronometer) activity
+                            .findViewById(R.id.chronometer_recording_time);
                     if (activity.chronometerWaitingToStart.getAndSet(false)) {
-                        long time = activity.measurementService.getBeginMeasure();
-                        if (time != 0) {
-                            Chronometer chronometer = (Chronometer) activity
-                                    .findViewById(R.id.chronometer_recording_time);
-                            chronometer.setBase(time);
-                            chronometer.start();
+                        int seconds = activity.measurementService.getLeqAdded();
+                        if (seconds != 0) {
+                            chronometer.setBase(SystemClock.elapsedRealtime() - seconds * 1000);
+                            if(activity.measurementService.isPaused()) {
+                                chronometer.stop();
+                            } else {
+                                chronometer.start();
+                            }
                         } else {
                             activity.chronometerWaitingToStart.set(true);
                         }
                     }
+
                     //Update accuracy hint
                     final TextView accuracyText = (TextView) activity.findViewById(R.id.textView_value_gps_precision);
                     final ImageView accuracyImageHint = (ImageView) activity.findViewById(R.id.imageView_value_gps_precision);

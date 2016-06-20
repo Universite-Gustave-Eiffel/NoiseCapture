@@ -85,6 +85,7 @@ public class Measurement extends MainActivity implements
     protected BarChart sChart; // Spectrum representation
     protected Spectrogram spectrogram;
     private DoProcessing doProcessing;
+    private ImageButton buttonrecord;
     // From this accuracy the location hint color is orange
     private static final float APROXIMATE_LOCATION_ACCURACY = 10.f;
 
@@ -94,6 +95,8 @@ public class Measurement extends MainActivity implements
 
     public final static double MIN_SHOWN_DBA_VALUE = 35;
     public final static double MAX_SHOWN_DBA_VALUE = 120;
+
+    private static final int DEFAULT_MINIMAL_LEQ = 1;
 
     public int getRecordId() {
         return measurementService.getRecordId();
@@ -167,7 +170,7 @@ public class Measurement extends MainActivity implements
 
 
         // To start a record (test mode)
-        ImageButton buttonrecord = (ImageButton) findViewById(R.id.recordBtn);
+        buttonrecord = (ImageButton) findViewById(R.id.recordBtn);
         buttonrecord.setImageResource(R.drawable.button_record_normal);
         buttonrecord.setEnabled(true);
 
@@ -517,10 +520,11 @@ public class Measurement extends MainActivity implements
             ImageButton buttonPause= (ImageButton) activity.findViewById(R.id.pauseBtn);
             buttonPause.setEnabled(true);
             ImageButton buttonrecord= (ImageButton) activity.findViewById(R.id.recordBtn);
-            buttonrecord.setImageResource(R.drawable.button_record_pressed);
 
             if (!activity.measurementService.isStoring()) {
                 // Start recording
+                buttonrecord.setImageResource(R.drawable.button_record_pressed);
+                buttonrecord.setEnabled(false);
                 activity.measurementService.startStorage();
             } else {
                 // Stop measurement
@@ -528,7 +532,7 @@ public class Measurement extends MainActivity implements
 
                 // Show computing progress dialog
                 ProgressDialog myDialog = new ProgressDialog(activity);
-                if(!activity.measurementService.isCanceled()) {
+                if (!activity.measurementService.isCanceled()) {
                     myDialog.setMessage(resources.getString(R.string.measurement_processlastsamples,
                             activity.measurementService.getAudioProcess().getRemainingNotProcessSamples()));
                     myDialog.setCancelable(false);
@@ -570,10 +574,13 @@ public class Measurement extends MainActivity implements
         public void run() {
             try {
                 if(activity.measurementService.isRecording()) {
+                    int seconds = activity.measurementService.getLeqAdded();
+                    if(seconds >= Measurement.DEFAULT_MINIMAL_LEQ && !activity.buttonrecord.isEnabled()) {
+                        activity.buttonrecord.setEnabled(true);
+                    }
                     Chronometer chronometer = (Chronometer) activity
                             .findViewById(R.id.chronometer_recording_time);
                     if (activity.chronometerWaitingToStart.getAndSet(false)) {
-                        int seconds = activity.measurementService.getLeqAdded();
                         if (seconds != 0) {
                             chronometer.setBase(SystemClock.elapsedRealtime() - seconds * 1000);
                             TextView overlayMessage = (TextView) activity.findViewById(R.id.textView_message_overlay);
@@ -684,6 +691,7 @@ public class Measurement extends MainActivity implements
             // cast its IBinder to a concrete class and directly access it.
             measurementService = ((MeasurementService.LocalBinder)service).getService();
 
+            measurementService.setMinimalLeqCount(Measurement.DEFAULT_MINIMAL_LEQ);
             // Init gui if recording is ongoing
             measurementService.addPropertyChangeListener(doProcessing);
 

@@ -91,6 +91,8 @@ public class MeasurementService extends Service {
     private DoProcessing doProcessing = new DoProcessing(this);
     // This measurement identifier in the long term storage
     private int recordId = -1;
+    // Keep the measurement only if the count of leq is equal or greater than minimalLeqCount
+    private int minimalLeqCount = 0;
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
     private static final Logger LOGGER = LoggerFactory.getLogger(MeasurementService.class);
 
@@ -146,6 +148,14 @@ public class MeasurementService extends Service {
         this.measurementManager = new MeasurementManager(getApplicationContext());
         // Display a notification about us starting.  We put an icon in the status bar.
         showNotification();
+    }
+
+    /**
+     * Keep the measurement only if the count of leq is equal or greater than minimalLeqCount
+     * @param minimalLeqCount Minimal seconds
+     */
+    public void setMinimalLeqCount(int minimalLeqCount) {
+        this.minimalLeqCount = minimalLeqCount;
     }
 
     @Override
@@ -481,8 +491,9 @@ public class MeasurementService extends Service {
                     if(measurementService.recordId > -1) {
                         // Recording and processing of audio has been closed
                         // Cancel the persistent notification.
-                        if (measurementService.canceled.get() || measurementService.leqAdded.get() == 0) {
-                            // Canceled
+                        if (measurementService.canceled.get() || measurementService.leqAdded.get()
+                                < measurementService.minimalLeqCount) {
+                            // Canceled or has not the minimal leq count
                             // Destroy record
                             measurementService.measurementManager
                                     .deleteRecord(measurementService.recordId);

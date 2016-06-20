@@ -141,17 +141,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if(!(this instanceof Measurement)) {
-            Intent im = new Intent(getApplicationContext(),Measurement.class);
             if(mDrawerLayout != null) {
                 mDrawerLayout.closeDrawer(mDrawerList);
             }
+            Intent im = new Intent(getApplicationContext(),Measurement.class);
+            im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(im);
             finish();
         } else {
-            FragmentManager activityManager = getSupportFragmentManager();
-            while(activityManager.popBackStackImmediate()) {
-                //loop
-            }
             super.onBackPressed();
         }
     }
@@ -170,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
                 case 0:
                     // Measurement
                     Intent im = new Intent(getApplicationContext(),Measurement.class);
+                    im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(im);
                     finish();

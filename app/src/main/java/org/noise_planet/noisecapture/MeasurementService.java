@@ -93,6 +93,8 @@ public class MeasurementService extends Service {
     private int recordId = -1;
     // Keep the measurement only if the count of leq is equal or greater than minimalLeqCount
     private int minimalLeqCount = 0;
+    // When pause is activated delete the last stored leq
+    private int deletedLeqOnPause = 0;
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
     private static final Logger LOGGER = LoggerFactory.getLogger(MeasurementService.class);
 
@@ -345,8 +347,33 @@ public class MeasurementService extends Service {
 
     public void setPause(boolean newState) {
         isPaused.set(newState);
+        if(newState && deletedLeqOnPause > 0 && recordId > -1) {
+            // Delete last recorded leq
+            measurementManager.deleteLastLeqs(recordId, deletedLeqOnPause);
+            leqAdded.set(Math.max(0, leqAdded.get() - deletedLeqOnPause));
+            // Recompute LeqStats altered by the removed leq
+            LeqStats newLeqStats = new LeqStats();
+            for(MeasurementManager.LeqBatch leq : measurementManager
+                    .getRecordLocations(recordId, false)) {
+                newLeqStats.addLeq(leq.computeGlobalLeq());
+            }
+            leqStats = newLeqStats;
+        }
     }
 
+    /**
+     * @param deletedLeqOnPause Number of leq to delete on pause
+     */
+    public void setDeletedLeqOnPause(int deletedLeqOnPause) {
+        this.deletedLeqOnPause = deletedLeqOnPause;
+    }
+
+    /**
+     * @return Deleted leq triggered by a pause
+     */
+    public int getDeletedLeqOnPause() {
+        return deletedLeqOnPause;
+    }
 
     public void addLocation(Location location) {
         // Check if the previous location is inside the precision range of the new location

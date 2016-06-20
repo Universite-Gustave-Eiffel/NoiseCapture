@@ -55,6 +55,8 @@
     <string name="title_settings_recording_duration">Recording duration</string>
 
     <string name="title_settings_spectrogram_logscalemode">Spectrogram frequency in Log Scale</string>
+    <string name="title_settings_delete_leq_on_pause">Leq delete on pause</string>
+    <string name="title_settings_delete_leq_on_pause_description">When pause is activated delete the last stored leq</string>
     <string name="summary_settings_spectrogram_logscalemode">Check for frequency scale in log, uncheck for linear</string>
     <string name="summary_settings_recording_duration">Set the recording duration (in second)</string>
     <string name="title_settings_view_mode">Display</string>

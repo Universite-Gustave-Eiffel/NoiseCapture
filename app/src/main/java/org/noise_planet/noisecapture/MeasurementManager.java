@@ -91,6 +91,19 @@ public class MeasurementManager {
         }
     }
 
+    public void deleteLastLeqs(int recordId, int deleteCount) {
+        SQLiteDatabase database = storage.getWritableDatabase();
+        try {
+            database.execSQL("DELETE FROM " + Storage.Leq.TABLE_NAME + " WHERE " +
+                    Storage.Leq.COLUMN_RECORD_ID + " = ? AND "+ Storage.Leq.COLUMN_LEQ_ID +
+                    " IN (SELECT "+Storage.Leq.COLUMN_LEQ_ID+" FROM "+Storage.Leq.TABLE_NAME
+                    + " ORDER BY " + Storage.Leq.COLUMN_LEQ_UTC + " DESC LIMIT ?)",
+                    new Object[]{recordId, deleteCount});
+        } finally {
+            database.close();
+        }
+    }
+
     /**
      * Delete all data associated with a record
      * @param recordIds Record identifiers

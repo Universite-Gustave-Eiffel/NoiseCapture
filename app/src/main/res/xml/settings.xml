@@ -29,6 +29,12 @@
         android:title="@string/title_settings_spectrogram_logscalemode"
         android:summary="@string/summary_settings_spectrogram_logscalemode"
         android:defaultValue="true" />
+    <EditTextPreference
+        android:defaultValue="0"
+        android:key="settings_delete_leq_on_pause"
+        android:title="@string/title_settings_delete_leq_on_pause"
+        android:summary="@string/title_settings_delete_leq_on_pause_description"
+        android:inputType="number"/>
     <CheckBoxPreference
         android:key="settings_caution"
         android:title="@string/title_settings_caution"

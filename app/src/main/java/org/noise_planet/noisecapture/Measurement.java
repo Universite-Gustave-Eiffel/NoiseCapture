@@ -71,6 +71,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Measurement extends MainActivity implements
@@ -97,6 +98,10 @@ public class Measurement extends MainActivity implements
     public final static double MAX_SHOWN_DBA_VALUE = 120;
 
     private static final int DEFAULT_MINIMAL_LEQ = 1;
+    private static final int DEFAULT_DELETE_LEQ_ON_PAUSE = 0;
+
+    private static final String LOG_SCALE_SETTING = "settings_spectrogram_logscalemode";
+    private static final String DELETE_LEQ_ON_PAUSE_SETTING = "settings_delete_leq_on_pause";
 
     public int getRecordId() {
         return measurementService.getRecordId();
@@ -113,9 +118,11 @@ public class Measurement extends MainActivity implements
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if(key.equals("settings_spectrogram_logscalemode")) {
+        if(LOG_SCALE_SETTING.equals(key)) {
             spectrogram.setScaleMode(sharedPreferences.getBoolean(key, true) ?
                     Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR);
+        } else if(DELETE_LEQ_ON_PAUSE_SETTING.equals(key)) {
+            measurementService.setDeletedLeqOnPause(Integer.valueOf(sharedPreferences.getString(key, String.valueOf(DEFAULT_DELETE_LEQ_ON_PAUSE))));
         }
     }
 
@@ -431,6 +438,7 @@ public class Measurement extends MainActivity implements
                         Intent ir = new Intent(activity.getApplicationContext(), CommentActivity.class);
                         ir.putExtra(Results.RESULTS_RECORD_ID,
                                 activity.measurementService.getRecordId());
+                        ir.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         activity.startActivity(ir);
                         activity.finish();
                     }
@@ -500,10 +508,8 @@ public class Measurement extends MainActivity implements
         public void propertyChange(PropertyChangeEvent event) {
             if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
                 // Realtime audio processing
-                if(!activity.measurementService.isPaused()) {
-                    activity.spectrogram.addTimeStep((float[]) event.getNewValue(),
-                            activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
-                }
+                activity.spectrogram.addTimeStep((float[]) event.getNewValue(),
+                        activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));
                 }
@@ -692,6 +698,10 @@ public class Measurement extends MainActivity implements
             measurementService = ((MeasurementService.LocalBinder)service).getService();
 
             measurementService.setMinimalLeqCount(Measurement.DEFAULT_MINIMAL_LEQ);
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(Measurement.this);
+            measurementService.setDeletedLeqOnPause(Integer.valueOf(
+                    sharedPref.getString(Measurement.DELETE_LEQ_ON_PAUSE_SETTING,
+                            String.valueOf(Measurement.DEFAULT_DELETE_LEQ_ON_PAUSE))));
             // Init gui if recording is ongoing
             measurementService.addPropertyChangeListener(doProcessing);
 

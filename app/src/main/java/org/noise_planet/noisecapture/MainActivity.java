@@ -149,7 +149,12 @@ public class MainActivity extends AppCompatActivity {
             startActivity(im);
             finish();
         } else {
-            super.onBackPressed();
+            finish();
+            // Show home
+            Intent im = new Intent(Intent.ACTION_MAIN);
+            im.addCategory(Intent.CATEGORY_HOME);
+            im.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(im);
         }
     }
 

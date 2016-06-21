@@ -1,176 +1,38 @@
-<!DOCTYPE html>
 <html>
-<head lang="en">
-  <meta charset="UTF-8">
-  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css"/>
-  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.css"/>
-  <link rel="stylesheet" type="text/css" href="lib/leaflet.toolbar.css"/>
-  <link rel="stylesheet" type="text/css" href="lib/leaflet.label.css"/>
-  <link rel="stylesheet" type="text/css" href="lib/MarkerCluster.css"/>
-  <link rel="stylesheet" type="text/css" href="lib/MarkerCluster.Default.css"/>
+    <head>
+        <title>Demo leaflet.TileLayer.WMTS</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width">
+        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+        <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>      
+    </head>
+    <body>
+        <div id="map" style="height: 100%; width: 100%"></div>
+    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="L.TileLayer.BetterWMS.js"></script>
+        <script>
+<!-- https://gist.github.com/rclark/6908938 -->
 
-  <title>WFS-T Markers Test</title>
-  <style>
-    html, body, #map {
-      margin: 0;
-      height: 100%;
-      width: 100%;
-    }
-  </style>
-</head>
-<body>
-<div id="map"/>
+var map = L.map('map').setView([47.1535576,-1.6542087], 13);
 
-<script src="lib/spin.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.3/leaflet.js"></script>
-<script src="lib/leaflet.toolbar.js"></script>
-<script src="lib/leaflet.label.js"></script>
-<script src="lib/leaflet.markercluster.js"></script>
-<script src="../dist/Leaflet-WFST.src.js"></script>
-<script>
-  var spinnerOptions = {
-    lines: 15, // The number of lines to draw.
-    length: 20, // The length of each line.
-    width: 15, // The line thickness.
-    radius: 50, // The radius of the inner circle.
-    corners: 1, // Corner roundness (0..1).
-    rotate: 0, // The rotation offset.
-    direction: 1, // 1: clockwise, -1: counterclockwise.
-    color: '#000', // #rgb or #rrggbb or array of colors.
-    speed: 1, // Rounds per second.
-    trail: 50, // Afterglow percentage.
-    shadow: false, // Whether to render a shadow.
-    hwaccel: false, // Whether to use hardware acceleration.
-    className: 'spinner', // The CSS class to assign to the spinner.
-    zIndex: 2e9, // The z-index (defaults to 2000000000).
-    top: '50%', // Top position relative to parent.
-    left: '50%' // Left position relative to parent.
-  };
-
-  var map = L.map('map').setView([0, 0], 2);
-
-  var disableMapInteractions = function () {
-    map.dragging.disable();
-    map.touchZoom.disable();
-    map.doubleClickZoom.disable();
-    map.scrollWheelZoom.disable();
-    map.boxZoom.disable();
-    map.keyboard.disable();
-    if (map.tap) {
-      map.tap.disable();
-    }
-  };
-
-  var enableMapInteractions = function () {
-    map.dragging.enable();
-    map.touchZoom.enable();
-    map.doubleClickZoom.enable();
-    map.scrollWheelZoom.enable();
-    map.boxZoom.enable();
-    map.keyboard.enable();
-    if (map.tap) {
-      map.tap.enable();
-    }
-  };
-
-  disableMapInteractions();
-  var spinnerContainer = document.getElementsByTagName('body')[0];
-  var spinner = new Spinner(spinnerOptions).spin(spinnerContainer);
-
-
-
-  L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+var osm =  L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-  }).addTo(map);
-
-  var markers = new L.MarkerClusterGroup({
-    showCoverageOnHover: false
-  }).addTo(map);
-
-  var editModeMarkerIcon = new L.Icon({
-    iconUrl: 'editableMarkercluster/images/marker-icon-red.png',
-    iconRetinaUrl: 'editableMarkercluster/images/marker-icon-red-2x.png',
-    iconSize: [25, 41],
-    iconAnchor: [12, 40],
-    popupAnchor: [1, -34],
-    shadowUrl: 'editableMarkercluster/images/marker-shadow.png',
-    shadowRetinaUrl: 'editableMarkercluster/images/marker-shadow.png',
-    shadowSize: [41, 41],
-    shadowAnchor: [12, 40]
   });
+var url = "http://onomap-gs.noise-planet.org/geoserver/gwc/service/wms";
+var onomap = L.tileLayer.betterWms(url, {
+	layers: 'noisecapture:todaypoints',
+	transparent: true,
+	format: 'image/png'
+  })
+L.control.scale({'position':'bottomleft','metric':true,'imperial':false}).addTo(map);
 
-  var createEditableMarker = function (latlng, options) {
-    var marker = new L.MarkerClusterGroup.EditableMarker(latlng || map.getCenter(), L.extend({
-      clusterGroup: markers,
-      editModeIcon: editModeMarkerIcon,
-      toolbarEditIconClass: 'fa fa-lg fa-pencil-square-o',
-      toolbarDeleteIconClass: 'fa fa-lg fa-trash-o',
-      toolbarCloseIconClass: 'fa fa-lg fa-close',
-      showLabelOnEdit: true,
-      getLabelContent: function () {
-        var latlng = marker.getLatLng();
-        var content = 'Drag marker and click edit button again.<br>' +
-          '<b>Latitude:</b> ' + latlng.lat.toFixed(6) + '<br>' +
-          '<b>Longitude:</b> ' + latlng.lng.toFixed(6);
+map.addLayer(osm)
+map.addLayer(onomap)
+  
+var baseLayers = {"OpenStreetMap" : osm};
 
-        return content;
-      },
-      hideToolbarAfterEdit: false
-    }, options || {}));
+L.control.layers(baseLayers, {"Carte Onomap" : onomap}).addTo(map);  
 
-    return marker;
-  };
-
-  var loadFinished = false;
-  var isFirstLoad = true;
-
-  var wfst = new L.WFST({
-    url: 'http://onomap-gs.noise-planet.org/geoserver/wfs',
-    typeNS: 'noisecapture',
-    typeName: 'todaypoints',
-    crs: L.CRS.EPSG4326,
-    geometryField: 'the_geom',
-    pointToLayer: function (featureData, latlng) {
-      return createEditableMarker(latlng);
-    }
-  });
-
-  var addWfstMarker = function (marker) {
-    marker.on('marker:edited', function () {
-      wfst.editLayer(marker);
-    });
-
-    marker.on('marker:deleted', function () {
-      wfst.removeLayer(marker);
-    });
-
-    if (!markers.hasLayer(marker)) {
-      markers.addLayer(marker);
-    }
-
-    if (!wfst.hasLayer(marker)) {
-      wfst.addLayer(marker);
-    }
-  };
-
-  wfst.on('load', function (e) {
-    spinner.stop();
-    enableMapInteractions();
-
-    markers.clearLayers();
-
-    e.target.eachLayer(function (layer) {
-      addWfstMarker(layer);
-    });
-
-    if (isFirstLoad) {
-      map.fitBounds(markers);
-      isFirstLoad = false;
-    }
-
-    loadFinished = true;
-  });
-
-</script>
-</body>
+        </script>
+    </body>
 </html>

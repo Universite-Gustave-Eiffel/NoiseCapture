@@ -87,6 +87,7 @@ public class Measurement extends MainActivity implements
     protected Spectrogram spectrogram;
     private DoProcessing doProcessing;
     private ImageButton buttonrecord;
+    private ImageButton buttonPause;
     // From this accuracy the location hint color is orange
     private static final float APROXIMATE_LOCATION_ACCURACY = 10.f;
 
@@ -154,7 +155,7 @@ public class Measurement extends MainActivity implements
         }
 
         // Enabled/disabled buttons
-        ImageButton buttonPause = (ImageButton) findViewById(R.id.pauseBtn);
+        buttonPause = (ImageButton) findViewById(R.id.pauseBtn);
         buttonPause.setEnabled(false);
 
         // Display element in expert mode or not
@@ -445,7 +446,16 @@ public class Measurement extends MainActivity implements
                 });
 
             } else {
-                processingDialog.dismiss();
+                // No recordId available, restart measurement activity
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        processingDialog.dismiss();
+                        Intent im = new Intent(activity, Measurement.class);
+                        im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        activity.startActivity(im);
+                        activity.finish();
+                    }});
             }
         }
     }
@@ -467,15 +477,13 @@ public class Measurement extends MainActivity implements
 
     private void initGuiState() {
         // Update buttons: cancel enabled; record button to stop;
-        ImageButton buttonpause= (ImageButton) findViewById(R.id.pauseBtn);
-        ImageButton buttonrecord= (ImageButton) findViewById(R.id.recordBtn);
         // Show start measure hint
         TextView overlayMessage = (TextView) findViewById(R.id.textView_message_overlay);
 
         initComponents();
         if (measurementService.isStoring()) {
             overlayMessage.setText("");
-            buttonpause.setEnabled(true);
+            buttonPause.setEnabled(true);
             buttonrecord.setImageResource(R.drawable.button_record_pressed);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
@@ -486,7 +494,7 @@ public class Measurement extends MainActivity implements
         {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             // Enabled/disabled buttons after measurement
-            buttonpause.setEnabled(false);
+            buttonPause.setEnabled(false);
             buttonrecord.setImageResource(R.drawable.button_record);
             buttonrecord.setEnabled(true);
             // Stop and reset chronometer
@@ -587,20 +595,16 @@ public class Measurement extends MainActivity implements
                     Chronometer chronometer = (Chronometer) activity
                             .findViewById(R.id.chronometer_recording_time);
                     if (activity.chronometerWaitingToStart.getAndSet(false)) {
-                        if (seconds != 0) {
-                            chronometer.setBase(SystemClock.elapsedRealtime() - seconds * 1000);
-                            TextView overlayMessage = (TextView) activity.findViewById(R.id.textView_message_overlay);
-                            if(activity.measurementService.isPaused()) {
-                                chronometer.stop();
-                                chronometer.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.pause_anim));
-                                overlayMessage.setText(R.string.measurement_pause);
-                            } else {
-                                chronometer.clearAnimation();
-                                chronometer.start();
-                                overlayMessage.setText("");
-                            }
+                        chronometer.setBase(SystemClock.elapsedRealtime() - seconds * 1000);
+                        TextView overlayMessage = (TextView) activity.findViewById(R.id.textView_message_overlay);
+                        if(activity.measurementService.isPaused()) {
+                            chronometer.stop();
+                            chronometer.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.pause_anim));
+                            overlayMessage.setText(R.string.measurement_pause);
                         } else {
-                            activity.chronometerWaitingToStart.set(true);
+                            chronometer.clearAnimation();
+                            chronometer.start();
+                            overlayMessage.setText("");
                         }
                     }
 

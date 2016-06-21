@@ -35,6 +35,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 import android.graphics.Bitmap;
 import android.net.Uri;
+import android.text.TextUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -91,14 +92,12 @@ public class MeasurementManager {
         }
     }
 
-    public void deleteLastLeqs(int recordId, int deleteCount) {
+    public int deleteLastLeqs(int recordId, long fromTimestamp) {
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
-            database.execSQL("DELETE FROM " + Storage.Leq.TABLE_NAME + " WHERE " +
-                    Storage.Leq.COLUMN_RECORD_ID + " = ? AND "+ Storage.Leq.COLUMN_LEQ_ID +
-                    " IN (SELECT "+Storage.Leq.COLUMN_LEQ_ID+" FROM "+Storage.Leq.TABLE_NAME
-                    + " ORDER BY " + Storage.Leq.COLUMN_LEQ_UTC + " DESC LIMIT ?)",
-                    new Object[]{recordId, deleteCount});
+            return database.delete(Storage.Leq.TABLE_NAME,  Storage.Leq.COLUMN_RECORD_ID +
+                    " = ? AND "+ Storage.Leq.COLUMN_LEQ_UTC + " > ?",
+                    new String[]{String.valueOf(recordId), String.valueOf(fromTimestamp)});
         } finally {
             database.close();
         }

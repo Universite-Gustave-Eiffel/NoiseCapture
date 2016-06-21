@@ -177,7 +177,11 @@ def processFile(Connection connection, File zipFile) {
             def theGeom = "GEOMETRYCOLLECTION EMPTY"
             if(feature.geometry != null) {
                 def (x, y, z) = feature.geometry.coordinates
-                theGeom = "POINT($x $y $z)" as String
+                if(z != null) {
+                    theGeom = "POINT($x $y $z)" as String
+                } else {
+                    theGeom = "POINT($x $y)" as String
+                }
             }
             def p = feature.properties
             def fields = [the_geom     : theGeom,

@@ -39,6 +39,7 @@ import android.view.View;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * This canvas drawer receive thin or third octave frequency SPL and draw it.
@@ -131,9 +132,9 @@ public class Spectrogram extends View {
 
     public static String formatFrequency(int frequency) {
         if(frequency > 1000) {
-            return String.format("%d kHz", frequency / 1000);
+            return String.format(Locale.US, "%.2f kHz", frequency / 1000.);
         } else {
-            return String.format("%d Hz", frequency);
+            return String.format(Locale.US, "%d Hz", frequency);
         }
     }
 

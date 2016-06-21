@@ -39,11 +39,12 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.Process;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentManager;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.AnimationUtils;
 import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
@@ -61,8 +62,6 @@ import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
-import com.github.mikephil.charting.formatter.LargeValueFormatter;
-import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.formatter.YAxisValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
@@ -72,6 +71,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Measurement extends MainActivity implements
@@ -86,6 +86,8 @@ public class Measurement extends MainActivity implements
     protected BarChart sChart; // Spectrum representation
     protected Spectrogram spectrogram;
     private DoProcessing doProcessing;
+    private ImageButton buttonrecord;
+    private ImageButton buttonPause;
     // From this accuracy the location hint color is orange
     private static final float APROXIMATE_LOCATION_ACCURACY = 10.f;
 
@@ -95,6 +97,12 @@ public class Measurement extends MainActivity implements
 
     public final static double MIN_SHOWN_DBA_VALUE = 35;
     public final static double MAX_SHOWN_DBA_VALUE = 120;
+
+    private static final int DEFAULT_MINIMAL_LEQ = 1;
+    private static final int DEFAULT_DELETE_LEQ_ON_PAUSE = 0;
+
+    private static final String LOG_SCALE_SETTING = "settings_spectrogram_logscalemode";
+    private static final String DELETE_LEQ_ON_PAUSE_SETTING = "settings_delete_leq_on_pause";
 
     public int getRecordId() {
         return measurementService.getRecordId();
@@ -111,9 +119,11 @@ public class Measurement extends MainActivity implements
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if(key.equals("settings_spectrogram_logscalemode")) {
+        if(LOG_SCALE_SETTING.equals(key)) {
             spectrogram.setScaleMode(sharedPreferences.getBoolean(key, true) ?
                     Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR);
+        } else if(DELETE_LEQ_ON_PAUSE_SETTING.equals(key)) {
+            measurementService.setDeletedLeqOnPause(Integer.valueOf(sharedPreferences.getString(key, String.valueOf(DEFAULT_DELETE_LEQ_ON_PAUSE))));
         }
     }
 
@@ -145,7 +155,7 @@ public class Measurement extends MainActivity implements
         }
 
         // Enabled/disabled buttons
-        ImageButton buttonPause = (ImageButton) findViewById(R.id.pauseBtn);
+        buttonPause = (ImageButton) findViewById(R.id.pauseBtn);
         buttonPause.setEnabled(false);
 
         // Display element in expert mode or not
@@ -168,7 +178,7 @@ public class Measurement extends MainActivity implements
 
 
         // To start a record (test mode)
-        ImageButton buttonrecord = (ImageButton) findViewById(R.id.recordBtn);
+        buttonrecord = (ImageButton) findViewById(R.id.recordBtn);
         buttonrecord.setImageResource(R.drawable.button_record_normal);
         buttonrecord.setEnabled(true);
 
@@ -178,6 +188,7 @@ public class Measurement extends MainActivity implements
 
         // Action on cancel button (during recording)
         buttonPause.setOnClickListener(onButtonPause);
+        buttonPause.setOnTouchListener(new ToggleButtonTouch(this));
 
         // Instantaneous sound level VUMETER
         // Stacked bars are used for represented Min, Current and Max values
@@ -213,9 +224,27 @@ public class Measurement extends MainActivity implements
         @Override
         public void onClick(View view) {
             // Stop measurement without waiting for the end of processing
-            measurementService.pause(!view.isPressed());
+            measurementService.setPause(!measurementService.isPaused());
+            chronometerWaitingToStart.set(true);
         }
     };
+
+    private static class ToggleButtonTouch implements View.OnTouchListener {
+        Measurement measurement;
+
+        public ToggleButtonTouch(Measurement measurement) {
+            this.measurement = measurement;
+        }
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                v.setPressed(!measurement.measurementService.isPaused());
+                v.performClick();
+            }
+            return true;
+        }
+    }
 
 
     private void initSpectrum() {
@@ -410,13 +439,23 @@ public class Measurement extends MainActivity implements
                         Intent ir = new Intent(activity.getApplicationContext(), CommentActivity.class);
                         ir.putExtra(Results.RESULTS_RECORD_ID,
                                 activity.measurementService.getRecordId());
+                        ir.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         activity.startActivity(ir);
                         activity.finish();
                     }
                 });
 
             } else {
-                processingDialog.dismiss();
+                // No recordId available, restart measurement activity
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        processingDialog.dismiss();
+                        Intent im = new Intent(activity, Measurement.class);
+                        im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        activity.startActivity(im);
+                        activity.finish();
+                    }});
             }
         }
     }
@@ -438,14 +477,15 @@ public class Measurement extends MainActivity implements
 
     private void initGuiState() {
         // Update buttons: cancel enabled; record button to stop;
-        ImageButton buttonpause= (ImageButton) findViewById(R.id.pauseBtn);
-        ImageButton buttonrecord= (ImageButton) findViewById(R.id.recordBtn);
+        // Show start measure hint
+        TextView overlayMessage = (TextView) findViewById(R.id.textView_message_overlay);
 
-        if (measurementService.isRecording()) {
-            buttonpause.setEnabled(true);
+        initComponents();
+        if (measurementService.isStoring()) {
+            overlayMessage.setText("");
+            buttonPause.setEnabled(true);
             buttonrecord.setImageResource(R.drawable.button_record_pressed);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-            initComponents();
 
             // Start chronometer
             chronometerWaitingToStart.set(true);
@@ -454,12 +494,13 @@ public class Measurement extends MainActivity implements
         {
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             // Enabled/disabled buttons after measurement
-            buttonpause.setEnabled(false);
+            buttonPause.setEnabled(false);
             buttonrecord.setImageResource(R.drawable.button_record);
             buttonrecord.setEnabled(true);
             // Stop and reset chronometer
             Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer_recording_time);
             chronometer.stop();
+            overlayMessage.setText(R.string.no_data_text_description);
         }
     }
 
@@ -493,18 +534,19 @@ public class Measurement extends MainActivity implements
             ImageButton buttonPause= (ImageButton) activity.findViewById(R.id.pauseBtn);
             buttonPause.setEnabled(true);
             ImageButton buttonrecord= (ImageButton) activity.findViewById(R.id.recordBtn);
-            buttonrecord.setImageResource(R.drawable.button_record_pressed);
 
-            if (!activity.measurementService.isRecording()) {
+            if (!activity.measurementService.isStoring()) {
                 // Start recording
-                activity.measurementService.startRecording();
+                buttonrecord.setImageResource(R.drawable.button_record_pressed);
+                buttonrecord.setEnabled(false);
+                activity.measurementService.startStorage();
             } else {
                 // Stop measurement
                 activity.measurementService.stopRecording();
 
                 // Show computing progress dialog
                 ProgressDialog myDialog = new ProgressDialog(activity);
-                if(!activity.measurementService.isCanceled()) {
+                if (!activity.measurementService.isCanceled()) {
                     myDialog.setMessage(resources.getString(R.string.measurement_processlastsamples,
                             activity.measurementService.getAudioProcess().getRemainingNotProcessSamples()));
                     myDialog.setCancelable(false);
@@ -546,17 +588,26 @@ public class Measurement extends MainActivity implements
         public void run() {
             try {
                 if(activity.measurementService.isRecording()) {
+                    int seconds = activity.measurementService.getLeqAdded();
+                    if(seconds >= Measurement.DEFAULT_MINIMAL_LEQ && !activity.buttonrecord.isEnabled()) {
+                        activity.buttonrecord.setEnabled(true);
+                    }
+                    Chronometer chronometer = (Chronometer) activity
+                            .findViewById(R.id.chronometer_recording_time);
                     if (activity.chronometerWaitingToStart.getAndSet(false)) {
-                        long time = activity.measurementService.getBeginMeasure();
-                        if (time != 0) {
-                            Chronometer chronometer = (Chronometer) activity
-                                    .findViewById(R.id.chronometer_recording_time);
-                            chronometer.setBase(time);
-                            chronometer.start();
+                        chronometer.setBase(SystemClock.elapsedRealtime() - seconds * 1000);
+                        TextView overlayMessage = (TextView) activity.findViewById(R.id.textView_message_overlay);
+                        if(activity.measurementService.isPaused()) {
+                            chronometer.stop();
+                            chronometer.startAnimation(AnimationUtils.loadAnimation(activity, R.anim.pause_anim));
+                            overlayMessage.setText(R.string.measurement_pause);
                         } else {
-                            activity.chronometerWaitingToStart.set(true);
+                            chronometer.clearAnimation();
+                            chronometer.start();
+                            overlayMessage.setText("");
                         }
                     }
+
                     //Update accuracy hint
                     final TextView accuracyText = (TextView) activity.findViewById(R.id.textView_value_gps_precision);
                     final ImageView accuracyImageHint = (ImageView) activity.findViewById(R.id.imageView_value_gps_precision);
@@ -581,18 +632,21 @@ public class Measurement extends MainActivity implements
                     // Change the text and the textcolor in the corresponding textview
                     // for the Leqi value
                     LeqStats leqStats =
-                            activity.measurementService.getAudioProcess().getStandartLeqStats();
+                            activity.measurementService.getLeqStats();
                     final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
                     formatdBA(leq, mTextView);
-                    final TextView valueMin = (TextView) activity.findViewById(R.id
-                            .textView_value_Min_i);
-                    formatdBA(leqStats.getLeqMin(), valueMin);
-                    final TextView valueMax = (TextView) activity.findViewById(R.id
-                            .textView_value_Max_i);
-                    formatdBA(leqStats.getLeqMax(), valueMax);
-                    final TextView valueMean = (TextView) activity.findViewById(R.id
-                            .textView_value_Mean_i);
-                    formatdBA(leqStats.getLeqMean(), valueMean);
+                    if(activity.measurementService.getLeqAdded() != 0) {
+                        // Stats are only available if the recording of previous leq are activated
+                        final TextView valueMin = (TextView) activity.findViewById(R.id
+                                .textView_value_Min_i);
+                        formatdBA(leqStats.getLeqMin(), valueMin);
+                        final TextView valueMax = (TextView) activity.findViewById(R.id
+                                .textView_value_Max_i);
+                        formatdBA(leqStats.getLeqMax(), valueMax);
+                        final TextView valueMean = (TextView) activity.findViewById(R.id
+                                .textView_value_Mean_i);
+                        formatdBA(leqStats.getLeqMean(), valueMean);
+                    }
 
 
                     int nc = Measurement.getNEcatColors(leq);    // Choose the color category in
@@ -647,8 +701,17 @@ public class Measurement extends MainActivity implements
             // cast its IBinder to a concrete class and directly access it.
             measurementService = ((MeasurementService.LocalBinder)service).getService();
 
+            measurementService.setMinimalLeqCount(Measurement.DEFAULT_MINIMAL_LEQ);
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(Measurement.this);
+            measurementService.setDeletedLeqOnPause(Integer.valueOf(
+                    sharedPref.getString(Measurement.DELETE_LEQ_ON_PAUSE_SETTING,
+                            String.valueOf(Measurement.DEFAULT_DELETE_LEQ_ON_PAUSE))));
             // Init gui if recording is ongoing
             measurementService.addPropertyChangeListener(doProcessing);
+
+            if(!measurementService.isRecording()) {
+                measurementService.startRecording();
+            }
             initGuiState();
         }
 

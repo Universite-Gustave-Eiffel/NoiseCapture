@@ -341,6 +341,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         xls.setLabelRotationAngle(-90);
         xls.setDrawLabels(true);
         xls.setTextColor(Color.WHITE);
+        xls.setLabelsToSkip(0);
         // YAxis parameters (left): main axis for dB values representation
         YAxis yls = sChart.getAxisLeft();
         yls.setDrawAxisLine(true);

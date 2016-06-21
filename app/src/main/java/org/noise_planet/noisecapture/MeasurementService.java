@@ -49,6 +49,7 @@ import android.os.SystemClock;
 import android.support.v4.content.ContextCompat;
 import android.widget.Toast;
 
+import org.orbisgis.sos.LeqStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,18 +80,26 @@ public class MeasurementService extends Service {
     private long minTimeDelay = 1000;
     private static final long MAXIMUM_LOCATION_HISTORY = 50;
     private AudioProcess audioProcess;
-    private AtomicBoolean isRecording = new AtomicBoolean(false);
+    private AtomicBoolean isRecording = new AtomicBoolean(false);  // Is microphone activated
+    private AtomicBoolean isPaused = new AtomicBoolean(false);  // Recording is temporary paused
+    private AtomicBoolean isStorageActivated = new AtomicBoolean(false); // Is leq are stored into database
+
     private AtomicBoolean canceled = new AtomicBoolean(false);
+    // 1s leq recorded in db
     private AtomicInteger leqAdded = new AtomicInteger(0);
     private MeasurementManager measurementManager;
-    private long beginMeasure = 0;
     private DoProcessing doProcessing = new DoProcessing(this);
     // This measurement identifier in the long term storage
     private int recordId = -1;
+    // Keep the measurement only if the count of leq is equal or greater than minimalLeqCount
+    private int minimalLeqCount = 0;
+    // Seconds to delete when pause is activated
+    private int deletedLeqOnPause = 0;
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
     private static final Logger LOGGER = LoggerFactory.getLogger(MeasurementService.class);
 
     private NavigableMap<Long, Location> timeLocation = new TreeMap<Long, Location>();
+    private LeqStats leqStats = new LeqStats();
 
     private NotificationManager mNM;
 
@@ -107,6 +116,10 @@ public class MeasurementService extends Service {
         MeasurementService getService() {
             return MeasurementService.this;
         }
+    }
+
+    public LeqStats getLeqStats() {
+        return leqStats;
     }
 
     public int getRecordId() {
@@ -135,6 +148,16 @@ public class MeasurementService extends Service {
     public void onCreate() {
         mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         this.measurementManager = new MeasurementManager(getApplicationContext());
+        // Display a notification about us starting.  We put an icon in the status bar.
+        showNotification();
+    }
+
+    /**
+     * Keep the measurement only if the count of leq is equal or greater than minimalLeqCount
+     * @param minimalLeqCount Minimal seconds
+     */
+    public void setMinimalLeqCount(int minimalLeqCount) {
+        this.minimalLeqCount = minimalLeqCount;
     }
 
     @Override
@@ -145,11 +168,11 @@ public class MeasurementService extends Service {
 
     @Override
     public void onDestroy() {
+        // Hide notification
+        mNM.cancel(NOTIFICATION);
         // Stop record
         if(isRecording()) {
             cancel();
-            // Tell the user we canceled.
-            Toast.makeText(this, R.string.measurement_service_canceled, Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -173,12 +196,15 @@ public class MeasurementService extends Service {
         audioProcess.getListeners().addPropertyChangeListener(doProcessing);
 
         // Start measurement
-        recordId = measurementManager.addRecord();
-        leqAdded.set(0);
         new Thread(audioProcess).start();
 
-        // Display a notification about us starting.  We put an icon in the status bar.
+        // Change notification icon message
         showNotification();
+
+    }
+
+    public boolean isPaused() {
+        return isPaused.get();
     }
 
     public void stopRecording() {
@@ -194,7 +220,8 @@ public class MeasurementService extends Service {
      */
     private void showNotification() {
         // Text for the ticker
-        CharSequence text = getText(R.string.title_service_measurement);
+        CharSequence text = isStoring() ? getText(R.string.title_service_measurement) :
+                getText(R.string.record_message);
 
         // The PendingIntent to launch our activity if the user selects this notification
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
@@ -203,7 +230,7 @@ public class MeasurementService extends Service {
         // Set the info for the views that show in the notification panel.
         Notification.Builder notification = new Notification.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)  // the status icon
-                .setWhen(beginMeasure)
+                .setWhen(System.currentTimeMillis())
                 .setTicker(text)  // the status text
                 .setWhen(System.currentTimeMillis())  // the time stamp
                 .setContentTitle("NoiseCapture")  // the label of the entry
@@ -318,10 +345,37 @@ public class MeasurementService extends Service {
         listeners.removePropertyChangeListener(propertyChangeListener);
     }
 
-    public void pause(boolean newState) {
-        //TODO
+    public void setPause(boolean newState) {
+        isPaused.set(newState);
+        LOGGER.info("Measurement pause = " + String.valueOf(newState));
+        if(newState && deletedLeqOnPause > 0 && recordId > -1) {
+            // Delete last recorded leq
+            int deletedLeq = measurementManager.deleteLastLeqs(recordId,
+                    System.currentTimeMillis() -  (deletedLeqOnPause * 1000));
+            leqAdded.set(Math.max(0, leqAdded.get() - deletedLeq));
+            // Recompute LeqStats altered by the removed leq
+            LeqStats newLeqStats = new LeqStats();
+            for(MeasurementManager.LeqBatch leq : measurementManager
+                    .getRecordLocations(recordId, false)) {
+                newLeqStats.addLeq(leq.computeGlobalLeq());
+            }
+            leqStats = newLeqStats;
+        }
     }
 
+    /**
+     * @param deletedLeqOnPause Number of leq to delete on pause
+     */
+    public void setDeletedLeqOnPause(int deletedLeqOnPause) {
+        this.deletedLeqOnPause = Math.max(0, deletedLeqOnPause);
+    }
+
+    /**
+     * @return Deleted leq triggered by a pause
+     */
+    public int getDeletedLeqOnPause() {
+        return deletedLeqOnPause;
+    }
 
     public void addLocation(Location location) {
         // Check if the previous location is inside the precision range of the new location
@@ -413,16 +467,10 @@ public class MeasurementService extends Service {
                 return;
             }
             StringTokenizer stringTokenizer = new StringTokenizer(nmea, ",");
-
+            //TODO read NMEA
+            // Used by bluetooth GPS receivers
 
         }
-    }
-
-    /**
-     * @return Start time of measurement
-     */
-    public long getBeginMeasure() {
-        return beginMeasure;
     }
 
     private static class DoProcessing implements  PropertyChangeListener {
@@ -434,58 +482,59 @@ public class MeasurementService extends Service {
 
         @Override
         public void propertyChange(PropertyChangeEvent event) {
-            if(measurementService.beginMeasure == 0) {
-                measurementService.beginMeasure = SystemClock.elapsedRealtime();
-            }
+            // Skip event if we do not record or if the pause is active
             if (AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName
                     ())) {
-                // Delayed audio processing
-                AudioProcess.DelayedStandardAudioMeasure measure =
-                        (AudioProcess.DelayedStandardAudioMeasure) event.getNewValue();
-                Location location = measurementService.fetchLocation(measure.getBeginRecordTime());
-                Storage.Leq leq;
-                if(location == null) {
-                    leq = new Storage.Leq(measurementService.recordId, -1, measure
-                            .getBeginRecordTime(), 0, 0, null, null, null, 0.f, 0);
-                }else {
-                    leq = new Storage.Leq(measurementService.recordId, -1, measure
-                            .getBeginRecordTime(), location.getLatitude(), location.getLongitude(),
-                            location.hasAltitude() ? location.getAltitude() : null,
-                            location.hasSpeed() ? location.getSpeed() : null,
-                            location.hasBearing() ? location.getBearing() : null,
-                            location.getAccuracy(), location.getTime());
-                }
-                double[] freqValues = measurementService.audioProcess.getDelayedCenterFrequency();
-                final float[] leqs = measure.getLeqs();
-                List<Storage.LeqValue> leqValueList = new ArrayList<>(leqs.length);
-                for (int idFreq = 0; idFreq < leqs.length; idFreq++) {
-                    leqValueList
-                            .add(new Storage.LeqValue(-1, (int) freqValues[idFreq], leqs[idFreq]));
-                }
-                measurementService.measurementManager
-                        .addLeqBatch(new MeasurementManager.LeqBatch(leq, leqValueList));
-                measurementService.leqAdded.addAndGet(1);
-            } else if(AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
-                if(AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
-                    // Recording and processing of audio has been closed
-                    // Cancel the persistent notification.
-                    measurementService.mNM.cancel(measurementService.NOTIFICATION);
-                    if (measurementService.canceled.get() || measurementService.leqAdded.get() == 0)
-                    {
-                        // Canceled
-                        // Destroy record
-                        measurementService.measurementManager
-                                .deleteRecord(measurementService.recordId);
+                if (measurementService.isStoring() && !measurementService.isPaused.get()) {
+                    // Delayed audio processing
+                    AudioProcess.DelayedStandardAudioMeasure measure =
+                            (AudioProcess.DelayedStandardAudioMeasure) event.getNewValue();
+                    Location location = measurementService.fetchLocation(measure.getBeginRecordTime());
+                    Storage.Leq leq;
+                    if (location == null) {
+                        leq = new Storage.Leq(measurementService.recordId, -1, measure
+                                .getBeginRecordTime(), 0, 0, null, null, null, 0.f, 0);
                     } else {
-                        // Update record
-                        measurementService.measurementManager
-                                .updateRecordFinal(measurementService.recordId,
-                                        (float) measurementService.audioProcess
-                                                .getStandartLeqStats().getLeqMean(),
-                                        (int)(SystemClock.elapsedRealtime() - measurementService.beginMeasure) / 1000);
-
+                        leq = new Storage.Leq(measurementService.recordId, -1, measure
+                                .getBeginRecordTime(), location.getLatitude(), location.getLongitude(),
+                                location.hasAltitude() ? location.getAltitude() : null,
+                                location.hasSpeed() ? location.getSpeed() : null,
+                                location.hasBearing() ? location.getBearing() : null,
+                                location.getAccuracy(), location.getTime());
                     }
-                    measurementService.beginMeasure = 0;
+                    double[] freqValues = measurementService.audioProcess.getDelayedCenterFrequency();
+                    final float[] leqs = measure.getLeqs();
+                    // Add leqs to stats
+                    measurementService.leqStats.addLeq(measure.getGlobaldBaValue());
+                    List<Storage.LeqValue> leqValueList = new ArrayList<>(leqs.length);
+                    for (int idFreq = 0; idFreq < leqs.length; idFreq++) {
+                        leqValueList
+                                .add(new Storage.LeqValue(-1, (int) freqValues[idFreq], leqs[idFreq]));
+                    }
+                    measurementService.measurementManager
+                            .addLeqBatch(new MeasurementManager.LeqBatch(leq, leqValueList));
+                    measurementService.leqAdded.addAndGet(1);
+                }
+            } else if (AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
+                if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
+                    if(measurementService.recordId > -1) {
+                        // Recording and processing of audio has been closed
+                        // Cancel the persistent notification.
+                        if (measurementService.canceled.get() || measurementService.leqAdded.get()
+                                < measurementService.minimalLeqCount) {
+                            // Canceled or has not the minimal leq count
+                            // Destroy record
+                            measurementService.measurementManager
+                                    .deleteRecord(measurementService.recordId);
+                        } else {
+                            // Update record
+                            measurementService.measurementManager
+                                    .updateRecordFinal(measurementService.recordId,
+                                            (float) measurementService.leqStats.getLeqMean(),
+                                            measurementService.leqAdded.get());
+                        }
+                    }
+                    measurementService.isRecording.set(false);
                     measurementService.stopLocalisationServices();
                 }
             }
@@ -493,8 +542,31 @@ public class MeasurementService extends Service {
         }
     }
 
+    /**
+     * @return True if microphone is enabled
+     */
     public boolean isRecording() {
         return isRecording.get();
+    }
+
+    /**
+     * @return True if storage of records are activated
+     */
+    public boolean isStoring() {
+        return isStorageActivated.get();
+    }
+
+    /**
+     * Start the storage of leq in database
+     */
+    public void startStorage() {
+        if(!isRecording()) {
+            startRecording();
+        }
+        recordId = measurementManager.addRecord();
+        leqAdded.set(0);
+        isStorageActivated.set(true);
+        showNotification();
     }
 
 }

@@ -29,6 +29,7 @@ package org.noise_planet.noisecapture;
 
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
@@ -37,6 +38,7 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
@@ -139,12 +141,20 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if(!(this instanceof Measurement)) {
+            if(mDrawerLayout != null) {
+                mDrawerLayout.closeDrawer(mDrawerList);
+            }
             Intent im = new Intent(getApplicationContext(),Measurement.class);
-            mDrawerLayout.closeDrawer(mDrawerList);
+            im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(im);
             finish();
         } else {
-            super.onBackPressed();
+            finish();
+            // Show home
+            Intent im = new Intent(Intent.ACTION_MAIN);
+            im.addCategory(Intent.CATEGORY_HOME);
+            im.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(im);
         }
     }
 
@@ -162,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 case 0:
                     // Measurement
                     Intent im = new Intent(getApplicationContext(),Measurement.class);
+                    im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(im);
                     finish();

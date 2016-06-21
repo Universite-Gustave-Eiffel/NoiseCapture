@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shareInterpolator="false">
+    <alpha
+        android:fromAlpha="1"
+        android:toAlpha="0"
+        android:repeatCount="-1"
+        android:repeatMode="reverse"
+        android:interpolator="@android:interpolator/linear"
+        android:duration="350"
+        />
+</set>

@@ -101,8 +101,14 @@ public class Measurement extends MainActivity implements
     private static final int DEFAULT_MINIMAL_LEQ = 1;
     private static final int DEFAULT_DELETE_LEQ_ON_PAUSE = 0;
 
+    private boolean hasMaximalMeasurementTime;
+    private int maximalMeasurementTime = 0;
+
     private static final String LOG_SCALE_SETTING = "settings_spectrogram_logscalemode";
     private static final String DELETE_LEQ_ON_PAUSE_SETTING = "settings_delete_leq_on_pause";
+    private static final String HAS_MAXIMAL_MEASURE_TIME_SETTING = "settings_recording";
+    private static final String MAXIMAL_MEASURE_TIME_SETTING = "settings_recording_duration";
+    private static final String DEFAULT_MAXIMAL_MEASURE_TIME_SETTING = "10";
 
     public int getRecordId() {
         return measurementService.getRecordId();
@@ -124,6 +130,11 @@ public class Measurement extends MainActivity implements
                     Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR);
         } else if(DELETE_LEQ_ON_PAUSE_SETTING.equals(key)) {
             measurementService.setDeletedLeqOnPause(Integer.valueOf(sharedPreferences.getString(key, String.valueOf(DEFAULT_DELETE_LEQ_ON_PAUSE))));
+        } else if(HAS_MAXIMAL_MEASURE_TIME_SETTING.equals(key)) {
+            hasMaximalMeasurementTime = sharedPreferences.getBoolean(HAS_MAXIMAL_MEASURE_TIME_SETTING,
+                    false);
+        } else if(MAXIMAL_MEASURE_TIME_SETTING.equals(key)) {
+            maximalMeasurementTime = Integer.valueOf(sharedPreferences.getString(MAXIMAL_MEASURE_TIME_SETTING, DEFAULT_MAXIMAL_MEASURE_TIME_SETTING));
         }
     }
 
@@ -143,6 +154,11 @@ public class Measurement extends MainActivity implements
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
         Boolean CheckNbRunSettings = sharedPref.getBoolean("settings_caution", true);
+
+        hasMaximalMeasurementTime = sharedPref.getBoolean(HAS_MAXIMAL_MEASURE_TIME_SETTING,
+                false);
+        maximalMeasurementTime = Integer.valueOf(sharedPref.getString(MAXIMAL_MEASURE_TIME_SETTING,
+                DEFAULT_MAXIMAL_MEASURE_TIME_SETTING));
         if (CheckNbRun() & CheckNbRunSettings) {
 
             // show dialog
@@ -524,6 +540,16 @@ public class Measurement extends MainActivity implements
             } else if(AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
                 if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
                     activity.runOnUiThread(new UpdateText(activity));
+                }
+            } else if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName())) {
+                if(activity.hasMaximalMeasurementTime && activity.measurementService.isStoring() &&
+                        activity.maximalMeasurementTime <= activity.measurementService.getLeqAdded()) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            activity.buttonrecord.performClick();
+                        }
+                    });
                 }
             }
         }

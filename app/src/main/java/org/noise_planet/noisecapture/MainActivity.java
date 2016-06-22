@@ -205,17 +205,10 @@ public class MainActivity extends AppCompatActivity {
                     mDrawerLayout.closeDrawer(mDrawerList);
                     break;
                 case 4:
-                    // Show the map if data transfer settings is true
-                    // TODO: Check also if data transfer using wifi
-                    if (CheckDataTransfer()) {
-                        Intent imap = new Intent(getApplicationContext(), MapActivity.class);
-                        //mDrawerLayout.closeDrawer(mDrawerList);
-                        startActivity(imap);
-                        finish();
-                    }
-                    else {
-                        DialogBoxDataTransfer();
-                    }
+                    // Show the map
+                    Intent imap = new Intent(getApplicationContext(), MapActivity.class);
+                    startActivity(imap);
+                    finish();
                     mDrawerLayout.closeDrawer(mDrawerList);
                     break;
                 case 5:
@@ -310,32 +303,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private boolean CheckDataTransfer() {
+    protected boolean IsManualTransferOnly() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        Boolean DataTransfer = sharedPref.getBoolean("settings_data_transfer", true);
-        return DataTransfer;
+        return !sharedPref.getBoolean("settings_data_transfer", true);
     }
 
-    // Dialog box for activating data transfer
-    public boolean DialogBoxDataTransfer() {
-           new AlertDialog.Builder(this)
-                .setTitle(R.string.title_caution_data_transfer)
-                .setMessage(R.string.text_caution_data_transfer)
-                .setPositiveButton(R.string.text_OK_data_transfer, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Goto to the settings page
-                        Intent is = new Intent(getApplicationContext(),Settings.class);
-                        startActivity(is);
-                    }
-                })
-                .setNegativeButton(R.string.text_CANCEL_data_transfer, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Nothing is done
-                    }
-                })
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
-        return true;
+
+    protected boolean IsWifiTransferOnly() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        return !sharedPref.getBoolean("settings_data_transfer_wifi_only", true);
     }
 
     public static final class SendZipToServer implements Runnable {

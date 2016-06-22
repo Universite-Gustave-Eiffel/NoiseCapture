@@ -45,18 +45,18 @@
     <string name="hello_world">Hello world!</string>
 
     <string name="title_settings_data_transfer">Data transfer</string>
-    <string name="summary_settings_data_transfer">Accept data transfer</string>
+    <string name="summary_settings_data_transfer">Automatic transfer of measurements</string>
     <string name="title_settings_transfer_wifi_only">Wifi only</string>
-    <string name="summary_settings_transfer_wifi_only">Check if data transfer by wifi only</string>
+    <string name="summary_settings_transfer_wifi_only">Automatic transfer by wifi only</string>
     <string name="title_settings_recording">Recording</string>
-    <string name="summary_settings_recording">Set default recording time</string>
+    <string name="summary_settings_recording">Set maximal recording time</string>
     <string name="title_settings_caution">Caution message</string>
     <string name="summary_settings_caution">Check to display the caution message during the launch of the application</string>
     <string name="title_settings_recording_duration">Recording duration</string>
 
     <string name="title_settings_spectrogram_logscalemode">Spectrogram frequency in Log Scale</string>
     <string name="title_settings_delete_leq_on_pause">Leq delete on pause</string>
-    <string name="title_settings_delete_leq_on_pause_description">When pause is activated delete the last stored leq</string>
+    <string name="title_settings_delete_leq_on_pause_description">On pause delete the last recorded seconds</string>
     <string name="summary_settings_spectrogram_logscalemode">Check for frequency scale in log, uncheck for linear</string>
     <string name="summary_settings_recording_duration">Set the recording duration (in second)</string>
     <string name="title_settings_view_mode">Display</string>

@@ -35,19 +35,15 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.support.v4.content.ContextCompat;
-import android.widget.Toast;
 
 import org.orbisgis.sos.LeqStats;
 import org.slf4j.Logger;
@@ -225,7 +221,7 @@ public class MeasurementService extends Service {
 
         // The PendingIntent to launch our activity if the user selects this notification
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, Measurement.class), 0);
+                new Intent(this, MeasurementActivity.class), 0);
 
         // Set the info for the views that show in the notification panel.
         Notification.Builder notification = new Notification.Builder(this)

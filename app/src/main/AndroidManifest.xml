@@ -50,7 +50,7 @@
         <service android:name=".MeasurementService" />
 
         <activity
-            android:name=".Measurement"
+            android:name=".MeasurementActivity"
             android:label="@string/title_activity_measurement"
             android:screenOrientation="portrait"/>
         <activity
@@ -87,7 +87,7 @@
             android:name=".History"
             android:label="@string/title_activity_history"/>
         <activity
-            android:name=".activity_calibration_start"
+            android:name=".CalibrationActivity"
             android:label="@string/title_activity_calibration_start"/>
 
         <meta-data

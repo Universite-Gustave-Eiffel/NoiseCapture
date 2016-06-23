@@ -5,169 +5,83 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
     android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="org.noise_planet.noisecapture.activity_calibration_start">
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    tools:context=".CalibrationActivity">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="@string/title_select_calibration_mode"
-            android:id="@+id/textView_select_calibration_mode"
-            android:textSize="15dp"
-            android:textColor="#0099CC"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:gravity="center_horizontal" />
-
-        <Spinner
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:id="@+id/spinner_calibration_mode"
-            android:layout_below="@+id/textView_select_calibration_mode"
-            android:paddingBottom="0dp"
-            android:gravity="center_horizontal"
-            android:textAlignment="center"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Calibration duration (s)"
-            android:id="@+id/textView_calibration_duration"
-            android:layout_below="@+id/spinner_calibration_mode"
-            android:layout_centerHorizontal="true"
-            android:textColor="#0099CC"
-            android:textSize="15dp"
-            android:paddingTop="20dp" />
-
-        <EditText
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:ems="10"
-            android:id="@+id/editText"
-            android:layout_below="@+id/textView_calibration_duration"
-            android:text="10"
-            android:gravity="center_horizontal"
-            android:layout_alignLeft="@+id/textView_title_calibration_delay"
-            android:layout_alignStart="@+id/textView_title_calibration_delay"
-            android:layout_alignRight="@+id/textView_title_calibration_delay"
-            android:layout_alignEnd="@+id/textView_title_calibration_delay" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?android:attr/textAppearanceSmall"
-            android:text="Calibration delay (s)"
-            android:id="@+id/textView_title_calibration_delay"
-            android:textColor="#0099CC"
-            android:textSize="15dp"
-            android:paddingTop="15dp"
-            android:textAlignment="center"
-            android:gravity="center_horizontal"
-            android:layout_column="4"
-            android:layout_below="@+id/editText"
-            android:layout_centerHorizontal="true" />
-
-        <EditText
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:ems="10"
-            android:id="@+id/editText_calibration_delay"
-            android:editable="true"
-            android:text="5"
-            android:textAlignment="center"
-            android:gravity="center_horizontal"
-            android:layout_below="@+id/textView_title_calibration_delay"
-            android:layout_alignLeft="@+id/editText"
-            android:layout_alignStart="@+id/editText"
-            android:layout_alignRight="@+id/editText"
-            android:layout_alignEnd="@+id/editText" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Start"
-            android:id="@+id/button_start_calibration"
-            android:background="@color/R1_SL_level"
-            android:layout_alignParentBottom="true"
-            android:layout_centerHorizontal="true" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cancel"
-            android:id="@+id/button_cancel_calibration"
-            android:background="@color/R3_SL_level"
-            android:textColor="@android:color/black"
-            android:layout_alignParentBottom="true"
-            android:layout_alignLeft="@+id/button_start_calibration"
-            android:layout_alignStart="@+id/button_start_calibration"
-            android:visibility="invisible" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Prepare to start recording..."
-            android:id="@+id/textView_title_Prepare_start_recording"
-            android:layout_below="@+id/editText_calibration_delay"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_alignRight="@+id/spinner_calibration_mode"
-            android:layout_alignEnd="@+id/spinner_calibration_mode"
-            android:paddingTop="40dp"
-            android:textSize="15dp" />
+            android:text="@string/calibration_status_waiting_for_user_start"
+            android:id="@+id/textView_recording_state"
+            android:paddingBottom="15dp"
+            android:textSize="15sp" />
 
         <ProgressBar
             style="@android:style/Widget.ProgressBar.Horizontal"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/progressBar_wait_calibration_recording"
-            android:layout_below="@+id/textView_title_Prepare_start_recording"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="false"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentEnd="false"
-            android:maxHeight="20dp"
-            android:minHeight="20dp"
             android:layout_marginTop="6dp" />
 
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/btn_start"
+            android:layout_marginTop="15dp"
+            android:text="@string/calibration_button_start"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Recording..."
-            android:id="@+id/textView_title_Recording"
-            android:layout_below="@+id/progressBar_wait_calibration_recording"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:textSize="15dp"
-            android:paddingTop="10dp" />
-
-        <ProgressBar
-            style="@android:style/Widget.ProgressBar.Horizontal"
+            android:text="@string/calibration_leq_title"
+            android:paddingTop="15dp"
+            android:paddingBottom="15dp"
+            android:textSize="15sp" />
+        <TextView
+            android:id="@+id/textView_value_SL_i"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:id="@+id/progressBar_calibration_recording"
-            android:layout_below="@+id/textView_title_Recording"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_alignRight="@+id/progressBar_wait_calibration_recording"
-            android:layout_alignEnd="@+id/progressBar_wait_calibration_recording"
-            android:minHeight="20dp"
-            android:maxHeight="20dp"
-            android:color="@color/R1_SL_level"
-            android:layout_marginTop="5dp"
-            android:progress="10" />
+            android:text="@string/no_valid_dba_value"
+            android:textSize="60sp"
+            android:textStyle="normal" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/calibration_measure_title"
+            android:paddingBottom="15dp"
+            android:textSize="15sp" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+        <EditText
+            android:layout_width="80dp"
+            android:gravity="right"
+            android:id="@+id/edit_text_external_measured"
+            android:layout_height="wrap_content"
+            android:enabled="false"
+            android:inputType="numberDecimal"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/SL_dBA"
+                android:textSize="15sp"/>
+        </LinearLayout>
+        <Button
+            android:id="@+id/btn_apply"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/calibration_button_apply"
+            android:enabled="false"/>
 
-    </RelativeLayout>
+    </LinearLayout>
 
     <ListView
     android:id="@+id/left_drawer"

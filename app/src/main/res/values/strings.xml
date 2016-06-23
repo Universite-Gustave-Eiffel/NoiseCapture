@@ -43,7 +43,14 @@
     <string name="SEL_dBA">Noise exposure dB(A)</string>
 
     <string name="hello_world">Hello world!</string>
+    <string name="title_settings_calibration_warmup_time">Calibration warmup time</string>
+    <string name="title_settings_calibration_warmup_time_description">Waiting time in seconds before calibration</string>
+    <string name="title_settings_calibration_time">Calibration time</string>
+    <string name="title_settings_calibration_time_description">Calibration time in seconds</string>
 
+    <string name="setting_general_group">General</string>
+    <string name="setting_measurement_group">Measurement</string>
+    <string name="setting_calibration_group">Calibration</string>
     <string name="title_settings_data_transfer">Data transfer</string>
     <string name="summary_settings_data_transfer">Automatic transfer of measurements</string>
     <string name="title_settings_transfer_wifi_only">Wifi only</string>
@@ -114,14 +121,6 @@
     <string name="error_already_uploaded">This measurement has already been uploaded</string>
 
     <!--  Ressources for acoustics !-->
-    <!--
-    <item>25</item>
-        <item>31.5</item>
-        <item>40</item>
-        <item>50</item>
-        <item>63</item>
-        <item>80</item>
-    !-->
     <string-array name="tob_list_array">
         <item>100</item>
         <item>125</item>
@@ -242,4 +241,12 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="userinfo_unpleasant">Unpleasant</string>
     <string name="userinfo_pleasant">Pleasant</string>
     <string name="userinfo_pleasantness">Pleasantness</string>
+    <string name="calibration_status_waiting_for_user_start">Waiting for calibration start..</string>
+    <string name="calibration_status_waiting_for_start_timer">Calibration about to start..</string>
+    <string name="calibration_status_on">Calibration..</string>
+    <string name="calibration_status_end">Calibration done</string>
+    <string name="calibration_button_start">Start</string>
+    <string name="calibration_leq_title">Mobile measured value:</string>
+    <string name="calibration_measure_title">User measured value:</string>
+    <string name="calibration_button_apply">Apply</string>
 </resources>

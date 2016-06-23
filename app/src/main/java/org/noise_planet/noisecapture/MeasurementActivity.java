@@ -71,10 +71,9 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class Measurement extends MainActivity implements
+public class MeasurementActivity extends MainActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener {
 
     //public ImageButton buttonrecord;
@@ -246,9 +245,9 @@ public class Measurement extends MainActivity implements
     };
 
     private static class ToggleButtonTouch implements View.OnTouchListener {
-        Measurement measurement;
+        MeasurementActivity measurement;
 
-        public ToggleButtonTouch(Measurement measurement) {
+        public ToggleButtonTouch(MeasurementActivity measurement) {
             this.measurement = measurement;
         }
 
@@ -419,10 +418,10 @@ public class Measurement extends MainActivity implements
     }
 
     private static class WaitEndOfProcessing implements Runnable {
-        private Measurement activity;
+        private MeasurementActivity activity;
         private ProgressDialog processingDialog;
 
-        public WaitEndOfProcessing(Measurement activity, ProgressDialog processingDialog) {
+        public WaitEndOfProcessing(MeasurementActivity activity, ProgressDialog processingDialog) {
             this.activity = activity;
             this.processingDialog = processingDialog;
         }
@@ -467,7 +466,7 @@ public class Measurement extends MainActivity implements
                     @Override
                     public void run() {
                         processingDialog.dismiss();
-                        Intent im = new Intent(activity, Measurement.class);
+                        Intent im = new Intent(activity, MeasurementActivity.class);
                         im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                         activity.startActivity(im);
                         activity.finish();
@@ -522,9 +521,9 @@ public class Measurement extends MainActivity implements
 
     private static class DoProcessing implements CompoundButton.OnClickListener,
             PropertyChangeListener {
-        private Measurement activity;
+        private MeasurementActivity activity;
 
-        public DoProcessing(Measurement activity) {
+        public DoProcessing(MeasurementActivity activity) {
             this.activity = activity;
         }
 
@@ -596,7 +595,7 @@ public class Measurement extends MainActivity implements
     }
 
     private final static class UpdateText implements Runnable {
-        Measurement activity;
+        MeasurementActivity activity;
 
         private static void formatdBA(double dbAValue, TextView textView) {
             if(dbAValue > MIN_SHOWN_DBA_VALUE && dbAValue < MAX_SHOWN_DBA_VALUE) {
@@ -606,7 +605,7 @@ public class Measurement extends MainActivity implements
             }
         }
 
-        private UpdateText(Measurement activity) {
+        private UpdateText(MeasurementActivity activity) {
             this.activity = activity;
         }
 
@@ -615,7 +614,7 @@ public class Measurement extends MainActivity implements
             try {
                 if(activity.measurementService.isRecording()) {
                     int seconds = activity.measurementService.getLeqAdded();
-                    if(seconds >= Measurement.DEFAULT_MINIMAL_LEQ && !activity.buttonrecord.isEnabled()) {
+                    if(seconds >= MeasurementActivity.DEFAULT_MINIMAL_LEQ && !activity.buttonrecord.isEnabled()) {
                         activity.buttonrecord.setEnabled(true);
                     }
                     Chronometer chronometer = (Chronometer) activity
@@ -675,7 +674,7 @@ public class Measurement extends MainActivity implements
                     }
 
 
-                    int nc = Measurement.getNEcatColors(leq);    // Choose the color category in
+                    int nc = MeasurementActivity.getNEcatColors(leq);    // Choose the color category in
                     // function of the sound level
                     mTextView.setTextColor(activity.NE_COLORS[nc]);
 
@@ -727,11 +726,11 @@ public class Measurement extends MainActivity implements
             // cast its IBinder to a concrete class and directly access it.
             measurementService = ((MeasurementService.LocalBinder)service).getService();
 
-            measurementService.setMinimalLeqCount(Measurement.DEFAULT_MINIMAL_LEQ);
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(Measurement.this);
+            measurementService.setMinimalLeqCount(MeasurementActivity.DEFAULT_MINIMAL_LEQ);
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MeasurementActivity.this);
             measurementService.setDeletedLeqOnPause(Integer.valueOf(
-                    sharedPref.getString(Measurement.DELETE_LEQ_ON_PAUSE_SETTING,
-                            String.valueOf(Measurement.DEFAULT_DELETE_LEQ_ON_PAUSE))));
+                    sharedPref.getString(MeasurementActivity.DELETE_LEQ_ON_PAUSE_SETTING,
+                            String.valueOf(MeasurementActivity.DEFAULT_DELETE_LEQ_ON_PAUSE))));
             // Init gui if recording is ongoing
             measurementService.addPropertyChangeListener(doProcessing);
 
@@ -758,7 +757,7 @@ public class Measurement extends MainActivity implements
         // supporting component replacement by other applications).
         if(!bindService(new Intent(this, MeasurementService.class), mConnection,
                 Context.BIND_AUTO_CREATE)) {
-            Toast.makeText(Measurement.this, R.string.measurement_service_disconnected,
+            Toast.makeText(MeasurementActivity.this, R.string.measurement_service_disconnected,
                     Toast.LENGTH_SHORT).show();
         } else {
             mIsBound = true;

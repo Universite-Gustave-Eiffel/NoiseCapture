@@ -249,4 +249,5 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_leq_title">Mobile measured value:</string>
     <string name="calibration_measure_title">User measured value:</string>
     <string name="calibration_button_apply">Apply</string>
+    <string name="calibration_button_reset">Reset</string>
 </resources>

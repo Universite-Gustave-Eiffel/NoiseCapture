@@ -37,21 +37,25 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
+import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.orbisgis.sos.LeqStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 
 public class CalibrationActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
@@ -59,16 +63,20 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     private ProgressBar progressBar_wait_calibration_recording;
     private Button startButton;
     private Button applyButton;
+    private Button resetButton;
     private CALIBRATION_STEP calibration_step = CALIBRATION_STEP.IDLE;
     private TextView textStatus;
     private TextView textDeviceLevel;
+    private EditText userInput;
     private Handler timeHandler;
     private int defaultWarmupTime;
     private int defaultCalibrationTime;
-    private AtomicInteger remainingTime = new AtomicInteger(0);
     private LeqStats leqStats;
     private boolean mIsBound = false;
     private MeasurementService measurementService;
+    private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationActivity.class);
+    private static final int COUNTDOWN_STEP_MILLISECOND = 125;
+    private ProgressHandler progressHandler = new ProgressHandler(this);
 
     private static final String SETTINGS_CALIBRATION_WARMUP_TIME = "settings_calibration_warmup_time";
     private static final String SETTINGS_CALIBRATION_TIME = "settings_calibration_time";
@@ -76,35 +84,35 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        doBindService();
+        initDrawer();
+        setContentView(R.layout.activity_activity_calibration_start);
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
         defaultCalibrationTime = Integer.valueOf(sharedPref.getString(SETTINGS_CALIBRATION_TIME, "10"));
         defaultWarmupTime = Integer.valueOf(sharedPref.getString(SETTINGS_CALIBRATION_WARMUP_TIME, "5"));
 
-        setContentView(R.layout.activity_activity_calibration_start);
-        initDrawer();
         progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
         applyButton = (Button) findViewById(R.id.btn_apply);
         textStatus = (TextView) findViewById(R.id.textView_recording_state);
         textDeviceLevel = (TextView) findViewById(R.id.textView_value_SL_i);
         startButton = (Button) findViewById(R.id.btn_start);
+        resetButton = (Button) findViewById(R.id.btn_reset);
+        userInput = (EditText) findViewById(R.id.edit_text_external_measured);
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 onCalibrationStart();
             }
         });
-
+        resetButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onReset();
+            }
+        });
 
 
         initCalibration();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        doUnbindService();
     }
 
     @Override
@@ -119,21 +127,28 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     private void initCalibration() {
         textStatus.setText(R.string.calibration_status_waiting_for_user_start);
         progressBar_wait_calibration_recording.setProgress(progressBar_wait_calibration_recording.getMax());
+        userInput.setText("");
+        userInput.setEnabled(false);
+        textDeviceLevel.setText(R.string.no_valid_dba_value);
         startButton.setEnabled(true);
         applyButton.setEnabled(false);
+        resetButton.setEnabled(false);
     }
 
     private void onCalibrationStart() {
+        textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
         calibration_step = CALIBRATION_STEP.WARMUP;
+        // Link measurement service with gui
+        doBindService();
         startButton.setEnabled(false);
-        remainingTime.set(defaultWarmupTime);
-        timeHandler = new Handler(Looper.getMainLooper(), new ProgressHandler(remainingTime, this));
-        timeHandler.sendEmptyMessageDelayed(0, 1000);
+        timeHandler = new Handler(Looper.getMainLooper(), progressHandler);
+        progressHandler.start(defaultWarmupTime * 1000);
     }
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
-        if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName())) {
+        if(calibration_step == CALIBRATION_STEP.CALIBRATION &&
+                AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName())) {
             // New leq
             AudioProcess.DelayedStandardAudioMeasure measure =
                     (AudioProcess.DelayedStandardAudioMeasure) event.getNewValue();
@@ -151,6 +166,10 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             measurementService = ((MeasurementService.LocalBinder)service).getService();
+            measurementService.addPropertyChangeListener(CalibrationActivity.this);
+            if(!measurementService.isRecording()) {
+                measurementService.startRecording();
+            }
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -177,6 +196,10 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         }
     }
 
+    public void onReset() {
+        initCalibration();
+    }
+
     void doUnbindService() {
         if (mIsBound) {
             measurementService.removePropertyChangeListener(this);
@@ -196,19 +219,22 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
 
     private void onTimerEnd() {
         if(calibration_step == CALIBRATION_STEP.WARMUP) {
-            remainingTime.set(defaultCalibrationTime);
-            timeHandler.sendEmptyMessageDelayed(0, 1000);
+            calibration_step = CALIBRATION_STEP.CALIBRATION;
+            textStatus.setText(R.string.calibration_status_on);
             // Start calibration
             leqStats = new LeqStats();
-            // Link measurement service with gui
-            measurementService.addPropertyChangeListener(this);
-            if(!measurementService.isRecording()) {
-                measurementService.startRecording();
-            }
+            progressHandler.start(defaultCalibrationTime * 1000);
         } else if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
+            calibration_step = CALIBRATION_STEP.END;
+            textStatus.setText(R.string.calibration_status_end);
             measurementService.stopRecording();
+            // Remove measurement service
+            doUnbindService();
             // Activate user input
-            measurementService.removePropertyChangeListener(this);
+            applyButton.setEnabled(true);
+            userInput.setText(String.format(Locale.getDefault(), "%.1f", leqStats.getLeqMean()));
+            userInput.setEnabled(true);
+            resetButton.setEnabled(true);
         }
     }
 
@@ -231,25 +257,29 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
      * Manage progress timer
      */
     private static final class ProgressHandler implements Handler.Callback {
-        private AtomicInteger remaingTime;
         private CalibrationActivity activity;
-        private final float timeCount;
+        private int delay;
+        private long beginTime;
 
-        public ProgressHandler(AtomicInteger remaingTime, CalibrationActivity activity) {
-            this.timeCount = remaingTime.get();
-            this.remaingTime = remaingTime;
+        public ProgressHandler(CalibrationActivity activity) {
             this.activity = activity;
+        }
+
+        public void start(int delayMilliseconds) {
+            delay = delayMilliseconds;
+            beginTime = SystemClock.elapsedRealtime();
+            activity.timeHandler.sendEmptyMessageDelayed(0, COUNTDOWN_STEP_MILLISECOND);
         }
 
         @Override
         public boolean handleMessage(Message msg) {
-            int newProg = (int)((remaingTime.get() / timeCount) *
+            long currentTime = SystemClock.elapsedRealtime();
+            int newProg = (int)((((beginTime + delay) - currentTime) / (float)delay) *
                     activity.progressBar_wait_calibration_recording.getMax());
             activity.progressBar_wait_calibration_recording.setProgress(newProg);
-            if(remaingTime.getAndAdd(-1000) > 0) {
-                activity.timeHandler.sendEmptyMessageDelayed(0, 1000);
+            if(currentTime < beginTime + delay) {
+                activity.timeHandler.sendEmptyMessageDelayed(0, COUNTDOWN_STEP_MILLISECOND);
             } else {
-                //
                 activity.onTimerEnd();
             }
             return true;

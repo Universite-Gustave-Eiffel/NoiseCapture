@@ -327,7 +327,8 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
     }
 
     public void initSpectrumChart(){
-        sChart.setTouchEnabled(false);
+        sChart.setPinchZoom(false);
+        sChart.setDoubleTapToZoomEnabled(false);
         sChart.setDrawBarShadow(false);
         sChart.setDescription("");
         sChart.setPinchZoom(false);

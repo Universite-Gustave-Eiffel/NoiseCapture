@@ -42,9 +42,12 @@ import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -54,8 +57,9 @@ import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.text.NumberFormat;
+import java.text.ParseException;
 import java.util.Locale;
-import java.util.concurrent.atomic.AtomicLong;
 
 
 public class CalibrationActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
@@ -68,10 +72,13 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     private TextView textStatus;
     private TextView textDeviceLevel;
     private EditText userInput;
+    private CheckBox testGainCheckBox;
+    private Spinner spinner;
     private Handler timeHandler;
     private int defaultWarmupTime;
     private int defaultCalibrationTime;
     private LeqStats leqStats;
+    private static final float DEFAULT_CALIBRATION_LEVEL = 94.f;
     private static final double MINIMAL_VALID_MEASURED_VALUE = 72;
     private static final double MAXIMAL_VALID_MEASURED_VALUE = 102;
     private boolean mIsBound = false;
@@ -95,8 +102,16 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
 
         progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
         applyButton = (Button) findViewById(R.id.btn_apply);
+        applyButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onApply();
+            }
+        });
         textStatus = (TextView) findViewById(R.id.textView_recording_state);
         textDeviceLevel = (TextView) findViewById(R.id.textView_value_SL_i);
+        testGainCheckBox = (CheckBox) findViewById(R.id.checkbox_test_gain);
+        spinner = (Spinner) findViewById(R.id.spinner_calibration_mode);
         startButton = (Button) findViewById(R.id.btn_start);
         resetButton = (Button) findViewById(R.id.btn_reset);
         userInput = (EditText) findViewById(R.id.edit_text_external_measured);
@@ -113,8 +128,37 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             }
         });
 
+        // Load spinner values
+        // Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.calibrate_type_list_array, android.R.layout.simple_spinner_item);
+        // Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // Apply the adapter to the spinner
+        spinner.setAdapter(adapter);
+        // Set default value to standard calibration mode (1000 Hz)
+        spinner.setSelection(11, false);
+
 
         initCalibration();
+    }
+
+    private void onApply() {
+        try {
+            NumberFormat format = NumberFormat.getInstance(Locale.FRANCE);
+            Number number = format.parse(userInput.getText().toString());
+            double gain = number.doubleValue() - leqStats.getLeqMean();
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString("settings_recording_gain", String.valueOf(gain));
+            editor.apply();
+            Toast.makeText(getApplicationContext(),
+                    getString(R.string.calibrate_done, gain), Toast.LENGTH_LONG).show();
+        } catch (ParseException ex) {
+            LOGGER.error(ex.getLocalizedMessage(), ex);
+        } finally {
+            onReset();
+        }
     }
 
     @Override
@@ -131,10 +175,12 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         progressBar_wait_calibration_recording.setProgress(progressBar_wait_calibration_recording.getMax());
         userInput.setText("");
         userInput.setEnabled(false);
+        spinner.setEnabled(true);
         textDeviceLevel.setText(R.string.no_valid_dba_value);
         startButton.setEnabled(true);
         applyButton.setEnabled(false);
         resetButton.setEnabled(false);
+        testGainCheckBox.setEnabled(true);
     }
 
     private void onCalibrationStart() {
@@ -142,7 +188,9 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         calibration_step = CALIBRATION_STEP.WARMUP;
         // Link measurement service with gui
         doBindService();
+        spinner.setEnabled(false);
         startButton.setEnabled(false);
+        testGainCheckBox.setEnabled(false);
         timeHandler = new Handler(Looper.getMainLooper(), progressHandler);
         progressHandler.start(defaultWarmupTime * 1000);
     }
@@ -154,12 +202,19 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             // New leq
             AudioProcess.DelayedStandardAudioMeasure measure =
                     (AudioProcess.DelayedStandardAudioMeasure) event.getNewValue();
-            leqStats.addLeq(measure.getGlobaldBaValue());
+            final double leq;
+            // Use global dB value or only the selected frequency band
+            if(spinner.getSelectedItemPosition() == 0) {
+                leq = measure.getGlobaldBaValue();
+            } else {
+                leq = measure.getLeqs()[spinner.getSelectedItemPosition() - 1];
+            }
+            leqStats.addLeq(leq);
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     textDeviceLevel.setText(
-                            String.format(Locale.getDefault(), "%.1f", leqStats.getLeqMean()));
+                            String.format(Locale.getDefault(), "%.1f", leq));
                 }
             });
         }
@@ -168,6 +223,13 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             measurementService = ((MeasurementService.LocalBinder)service).getService();
+            if(testGainCheckBox.isChecked()) {
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationActivity.this);
+                measurementService.setdBGain(
+                        Double.valueOf(sharedPref.getString("settings_recording_gain", "0")));
+            } else {
+                measurementService.setdBGain(0);
+            }
             measurementService.addPropertyChangeListener(CalibrationActivity.this);
             if(!measurementService.isRecording()) {
                 measurementService.startRecording();
@@ -233,11 +295,11 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             // Remove measurement service
             doUnbindService();
             // Activate user input
-            applyButton.setEnabled(true);
-            double proposedValue = Math.min(MAXIMAL_VALID_MEASURED_VALUE,
-                    Math.max(MINIMAL_VALID_MEASURED_VALUE,leqStats.getLeqMean()));
-            userInput.setText(String.format(Locale.getDefault(), "%.1f", proposedValue));
-            userInput.setEnabled(true);
+            if(!testGainCheckBox.isChecked()) {
+                applyButton.setEnabled(true);
+                userInput.setText(String.format(Locale.getDefault(), "%.1f", DEFAULT_CALIBRATION_LEVEL));
+                userInput.setEnabled(true);
+            }
             resetButton.setEnabled(true);
         }
     }

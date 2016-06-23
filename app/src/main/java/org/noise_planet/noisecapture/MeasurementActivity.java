@@ -102,6 +102,7 @@ public class MeasurementActivity extends MainActivity implements
 
     private boolean hasMaximalMeasurementTime;
     private int maximalMeasurementTime = 0;
+    private double calibrationScale = 0;
 
     private static final String LOG_SCALE_SETTING = "settings_spectrogram_logscalemode";
     private static final String DELETE_LEQ_ON_PAUSE_SETTING = "settings_delete_leq_on_pause";
@@ -134,6 +135,8 @@ public class MeasurementActivity extends MainActivity implements
                     false);
         } else if(MAXIMAL_MEASURE_TIME_SETTING.equals(key)) {
             maximalMeasurementTime = Integer.valueOf(sharedPreferences.getString(MAXIMAL_MEASURE_TIME_SETTING, DEFAULT_MAXIMAL_MEASURE_TIME_SETTING));
+        } if("settings_recording_gain".equals(key) && measurementService != null) {
+            measurementService.setdBGain(Double.valueOf(sharedPreferences.getString(key, "0")));
         }
     }
 
@@ -152,6 +155,7 @@ public class MeasurementActivity extends MainActivity implements
         // Depending of the settings
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
+        calibrationScale = Double.valueOf(sharedPref.getString("settings_recording_gain", "0"));
         Boolean CheckNbRunSettings = sharedPref.getBoolean("settings_caution", true);
 
         hasMaximalMeasurementTime = sharedPref.getBoolean(HAS_MAXIMAL_MEASURE_TIME_SETTING,
@@ -731,6 +735,8 @@ public class MeasurementActivity extends MainActivity implements
             measurementService.setDeletedLeqOnPause(Integer.valueOf(
                     sharedPref.getString(MeasurementActivity.DELETE_LEQ_ON_PAUSE_SETTING,
                             String.valueOf(MeasurementActivity.DEFAULT_DELETE_LEQ_ON_PAUSE))));
+            measurementService.setdBGain(
+                    Double.valueOf(sharedPref.getString("settings_recording_gain", "0")));
             // Init gui if recording is ongoing
             measurementService.addPropertyChangeListener(doProcessing);
 

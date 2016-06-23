@@ -67,6 +67,8 @@ public class AudioProcess implements Runnable {
     private final StandartLeqProcessing standartLeqProcessing;
     private long beginRecordTime;
     private static final int REALTIME_SAMPLE_RATE_LIMITATION = 16000;
+    private float gain = 1;
+    private boolean hasGain = false;
 
 
 
@@ -106,6 +108,16 @@ public class AudioProcess implements Runnable {
     }
     public STATE getCurrentState() {
         return currentState;
+    }
+
+
+    /**
+     * Multiply the signal by the provided factor
+     * @param gain Factor on signal, 1 for no gain
+     */
+    public void setGain(float gain) {
+        this.gain = gain;
+        this.hasGain = Float.compare(1, gain) != 0;
     }
 
     private void setCurrentState(STATE state) {
@@ -182,6 +194,12 @@ public class AudioProcess implements Runnable {
                         int read = audioRecord.read(buffer, 0, buffer.length);
                         if(read < buffer.length) {
                             buffer = Arrays.copyOfRange(buffer, 0, read);
+                        }
+                        if (hasGain) {
+                            // In place multiply
+                            for (int i = 0; i < buffer.length; i++) {
+                                buffer[i] = (short) (Math.max(Math.min(buffer[i] * gain, Short.MAX_VALUE), Short.MIN_VALUE));
+                            }
                         }
                         fftLeqProcessing.addSample(buffer);
                         standartLeqProcessing.addSample(buffer);

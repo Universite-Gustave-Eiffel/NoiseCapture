@@ -10,6 +10,7 @@
 
     <string name="record_button_string">Start record</string>
     <string name="record_message">Press the record button to start</string>
+    <string name="calibrate_done">Calibration done, gain is set to %1$f dB</string>
     <string name="fail_share">Generation of the shared file failed</string>
     <string name="no_results">There is no result. Start a record before.</string>
     <string name="no_gps_results">No GPS coordinates in this record</string>
@@ -60,6 +61,10 @@
     <string name="title_settings_caution">Caution message</string>
     <string name="summary_settings_caution">Check to display the caution message during the launch of the application</string>
     <string name="title_settings_recording_duration">Recording duration</string>
+
+
+    <string name="title_settings_recording_gain">Signal gain</string>
+    <string name="summary_settings_recording_gain">Set calibration signal gain in dB</string>
 
     <string name="title_settings_spectrogram_logscalemode">Spectrogram frequency in Log Scale</string>
     <string name="title_settings_delete_leq_on_pause">Leq delete on pause</string>
@@ -250,4 +255,31 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_measure_title">User measured value:</string>
     <string name="calibration_button_apply">Apply</string>
     <string name="calibration_button_reset">Reset</string>
+    <string name="calibration_test_gain_checkbox">Test gain</string>
+    <string-array name="calibrate_type_list_array">
+        <item>Global</item>
+        <item>100 Hz</item>
+        <item>125 Hz</item>
+        <item>160 Hz</item>
+        <item>200 Hz</item>
+        <item>250 Hz</item>
+        <item>315 Hz</item>
+        <item>400 Hz</item>
+        <item>500 Hz</item>
+        <item>630 Hz</item>
+        <item>800 Hz</item>
+        <item>1 kHz</item>
+        <item>1.25 kHz</item>
+        <item>1.6 kHz</item>
+        <item>2 kHz</item>
+        <item>2.5 kHz</item>
+        <item>3.15 kHz</item>
+        <item>4 kHz</item>
+        <item>5 kHz</item>
+        <item>6.3 kHz</item>
+        <item>8 kHz</item>
+        <item>10 kHz</item>
+        <item>12.5 kHz</item>
+        <item>16 kHz</item>
+    </string-array>
 </resources>

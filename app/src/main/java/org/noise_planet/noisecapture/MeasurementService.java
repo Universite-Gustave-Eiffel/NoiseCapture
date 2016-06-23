@@ -91,6 +91,7 @@ public class MeasurementService extends Service {
     private int minimalLeqCount = 0;
     // Seconds to delete when pause is activated
     private int deletedLeqOnPause = 0;
+    private double dBGain = 0;
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
     private static final Logger LOGGER = LoggerFactory.getLogger(MeasurementService.class);
 
@@ -113,6 +114,17 @@ public class MeasurementService extends Service {
             return MeasurementService.this;
         }
     }
+
+    /**
+     * @param dBGain Gain in dB
+     */
+    public void setdBGain(double dBGain) {
+        this.dBGain = dBGain;
+        if(audioProcess != null && Double.compare(0, dBGain) != 0) {
+            audioProcess.setGain((float)Math.pow(10, dBGain / 20));
+        }
+    }
+
 
     public LeqStats getLeqStats() {
         return leqStats;
@@ -189,6 +201,9 @@ public class MeasurementService extends Service {
         initLocalisationServices();
         isRecording.set(true);
         this.audioProcess = new AudioProcess(isRecording, canceled);
+        if(Double.compare(0, dBGain) != 0) {
+            audioProcess.setGain((float) Math.pow(10, dBGain / 20));
+        }
         audioProcess.getListeners().addPropertyChangeListener(doProcessing);
 
         // Start measurement

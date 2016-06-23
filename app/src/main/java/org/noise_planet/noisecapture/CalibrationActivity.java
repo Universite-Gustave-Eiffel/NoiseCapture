@@ -147,7 +147,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         try {
             NumberFormat format = NumberFormat.getInstance(Locale.FRANCE);
             Number number = format.parse(userInput.getText().toString());
-            double gain = number.doubleValue() - leqStats.getLeqMean();
+            double gain = Math.round((number.doubleValue() - leqStats.getLeqMean()) * 100.) / 100.;
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
             SharedPreferences.Editor editor = sharedPref.edit();
             editor.putString("settings_recording_gain", String.valueOf(gain));

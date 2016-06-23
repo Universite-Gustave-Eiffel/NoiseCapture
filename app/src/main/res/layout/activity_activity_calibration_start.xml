@@ -14,6 +14,15 @@
     android:gravity="center"
     android:orientation="vertical"
     tools:context=".CalibrationActivity">
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -45,13 +54,27 @@
             android:layout_height="wrap_content"
             android:text="@string/calibration_leq_title"
             android:textSize="15sp" />
-        <TextView
-            android:id="@+id/textView_value_SL_i"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/no_valid_dba_value"
-            android:textSize="60sp"
-            android:textStyle="normal" />
+            android:gravity="center"
+            android:orientation="horizontal">
+            <TextView
+                android:id="@+id/textView_value_SL_i"
+                android:layout_width="80dp"
+                android:textSize="25sp"
+                android:gravity="right"
+                android:layout_height="wrap_content"
+                android:text="@string/no_valid_dba_value"
+                android:textStyle="normal" />
+            <TextView
+                android:paddingLeft="15dp"
+                android:paddingRight="0dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/SL_dBA"
+                android:textSize="15sp"/>
+        </LinearLayout>
         </LinearLayout>
     <LinearLayout
         android:layout_width="match_parent"
@@ -71,6 +94,7 @@
             android:orientation="horizontal">
             <EditText
                 android:layout_width="80dp"
+                android:textSize="25sp"
                 android:gravity="right"
                 android:id="@+id/edit_text_external_measured"
                 android:layout_height="wrap_content"
@@ -79,10 +103,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:paddingLeft="15dp"
+                android:paddingRight="0dp"
                 android:text="@string/SL_dBA"
                 android:textSize="15sp"/>
             </LinearLayout>
         </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"

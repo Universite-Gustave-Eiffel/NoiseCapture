@@ -72,6 +72,8 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     private int defaultWarmupTime;
     private int defaultCalibrationTime;
     private LeqStats leqStats;
+    private static final double MINIMAL_VALID_MEASURED_VALUE = 72;
+    private static final double MAXIMAL_VALID_MEASURED_VALUE = 102;
     private boolean mIsBound = false;
     private MeasurementService measurementService;
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationActivity.class);
@@ -232,7 +234,9 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             doUnbindService();
             // Activate user input
             applyButton.setEnabled(true);
-            userInput.setText(String.format(Locale.getDefault(), "%.1f", leqStats.getLeqMean()));
+            double proposedValue = Math.min(MAXIMAL_VALID_MEASURED_VALUE,
+                    Math.max(MINIMAL_VALID_MEASURED_VALUE,leqStats.getLeqMean()));
+            userInput.setText(String.format(Locale.getDefault(), "%.1f", proposedValue));
             userInput.setEnabled(true);
             resetButton.setEnabled(true);
         }

@@ -242,11 +242,11 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="userinfo_pleasant">Pleasant</string>
     <string name="userinfo_pleasantness">Pleasantness</string>
     <string name="calibration_status_waiting_for_user_start">Waiting for calibration start..</string>
-    <string name="calibration_status_waiting_for_start_timer">Calibration about to start..</string>
+    <string name="calibration_status_waiting_for_start_timer">Calibration is about to start..</string>
     <string name="calibration_status_on">Calibration..</string>
     <string name="calibration_status_end">Calibration done</string>
     <string name="calibration_button_start">Start</string>
-    <string name="calibration_leq_title">Mobile measured value:</string>
+    <string name="calibration_leq_title">Mobile Leq value:</string>
     <string name="calibration_measure_title">User measured value:</string>
     <string name="calibration_button_apply">Apply</string>
     <string name="calibration_button_reset">Reset</string>

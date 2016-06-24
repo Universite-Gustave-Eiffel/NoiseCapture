@@ -108,7 +108,7 @@ public class MeasurementActivity extends MainActivity implements
     private static final String DELETE_LEQ_ON_PAUSE_SETTING = "settings_delete_leq_on_pause";
     private static final String HAS_MAXIMAL_MEASURE_TIME_SETTING = "settings_recording";
     private static final String MAXIMAL_MEASURE_TIME_SETTING = "settings_recording_duration";
-    private static final String DEFAULT_MAXIMAL_MEASURE_TIME_SETTING = "10";
+    private static final int DEFAULT_MAXIMAL_MEASURE_TIME_SETTING = 10;
 
     public int getRecordId() {
         return measurementService.getRecordId();
@@ -129,14 +129,14 @@ public class MeasurementActivity extends MainActivity implements
             spectrogram.setScaleMode(sharedPreferences.getBoolean(key, true) ?
                     Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR);
         } else if(DELETE_LEQ_ON_PAUSE_SETTING.equals(key)) {
-            measurementService.setDeletedLeqOnPause(Integer.valueOf(sharedPreferences.getString(key, String.valueOf(DEFAULT_DELETE_LEQ_ON_PAUSE))));
+            measurementService.setDeletedLeqOnPause(getInteger(sharedPreferences,key, DEFAULT_DELETE_LEQ_ON_PAUSE));
         } else if(HAS_MAXIMAL_MEASURE_TIME_SETTING.equals(key)) {
             hasMaximalMeasurementTime = sharedPreferences.getBoolean(HAS_MAXIMAL_MEASURE_TIME_SETTING,
                     false);
         } else if(MAXIMAL_MEASURE_TIME_SETTING.equals(key)) {
-            maximalMeasurementTime = Integer.valueOf(sharedPreferences.getString(MAXIMAL_MEASURE_TIME_SETTING, DEFAULT_MAXIMAL_MEASURE_TIME_SETTING));
+            maximalMeasurementTime = getInteger(sharedPreferences,MAXIMAL_MEASURE_TIME_SETTING, DEFAULT_MAXIMAL_MEASURE_TIME_SETTING);
         } if("settings_recording_gain".equals(key) && measurementService != null) {
-            measurementService.setdBGain(Double.valueOf(sharedPreferences.getString(key, "0")));
+            measurementService.setdBGain(getDouble(sharedPreferences, key, 0));
         }
     }
 
@@ -155,13 +155,12 @@ public class MeasurementActivity extends MainActivity implements
         // Depending of the settings
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
-        calibrationScale = Double.valueOf(sharedPref.getString("settings_recording_gain", "0"));
+        calibrationScale = getDouble(sharedPref, "settings_recording_gain", 0);
         Boolean CheckNbRunSettings = sharedPref.getBoolean("settings_caution", true);
 
         hasMaximalMeasurementTime = sharedPref.getBoolean(HAS_MAXIMAL_MEASURE_TIME_SETTING,
                 false);
-        maximalMeasurementTime = Integer.valueOf(sharedPref.getString(MAXIMAL_MEASURE_TIME_SETTING,
-                DEFAULT_MAXIMAL_MEASURE_TIME_SETTING));
+        maximalMeasurementTime = getInteger(sharedPref, MAXIMAL_MEASURE_TIME_SETTING, DEFAULT_MAXIMAL_MEASURE_TIME_SETTING);
         if (CheckNbRun() & CheckNbRunSettings) {
 
             // show dialog
@@ -732,11 +731,10 @@ public class MeasurementActivity extends MainActivity implements
 
             measurementService.setMinimalLeqCount(MeasurementActivity.DEFAULT_MINIMAL_LEQ);
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(MeasurementActivity.this);
-            measurementService.setDeletedLeqOnPause(Integer.valueOf(
-                    sharedPref.getString(MeasurementActivity.DELETE_LEQ_ON_PAUSE_SETTING,
-                            String.valueOf(MeasurementActivity.DEFAULT_DELETE_LEQ_ON_PAUSE))));
+            measurementService.setDeletedLeqOnPause(getInteger(sharedPref,MeasurementActivity.DELETE_LEQ_ON_PAUSE_SETTING,
+                            MeasurementActivity.DEFAULT_DELETE_LEQ_ON_PAUSE));
             measurementService.setdBGain(
-                    Double.valueOf(sharedPref.getString("settings_recording_gain", "0")));
+                    getDouble(sharedPref,"settings_recording_gain", 0));
             // Init gui if recording is ongoing
             measurementService.addPropertyChangeListener(doProcessing);
 

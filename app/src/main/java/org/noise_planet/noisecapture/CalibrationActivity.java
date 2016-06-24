@@ -93,12 +93,12 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_calibration);
         initDrawer();
-        setContentView(R.layout.activity_activity_calibration_start);
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
-        defaultCalibrationTime = Integer.valueOf(sharedPref.getString(SETTINGS_CALIBRATION_TIME, "10"));
-        defaultWarmupTime = Integer.valueOf(sharedPref.getString(SETTINGS_CALIBRATION_WARMUP_TIME, "5"));
+        defaultCalibrationTime = getInteger(sharedPref,SETTINGS_CALIBRATION_TIME, 10);
+        defaultWarmupTime = getInteger(sharedPref,SETTINGS_CALIBRATION_WARMUP_TIME, 5);
 
         progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
         applyButton = (Button) findViewById(R.id.btn_apply);
@@ -148,12 +148,18 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             NumberFormat format = NumberFormat.getInstance(Locale.FRANCE);
             Number number = format.parse(userInput.getText().toString());
             double gain = Math.round((number.doubleValue() - leqStats.getLeqMean()) * 100.) / 100.;
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-            SharedPreferences.Editor editor = sharedPref.edit();
-            editor.putString("settings_recording_gain", String.valueOf(gain));
-            editor.apply();
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.calibrate_done, gain), Toast.LENGTH_LONG).show();
+            if(number.doubleValue() < MINIMAL_VALID_MEASURED_VALUE || number.doubleValue() > MAXIMAL_VALID_MEASURED_VALUE) {
+                Toast.makeText(CalibrationActivity.this, getString(R.string.calibration_out_bounds,
+                        MINIMAL_VALID_MEASURED_VALUE,MAXIMAL_VALID_MEASURED_VALUE),
+                        Toast.LENGTH_SHORT).show();
+            } else {
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putString("settings_recording_gain", String.valueOf(gain));
+                editor.apply();
+                Toast.makeText(getApplicationContext(),
+                        getString(R.string.calibrate_done, gain), Toast.LENGTH_LONG).show();
+            }
         } catch (ParseException ex) {
             LOGGER.error(ex.getLocalizedMessage(), ex);
         } finally {
@@ -164,9 +170,9 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if(SETTINGS_CALIBRATION_TIME.equals(key)) {
-            defaultCalibrationTime = Integer.valueOf(sharedPreferences.getString(SETTINGS_CALIBRATION_TIME, "10"));
+            defaultCalibrationTime = getInteger(sharedPreferences, SETTINGS_CALIBRATION_TIME, 10);
         } else if(SETTINGS_CALIBRATION_WARMUP_TIME.equals(key)) {
-            defaultWarmupTime = Integer.valueOf(sharedPreferences.getString(SETTINGS_CALIBRATION_WARMUP_TIME, "5"));
+            defaultWarmupTime = getInteger(sharedPreferences, SETTINGS_CALIBRATION_WARMUP_TIME, 5);
         }
     }
 
@@ -226,7 +232,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             if(testGainCheckBox.isChecked()) {
                 SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationActivity.this);
                 measurementService.setdBGain(
-                        Double.valueOf(sharedPref.getString("settings_recording_gain", "0")));
+                        getDouble(sharedPref,"settings_recording_gain", 0));
             } else {
                 measurementService.setdBGain(0);
             }
@@ -302,21 +308,6 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             }
             resetButton.setEnabled(true);
         }
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     /**

@@ -373,4 +373,20 @@ public class MainActivity extends AppCompatActivity {
         return NbNEcat;
     }
 
+
+    public static double getDouble(SharedPreferences sharedPref, String key, double defaultValue) {
+        try {
+            return Double.valueOf(sharedPref.getString(key, String.valueOf(defaultValue)));
+        } catch (NumberFormatException ex) {
+            return defaultValue;
+        }
+    }
+
+    public static int getInteger(SharedPreferences sharedPref, String key, int defaultValue) {
+        try {
+            return Integer.valueOf(sharedPref.getString(key, String.valueOf(defaultValue)));
+        } catch (NumberFormatException ex) {
+            return defaultValue;
+        }
+    }
 }

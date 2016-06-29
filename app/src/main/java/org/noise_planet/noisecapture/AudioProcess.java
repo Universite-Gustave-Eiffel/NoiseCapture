@@ -52,6 +52,8 @@ public class AudioProcess implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(AudioProcess.class);
     private AtomicBoolean recording;
     private AtomicBoolean canceled;
+    private boolean doFastLeq = true;
+    private boolean doOneSecondLeq = true;
     private final int bufferSize;
     private final int encoding;
     private final int rate;
@@ -69,6 +71,9 @@ public class AudioProcess implements Runnable {
     private static final int REALTIME_SAMPLE_RATE_LIMITATION = 16000;
     private float gain = 1;
     private boolean hasGain = false;
+    private boolean weightingA = true;
+    private boolean hanningWindowFast = false;
+    private boolean hanningWindowOneSecond = true;
 
 
 
@@ -110,6 +115,26 @@ public class AudioProcess implements Runnable {
         return currentState;
     }
 
+    public void setHanningWindowFast(boolean hanningWindowFast) {
+        this.hanningWindowFast = hanningWindowFast;
+    }
+
+    public void setHanningWindowOneSecond(boolean hanningWindowOneSecond) {
+        this.hanningWindowOneSecond = hanningWindowOneSecond;
+        standartLeqProcessing.recomputeSample();
+    }
+
+    public void setDoFastLeq(boolean doFastLeq) {
+        this.doFastLeq = doFastLeq;
+    }
+
+    public void setDoOneSecondLeq(boolean doOneSecondLeq) {
+        this.doOneSecondLeq = doOneSecondLeq;
+    }
+
+    public void setWeightingA(boolean weightingA) {
+        this.weightingA = weightingA;
+    }
 
     /**
      * Multiply the signal by the provided factor
@@ -185,8 +210,12 @@ public class AudioProcess implements Runnable {
                     } catch (IllegalArgumentException | SecurityException ex) {
                         // Ignore
                     }
-                    new Thread(fftLeqProcessing).start();
-                    new Thread(standartLeqProcessing).start();
+                    if(doFastLeq) {
+                        new Thread(fftLeqProcessing).start();
+                    }
+                    if(doOneSecondLeq) {
+                        new Thread(standartLeqProcessing).start();
+                    }
                     audioRecord.startRecording();
                     beginRecordTime = System.currentTimeMillis();
                     while (recording.get()) {
@@ -299,7 +328,8 @@ public class AudioProcess implements Runnable {
                     SECOND_FIRE_MOVING_SPECTRUM) {
                     lastProcessedSpectrum = pushedSamples;
                     FFTSignalProcessing.ProcessingResult result =
-                            signalProcessing.processSample(false, true, true);
+                            signalProcessing.processSample(audioProcess.hanningWindowFast,
+                                    audioProcess.weightingA, true);
                     fftResultLvl = result.getFftResult();
                     thirdOctaveSplLevels = result.getdBaLevels();
                     // Compute leq
@@ -347,8 +377,9 @@ public class AudioProcess implements Runnable {
         private boolean processing = false;
         private final AudioProcess audioProcess;
         private FFTSignalProcessing fftSignalProcessing;
-        private static final double windowDelay = 1.;
+        private double windowDelay = 1.;
         private double[] fftCenterFreq;
+        private int processEachSamples = 0;
 
         public StandartLeqProcessing(AudioProcess audioProcess) {
             this.audioProcess = audioProcess;
@@ -357,6 +388,12 @@ public class AudioProcess implements Runnable {
                     fftCenterFreq, audioProcess.getRate());
         }
 
+        public void recomputeSample() {
+            //TODO change window delay to 1/3 if hann window then sum the last 3 processing result
+            // each second.
+            processEachSamples = (int)((audioProcess.getRate() * fftSignalProcessing.getSampleDuration()) *
+                    windowDelay);
+        }
 
         public double[] getComputedFrequencies() {
             return fftSignalProcessing.getStandardFrequencies();
@@ -373,9 +410,7 @@ public class AudioProcess implements Runnable {
         @Override
         public void run() {
             long secondCursor = 0;
-            final int processEachSamples = (int)((audioProcess.getRate() * fftSignalProcessing.getSampleDuration()) *
-
-                    windowDelay);
+            recomputeSample();
             long lastProcessedSamples = 0;
             try {
                 android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
@@ -402,7 +437,8 @@ public class AudioProcess implements Runnable {
                             }
                             // Do processing
                             FFTSignalProcessing.ProcessingResult result =
-                                    fftSignalProcessing.processSample(false, false, false);
+                                    fftSignalProcessing.processSample(audioProcess.hanningWindowOneSecond,
+                                            audioProcess.weightingA, false);
                             float[] leqs = result.getdBaLevels();
                             // Compute record time
                             long beginRecordTime = audioProcess.beginRecordTime +

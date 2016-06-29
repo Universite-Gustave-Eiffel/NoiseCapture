@@ -73,7 +73,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Results extends MainActivity {
     public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
@@ -245,9 +247,28 @@ public class Results extends MainActivity {
         // Fetch and store ShareActionProvider
         ShareActionProvider mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
 
+        Map<String, Integer> tagToIndex = new HashMap<>(Storage.TAGS.length);
+        int iTag = 0;
+        for(String sysTag : Storage.TAGS) {
+            tagToIndex.put(sysTag, iTag++);
+        }
+        List<String> tags = measurementManager.getTags(record.getId());
+
+        StringBuilder hashtags = new StringBuilder();
+        String[] localeStringArray = getResources().getStringArray(R.array.tags);
+        for(String enTag : tags) {
+            Integer tagIndex = tagToIndex.get(enTag);
+            if (tagIndex != null) {
+                if(hashtags.length() > 0 ) {
+                    hashtags.append(",");
+                }
+                hashtags.append(localeStringArray[tagIndex].replace(" ",""));
+            }
+        }
+
         //@see https://dev.twitter.com/web/tweet-button/web-intent
-        String url = "http://www.twitter.com/intent/tweet?via=NoiseGIS&text=" +
-                Uri.encode(getString(R.string.share_message, record.getLeqMean()));
+        String url = "http://www.twitter.com/intent/tweet?via=NoiseGIS&hashtags="+hashtags.toString() +
+                "&text=" + Uri.encode(getString(R.string.share_message, record.getLeqMean()));
         Intent i = new Intent(Intent.ACTION_VIEW);
         i.setData(Uri.parse(url));
         if (mShareActionProvider == null) {

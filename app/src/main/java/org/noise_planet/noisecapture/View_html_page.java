@@ -27,7 +27,11 @@
 
 package org.noise_planet.noisecapture;
 
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.webkit.WebView;
 
@@ -36,14 +40,22 @@ public class View_html_page extends MainActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-
         super.onCreate(savedInstanceState);
+        Intent intent = getIntent();
         setContentView(R.layout.activity_view_html_page);
         initDrawer();
         WebView myWebView = (WebView) findViewById(R.id.webview);
-        myWebView.loadUrl(savedInstanceState.getString(this.getClass().getPackage().getName()
-                + ".pagetosee"));
-        getSupportActionBar().setTitle(this.getClass().getPackage().getName() + ".titletosee");
+        myWebView.loadUrl(intent.getStringExtra("pagetosee"));
+        // Get background color
+        TypedValue a = new TypedValue();
+        getTheme().resolveAttribute(android.R.attr.windowBackground, a, true);
+        if (a.type >= TypedValue.TYPE_FIRST_COLOR_INT && a.type <= TypedValue.TYPE_LAST_COLOR_INT) {
+            myWebView.setBackgroundColor(a.data);
+        }
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null) {
+            actionBar.setTitle(intent.getStringExtra("titletosee"));
+        }
 
     }
 

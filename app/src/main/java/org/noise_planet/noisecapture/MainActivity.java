@@ -259,18 +259,18 @@ public class MainActivity extends AppCompatActivity {
                 case 6:
                     Intent ih = new Intent(getApplicationContext(),View_html_page.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
-                    ih.putExtra(this.getClass().getPackage().getName() + ".pagetosee",
+                    ih.putExtra("pagetosee",
                             getString(R.string.url_help));
-                    ih.putExtra(this.getClass().getPackage().getName() + ".titletosee",
+                    ih.putExtra("titletosee",
                             getString(R.string.title_activity_help));
                     startActivity(ih);
                     finish();
                     break;
                 case 7:
                     Intent ia = new Intent(getApplicationContext(),View_html_page.class);
-                    ia.putExtra(this.getClass().getPackage().getName() + ".pagetosee",
+                    ia.putExtra("pagetosee",
                             getString(R.string.url_about));
-                    ia.putExtra(this.getClass().getPackage().getName() + ".titletosee",
+                    ia.putExtra("titletosee",
                             getString(R.string.title_activity_about));
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ia);

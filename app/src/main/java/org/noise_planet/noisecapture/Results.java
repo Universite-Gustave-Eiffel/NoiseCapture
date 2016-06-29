@@ -69,11 +69,13 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class Results extends MainActivity implements ShareActionProvider.OnShareTargetSelectedListener{
+public class Results extends MainActivity {
     public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
     private static final Logger LOGGER = LoggerFactory.getLogger(Results.class);
     private MeasurementManager measurementManager;
@@ -243,59 +245,21 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
         // Fetch and store ShareActionProvider
         ShareActionProvider mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
 
-        File requestFile = getSharedFile();
-        Uri fileUri = FileProvider.getUriForFile(
-        this,
-        "org.noise_planet.noisecapture.fileprovider",
-        requestFile);
-
-
-        Intent mResultIntent = new Intent(Intent.ACTION_SEND);
-
-        mResultIntent.setDataAndType(fileUri, "application/zip");
-        mResultIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
-        mResultIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-        if(mShareActionProvider == null) {
+        //@see https://dev.twitter.com/web/tweet-button/web-intent
+        String url = "http://www.twitter.com/intent/tweet?via=NoiseGIS&text=" +
+                Uri.encode(getString(R.string.share_message, record.getLeqMean()));
+        Intent i = new Intent(Intent.ACTION_VIEW);
+        i.setData(Uri.parse(url));
+        if (mShareActionProvider == null) {
             mShareActionProvider = new ShareActionProvider(this);
             MenuItemCompat.setActionProvider(item, mShareActionProvider);
         }
-        mShareActionProvider.setShareIntent(mResultIntent);
-        mShareActionProvider.setOnShareTargetSelectedListener(this);
+        mShareActionProvider.setShareIntent(i);
         // Return true to display menu
         return true;
     }
 
-    private File getSharedFile() {
-        return new File(getCacheDir().getAbsolutePath() ,MeasurementExport.ZIP_FILENAME);
-    }
-
-    @Override
-    public boolean onShareTargetSelected(ShareActionProvider source, Intent intent) {
-        if(record == null) {
-            return false;
-        }
-        // Write file
-        try {
-            File file = getSharedFile();
-            // Create parent dirs if necessary
-            file.getParentFile().mkdirs();
-            FileOutputStream fop = new FileOutputStream(file);
-            try {
-                MeasurementExport measurementExport = new MeasurementExport(this);
-                measurementExport.exportRecord(this, record.getId(), fop, true);
-            } finally {
-                fop.close();
-            }
-        } catch (IOException ex) {
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.fail_share), Toast.LENGTH_LONG).show();
-            LOGGER.error(ex.getLocalizedMessage(), ex);
-        }
-        return false;
-    }
-
     private void loadMeasurement() {
-        Resources resources = getResources();
 
         // Query database
         List<Integer> frequencies = new ArrayList<Integer>();

@@ -66,8 +66,8 @@ public class ApplicationTest {
      * the {@link ActivityTestRule#getActivity()} method.
      */
     @Rule
-    public ActivityTestRule<Measurement> mActivityRule = new ActivityTestRule<>(
-            Measurement.class);
+    public ActivityTestRule<MeasurementActivity> mActivityRule = new ActivityTestRule<>(
+            MeasurementActivity.class);
 
     @Test
     public void launchRecord() {

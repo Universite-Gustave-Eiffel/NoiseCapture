@@ -10,6 +10,8 @@
 
     <string name="record_button_string">Start record</string>
     <string name="record_message">Press the record button to start</string>
+    <string name="calibrate_done">Calibration done, gain is set to %1$f dB</string>
+    <string name="calibration_out_bounds">Calibration sound level is incompatible with hardware specification bounds,it must be between %1$f dB an %2$f dB</string>
     <string name="fail_share">Generation of the shared file failed</string>
     <string name="no_results">There is no result. Start a record before.</string>
     <string name="no_gps_results">No GPS coordinates in this record</string>
@@ -17,6 +19,9 @@
     <string name="gps_hint_precision">%1$d m</string>
     <string name="no_history">History is empty. Start a record before.</string>
     <string name="loc_hint">Location status hint</string>
+    <string name="permission_explain_audio_record">NoiseCapture require microphone use permission for audio measures</string>
+    <string name="permission_explain_gps">NoiseCapture require GPS location for the localisation of noise levels on the map</string>
+    <string name="permission_explain_photo">NoiseCapture require photo capture for local storage of photo (not uploaded)</string>
 
     <string name="title_menu">Menu</string>
     <string name="title_service_measurement">Measurement</string>
@@ -40,23 +45,35 @@
     <string name="text_caution_data_transfer">In order to load the map, you must enable the data transfer option in the user settings.</string>
 
     <string name="SL_dBA">dB(A)</string>
+    <string name="SL_dB">dB</string>
     <string name="SEL_dBA">Noise exposure dB(A)</string>
 
     <string name="hello_world">Hello world!</string>
+    <string name="title_settings_calibration_warmup_time">Calibration warmup time</string>
+    <string name="title_settings_calibration_warmup_time_description">Waiting time in seconds before calibration</string>
+    <string name="title_settings_calibration_time">Calibration time</string>
+    <string name="title_settings_calibration_time_description">Calibration time in seconds</string>
 
+    <string name="setting_general_group">General</string>
+    <string name="setting_measurement_group">Measurement</string>
+    <string name="setting_calibration_group">Calibration</string>
     <string name="title_settings_data_transfer">Data transfer</string>
-    <string name="summary_settings_data_transfer">Accept data transfer</string>
+    <string name="summary_settings_data_transfer">Automatic transfer of measurements</string>
     <string name="title_settings_transfer_wifi_only">Wifi only</string>
-    <string name="summary_settings_transfer_wifi_only">Check if data transfer by wifi only</string>
+    <string name="summary_settings_transfer_wifi_only">Automatic transfer by wifi only</string>
     <string name="title_settings_recording">Recording</string>
-    <string name="summary_settings_recording">Set default recording time</string>
+    <string name="summary_settings_recording">Set maximal recording time</string>
     <string name="title_settings_caution">Caution message</string>
     <string name="summary_settings_caution">Check to display the caution message during the launch of the application</string>
     <string name="title_settings_recording_duration">Recording duration</string>
 
+
+    <string name="title_settings_recording_gain">Signal gain</string>
+    <string name="summary_settings_recording_gain">Set calibration signal gain in dB</string>
+
     <string name="title_settings_spectrogram_logscalemode">Spectrogram frequency in Log Scale</string>
     <string name="title_settings_delete_leq_on_pause">Leq delete on pause</string>
-    <string name="title_settings_delete_leq_on_pause_description">When pause is activated delete the last stored leq</string>
+    <string name="title_settings_delete_leq_on_pause_description">On pause delete the last recorded seconds</string>
     <string name="summary_settings_spectrogram_logscalemode">Check for frequency scale in log, uncheck for linear</string>
     <string name="summary_settings_recording_duration">Set the recording duration (in second)</string>
     <string name="title_settings_view_mode">Display</string>
@@ -88,7 +105,7 @@
     <string name="title_choice_history_action">Choose action:</string>
     <string-array name="choice_user_history">
         <item>Upload to community</item>
-        <!-- <item>Export result</item> -->
+        <item>Export result</item>
         <item>Edit description</item>
         <item>Show result</item>
         <item>Show map</item>
@@ -114,14 +131,6 @@
     <string name="error_already_uploaded">This measurement has already been uploaded</string>
 
     <!--  Ressources for acoustics !-->
-    <!--
-    <item>25</item>
-        <item>31.5</item>
-        <item>40</item>
-        <item>50</item>
-        <item>63</item>
-        <item>80</item>
-    !-->
     <string-array name="tob_list_array">
         <item>100</item>
         <item>125</item>
@@ -242,4 +251,41 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="userinfo_unpleasant">Unpleasant</string>
     <string name="userinfo_pleasant">Pleasant</string>
     <string name="userinfo_pleasantness">Pleasantness</string>
+    <string name="calibration_status_waiting_for_user_start">Waiting for calibration start..</string>
+    <string name="calibration_status_waiting_for_start_timer">Calibration is about to start..</string>
+    <string name="calibration_status_on">Calibration..</string>
+    <string name="calibration_status_end">Calibration done</string>
+    <string name="calibration_button_start">Start</string>
+    <string name="calibration_leq_title">Mobile Leq value:</string>
+    <string name="calibration_measure_title">User measured value:</string>
+    <string name="calibration_button_apply">Apply</string>
+    <string name="calibration_button_reset">Reset</string>
+    <string name="calibration_test_gain_checkbox">Test gain</string>
+    <string-array name="calibrate_type_list_array">
+        <item>Global</item>
+        <item>100 Hz</item>
+        <item>125 Hz</item>
+        <item>160 Hz</item>
+        <item>200 Hz</item>
+        <item>250 Hz</item>
+        <item>315 Hz</item>
+        <item>400 Hz</item>
+        <item>500 Hz</item>
+        <item>630 Hz</item>
+        <item>800 Hz</item>
+        <item>1 kHz</item>
+        <item>1.25 kHz</item>
+        <item>1.6 kHz</item>
+        <item>2 kHz</item>
+        <item>2.5 kHz</item>
+        <item>3.15 kHz</item>
+        <item>4 kHz</item>
+        <item>5 kHz</item>
+        <item>6.3 kHz</item>
+        <item>8 kHz</item>
+        <item>10 kHz</item>
+        <item>12.5 kHz</item>
+        <item>16 kHz</item>
+    </string-array>
+    <string name="share_message">I measure %.01f dB(A)</string>
 </resources>

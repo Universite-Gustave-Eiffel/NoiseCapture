@@ -28,10 +28,19 @@
 package org.noise_planet.noisecapture;
 
 import android.os.Bundle;
+import android.preference.EditTextPreference;
+import android.preference.Preference;
 import android.preference.PreferenceFragment;
+import android.preference.PreferenceGroup;
+import android.preference.PreferenceScreen;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.widget.EditText;
 
 /**
- * Created by picaut on 15/04/2015.
+ * Check new values of preferences before commit in sharedPreferences
  */
 public class SettingsFragment extends PreferenceFragment {
     @Override
@@ -40,5 +49,57 @@ public class SettingsFragment extends PreferenceFragment {
 
         // Load the preferences from an XML resource
         addPreferencesFromResource(R.xml.settings);
+    }
+
+    @Override
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        PreferenceScreen preferenceScreen = getPreferenceScreen();
+        SharedPreferenceListener sharedPreferenceListener = new SharedPreferenceListener();
+        for(int idPreference = 0; idPreference < preferenceScreen.getPreferenceCount(); idPreference++) {
+            Preference preference = preferenceScreen.getPreference(idPreference);
+            if(preference instanceof PreferenceGroup) {
+                PreferenceGroup preferenceGroup = (PreferenceGroup)preference;
+                for(int IdGroupReference = 0; IdGroupReference < preferenceGroup.getPreferenceCount(); IdGroupReference++) {
+                    preference = preferenceGroup.getPreference(IdGroupReference);
+                    preference.setOnPreferenceChangeListener(sharedPreferenceListener);
+                }
+            } else {
+                preference.setOnPreferenceChangeListener(sharedPreferenceListener);
+            }
+        }
+    }
+
+    private static final class SharedPreferenceListener implements Preference.OnPreferenceChangeListener {
+        @Override
+        public boolean onPreferenceChange(Preference preference, Object newValue) {
+            if(preference instanceof EditTextPreference && newValue instanceof String) {
+                EditText prefText = ((EditTextPreference) preference).getEditText();
+                int editorType = prefText.getInputType();
+                if(EditorInfo.TYPE_CLASS_NUMBER == (EditorInfo.TYPE_CLASS_NUMBER & editorType)) {
+                    // Try to convert to double
+                    double res;
+                    try {
+                        res = Double.valueOf((String)newValue);
+                    } catch (NumberFormatException ex) {
+                        return false;
+                    }
+                    if(EditorInfo.TYPE_NUMBER_FLAG_SIGNED != (EditorInfo.TYPE_NUMBER_FLAG_SIGNED & editorType)) {
+                        // Must be superior than 0
+                        if(res < 0) {
+                            return false;
+                        }
+                    }
+                    if(EditorInfo.TYPE_NUMBER_FLAG_SIGNED != (EditorInfo.TYPE_NUMBER_FLAG_SIGNED & editorType)) {
+                        // Must be an integer
+                        if(Double.compare(res % 1,0) != 0) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            return true;
+        }
     }
 }

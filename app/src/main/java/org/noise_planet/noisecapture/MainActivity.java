@@ -28,17 +28,19 @@
 package org.noise_planet.noisecapture;
 
 
+import android.*;
+import android.Manifest;
 import android.app.Activity;
-import android.app.ActivityManager;
-import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
-import android.support.v4.app.FragmentManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
@@ -69,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     public String[] mMenuLeft;
     public ActionBarDrawerToggle mDrawerToggle;
 
+    public static final int PERMISSION_RECORD_AUDIO_AND_GPS = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -78,6 +81,42 @@ public class MainActivity extends AppCompatActivity {
                 res.getColor(R.color.R3_SL_level),
                 res.getColor(R.color.R4_SL_level),
                 res.getColor(R.color.R5_SL_level)};
+    }
+
+    /**
+     * If necessary request user to acquire permisions for critical ressources (gps and microphone)
+     * @return True if service can be bind immediately. Otherwise the bind should be done using the
+     * @see #onRequestPermissionsResult
+     */
+    protected boolean checkAndAskPermissions() {
+        if (ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.RECORD_AUDIO)) {
+                // After the user
+                // sees the explanation, try again to request the permission.
+                Toast.makeText(this,
+                        R.string.permission_explain_audio_record, Toast.LENGTH_LONG).show();
+            }
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+                // After the user
+                // sees the explanation, try again to request the permission.
+                Toast.makeText(this,
+                        R.string.permission_explain_gps, Toast.LENGTH_LONG).show();
+            }
+            // Request the permission.
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.RECORD_AUDIO,
+                            android.Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERMISSION_RECORD_AUDIO_AND_GPS);
+            return false;
+        }
+        return true;
     }
 
     void initDrawer(Integer recordId) {
@@ -140,11 +179,11 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onBackPressed() {
-        if(!(this instanceof Measurement)) {
+        if(!(this instanceof MeasurementActivity)) {
             if(mDrawerLayout != null) {
                 mDrawerLayout.closeDrawer(mDrawerList);
             }
-            Intent im = new Intent(getApplicationContext(),Measurement.class);
+            Intent im = new Intent(getApplicationContext(),MeasurementActivity.class);
             im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             startActivity(im);
             finish();
@@ -171,7 +210,7 @@ public class MainActivity extends AppCompatActivity {
             switch(position) {
                 case 0:
                     // Measurement
-                    Intent im = new Intent(getApplicationContext(),Measurement.class);
+                    Intent im = new Intent(getApplicationContext(),MeasurementActivity.class);
                     im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(im);
@@ -205,21 +244,14 @@ public class MainActivity extends AppCompatActivity {
                     mDrawerLayout.closeDrawer(mDrawerList);
                     break;
                 case 4:
-                    // Show the map if data transfer settings is true
-                    // TODO: Check also if data transfer using wifi
-                    if (CheckDataTransfer()) {
-                        Intent imap = new Intent(getApplicationContext(), MapActivity.class);
-                        //mDrawerLayout.closeDrawer(mDrawerList);
-                        startActivity(imap);
-                        finish();
-                    }
-                    else {
-                        DialogBoxDataTransfer();
-                    }
+                    // Show the map
+                    Intent imap = new Intent(getApplicationContext(), MapActivity.class);
+                    startActivity(imap);
+                    finish();
                     mDrawerLayout.closeDrawer(mDrawerList);
                     break;
                 case 5:
-                    Intent ics = new Intent(getApplicationContext(), activity_calibration_start.class);
+                    Intent ics = new Intent(getApplicationContext(), CalibrationActivity.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ics);
                     finish();
@@ -227,18 +259,18 @@ public class MainActivity extends AppCompatActivity {
                 case 6:
                     Intent ih = new Intent(getApplicationContext(),View_html_page.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
-                    ih.putExtra(this.getClass().getPackage().getName() + ".pagetosee",
+                    ih.putExtra("pagetosee",
                             getString(R.string.url_help));
-                    ih.putExtra(this.getClass().getPackage().getName() + ".titletosee",
+                    ih.putExtra("titletosee",
                             getString(R.string.title_activity_help));
                     startActivity(ih);
                     finish();
                     break;
                 case 7:
                     Intent ia = new Intent(getApplicationContext(),View_html_page.class);
-                    ia.putExtra(this.getClass().getPackage().getName() + ".pagetosee",
+                    ia.putExtra("pagetosee",
                             getString(R.string.url_about));
-                    ia.putExtra(this.getClass().getPackage().getName() + ".titletosee",
+                    ia.putExtra("titletosee",
                             getString(R.string.title_activity_about));
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ia);
@@ -277,11 +309,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        mDrawerLayout.closeDrawers();
+        if(mDrawerLayout != null) {
+            mDrawerLayout.closeDrawers();
+        }
 
         // Pass the event to ActionBarDrawerToggle, if it returns
         // true, then it has handled the app icon touch event
-        if (mDrawerToggle.onOptionsItemSelected(item)) {
+        if (mDrawerToggle != null && mDrawerToggle.onOptionsItemSelected(item)) {
             return true;
         }
 
@@ -310,32 +344,15 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private boolean CheckDataTransfer() {
+    protected boolean IsManualTransferOnly() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        Boolean DataTransfer = sharedPref.getBoolean("settings_data_transfer", true);
-        return DataTransfer;
+        return !sharedPref.getBoolean("settings_data_transfer", true);
     }
 
-    // Dialog box for activating data transfer
-    public boolean DialogBoxDataTransfer() {
-           new AlertDialog.Builder(this)
-                .setTitle(R.string.title_caution_data_transfer)
-                .setMessage(R.string.text_caution_data_transfer)
-                .setPositiveButton(R.string.text_OK_data_transfer, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Goto to the settings page
-                        Intent is = new Intent(getApplicationContext(),Settings.class);
-                        startActivity(is);
-                    }
-                })
-                .setNegativeButton(R.string.text_CANCEL_data_transfer, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Nothing is done
-                    }
-                })
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
-        return true;
+
+    protected boolean IsWifiTransferOnly() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        return !sharedPref.getBoolean("settings_data_transfer_wifi_only", true);
     }
 
     public static final class SendZipToServer implements Runnable {
@@ -401,4 +418,20 @@ public class MainActivity extends AppCompatActivity {
         return NbNEcat;
     }
 
+
+    public static double getDouble(SharedPreferences sharedPref, String key, double defaultValue) {
+        try {
+            return Double.valueOf(sharedPref.getString(key, String.valueOf(defaultValue)));
+        } catch (NumberFormatException ex) {
+            return defaultValue;
+        }
+    }
+
+    public static int getInteger(SharedPreferences sharedPref, String key, int defaultValue) {
+        try {
+            return Integer.valueOf(sharedPref.getString(key, String.valueOf(defaultValue)));
+        } catch (NumberFormatException ex) {
+            return defaultValue;
+        }
+    }
 }

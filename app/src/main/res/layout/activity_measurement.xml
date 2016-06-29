@@ -16,7 +16,7 @@
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
-        tools:context="org.noise_planet.noisecapture.Measurement">
+        tools:context=".MeasurementActivity">
 
         <LinearLayout
             android:id="@+id/graph_components_layout"
@@ -33,105 +33,97 @@
 
             <LinearLayout
                 android:id="@+id/linearLayout3"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_gravity="left|center_vertical"
-                android:orientation="horizontal"
-                android:weightSum="1">
+                android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/textView_value_SL_i"
-                    android:layout_width="170dp"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="top|left"
-                    android:layout_marginBottom="0dp"
-                    android:layout_marginTop="-5dp"
-                    android:gravity="top|right"
-                    android:paddingRight="20dp"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:paddingRight="5dp"
                     android:text="@string/no_valid_dba_value"
-                    android:textSize="60sp"
+                    android:textSize="50sp"
                     android:textStyle="normal" />
 
-                <FrameLayout
-                    android:id="@+id/Frame_Stat_SEL"
-                    android:layout_width="183dp"
-                    android:layout_height="61dp"
-                    android:layout_gravity="bottom">
-
-                    <TextView
-                        android:id="@+id/textView9"
-                        android:layout_width="60dp"
+                    <LinearLayout
+                        android:layout_width="150dp"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="left|bottom"
-                        android:gravity="left|bottom"
-                        android:paddingTop="4dp"
-                        android:text="@string/SL_dBA"
-                        android:textColor="#0099CC"
-                        android:textSize="15sp" />
+                        android:orientation="vertical">
 
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_gravity="center_horizontal">
+
+                        <TextView
+                            android:id="@+id/textView_title_Min_i"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/measurement_dba_min"
+                            android:textSize="15sp" />
                     <TextView
                         android:id="@+id/textView_title_Mean_i"
-                        android:layout_width="60dp"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center_horizontal|top"
-                        android:gravity="left"
-                        android:paddingTop="6dp"
                         android:text="@string/measurement_dba_mean"
                         android:textSize="15sp" />
 
                     <TextView
                         android:id="@+id/textView_title_Max_i"
-                        android:layout_width="60dp"
+                        android:layout_width="0dp"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="right|top"
-                        android:gravity="left"
-                        android:paddingTop="6dp"
                         android:text="@string/measurement_dba_max"
                         android:textSize="15sp" />
 
-                    <TextView
-                        android:id="@+id/textView_title_Min_i"
-                        android:layout_width="60dp"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="left|top"
-                        android:gravity="left"
-                        android:paddingTop="6dp"
-                        android:text="@string/measurement_dba_min"
-                        android:textSize="15sp" />
+                        </LinearLayout>
 
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
                     <TextView
                         android:id="@+id/textView_value_Min_i"
-                        android:layout_width="60dp"
+                        android:layout_width="wrap_content"
+                        android:layout_weight="1"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="left|center_vertical"
-                        android:gravity="left"
-                        android:paddingTop="4dp"
                         android:text="@string/no_valid_dba_value"
                         android:textSize="15sp"
                         android:textStyle="bold" />
 
-                    <TextView
-                        android:id="@+id/textView_value_Max_i"
-                        android:layout_width="60dp"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="right|center_vertical"
-                        android:gravity="left"
-                        android:paddingTop="4dp"
-                        android:text="@string/no_valid_dba_value"
-                        android:textSize="15sp"
-                        android:textStyle="bold" />
 
                     <TextView
                         android:id="@+id/textView_value_Mean_i"
-                        android:layout_width="60dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:paddingTop="4dp"
+                        android:layout_weight="1"
                         android:text="@string/no_valid_dba_value"
                         android:textSize="15sp"
                         android:textStyle="bold" />
+                        <TextView
+                            android:id="@+id/textView_value_Max_i"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/no_valid_dba_value"
+                            android:textSize="15sp"
+                            android:textStyle="bold" />
+                    </LinearLayout>
 
-                </FrameLayout>
+                        <TextView
+                            android:id="@+id/textView9"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/SL_dBA"
+                            android:textColor="#0099CC"
+                            android:textSize="15sp" />
+                </LinearLayout>
 
             </LinearLayout>
 

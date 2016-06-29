@@ -35,19 +35,15 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.os.SystemClock;
 import android.support.v4.content.ContextCompat;
-import android.widget.Toast;
 
 import org.orbisgis.sos.LeqStats;
 import org.slf4j.Logger;
@@ -95,6 +91,7 @@ public class MeasurementService extends Service {
     private int minimalLeqCount = 0;
     // Seconds to delete when pause is activated
     private int deletedLeqOnPause = 0;
+    private double dBGain = 0;
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
     private static final Logger LOGGER = LoggerFactory.getLogger(MeasurementService.class);
 
@@ -118,6 +115,17 @@ public class MeasurementService extends Service {
         }
     }
 
+    /**
+     * @param dBGain Gain in dB
+     */
+    public void setdBGain(double dBGain) {
+        this.dBGain = dBGain;
+        if(audioProcess != null && Double.compare(0, dBGain) != 0) {
+            audioProcess.setGain((float)Math.pow(10, dBGain / 20));
+        }
+    }
+
+
     public LeqStats getLeqStats() {
         return leqStats;
     }
@@ -140,6 +148,9 @@ public class MeasurementService extends Service {
         return leqAdded.get();
     }
 
+    /**
+     * @return AudioProcess or null if recording has not been started
+     */
     public AudioProcess getAudioProcess() {
         return audioProcess;
     }
@@ -193,6 +204,9 @@ public class MeasurementService extends Service {
         initLocalisationServices();
         isRecording.set(true);
         this.audioProcess = new AudioProcess(isRecording, canceled);
+        if(Double.compare(0, dBGain) != 0) {
+            audioProcess.setGain((float) Math.pow(10, dBGain / 20));
+        }
         audioProcess.getListeners().addPropertyChangeListener(doProcessing);
 
         // Start measurement
@@ -225,7 +239,7 @@ public class MeasurementService extends Service {
 
         // The PendingIntent to launch our activity if the user selects this notification
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, Measurement.class), 0);
+                new Intent(this, MeasurementActivity.class), 0);
 
         // Set the info for the views that show in the notification panel.
         Notification.Builder notification = new Notification.Builder(this)

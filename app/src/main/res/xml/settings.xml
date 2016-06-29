@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
-
+ <PreferenceCategory android:title="@string/setting_general_group">
+     <CheckBoxPreference
+         android:key="settings_caution"
+         android:title="@string/title_settings_caution"
+         android:summary="@string/summary_settings_caution"
+         android:defaultValue="true" />
     <CheckBoxPreference
         android:key="settings_data_transfer"
         android:title="@string/title_settings_data_transfer"
@@ -11,7 +16,9 @@
         android:title="@string/title_settings_transfer_wifi_only"
         android:summary="@string/summary_settings_transfer_wifi_only"
         android:dependency="settings_data_transfer"
-        android:defaultValue="false" />
+        android:defaultValue="true" />
+ </PreferenceCategory>
+    <PreferenceCategory android:title="@string/setting_measurement_group">
     <CheckBoxPreference
         android:key="settings_recording"
         android:title="@string/title_settings_recording"
@@ -23,7 +30,13 @@
         android:title="@string/title_settings_recording_duration"
         android:summary="@string/summary_settings_recording_duration"
         android:dependency="settings_recording"
-        android:inputType="number"/>
+        android:inputType="numberDecimal"/>
+        <EditTextPreference
+            android:defaultValue="0"
+            android:key="settings_recording_gain"
+            android:title="@string/title_settings_recording_gain"
+            android:summary="@string/summary_settings_recording_gain"
+            android:inputType="numberDecimal|numberSigned"/>
     <CheckBoxPreference
         android:key="settings_spectrogram_logscalemode"
         android:title="@string/title_settings_spectrogram_logscalemode"
@@ -35,15 +48,19 @@
         android:title="@string/title_settings_delete_leq_on_pause"
         android:summary="@string/title_settings_delete_leq_on_pause_description"
         android:inputType="number"/>
-    <CheckBoxPreference
-        android:key="settings_caution"
-        android:title="@string/title_settings_caution"
-        android:summary="@string/summary_settings_caution"
-        android:defaultValue="true" />
-    <CheckBoxPreference
-        android:key="settings_view_mode"
-        android:title="@string/title_settings_view_mode"
-        android:summary="@string/summary_settings_view_mode"
-        android:defaultValue="true" />
-
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/setting_calibration_group">
+        <EditTextPreference
+            android:defaultValue="5"
+            android:key="settings_calibration_warmup_time"
+            android:title="@string/title_settings_calibration_warmup_time"
+            android:summary="@string/title_settings_calibration_warmup_time_description"
+            android:inputType="number"/>
+        <EditTextPreference
+            android:defaultValue="10"
+            android:key="settings_calibration_time"
+            android:title="@string/title_settings_calibration_time"
+            android:summary="@string/title_settings_calibration_time_description"
+            android:inputType="number"/>
+    </PreferenceCategory>
 </PreferenceScreen>

@@ -741,6 +741,11 @@ public class MeasurementActivity extends MainActivity implements
             if(!measurementService.isRecording()) {
                 measurementService.startRecording();
             }
+            measurementService.getAudioProcess().setDoFastLeq(true);
+            measurementService.getAudioProcess().setDoOneSecondLeq(true);
+            measurementService.getAudioProcess().setWeightingA(true);
+            measurementService.getAudioProcess().setHanningWindowOneSecond(false);
+            measurementService.getAudioProcess().setHanningWindowFast(true);
             initGuiState();
         }
 

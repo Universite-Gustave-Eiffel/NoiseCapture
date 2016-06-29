@@ -148,6 +148,9 @@ public class MeasurementService extends Service {
         return leqAdded.get();
     }
 
+    /**
+     * @return AudioProcess or null if recording has not been started
+     */
     public AudioProcess getAudioProcess() {
         return audioProcess;
     }

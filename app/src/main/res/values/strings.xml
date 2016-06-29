@@ -42,6 +42,7 @@
     <string name="text_caution_data_transfer">In order to load the map, you must enable the data transfer option in the user settings.</string>
 
     <string name="SL_dBA">dB(A)</string>
+    <string name="SL_dB">dB</string>
     <string name="SEL_dBA">Noise exposure dB(A)</string>
 
     <string name="hello_world">Hello world!</string>

@@ -240,6 +240,10 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             if(!measurementService.isRecording()) {
                 measurementService.startRecording();
             }
+            measurementService.getAudioProcess().setDoFastLeq(false);
+            measurementService.getAudioProcess().setDoOneSecondLeq(true);
+            measurementService.getAudioProcess().setWeightingA(false);
+            measurementService.getAudioProcess().setHanningWindowOneSecond(false);
         }
 
         public void onServiceDisconnected(ComponentName className) {

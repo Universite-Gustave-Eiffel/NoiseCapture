@@ -266,7 +266,9 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        mDrawerLayout.closeDrawers();
+        if(mDrawerLayout != null) {
+            mDrawerLayout.closeDrawers();
+        }
 
         // Pass the event to ActionBarDrawerToggle, if it returns
         // true, then it has handled the app icon touch event

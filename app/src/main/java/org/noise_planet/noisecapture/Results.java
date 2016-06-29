@@ -97,6 +97,7 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_results);
         this.measurementManager = new MeasurementManager(this);
         Intent intent = getIntent();
         if(intent != null && intent.hasExtra(RESULTS_RECORD_ID)) {
@@ -110,15 +111,13 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
                 // Message for starting a record
                 Toast.makeText(getApplicationContext(),
                         getString(R.string.no_results), Toast.LENGTH_LONG).show();
+                initDrawer();
                 return;
             }
         }
-
-
+        initDrawer(record.getId());
         loadMeasurement();
         LeqStats.LeqOccurrences leqOccurrences = leqStats.computeLeqOccurrences(CLASS_RANGES);
-        setContentView(R.layout.activity_results);
-        initDrawer();
 
         // RNE PieChart
         rneChart = (PieChart) findViewById(R.id.RNEChart);
@@ -272,6 +271,9 @@ public class Results extends MainActivity implements ShareActionProvider.OnShare
 
     @Override
     public boolean onShareTargetSelected(ShareActionProvider source, Intent intent) {
+        if(record == null) {
+            return false;
+        }
         // Write file
         try {
             File file = getSharedFile();

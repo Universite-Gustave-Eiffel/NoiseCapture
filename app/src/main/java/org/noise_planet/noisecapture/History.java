@@ -27,6 +27,8 @@
 
 package org.noise_planet.noisecapture;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -39,7 +41,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.FileProvider;
+import android.support.v4.view.MenuItemCompat;
+import android.support.v7.widget.ShareActionProvider;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -213,6 +219,50 @@ public class History extends MainActivity {
             new Thread(new SendZipToServer(historyActivity, recordId, historyActivity.progress, new RefreshListener(historyActivity.historyListAdapter))).start();
         }
 
+        private File getSharedFile() {
+            return new File(historyActivity.getCacheDir().getAbsolutePath() ,MeasurementExport.ZIP_FILENAME);
+        }
+
+        private void buildZipFile() {
+            // Write file
+            try {
+                File file = getSharedFile();
+                // Create parent dirs if necessary
+                file.getParentFile().mkdirs();
+                FileOutputStream fop = new FileOutputStream(file);
+                try {
+                    MeasurementExport measurementExport = new MeasurementExport(historyActivity);
+                    measurementExport.exportRecord(historyActivity, recordId, fop, true);
+                } finally {
+                    fop.close();
+                }
+            } catch (IOException ex) {
+                Toast.makeText(historyActivity,
+                        historyActivity.getString(R.string.fail_share), Toast.LENGTH_LONG).show();
+                LOGGER.error(ex.getLocalizedMessage(), ex);
+            }
+        }
+
+
+        private void launchExport() {
+
+            File requestFile = getSharedFile();
+            Uri fileUri = FileProvider.getUriForFile(
+                    historyActivity,
+                    "org.noise_planet.noisecapture.fileprovider",
+                    requestFile);
+
+
+            Intent mResultIntent = new Intent(Intent.ACTION_SEND);
+
+            mResultIntent.setDataAndType(fileUri, "application/zip");
+            mResultIntent.putExtra(Intent.EXTRA_STREAM, fileUri);
+            mResultIntent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            buildZipFile();
+            historyActivity.startActivity(Intent.createChooser(mResultIntent,
+                    historyActivity.getText(R.string.result_share)));
+        }
+
         private void launchResult() {
             Intent ir = new Intent(historyActivity.getApplicationContext(), Results.class);
             ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
@@ -235,18 +285,21 @@ public class History extends MainActivity {
                     launchUpload();
                     break;
                 case 1:
+                    launchExport();
+                    break;
+                case 2:
                     // Comment
                     launchComment();
                     break;
-                case 2:
+                case 3:
                     // Result
                     launchResult();
                     break;
-                case 3:
+                case 4:
                     // Map
                     launchMap();
                     break;
-                case 4:
+                case 5:
                     // Delete record
                     historyActivity.measurementManager.deleteRecord(recordId);
                     historyActivity.historyListAdapter.reload();

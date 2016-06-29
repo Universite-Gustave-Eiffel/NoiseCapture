@@ -32,6 +32,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.os.Handler;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -193,12 +194,34 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
         calibration_step = CALIBRATION_STEP.WARMUP;
         // Link measurement service with gui
-        doBindService();
+        if(checkAndAskPermissions()) {
+            // Application have right now all permissions
+            doBindService();
+        }
         spinner.setEnabled(false);
         startButton.setEnabled(false);
         testGainCheckBox.setEnabled(false);
         timeHandler = new Handler(Looper.getMainLooper(), progressHandler);
         progressHandler.start(defaultWarmupTime * 1000);
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_RECORD_AUDIO_AND_GPS: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    doBindService();
+                } else {
+                    // permission denied
+                    // Ask again
+                    checkAndAskPermissions();
+                }
+            }
+        }
     }
 
     @Override

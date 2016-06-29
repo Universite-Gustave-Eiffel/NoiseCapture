@@ -28,13 +28,19 @@
 package org.noise_planet.noisecapture;
 
 
+import android.*;
+import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.preference.PreferenceManager;
+import android.support.annotation.NonNull;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.os.Bundle;
@@ -65,6 +71,7 @@ public class MainActivity extends AppCompatActivity {
     public String[] mMenuLeft;
     public ActionBarDrawerToggle mDrawerToggle;
 
+    public static final int PERMISSION_RECORD_AUDIO_AND_GPS = 1;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -74,6 +81,42 @@ public class MainActivity extends AppCompatActivity {
                 res.getColor(R.color.R3_SL_level),
                 res.getColor(R.color.R4_SL_level),
                 res.getColor(R.color.R5_SL_level)};
+    }
+
+    /**
+     * If necessary request user to acquire permisions for critical ressources (gps and microphone)
+     * @return True if service can be bind immediately. Otherwise the bind should be done using the
+     * @see #onRequestPermissionsResult
+     */
+    protected boolean checkAndAskPermissions() {
+        if (ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.RECORD_AUDIO)
+                != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.RECORD_AUDIO)) {
+                // After the user
+                // sees the explanation, try again to request the permission.
+                Toast.makeText(this,
+                        R.string.permission_explain_audio_record, Toast.LENGTH_LONG).show();
+            }
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+                // After the user
+                // sees the explanation, try again to request the permission.
+                Toast.makeText(this,
+                        R.string.permission_explain_gps, Toast.LENGTH_LONG).show();
+            }
+            // Request the permission.
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.RECORD_AUDIO,
+                            android.Manifest.permission.ACCESS_FINE_LOCATION,
+                            Manifest.permission.ACCESS_COARSE_LOCATION},
+                    PERMISSION_RECORD_AUDIO_AND_GPS);
+            return false;
+        }
+        return true;
     }
 
     void initDrawer(Integer recordId) {

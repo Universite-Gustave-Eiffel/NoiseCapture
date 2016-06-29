@@ -19,6 +19,9 @@
     <string name="gps_hint_precision">%1$d m</string>
     <string name="no_history">History is empty. Start a record before.</string>
     <string name="loc_hint">Location status hint</string>
+    <string name="permission_explain_audio_record">NoiseCapture require microphone use permission for audio measures</string>
+    <string name="permission_explain_gps">NoiseCapture require GPS location for the localisation of noise levels on the map</string>
+    <string name="permission_explain_photo">NoiseCapture require photo capture for local storage of photo (not uploaded)</string>
 
     <string name="title_menu">Menu</string>
     <string name="title_service_measurement">Measurement</string>
@@ -102,7 +105,7 @@
     <string name="title_choice_history_action">Choose action:</string>
     <string-array name="choice_user_history">
         <item>Upload to community</item>
-        <!-- <item>Export result</item> -->
+        <item>Export result</item>
         <item>Edit description</item>
         <item>Show result</item>
         <item>Show map</item>

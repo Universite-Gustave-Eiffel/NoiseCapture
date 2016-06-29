@@ -35,6 +35,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -143,7 +144,10 @@ public class MeasurementActivity extends MainActivity implements
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        doBindService();
+        if(checkAndAskPermissions()) {
+            // Application have right now all permissions
+            doBindService();
+        }
         setContentView(R.layout.activity_measurement);
         initDrawer();
 
@@ -236,6 +240,25 @@ public class MeasurementActivity extends MainActivity implements
             sChart.setVisibility(View.GONE);
         }
         initSpectrum();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode,
+                                           String permissions[], int[] grantResults) {
+        switch (requestCode) {
+            case PERMISSION_RECORD_AUDIO_AND_GPS: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                    doBindService();
+                } else {
+                    // permission denied
+                    // Ask again
+                    checkAndAskPermissions();
+                }
+            }
+        }
     }
 
     private View.OnClickListener onButtonPause = new View.OnClickListener() {

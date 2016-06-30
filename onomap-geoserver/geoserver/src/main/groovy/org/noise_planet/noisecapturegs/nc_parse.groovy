@@ -129,11 +129,12 @@ def processFile(Connection connection, File zipFile) {
                       device_model       : meta.get("device_model"),
                       device_manufacturer: meta.get("device_manufacturer"),
                       noise_level        : Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")),
-                      time_length        : meta.get("time_length") as int]
+                      time_length        : meta.get("time_length") as int,
+                      gain_calibration   : Double.valueOf(meta.getProperty("gain_calibration", "0").replace(",", "."))]
         def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
-                " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length) VALUES (" +
+                " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration) VALUES (" +
                 ":track_uuid, :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
-                " :device_manufacturer, :noise_level, :time_length)", record)[0][0] as Integer
+                " :device_manufacturer, :noise_level, :time_length, :gain_calibration)", record)[0][0] as Integer
         // insert tags
         String tags = meta.getProperty("tags", "")
         if (!tags.isEmpty()) {

@@ -1,1 +1,1 @@
-include 'sosfilter', 'app', 'onomap-geoserver/geoserver'
+include 'sosfilter', 'app'

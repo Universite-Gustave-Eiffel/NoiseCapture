@@ -1,4 +1,6 @@
-# NoiseCapture
+
+[![Build Status](https://travis-ci.org/Ifsttar/NoiseCapture.svg?branch=master)](https://travis-ci.org/Ifsttar/NoiseCapture) 
+
 NoiseCapture is Android App dedicated to the measurement of environmental noise.
 The development of NoiseCapture is in progress and is not working yet.
 

@@ -85,7 +85,6 @@ repositories {
 dependencies {
     compile 'com.github.PhilJay:MPAndroidChart:v2.2.5'
     compile 'org.slf4j:slf4j-simple:1.7.12'
-    compile 'org.orbisgis:sosfilter:1.0-SNAPSHOT'
     // multithreaded FFT for realtime visualisation of spectrum only
     compile 'com.github.wendykierp:JTransforms:3.1'
     compile 'com.android.support:appcompat-v7:23.2.0'
@@ -102,6 +101,7 @@ dependencies {
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
     // unit test on jvm
     testCompile 'org.robolectric:robolectric:3.0'
+    compile project(':sosfilter')
 }
 
 
@@ -111,6 +111,7 @@ dependencies {
 //
 // get the installed SDK and build tools version
 // based on: http://www.egeek.me/2013/12/07/gradle-auto-detect-android-sdk-and-build-tools-versions/
+// http://stackoverflow.com/questions/34534289/buildtoolsversion-range-or-in-gradle
 import org.codehaus.groovy.runtime.StackTraceUtils
 
 int[] sdksAvailable() {

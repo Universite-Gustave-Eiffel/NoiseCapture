@@ -19,7 +19,7 @@ def getCheckedOutGitCommitHash() {
 
 android {
     compileSdkVersion 23
-    buildToolsVersion latestBuildToolsAvailable("23.0.3")
+    buildToolsVersion "24.0.0"
 
     defaultConfig {
         applicationId "org.noise_planet.noisecapture"

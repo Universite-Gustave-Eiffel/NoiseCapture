@@ -197,7 +197,19 @@ public class History extends MainActivity {
         }
     }
 
-    private static class ItemActionOnClickListener implements DialogInterface.OnClickListener {
+    public static void doBuildZip(File file, Context context,int recordId) throws IOException {
+        // Create parent dirs if necessary
+        file.getParentFile().mkdirs();
+        FileOutputStream fop = new FileOutputStream(file);
+        try {
+            MeasurementExport measurementExport = new MeasurementExport(context);
+            measurementExport.exportRecord(recordId, fop, true);
+        } finally {
+            fop.close();
+        }
+    }
+
+    public static class ItemActionOnClickListener implements DialogInterface.OnClickListener {
         private History historyActivity;
         private int recordId;
 
@@ -226,16 +238,7 @@ public class History extends MainActivity {
         private void buildZipFile() {
             // Write file
             try {
-                File file = getSharedFile();
-                // Create parent dirs if necessary
-                file.getParentFile().mkdirs();
-                FileOutputStream fop = new FileOutputStream(file);
-                try {
-                    MeasurementExport measurementExport = new MeasurementExport(historyActivity);
-                    measurementExport.exportRecord(historyActivity, recordId, fop, true);
-                } finally {
-                    fop.close();
-                }
+                doBuildZip(getSharedFile(), historyActivity, recordId);
             } catch (IOException ex) {
                 Toast.makeText(historyActivity,
                         historyActivity.getString(R.string.fail_share), Toast.LENGTH_LONG).show();

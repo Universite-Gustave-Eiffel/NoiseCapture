@@ -545,7 +545,8 @@ public class MeasurementService extends Service {
                             measurementService.measurementManager
                                     .updateRecordFinal(measurementService.recordId,
                                             (float) measurementService.leqStats.getLeqMean(),
-                                            measurementService.leqAdded.get());
+                                            measurementService.leqAdded.get(),
+                                            (float)measurementService.dBGain);
                         }
                     }
                     measurementService.isRecording.set(false);

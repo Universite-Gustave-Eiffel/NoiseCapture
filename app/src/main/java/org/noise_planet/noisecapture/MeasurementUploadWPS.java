@@ -95,7 +95,7 @@ public class MeasurementUploadWPS {
             // Copy content of zip file
             Base64OutputStream base64OutputStream = new Base64OutputStream(os, Base64.NO_CLOSE | Base64.NO_WRAP);
             try {
-                measurementExport.exportRecord(activity, recordId, base64OutputStream, false);
+                measurementExport.exportRecord(recordId, base64OutputStream, false);
             } finally {
                 base64OutputStream.close();
             }

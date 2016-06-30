@@ -68,6 +68,7 @@ public class MeasurementExport {
     public static final String PROP_PRODUCT  = "device_product";
     public static final String PROP_MODEL  = "device_model";
     public static final String PROP_TAGS  = "tags";
+    public static final String PROP_GAIN_CALIBRATION  = "gain_calibration";
     public static final String PROP_UUID = "uuid"; // Random anonymous ID that link non identified user's measure.
     public static final String PROP_VERSION_NAME  = "version_name";
     public static final String PROP_BUILD_TIME  = "build_date";
@@ -84,7 +85,7 @@ public class MeasurementExport {
      * @param outputStream Data output target
      * @throws IOException output error
      */
-    public void exportRecord(Activity activity, int recordId, OutputStream outputStream,boolean exportReadme) throws IOException {
+    public void exportRecord(int recordId, OutputStream outputStream,boolean exportReadme) throws IOException {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         ZipOutputStream zipOutputStream = new ZipOutputStream(outputStream);
         Storage.Record record = measurementManager.getRecord(recordId);
@@ -94,7 +95,7 @@ public class MeasurementExport {
         String versionName = "NONE";
         int versionCode = -1;
         try {
-            PackageInfo packageInfo = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0);
+            PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             versionName = packageInfo.versionName;
             versionCode = packageInfo.versionCode;
         } catch (PackageManager.NameNotFoundException ex) {
@@ -109,6 +110,7 @@ public class MeasurementExport {
         properties.setProperty(PROP_UUID, sharedPref.getString(PROP_UUID, ""));
         properties.setProperty(Storage.Record.COLUMN_UTC, String.valueOf(record.getUtc()));
         properties.setProperty(Storage.Record.COLUMN_LEQ_MEAN, String.format(Locale.US, "%.02f", record.getLeqMean()));
+        properties.setProperty(PROP_GAIN_CALIBRATION, String.format(Locale.US, "%.02f", record.getCalibrationGain()));
         properties.setProperty(Storage.Record.COLUMN_TIME_LENGTH, String.valueOf(record.getTimeLength()));
         if(record.getPleasantness() != null) {
             properties.setProperty(Storage.Record.COLUMN_PLEASANTNESS, String.valueOf(record.getPleasantness()));
@@ -194,7 +196,7 @@ public class MeasurementExport {
                 // Readme file
                 zipOutputStream.putNextEntry(new ZipEntry(README_FILENAME));
                 writer = new OutputStreamWriter(zipOutputStream);
-                writer.write(activity.getString(R.string.export_zip_info));
+                writer.write(context.getString(R.string.export_zip_info));
                 writer.flush();
                 zipOutputStream.closeEntry();
             }

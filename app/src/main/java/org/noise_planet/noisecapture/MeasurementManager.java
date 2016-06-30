@@ -294,14 +294,16 @@ public class MeasurementManager {
         return tags;
     }
 
-    public void updateRecordFinal(int recordId, float leqMean, int recordTimeLength) {
+    public void updateRecordFinal(int recordId, float leqMean, int recordTimeLength, float calibration_gain) {
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
             try {
                 database.execSQL("UPDATE " + Storage.Record.TABLE_NAME + " SET " +
                         Storage.Record.COLUMN_LEQ_MEAN + " = ?," +
-                        Storage.Record.COLUMN_TIME_LENGTH + " = ? WHERE " +
-                        Storage.Record.COLUMN_ID + " = ?", new Object[]{leqMean,recordTimeLength, recordId});
+                        Storage.Record.COLUMN_TIME_LENGTH + " = ?,"+
+                        Storage.Record.COLUMN_CALIBRATION_GAIN + " = ? WHERE " +
+                        Storage.Record.COLUMN_ID + " = ?", new Object[]{leqMean,recordTimeLength,
+                        calibration_gain, recordId});
             } catch (SQLException sqlException) {
                 LOGGER.error(sqlException.getLocalizedMessage(), sqlException);
             }

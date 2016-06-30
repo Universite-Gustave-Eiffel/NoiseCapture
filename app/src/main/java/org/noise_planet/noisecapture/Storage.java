@@ -48,7 +48,7 @@ public class Storage extends SQLiteOpenHelper {
             "air-traffic", "crowd", "rain", "indoor", "traffic", "two-wheeled", "heavy vehicle",
             "animated", "silent", "birds", "noisy", "big street", "small street"};
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 6;
+    public static final int DATABASE_VERSION = 7;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -112,6 +112,12 @@ public class Storage extends SQLiteOpenHelper {
                     " time_length , description ,photo_uri , pleasantness from record_old;");
             db.execSQL("DROP TABLE IF EXISTS record_old;");
             oldVersion = 6;
+        }
+        if(oldVersion == 6) {
+            if (!db.isReadOnly()) {
+                db.execSQL("ALTER TABLE record ADD COLUMN calibration_gain FLOAT DEFAULT 0");
+            }
+            oldVersion = 7;
         }
     }
 
@@ -215,6 +221,7 @@ public class Storage extends SQLiteOpenHelper {
         public static final String COLUMN_DESCRIPTION = "description";
         public static final String COLUMN_PLEASANTNESS = "pleasantness";
         public static final String COLUMN_PHOTO_URI = "photo_uri";
+        public static final String COLUMN_CALIBRATION_GAIN = "calibration_gain";
 
         private int id;
         private long utc;
@@ -224,13 +231,15 @@ public class Storage extends SQLiteOpenHelper {
         private String description;
         private Integer pleasantness;
         private Uri photoUri;
+        private float calibrationGain;
 
         public Record(Cursor cursor) {
             this(cursor.getInt(cursor.getColumnIndex(COLUMN_ID)),
                     cursor.getLong(cursor.getColumnIndex(COLUMN_UTC)),
                     cursor.getString(cursor.getColumnIndex(COLUMN_UPLOAD_ID)),
                     cursor.getFloat(cursor.getColumnIndex(COLUMN_LEQ_MEAN)),
-                    cursor.getInt(cursor.getColumnIndex(COLUMN_TIME_LENGTH)));
+                    cursor.getInt(cursor.getColumnIndex(COLUMN_TIME_LENGTH)),
+                    cursor.getFloat(cursor.getColumnIndex(COLUMN_CALIBRATION_GAIN)));
             description = getString(cursor, COLUMN_DESCRIPTION);
             String uriString = getString(cursor, COLUMN_PHOTO_URI);
             if(uriString != null && !uriString.isEmpty()) {
@@ -239,12 +248,14 @@ public class Storage extends SQLiteOpenHelper {
             pleasantness = getInt(cursor, COLUMN_PLEASANTNESS);
         }
 
-        public Record(int id, long utc, String uploadId, float leqMean, int timeLength) {
+        public Record(int id, long utc, String uploadId, float leqMean, int timeLength,
+                      float calibrationGain) {
             this.id = id;
             this.utc = utc;
             this.uploadId = uploadId;
             this.leqMean = leqMean;
             this.timeLength = timeLength;
+            this.calibrationGain = calibrationGain;
         }
 
         public String getDescription() {
@@ -257,6 +268,13 @@ public class Storage extends SQLiteOpenHelper {
 
         public Uri getPhotoUri() {
             return photoUri;
+        }
+
+        /**
+         * @return Calibration gain in dB
+         */
+        public float getCalibrationGain() {
+            return calibrationGain;
         }
 
         /**
@@ -304,7 +322,9 @@ public class Storage extends SQLiteOpenHelper {
             Record.COLUMN_TIME_LENGTH + " INTEGER, " +
             Record.COLUMN_DESCRIPTION + " TEXT, " +
             Record.COLUMN_PHOTO_URI + " TEXT, " +
-            Record.COLUMN_PLEASANTNESS + " SMALLINT)";
+            Record.COLUMN_PLEASANTNESS + " SMALLINT," +
+            Record.COLUMN_CALIBRATION_GAIN + " FLOAT DEFAULT 0" +
+            ")";
 
 
     public static class Leq implements BaseColumns {

@@ -237,6 +237,9 @@ public class Results extends MainActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        if(record == null) {
+            return false;
+        }
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_result, menu);
 

@@ -27,25 +27,30 @@
 
 package org.noise_planet.noisecapture;
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.Color;
 import android.net.Uri;
 
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricGradleTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Unit test of SQLLite db manager of NoiseCapture
@@ -53,6 +58,14 @@ import static org.junit.Assert.assertTrue;
 @RunWith(RobolectricGradleTestRunner.class)
 @Config(constants = BuildConfig.class, sdk = 21)
 public class TestDB {
+
+    @Rule
+    public TemporaryFolder folder= new TemporaryFolder();
+
+    @Before
+    public void setUp() throws Exception {
+        folder.create();
+    }
 
     @Test
     public void testCreate() throws URISyntaxException {
@@ -94,12 +107,13 @@ public class TestDB {
 
         // Check update ending measure
 
-        measurementManager.updateRecordFinal(recordId, 49, 2);
+        measurementManager.updateRecordFinal(recordId, (float)leqBatch.computeGlobalLeq(), 2, 2.31f);
 
 
         Storage.Record incompleteRecord = measurementManager.getRecord(recordId);
         assertNull(incompleteRecord.getPleasantness());
-
+        assertEquals((float)leqBatch.computeGlobalLeq(), incompleteRecord.getLeqMean(), 0.01);
+        assertEquals(2.31f, incompleteRecord.getCalibrationGain(), 0.01);
 
         // Check update user input
         measurementManager.updateRecordUserInput(recordId, "This is a description",
@@ -113,6 +127,62 @@ public class TestDB {
         assertEquals(Storage.TAGS[0], selectedTags.get(0));
         assertEquals(Storage.TAGS[4], selectedTags.get(1));
 
+    }
+
+    @Test
+    public void testExport() throws URISyntaxException, IOException {
+        MeasurementManager measurementManager =
+                new MeasurementManager(RuntimeEnvironment.application);
+
+        int recordId = measurementManager.addRecord();
+        Storage.Leq leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), 12, 15, 50.d,
+                15.f, 4.f, 4.5f,System.currentTimeMillis());
+        List<Storage.LeqValue> leqValues = new ArrayList<Storage.LeqValue>();
+
+        leqValues .add(new Storage.LeqValue(-1, 125, 65));
+        leqValues .add(new Storage.LeqValue(-1, 250, 55));
+        leqValues .add(new Storage.LeqValue(-1, 500, 56));
+        leqValues .add(new Storage.LeqValue(-1, 1000, 58));
+        leqValues .add(new Storage.LeqValue(-1, 2000, 48));
+        leqValues .add(new Storage.LeqValue(-1, 4000, 49));
+        leqValues .add(new Storage.LeqValue(-1, 8000, 45));
+        leqValues .add(new Storage.LeqValue(-1, 16000, 41));
+        MeasurementManager.LeqBatch leqBatch = new MeasurementManager.LeqBatch(leq,leqValues);
+        measurementManager.addLeqBatch(leqBatch);
+        leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), 12.01, 15.02, 51.d,
+                12.f, 3.02f, 5f,System.currentTimeMillis());
+        leqBatch = new MeasurementManager.LeqBatch(leq,leqValues);
+        measurementManager.addLeqBatch(leqBatch);
+
+        measurementManager.updateRecordFinal(recordId, (float)leqBatch.computeGlobalLeq(), 2, 2.31f);
+        measurementManager.updateRecordUserInput(recordId, "This is a description",
+                (short)2,new String[]{Storage.TAGS[0], Storage.TAGS[4]},
+                Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())));
+
+        // Export to zip file
+        File testFile = folder.newFile("testexport.zip");
+        History.doBuildZip(testFile, RuntimeEnvironment.application, recordId);
+
+        // Check properties of zip file
+        FileInputStream fileInputStream = new FileInputStream(testFile);
+        Properties meta = null;
+        try {
+            ZipInputStream zipInputStream = new ZipInputStream(fileInputStream);
+            ZipEntry zipEntry;
+            while((zipEntry = zipInputStream.getNextEntry()) != null) {
+                if ("meta.properties".equals(zipEntry.getName())) {
+                    meta = new Properties();
+                    meta.load(zipInputStream);
+                }
+            }
+        } finally {
+            fileInputStream.close();
+        }
+        assertNotNull(meta);
+        assertEquals(2.31f, Float.valueOf(
+                meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
+        assertEquals((float)leqBatch.computeGlobalLeq(),
+                Float.valueOf(meta.getProperty(Storage.Record.COLUMN_LEQ_MEAN)), 0.01f);
     }
 
 }

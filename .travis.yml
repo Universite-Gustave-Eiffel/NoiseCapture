@@ -8,7 +8,9 @@ android:
   - extra-android-m2repository
   - extra-google-m2repository
   - extra-google-google_play_services
-  
+
+script: ./gradlew -PdisablePreDex check
+
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
 cache:

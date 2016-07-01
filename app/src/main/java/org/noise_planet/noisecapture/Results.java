@@ -222,6 +222,14 @@ public class Results extends MainActivity {
         exportComment.setEnabled(record.getUploadId().isEmpty());
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        sChart.animateXY(1500,1500);
+        neiChart.animateXY(1500,1500);
+        rneChart.animateXY(1500,1500);
+    }
+
     private static final class RefreshListener implements OnUploadedListener {
 
         private Results resultsActivity;
@@ -354,6 +362,8 @@ public class Results extends MainActivity {
         yrs.setEnabled(false);
         //return true;
     }
+
+
 
     // Read spl data for spectrum representation
     private void setDataS() {

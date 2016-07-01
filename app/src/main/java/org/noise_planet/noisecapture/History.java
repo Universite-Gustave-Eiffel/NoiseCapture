@@ -331,7 +331,7 @@ public class History extends MainActivity {
         private MeasurementManager measurementManager;
 
         public InformationHistoryAdapter(MeasurementManager measurementManager, History activity) {
-            this.informationHistoryList = measurementManager.getRecords(false);
+            this.informationHistoryList = measurementManager.getRecords();
             this.activity = activity;
             this.measurementManager = measurementManager;
         }
@@ -364,7 +364,7 @@ public class History extends MainActivity {
         }
 
         public void reload() {
-            informationHistoryList = measurementManager.getRecords(false);
+            informationHistoryList = measurementManager.getRecords();
             notifyDataSetChanged();
         }
 

@@ -93,9 +93,9 @@ public class CommentActivity extends MainActivity {
             record = measurementManager.getRecord(intent.getIntExtra(COMMENT_RECORD_ID, -1));
         } else {
             // Read the last stored record
-            List<Storage.Record> recordList = measurementManager.getRecords(false);
+            List<Storage.Record> recordList = measurementManager.getRecords();
             if(!recordList.isEmpty()) {
-                record = recordList.get(recordList.size() - 1);
+                record = recordList.get(0);
             } else {
                 // Message for starting a record
                 Toast.makeText(getApplicationContext(),

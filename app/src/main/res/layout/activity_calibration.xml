@@ -29,17 +29,22 @@
                 android:layout_height="wrap_content"
                 android:gravity="center"
                 android:orientation="horizontal">
-                <CheckBox
-                    android:id="@+id/checkbox_test_gain"
+                <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/calibration_test_gain_checkbox"/>
+                    android:text="@string/calibration_mode"
+                    android:textSize="15sp" />
                 <Spinner
                     android:id="@+id/spinner_calibration_mode"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     />
                 </LinearLayout>
+                <CheckBox
+                    android:id="@+id/checkbox_test_gain"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/calibration_test_gain_checkbox"/>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -70,7 +75,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/calibration_leq_title"
-            android:textSize="15sp" />
+            android:textSize="20sp" />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -90,7 +95,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/SL_dB"
-                android:textSize="15sp"/>
+                android:textSize="20sp"/>
         </LinearLayout>
         </LinearLayout>
     <LinearLayout
@@ -103,7 +108,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/calibration_measure_title"
-            android:textSize="15sp" />
+            android:textSize="20sp" />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -123,7 +128,7 @@
                 android:paddingLeft="15dp"
                 android:paddingRight="0dp"
                 android:text="@string/SL_dB"
-                android:textSize="15sp"/>
+                android:textSize="20sp"/>
             </LinearLayout>
         </LinearLayout>
             </LinearLayout>

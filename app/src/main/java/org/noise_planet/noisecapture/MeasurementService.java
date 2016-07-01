@@ -66,7 +66,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class MeasurementService extends Service {
 
-    private enum LISTENER {GPS, NETWORK, PASSIVE};
+    private enum LISTENER {GPS, NETWORK, PASSIVE}
     private LocationManager gpsLocationManager;
     private LocationManager passiveLocationManager;
     private LocationManager networkLocationManager;

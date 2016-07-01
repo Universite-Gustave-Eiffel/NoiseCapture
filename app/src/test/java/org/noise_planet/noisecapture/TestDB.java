@@ -154,7 +154,7 @@ public class TestDB {
         leqBatch = new MeasurementManager.LeqBatch(leq,leqValues);
         measurementManager.addLeqBatch(leqBatch);
 
-        measurementManager.updateRecordFinal(recordId, (float)leqBatch.computeGlobalLeq(), 2, 2.31f);
+        measurementManager.updateRecordFinal(recordId, (float)leqBatch.computeGlobalLeq(), 2, -4.76f);
         measurementManager.updateRecordUserInput(recordId, "This is a description",
                 (short)2,new String[]{Storage.TAGS[0], Storage.TAGS[4]},
                 Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())));
@@ -179,7 +179,7 @@ public class TestDB {
             fileInputStream.close();
         }
         assertNotNull(meta);
-        assertEquals(2.31f, Float.valueOf(
+        assertEquals(-4.76f, Float.valueOf(
                 meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
         assertEquals((float)leqBatch.computeGlobalLeq(),
                 Float.valueOf(meta.getProperty(Storage.Record.COLUMN_LEQ_MEAN)), 0.01f);

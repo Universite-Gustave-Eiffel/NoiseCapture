@@ -59,7 +59,10 @@ public class MeasurementManager {
         // Connect to local database
     }
 
-    public List<Storage.Record> getRecords(boolean loadThumbnail) {
+    /**
+     * @return Record list, by time descending order. (most recent first)
+     */
+    public List<Storage.Record> getRecords() {
         List<Storage.Record> records = new ArrayList<>();
         SQLiteDatabase database = storage.getReadableDatabase();
         try {

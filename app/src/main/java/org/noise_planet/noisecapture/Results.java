@@ -56,10 +56,13 @@ import com.github.mikephil.charting.components.Legend.LegendPosition;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
+import com.github.mikephil.charting.formatter.DefaultValueFormatter;
+import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.formatter.LargeValueFormatter;
 import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
+import com.github.mikephil.charting.utils.ViewPortHandler;
 
 import org.noise_planet.noisecapture.util.CustomPercentFormatter;
 import org.orbisgis.sos.LeqStats;
@@ -71,10 +74,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class Results extends MainActivity {
@@ -108,9 +113,9 @@ public class Results extends MainActivity {
             record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1));
         } else {
             // Read the last stored record
-            List<Storage.Record> recordList = measurementManager.getRecords(false);
+            List<Storage.Record> recordList = measurementManager.getRecords();
             if(!recordList.isEmpty()) {
-                record = recordList.get(recordList.size() - 1);
+                record = recordList.get(0);
             } else {
                 // Message for starting a record
                 Toast.makeText(getApplicationContext(),
@@ -323,7 +328,10 @@ public class Results extends MainActivity {
         sChart.setDescription("");
         sChart.setPinchZoom(false);
         sChart.setDrawGridBackground(false);
-        sChart.setMaxVisibleValueCount(0);
+        sChart.setHighlightPerTapEnabled(true);
+        sChart.setHighlightPerDragEnabled(false);
+        sChart.setDrawHighlightArrow(true);
+        sChart.setDrawValueAboveBar(true);
         // XAxis parameters: hide all
         XAxis xls = sChart.getXAxis();
         xls.setPosition(XAxisPosition.BOTTOM);
@@ -361,9 +369,8 @@ public class Results extends MainActivity {
         }
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
-        //set1.setBarSpacePercent(35f);
-        //set1.setColors(new int[] {Color.rgb(0, 153, 204), Color.rgb(0, 153, 204), Color.rgb(0, 153, 204),
-        //        Color.rgb(51, 181, 229), Color.rgb(51, 181, 229), Color.rgb(51, 181, 229)});
+        set1.setValueTextColor(Color.WHITE);
+
         set1.setColors(
                 new int[]{Color.rgb(0, 128, 255), Color.rgb(0, 128, 255), Color.rgb(0, 128, 255),
                         Color.rgb(102, 178, 255), Color.rgb(102, 178, 255),
@@ -374,7 +381,7 @@ public class Results extends MainActivity {
 
         BarData data = new BarData(xVals, dataSets);
         data.setValueTextSize(10f);
-
+        data.setValueFormatter(new FreqValueFormater(sChart));
         sChart.setData(data);
         sChart.invalidate();
     }
@@ -392,7 +399,6 @@ public class Results extends MainActivity {
         rneChart.setDrawSliceText(false);
         rneChart.setCenterText("RNE");
         rneChart.setCenterTextColor(Color.WHITE);
-        //return true;
     }
 
 
@@ -482,4 +488,26 @@ public class Results extends MainActivity {
     }
 
 
+    private static final class FreqValueFormater implements ValueFormatter {
+        private BarChart sChart;
+
+        public FreqValueFormater(BarChart sChart) {
+            this.sChart = sChart;
+        }
+
+        @Override
+        public String getFormattedValue(float value, Entry entry, int dataSetIndex, ViewPortHandler viewPortHandler) {
+            if(!sChart.valuesToHighlight()) {
+                return "";
+            }
+            Highlight[] highlights = sChart.getHighlighted();
+            for (final Highlight highlight : highlights) {
+                int xIndex = highlight.getXIndex();
+                if (xIndex == entry.getXIndex()) {
+                    return String.format(Locale.getDefault(), "%.1f dB(A)", value);
+                }
+            }
+            return "";
+        }
+    }
 }

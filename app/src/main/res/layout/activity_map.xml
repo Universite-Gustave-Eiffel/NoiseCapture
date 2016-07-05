@@ -20,7 +20,6 @@
             android:layout_width="101dp"
             android:layout_height="match_parent"
             android:text="@string/title_choice_data_map"
-            android:id="@+id/textView_User_Choice"
             android:gravity="left|fill_vertical"
             android:textColor="#0099CC"
             android:textSize="15sp"

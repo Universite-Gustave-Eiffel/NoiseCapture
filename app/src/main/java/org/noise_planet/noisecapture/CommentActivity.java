@@ -325,6 +325,13 @@ public class CommentActivity extends MainActivity {
         }
     }
 
+    @Override
+    public void startActivity(Intent intent) {
+        // Save content
+        saveChanges();
+        super.startActivity(intent);
+    }
+
     private static final class OnGoToResultPage implements View.OnClickListener {
         private CommentActivity activity;
 

@@ -28,18 +28,14 @@
 package org.noise_planet.noisecapture;
 
 import android.app.Activity;
-import android.content.Context;
 import android.util.Base64;
 import android.util.Base64OutputStream;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.regex.Matcher;
@@ -52,6 +48,7 @@ import javax.net.ssl.HttpsURLConnection;
  */
 public class MeasurementUploadWPS {
     Activity activity;
+    public static final String BASE_URL = "http://onomap-gs.noise-planet.org";
 
     public MeasurementUploadWPS(Activity activity) {
         this.activity = activity;
@@ -68,7 +65,7 @@ public class MeasurementUploadWPS {
         //}
 
         URL url;
-        url = new URL("http://onomap-gs.noise-planet.org/geoserver/wps");
+        url = new URL(BASE_URL + "/geoserver/wps");
 
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestProperty("Content-Type", "text/xml");

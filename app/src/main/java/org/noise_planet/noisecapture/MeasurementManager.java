@@ -33,16 +33,12 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
-import android.graphics.Bitmap;
 import android.net.Uri;
-import android.text.TextUtils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -81,6 +77,27 @@ public class MeasurementManager {
         return records;
     }
 
+    /**
+     * @return Record list, by time descending order. (most recent first)
+     */
+    public boolean hasNotUploadedRecords() {
+        SQLiteDatabase database = storage.getReadableDatabase();
+        try {
+            Cursor cursor = database.rawQuery("SELECT * FROM "+Storage.Record.TABLE_NAME +
+                    " WHERE " + Storage.Record.COLUMN_UPLOAD_ID + " = '' AND " +
+                    Storage.Record.COLUMN_TIME_LENGTH + " > 0", null);
+            try {
+                if (cursor.moveToNext()) {
+                    return true;
+                }
+            } finally {
+                cursor.close();
+            }
+        } finally {
+            database.close();
+        }
+        return false;
+    }
     /**
      * Delete all data associated with a record
      * @param recordId Record identifier

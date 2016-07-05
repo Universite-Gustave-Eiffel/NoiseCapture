@@ -386,7 +386,7 @@ public class MainActivity extends AppCompatActivity {
 
     protected boolean isWifiTransferOnly() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        return !sharedPref.getBoolean("settings_data_transfer_wifi_only", true);
+        return sharedPref.getBoolean("settings_data_transfer_wifi_only", true);
     }
 
     /**

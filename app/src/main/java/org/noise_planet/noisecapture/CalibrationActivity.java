@@ -41,7 +41,6 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -230,8 +229,8 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         if(calibration_step == CALIBRATION_STEP.CALIBRATION &&
                 AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName())) {
             // New leq
-            AudioProcess.DelayedStandardAudioMeasure measure =
-                    (AudioProcess.DelayedStandardAudioMeasure) event.getNewValue();
+            AudioProcess.AudioMeasureResult measure =
+                    (AudioProcess.AudioMeasureResult) event.getNewValue();
             final double leq;
             // Use global dB value or only the selected frequency band
             if(spinner.getSelectedItemPosition() == 0) {

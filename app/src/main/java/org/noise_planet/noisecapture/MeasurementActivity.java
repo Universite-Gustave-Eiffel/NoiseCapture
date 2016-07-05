@@ -563,8 +563,10 @@ public class MeasurementActivity extends MainActivity implements
         @Override
         public void propertyChange(PropertyChangeEvent event) {
             if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
+                AudioProcess.AudioMeasureResult measure =
+                        (AudioProcess.AudioMeasureResult) event.getNewValue();
                 // Realtime audio processing
-                activity.spectrogram.addTimeStep((float[]) event.getNewValue(),
+                activity.spectrogram.addTimeStep(measure.getResult().getFftResult(),
                         activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));
@@ -690,7 +692,7 @@ public class MeasurementActivity extends MainActivity implements
                     // Change the text and the textcolor in the corresponding textview
                     // for the Leqi value
                     LeqStats leqStats =
-                            activity.measurementService.getLeqStats();
+                            activity.measurementService.getFastLeqStats();
                     final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
                     formatdBA(leq, mTextView);
                     if(activity.measurementService.getLeqAdded() != 0) {

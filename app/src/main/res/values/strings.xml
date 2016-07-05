@@ -247,7 +247,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
 - bearing Movement orientation.See https://developer.android.com/reference/android/location/Location.html#getBearing()\n
 - speed Estimated device speed in m/s\n
 - leq_frequency 1s mean equivalent sound level in dB(A) for the specified frequency\n</string>
-    <string name="title_activity_comment">CommentActivity</string>
+    <string name="title_activity_comment">Description</string>
     <string name="userinfo_unpleasant">Unpleasant</string>
     <string name="userinfo_pleasant">Pleasant</string>
     <string name="userinfo_pleasantness">Pleasantness</string>

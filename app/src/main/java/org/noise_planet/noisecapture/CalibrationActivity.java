@@ -208,6 +208,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case PERMISSION_RECORD_AUDIO_AND_GPS: {
                 // If request is cancelled, the result arrays are empty.

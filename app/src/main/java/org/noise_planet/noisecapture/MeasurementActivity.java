@@ -245,6 +245,7 @@ public class MeasurementActivity extends MainActivity implements
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case PERMISSION_RECORD_AUDIO_AND_GPS: {
                 // If request is cancelled, the result arrays are empty.
@@ -259,6 +260,12 @@ public class MeasurementActivity extends MainActivity implements
                 }
             }
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        checkTransferResults();
     }
 
     private View.OnClickListener onButtonPause = new View.OnClickListener() {

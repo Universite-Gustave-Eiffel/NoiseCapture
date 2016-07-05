@@ -6,5 +6,4 @@
 
     <!-- ListView dimension !-->
     <dimen name="list_view_layout_width">190dp</dimen>
-    <dimen name="list_view_layout_height">300dp</dimen>
 </resources>

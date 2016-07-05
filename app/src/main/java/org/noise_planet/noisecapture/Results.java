@@ -29,11 +29,9 @@ package org.noise_planet.noisecapture;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.content.FileProvider;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
@@ -46,21 +44,19 @@ import android.widget.Toast;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.Legend.LegendPosition;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.XAxis.XAxisPosition;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
-import com.github.mikephil.charting.components.Legend.LegendPosition;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.formatter.DefaultValueFormatter;
+import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.formatter.LargeValueFormatter;
-import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.github.mikephil.charting.utils.ViewPortHandler;
 
@@ -69,12 +65,6 @@ import org.orbisgis.sos.LeqStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -101,7 +91,6 @@ public class Results extends MainActivity {
     private String[] catNE; // List of noise level category (defined as ressources)
     private List<Float> splHistogram;
     private LeqStats leqStats = new LeqStats();
-    private ProgressDialog progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -211,11 +200,16 @@ public class Results extends MainActivity {
             @Override
             public void onClick(View view) {
                 // Export
-                progress = ProgressDialog.show(Results.this,
+                final ProgressDialog progress = ProgressDialog.show(Results.this,
                         Results.this.getText(R.string.upload_progress_title),
                         Results.this.getText(R.string.upload_progress_message), true);
                 new Thread(new SendZipToServer(Results.this, Results.this.record.getId(), progress,
-                        new RefreshListener(Results.this))).start();
+                        new OnUploadedListener() {
+                            @Override
+                            public void onMeasurementUploaded() {
+                                onTransferRecord();
+                            }
+                        })).start();
             }
         });
 
@@ -225,28 +219,28 @@ public class Results extends MainActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        sChart.animateXY(1500,1500);
-        neiChart.animateXY(1500,1500);
-        rneChart.animateXY(1500,1500);
+        if(sChart != null) {
+            sChart.animateXY(1500, 1500);
+        }
+        if(neiChart != null) {
+            neiChart.animateXY(1500, 1500);
+        }
+        if(rneChart != null) {
+            rneChart.animateXY(1500, 1500);
+        }
+        // Transfer results automatically (with all checking)
+        checkTransferResults();
     }
 
-    private static final class RefreshListener implements OnUploadedListener {
-
-        private Results resultsActivity;
-
-        public RefreshListener(Results resultsActivity) {
-            this.resultsActivity = resultsActivity;
-        }
-
-        @Override
-        public void onMeasurementUploaded() {
-            // Change upload state
-            ImageButton exportComment=(ImageButton)resultsActivity.findViewById(R.id.uploadBtn);
-            // Refresh record
-            resultsActivity.record = resultsActivity.measurementManager.getRecord(resultsActivity.record.getId());
-            exportComment.setEnabled(resultsActivity.record.getUploadId().isEmpty());
-        }
+    protected void onTransferRecord() {
+        // Nothing to do
+        // Change upload state
+        ImageButton exportComment=(ImageButton)findViewById(R.id.uploadBtn);
+        // Refresh record
+        record = measurementManager.getRecord(record.getId());
+        exportComment.setEnabled(record.getUploadId().isEmpty());
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

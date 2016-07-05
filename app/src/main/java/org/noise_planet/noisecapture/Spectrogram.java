@@ -36,6 +36,8 @@ import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.View;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -132,7 +134,7 @@ public class Spectrogram extends View {
 
     public static String formatFrequency(int frequency) {
         if(frequency > 1000) {
-            return String.format(Locale.US, "%.2f kHz", frequency / 1000.);
+            return new DecimalFormat("#.## kHz").format(frequency / 1000.);
         } else {
             return String.format(Locale.US, "%d Hz", frequency);
         }

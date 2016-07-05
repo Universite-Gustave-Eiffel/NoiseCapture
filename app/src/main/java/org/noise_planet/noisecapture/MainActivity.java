@@ -28,22 +28,25 @@
 package org.noise_planet.noisecapture;
 
 
-import android.*;
 import android.Manifest;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
-import android.os.Bundle;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
@@ -58,6 +61,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -72,6 +80,8 @@ public class MainActivity extends AppCompatActivity {
     public ActionBarDrawerToggle mDrawerToggle;
 
     public static final int PERMISSION_RECORD_AUDIO_AND_GPS = 1;
+    public static final int PERMISSION_WIFI_STATE = 2;
+    public static final int PERMISSION_INTERNET = 3;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,6 +124,31 @@ public class MainActivity extends AppCompatActivity {
                             android.Manifest.permission.ACCESS_FINE_LOCATION,
                             Manifest.permission.ACCESS_COARSE_LOCATION},
                     PERMISSION_RECORD_AUDIO_AND_GPS);
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * If necessary request user to acquire permisions for critical ressources (gps and microphone)
+     * @return True if service can be bind immediately. Otherwise the bind should be done using the
+     * @see #onRequestPermissionsResult
+     */
+    protected boolean checkAndAskWifiStatePermission() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_WIFI_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.ACCESS_WIFI_STATE)) {
+                // After the user
+                // sees the explanation, try again to request the permission.
+                Toast.makeText(this,
+                        R.string.permission_explain_access_wifi_state, Toast.LENGTH_LONG).show();
+            }
+            // Request the permission.
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.ACCESS_WIFI_STATE},
+                    PERMISSION_WIFI_STATE);
             return false;
         }
         return true;
@@ -327,7 +362,7 @@ public class MainActivity extends AppCompatActivity {
         // Handle presses on the action bar items
         switch (item.getItemId()) {
             case R.id.action_settings:
-                Intent is = new Intent(getApplicationContext(),Settings.class);
+                Intent is = new Intent(getApplicationContext(),SettingsActivity.class);
                 startActivity(is);
             return true;
             /*
@@ -344,26 +379,161 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    protected boolean IsManualTransferOnly() {
+    protected boolean isManualTransferOnly() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         return !sharedPref.getBoolean("settings_data_transfer", true);
     }
 
-
-    protected boolean IsWifiTransferOnly() {
+    protected boolean isWifiTransferOnly() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         return !sharedPref.getBoolean("settings_data_transfer_wifi_only", true);
     }
 
+    /**
+     * Check the non-uploaded results and the connection states
+     * Upload results if necessary
+     */
+    protected void checkTransferResults() {
+        if (!isManualTransferOnly()) {
+            MeasurementManager measurementManager = new MeasurementManager(this);
+            if (!measurementManager.hasNotUploadedRecords()) {
+                return;
+            }
+            if (isWifiTransferOnly()) {
+                if (checkAndAskWifiStatePermission()) {
+                    if (!checkWifiState()) {
+                        return;
+                    }
+                } else {
+                    // Transfer will begin when user validate check wifi rights
+                    return;
+                }
+            }
+            new Thread(new DoSendZipToServer(this)).start();
+        }
+    }
+
+
+    /**
+     * Ping largest internet dns access to check if internet is available
+     * @return True if Internet is available
+     */
+    public boolean isOnline() {
+        try {
+            URL url = new URL(MeasurementUploadWPS.BASE_URL);
+            HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
+            int code = urlConnection.getResponseCode();
+            return code == 200 || code == 301 || code == 302;
+        } catch (IOException e) {
+            MAINLOGGER.error(e.getLocalizedMessage(), e);
+        }
+        return false;
+    }
+
+    /**
+     * Transfer records without checking user preferences
+     */
+    private void doTransferRecords() {
+        if(!isOnline()) {
+            MAINLOGGER.info("Not online, skip send of record");
+            return;
+        }
+        MeasurementManager measurementManager = new MeasurementManager(this);
+        List<Storage.Record> records = measurementManager.getRecords();
+        final List<Integer> recordsToTransfer = new ArrayList<>();
+        for(Storage.Record record : records) {
+            if(record.getUploadId().isEmpty() && record.getTimeLength() > 0) {
+                recordsToTransfer.add(record.getId());
+            }
+        }
+        if(!recordsToTransfer.isEmpty()) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // Export
+                    final ProgressDialog progress = ProgressDialog.show(MainActivity.this,
+                            MainActivity.this.getText(R.string.upload_progress_title),
+                            MainActivity.this.getText(R.string.upload_progress_message), true);
+                    new Thread(new SendZipToServer(MainActivity.this, recordsToTransfer, progress,
+                            new OnUploadedListener() {
+                                @Override
+                                public void onMeasurementUploaded() {
+                                    onTransferRecord();
+                                }
+                            })).start();
+                }
+            });
+        }
+    }
+
+    protected void onTransferRecord() {
+        // Nothing to do
+    }
+
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case PERMISSION_WIFI_STATE: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0
+                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    new Thread(new DoSendZipToServer(this)).start();
+                } else {
+                    // permission denied
+                    // Ask again
+                    checkAndAskPermissions();
+                }
+            }
+        }
+    }
+
+    private boolean checkWifiState() {
+
+        // Check connection state
+        WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        if (wifiMgr.isWifiEnabled()) { // WiFi adapter is ON
+            WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
+            if (wifiInfo.getNetworkId() == -1) {
+                return false; // Not connected to an access-Point
+            }
+            // Connected to an Access Point
+            return true;
+        } else {
+            return false; // WiFi adapter is OFF
+        }
+    }
+
+    public static final class DoSendZipToServer implements Runnable {
+        MainActivity mainActivity;
+
+        public DoSendZipToServer(MainActivity mainActivity) {
+            this.mainActivity = mainActivity;
+        }
+
+        @Override
+        public void run() {
+            mainActivity.doTransferRecords();
+        }
+    }
+
     public static final class SendZipToServer implements Runnable {
         private Activity activity;
-        private int recordId;
+        private List<Integer> recordsId = new ArrayList<>();
         private ProgressDialog progress;
         private final OnUploadedListener listener;
 
         public SendZipToServer(Activity activity, int recordId, ProgressDialog progress, OnUploadedListener listener) {
             this.activity = activity;
-            this.recordId = recordId;
+            this.recordsId.add(recordId);
+            this.progress = progress;
+            this.listener = listener;
+        }
+
+        public SendZipToServer(Activity activity, Collection<Integer> records, ProgressDialog progress, OnUploadedListener listener) {
+            this.activity = activity;
+            this.recordsId.addAll(records);
             this.progress = progress;
             this.listener = listener;
         }
@@ -372,7 +542,9 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             MeasurementUploadWPS measurementUploadWPS = new MeasurementUploadWPS(activity);
             try {
-                measurementUploadWPS.uploadRecord(recordId);
+                for(Integer recordId : recordsId) {
+                    measurementUploadWPS.uploadRecord(recordId);
+                }
                 if(listener != null) {
                     activity.runOnUiThread(new Runnable() {
                         @Override

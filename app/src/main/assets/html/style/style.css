@@ -1,7 +1,15 @@
+a {
+  text-decoration: underline;
+  font-weight: bold;
+  color: rgb(158,158,158);
+}
 body {
 font-family: verdana;
-color: rgb(51,181,229);
+color: rgb(158,158,158);
 }
 h1 {
+font-family: verdana;
+color: rgb(0,153,204);}
+h2 {
 font-family: verdana;
 color: rgb(0,153,204);}

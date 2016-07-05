@@ -3,6 +3,7 @@
     <meta content="text/html; charset=windows-1252" http-equiv="content-type">
     <basefont size="3">
     <link rel="stylesheet" href="style/style.css">
+    <script async="" defer="defer" src="https://buttons.github.io/buttons.js"></script>
     <title>About</title>
   </head>
   <body> <img src="images/logo_NoiseCapture.png" alt="NoiseCapture App" style="width:100px">

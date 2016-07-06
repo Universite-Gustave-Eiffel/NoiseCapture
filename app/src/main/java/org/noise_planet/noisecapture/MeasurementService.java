@@ -380,6 +380,9 @@ public class MeasurementService extends Service {
             }
             leqStats = newLeqStats;
         }
+        if(newState && recordId > -1) {
+            leqStatsFast = new LeqStats();
+        }
     }
 
     /**
@@ -538,7 +541,7 @@ public class MeasurementService extends Service {
                     ())) {
                 AudioProcess.AudioMeasureResult measure =
                         (AudioProcess.AudioMeasureResult) event.getNewValue();
-                measurementService.leqStatsFast.addLeq(measure.getGlobaldBaValue());
+                measurementService.leqStatsFast.addLeq(measure.getSignalLeq());
             } else if (AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
                 if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
                     if(measurementService.recordId > -1) {

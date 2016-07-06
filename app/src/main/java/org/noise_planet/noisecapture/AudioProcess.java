@@ -276,7 +276,6 @@ public class AudioProcess implements Runnable {
         private final AudioProcess audioProcess;
         private AtomicBoolean processing = new AtomicBoolean(false);
         private FFTSignalProcessing signalProcessing;
-        private float[] fftResultLvl = new float[0];
         private double leq = 0;
 
         // 0.066 mean 15 fps max
@@ -329,7 +328,6 @@ public class AudioProcess implements Runnable {
                     FFTSignalProcessing.ProcessingResult result =
                             signalProcessing.processSample(audioProcess.hanningWindowFast,
                                     audioProcess.weightingA, true);
-                    fftResultLvl = result.getFftResult();
                     thirdOctaveSplLevels = result.getdBaLevels();
                     // Compute leq
                     leq = signalProcessing.computeGlobalLeq();
@@ -339,7 +337,7 @@ public class AudioProcess implements Runnable {
                                 (double) audioProcess.getRate()) * 1000);
                     audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
                             null,
-                            new AudioMeasureResult(result,  beginRecordTime));
+                            new AudioMeasureResult(result,  beginRecordTime, leq));
             }
         }
 
@@ -450,7 +448,8 @@ public class AudioProcess implements Runnable {
                                             (double) audioProcess.getRate()) * 1000);
                             audioProcess.listeners.firePropertyChange(
                                     AudioProcess.PROP_DELAYED_STANDART_PROCESSING, null,
-                                    new AudioMeasureResult(result,  beginRecordTime));
+                                    new AudioMeasureResult(result,  beginRecordTime,
+                                            fftSignalProcessing.computeGlobalLeq()));
                             lastProcessedSamples = secondCursor;
                             // Add not processed samples for the next batch
                             if(remainingSamplesToPostPone > 0) {
@@ -477,14 +476,23 @@ public class AudioProcess implements Runnable {
     public static final class AudioMeasureResult {
         private final FFTSignalProcessing.ProcessingResult result;
         private final long beginRecordTime;
+        private double signalLeq;
 
-        public AudioMeasureResult(FFTSignalProcessing.ProcessingResult result, long beginRecordTime) {
+        public AudioMeasureResult(FFTSignalProcessing.ProcessingResult result, long beginRecordTime, double signalLeq) {
             this.result = result;
             this.beginRecordTime = beginRecordTime;
+            this.signalLeq = signalLeq;
         }
 
         public FFTSignalProcessing.ProcessingResult getResult() {
             return result;
+        }
+
+        /**
+         * @return Leq computed using signal; not recomposed third-octave bands
+         */
+        public double getSignalLeq() {
+            return signalLeq;
         }
 
         /**

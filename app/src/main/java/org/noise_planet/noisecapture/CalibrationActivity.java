@@ -234,7 +234,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             final double leq;
             // Use global dB value or only the selected frequency band
             if(spinner.getSelectedItemPosition() == 0) {
-                leq = measure.getGlobaldBaValue();
+                leq = measure.getSignalLeq();
             } else {
                 leq = measure.getLeqs()[spinner.getSelectedItemPosition() - 1];
             }

@@ -85,6 +85,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     private enum CALIBRATION_STEP {IDLE, WARMUP, CALIBRATION, END}
     private int splLoop = 0;
     private double splBackroundNoise = 0;
+    private static final int DB_STEP = 6;
     private double whiteNoisedB = 0;
     private ProgressBar progressBar_wait_calibration_recording;
     private Button startButton;
@@ -231,7 +232,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     }
 
     private void playNewTrack() {
-        double rms = dbToRms(99 - (splLoop++) * 3);
+        double rms = dbToRms(99 - (splLoop++) * DB_STEP);
         short[] data = makeWhiteNoiseSignal(44100, rms);
         double[] fftCenterFreq = FFTSignalProcessing.computeFFTCenterFrequency(AudioProcess.REALTIME_SAMPLE_RATE_LIMITATION);
         FFTSignalProcessing fftSignalProcessing = new FFTSignalProcessing(44100, fftCenterFreq, 44100);
@@ -321,7 +322,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             XMin = Math.min(XMin, dbValue);
         }
 
-        for(int freqId = 0; freqId < dataSetCount; freqId++) {
+        for(int freqId = 0; freqId < dataSetCount; freqId += dataSetCount / 5.) {
             ArrayList<Entry> yMeasure = new ArrayList<Entry>();
             for(LinearCalibrationResult result : freqLeqStats) {
                 float dbLevel = (float)result.measure[freqId].getLeqMean();
@@ -345,8 +346,8 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
 
         scatterChart.setData(data);
         YAxis yl = scatterChart.getAxisLeft();
-        yl.setAxisMinValue(YMin);
-        yl.setAxisMaxValue(YMax);
+        yl.setAxisMinValue(YMin - 3);
+        yl.setAxisMaxValue(YMax + 3);
         scatterChart.invalidate();
     }
 

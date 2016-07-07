@@ -58,6 +58,7 @@ import com.github.mikephil.charting.data.ScatterDataSet;
 import com.github.mikephil.charting.interfaces.datasets.IScatterDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
+import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.orbisgis.sos.FFTSignalProcessing;
 import org.orbisgis.sos.LeqStats;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
@@ -287,7 +288,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             ScatterDataSet freqSet = new ScatterDataSet(yMeasure,
                     Spectrogram.formatFrequency((int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[freqId]));
             freqSet.setScatterShape(ScatterChart.ScatterShape.CIRCLE);
-            freqSet.setColor(ColorTemplate.COLORFUL_COLORS[freqId % 5]);
+            freqSet.setColor(ColorTemplate.COLORFUL_COLORS[freqId % ColorTemplate.COLORFUL_COLORS.length]);
             freqSet.setScatterShapeSize(8f);
         }
 
@@ -296,6 +297,35 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
 
         scatterChart.setData(data);
         scatterChart.invalidate();
+    }
+
+    /**
+     * @return Pearson's product-moment correlation coefficients for the measured data
+     */
+    private double[] computePearson() {
+        if(freqLeqStats.size() < 3) {
+            return null;
+        }
+        // Frequency count, one dataset by frequency
+        int dataSetCount = freqLeqStats.get(freqLeqStats.size() - 1).whiteNoiseLevel.getdBaLevels().length;
+        double[] pearsonCoefficient = new double[dataSetCount];
+
+        PearsonsCorrelation pearsonsCorrelation = new PearsonsCorrelation();
+
+
+        for(int freqId = 0; freqId < dataSetCount; freqId++) {
+            double[] xValues = new double[freqLeqStats.size()];
+            double[] yValues = new double[freqLeqStats.size()];
+            int idStep = 0;
+            for(LinearCalibrationResult result : freqLeqStats) {
+                double dbLevel = result.measure[freqId].getLeqMean();
+                double whiteNoise = result.whiteNoiseLevel.getdBaLevels()[freqId];
+                xValues[idStep] = whiteNoise;
+                yValues[idStep] = dbLevel;
+            }
+            pearsonCoefficient[freqId] = pearsonsCorrelation.correlation(xValues, yValues);
+        }
+        return pearsonCoefficient;
     }
 
     @Override

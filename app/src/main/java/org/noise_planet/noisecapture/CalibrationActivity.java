@@ -170,7 +170,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         @Override
         public boolean onTouch(View v, MotionEvent event) {
             if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                handler.postDelayed(runnable, 5000);
+                handler.postDelayed(runnable, 2000);
                 mBooleanIsPressed = true;
             }
 

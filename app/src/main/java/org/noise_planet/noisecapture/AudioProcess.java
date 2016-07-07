@@ -67,7 +67,7 @@ public class AudioProcess implements Runnable {
     private final MovingLeqProcessing fftLeqProcessing;
     private final StandartLeqProcessing standartLeqProcessing;
     private long beginRecordTime;
-    private static final int REALTIME_SAMPLE_RATE_LIMITATION = 16000;
+    public static final int REALTIME_SAMPLE_RATE_LIMITATION = 16000;
     private float gain = 1;
     private boolean hasGain = false;
     private boolean weightingA = true;

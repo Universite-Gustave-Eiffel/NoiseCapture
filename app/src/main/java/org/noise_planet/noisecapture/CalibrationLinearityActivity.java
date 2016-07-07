@@ -33,6 +33,7 @@ import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -52,6 +53,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.ScatterChart;
+import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.XAxis;
+import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.ScatterData;
 import com.github.mikephil.charting.data.ScatterDataSet;
@@ -144,6 +148,39 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             }
         });
         initCalibration();
+        initGraph();
+    }
+
+    private void initGraph() {
+
+        scatterChart.setDescription("");
+
+        scatterChart.setDrawGridBackground(false);
+
+        scatterChart.setTouchEnabled(true);
+
+        // enable scaling and dragging
+        scatterChart.setDragEnabled(false);
+        scatterChart.setScaleEnabled(false);
+
+        scatterChart.setMaxVisibleValueCount(200);
+        scatterChart.setPinchZoom(false);
+
+        Legend l = scatterChart.getLegend();
+        l.setPosition(Legend.LegendPosition.RIGHT_OF_CHART);
+        l.setTextColor(Color.WHITE);
+
+        YAxis yl = scatterChart.getAxisLeft();
+        yl.setAxisMinValue(45f);
+        yl.setAxisMaxValue(110f);
+        yl.setTextColor(Color.WHITE);
+        yl.setGridColor(Color.WHITE);
+        scatterChart.getAxisRight().setEnabled(false);
+
+        XAxis xl = scatterChart.getXAxis();
+        xl.setDrawGridLines(false);
+        xl.setTextColor(Color.WHITE);
+        xl.setGridColor(Color.WHITE);
     }
 
     private void onApply() {
@@ -196,7 +233,8 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     private void playNewTrack() {
         double rms = dbToRms(99 - (splLoop++) * 3);
         short[] data = makeWhiteNoiseSignal(44100, rms);
-        FFTSignalProcessing fftSignalProcessing = new FFTSignalProcessing(44100, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, 44100);
+        double[] fftCenterFreq = FFTSignalProcessing.computeFFTCenterFrequency(AudioProcess.REALTIME_SAMPLE_RATE_LIMITATION);
+        FFTSignalProcessing fftSignalProcessing = new FFTSignalProcessing(44100, fftCenterFreq, 44100);
         fftSignalProcessing.addSample(data);
         whiteNoisedB = fftSignalProcessing.computeGlobalLeq();
         freqLeqStats.add(new LinearCalibrationResult(fftSignalProcessing.processSample(true, false, false)));
@@ -240,7 +278,6 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
                     doBindService();
                 } else {
                     // permission denied
@@ -255,6 +292,10 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         if(freqLeqStats.isEmpty()) {
             return;
         }
+        float YMin = Float.MAX_VALUE;
+        float YMax = Float.MIN_VALUE;
+        float XMin = Float.MAX_VALUE;
+        float XMax = Float.MIN_VALUE;
 
         ArrayList<IScatterDataSet> dataSets = new ArrayList<IScatterDataSet>();
 
@@ -273,9 +314,11 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
 
         ArrayList<String> xVals = new ArrayList<String>();
         int i = 0;
-        for (int dbValue : whiteNoiseValues) {
+        for (int dbValue : whiteNoiseValuesSet) {
             whiteNoiseValues[i++] = dbValue;
             xVals.add(String.valueOf(dbValue));
+            XMax = Math.max(XMax, dbValue);
+            XMin = Math.min(XMin, dbValue);
         }
 
         for(int freqId = 0; freqId < dataSetCount; freqId++) {
@@ -283,6 +326,8 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             for(LinearCalibrationResult result : freqLeqStats) {
                 float dbLevel = (float)result.measure[freqId].getLeqMean();
                 int whiteNoise = (int)result.whiteNoiseLevel.getdBaLevels()[freqId];
+                YMax = Math.max(YMax, dbLevel);
+                YMin = Math.min(YMin, dbLevel);
                 yMeasure.add(new Entry(dbLevel, Arrays.binarySearch(whiteNoiseValues, whiteNoise)));
             }
             ScatterDataSet freqSet = new ScatterDataSet(yMeasure,
@@ -290,12 +335,18 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             freqSet.setScatterShape(ScatterChart.ScatterShape.CIRCLE);
             freqSet.setColor(ColorTemplate.COLORFUL_COLORS[freqId % ColorTemplate.COLORFUL_COLORS.length]);
             freqSet.setScatterShapeSize(8f);
+            freqSet.setValueTextColor(Color.WHITE);
+            freqSet.setDrawValues(false);
+            dataSets.add(freqSet);
         }
 
         // create a data object with the datasets
         ScatterData data = new ScatterData(xVals, dataSets);
 
         scatterChart.setData(data);
+        YAxis yl = scatterChart.getAxisLeft();
+        yl.setAxisMinValue(YMin);
+        yl.setAxisMaxValue(YMax);
         scatterChart.invalidate();
     }
 
@@ -340,7 +391,9 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             leq = measure.getSignalLeq();
             if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
                 leqStats.addLeq(leq);
-                freqLeqStats.get(freqLeqStats.size() - 1).pushMeasure(measure.getResult());
+                if(!freqLeqStats.isEmpty() && splBackroundNoise != 0) {
+                    freqLeqStats.get(freqLeqStats.size() - 1).pushMeasure(measure.getResult());
+                }
             }
             runOnUiThread(new Runnable() {
                 @Override
@@ -538,15 +591,17 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
 
         public LinearCalibrationResult(FFTSignalProcessing.ProcessingResult whiteNoiseLevel) {
             this.whiteNoiseLevel = whiteNoiseLevel;
-            this.measure = new LeqStats[whiteNoiseLevel.getdBaLevels().length];
-            for(int idFreq = 0; idFreq < this.measure.length; idFreq++) {
-                this.measure[idFreq] = new LeqStats();
-            }
 
         }
 
         public void pushMeasure(FFTSignalProcessing.ProcessingResult measure) {
             float[] measureLevels = measure.getdBaLevels();
+            if(this.measure == null) {
+                this.measure = new LeqStats[measure.getdBaLevels().length];
+                for(int idFreq = 0; idFreq < this.measure.length; idFreq++) {
+                    this.measure[idFreq] = new LeqStats();
+                }
+            }
             for(int idFreq = 0; idFreq < this.measure.length; idFreq++) {
                 this.measure[idFreq].addLeq(measureLevels[idFreq]);
             }

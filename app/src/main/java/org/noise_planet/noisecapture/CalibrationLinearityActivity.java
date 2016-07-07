@@ -45,14 +45,18 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.view.Menu;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.EditText;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.github.mikephil.charting.charts.ScatterChart;
+import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.ScatterData;
+import com.github.mikephil.charting.data.ScatterDataSet;
+import com.github.mikephil.charting.interfaces.datasets.IScatterDataSet;
+import com.github.mikephil.charting.utils.ColorTemplate;
 
 import org.orbisgis.sos.FFTSignalProcessing;
 import org.orbisgis.sos.LeqStats;
@@ -62,9 +66,14 @@ import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.text.NumberFormat;
-import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 
 public class CalibrationLinearityActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
@@ -75,6 +84,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     private ProgressBar progressBar_wait_calibration_recording;
     private Button startButton;
     private Button applyButton;
+    private ScatterChart scatterChart;
     private Button resetButton;
     private CALIBRATION_STEP calibration_step = CALIBRATION_STEP.IDLE;
     private TextView textStatus;
@@ -84,6 +94,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     private int defaultWarmupTime;
     private int defaultCalibrationTime;
     private LeqStats leqStats;
+    private List<LinearCalibrationResult> freqLeqStats = new ArrayList<>();
     private boolean mIsBound = false;
     private MeasurementService measurementService;
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationLinearityActivity.class);
@@ -116,6 +127,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         textStatus = (TextView) findViewById(R.id.textView_recording_state);
         textDeviceLevel = (TextView) findViewById(R.id.textView_value_SL_i);
         testGainCheckBox = (CheckBox) findViewById(R.id.checkbox_test_gain);
+        scatterChart = (ScatterChart) findViewById(R.id.autoCalibrationChart);
         startButton = (Button) findViewById(R.id.btn_start);
         resetButton = (Button) findViewById(R.id.btn_reset);
         startButton.setOnClickListener(new View.OnClickListener() {
@@ -147,6 +159,8 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             defaultCalibrationTime = getInteger(sharedPreferences, SETTINGS_CALIBRATION_TIME, 10);
         } else if(SETTINGS_CALIBRATION_WARMUP_TIME.equals(key)) {
             defaultWarmupTime = getInteger(sharedPreferences, SETTINGS_CALIBRATION_WARMUP_TIME, 5);
+        } else if("settings_recording_gain".equals(key) && measurementService != null) {
+            measurementService.setdBGain(getDouble(sharedPreferences, key, 0));
         }
     }
 
@@ -161,6 +175,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         splBackroundNoise = 0;
         splLoop = 0;
         calibration_step = CALIBRATION_STEP.IDLE;
+        freqLeqStats = new ArrayList<>();
     }
 
     private void onCalibrationStart() {
@@ -183,8 +198,9 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         FFTSignalProcessing fftSignalProcessing = new FFTSignalProcessing(44100, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, 44100);
         fftSignalProcessing.addSample(data);
         whiteNoisedB = fftSignalProcessing.computeGlobalLeq();
+        freqLeqStats.add(new LinearCalibrationResult(fftSignalProcessing.processSample(true, false, false)));
         LOGGER.info("Emit white noise of "+whiteNoisedB+" dB");
-        audioTrack = new AudioTrack(AudioManager.STREAM_SYSTEM, 44100, AudioFormat.CHANNEL_OUT_MONO,
+        audioTrack = new AudioTrack(AudioManager.STREAM_RING, 44100, AudioFormat.CHANNEL_OUT_MONO,
                 AudioFormat.ENCODING_PCM_16BIT,data.length * (Short.SIZE / 8), AudioTrack.MODE_STATIC);
         audioTrack.setLoopPoints(0, audioTrack.write(data, 0, data.length), -1);
         audioTrack.play();
@@ -234,6 +250,54 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         }
     }
 
+    private void updateScatterChart() {
+        if(freqLeqStats.isEmpty()) {
+            return;
+        }
+
+        ArrayList<IScatterDataSet> dataSets = new ArrayList<IScatterDataSet>();
+
+        // Frequency count, one dataset by frequency
+        int dataSetCount = freqLeqStats.get(freqLeqStats.size() - 1).whiteNoiseLevel.getdBaLevels().length;
+
+        Set<Integer> whiteNoiseValuesSet = new TreeSet<Integer>();
+        // Read all white noise values for indexing before usage
+        for(LinearCalibrationResult result : freqLeqStats) {
+            for(float dbLevel : result.whiteNoiseLevel.getdBaLevels()) {
+                whiteNoiseValuesSet.add((int)dbLevel);
+            }
+        }
+        // Convert into ordered list
+        int[] whiteNoiseValues = new int[whiteNoiseValuesSet.size()];
+
+        ArrayList<String> xVals = new ArrayList<String>();
+        int i = 0;
+        for (int dbValue : whiteNoiseValues) {
+            whiteNoiseValues[i++] = dbValue;
+            xVals.add(String.valueOf(dbValue));
+        }
+
+        for(int freqId = 0; freqId < dataSetCount; freqId++) {
+            ArrayList<Entry> yMeasure = new ArrayList<Entry>();
+            for(LinearCalibrationResult result : freqLeqStats) {
+                float dbLevel = (float)result.measure[freqId].getLeqMean();
+                int whiteNoise = (int)result.whiteNoiseLevel.getdBaLevels()[freqId];
+                yMeasure.add(new Entry(dbLevel, Arrays.binarySearch(whiteNoiseValues, whiteNoise)));
+            }
+            ScatterDataSet freqSet = new ScatterDataSet(yMeasure,
+                    Spectrogram.formatFrequency((int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[freqId]));
+            freqSet.setScatterShape(ScatterChart.ScatterShape.CIRCLE);
+            freqSet.setColor(ColorTemplate.COLORFUL_COLORS[freqId % 5]);
+            freqSet.setScatterShapeSize(8f);
+        }
+
+        // create a data object with the datasets
+        ScatterData data = new ScatterData(xVals, dataSets);
+
+        scatterChart.setData(data);
+        scatterChart.invalidate();
+    }
+
     @Override
     public void propertyChange(PropertyChangeEvent event) {
         if((calibration_step == CALIBRATION_STEP.CALIBRATION || calibration_step == CALIBRATION_STEP.WARMUP)  &&
@@ -246,6 +310,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             leq = measure.getSignalLeq();
             if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
                 leqStats.addLeq(leq);
+                freqLeqStats.get(freqLeqStats.size() - 1).pushMeasure(measure.getResult());
             }
             runOnUiThread(new Runnable() {
                 @Override
@@ -266,13 +331,9 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             measurementService = ((MeasurementService.LocalBinder)service).getService();
-            if(testGainCheckBox.isChecked()) {
-                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationLinearityActivity.this);
-                measurementService.setdBGain(
-                        getDouble(sharedPref,"settings_recording_gain", 0));
-            } else {
-                measurementService.setdBGain(0);
-            }
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationLinearityActivity.this);
+            measurementService.setdBGain(
+                    getDouble(sharedPref,"settings_recording_gain", 0));
             measurementService.addPropertyChangeListener(CalibrationLinearityActivity.this);
             if(!measurementService.isRecording()) {
                 measurementService.startRecording();
@@ -280,7 +341,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             measurementService.getAudioProcess().setDoFastLeq(false);
             measurementService.getAudioProcess().setDoOneSecondLeq(true);
             measurementService.getAudioProcess().setWeightingA(false);
-            measurementService.getAudioProcess().setHanningWindowOneSecond(false);
+            measurementService.getAudioProcess().setHanningWindowOneSecond(true);
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -338,11 +399,16 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
 
     private void onTimerEnd() {
         if(calibration_step == CALIBRATION_STEP.WARMUP) {
-            if(splBackroundNoise == 0) {
-                textStatus.setText(R.string.calibration_status_background_noise);
-            } else {
-                textStatus.setText(getString(R.string.calibration_linear_status_on, whiteNoisedB));
-            }
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if(splBackroundNoise == 0) {
+                        textStatus.setText(R.string.calibration_status_background_noise);
+                    } else {
+                        textStatus.setText(getString(R.string.calibration_linear_status_on, whiteNoisedB));
+                    }
+                }
+            });
             // Start calibration
             leqStats = new LeqStats();
             progressHandler.start(defaultCalibrationTime * 1000);
@@ -352,7 +418,14 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                 if (leqStats.getLeqMean() < splBackroundNoise + 3 ) {
                     // Almost reach the background noise, stop calibration
                     calibration_step = CALIBRATION_STEP.END;
-                    textStatus.setText(R.string.calibration_status_end);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            textDeviceLevel.setText(R.string.no_valid_dba_value);
+                            textStatus.setText(R.string.calibration_status_end);
+                            updateScatterChart();
+                        }
+                    });
                     measurementService.stopRecording();
                     // Remove measurement service
                     doUnbindService();
@@ -369,9 +442,10 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                         @Override
                         public void run() {
                             textDeviceLevel.setText(R.string.no_valid_dba_value);
+                            textStatus.setText(getString(R.string.calibration_status_waiting_for_start_timer));
+                            updateScatterChart();
                         }
                     });
-                    textStatus.setText(getString(R.string.calibration_status_waiting_for_start_timer));
                     audioTrack.stop();
                     playNewTrack();
                     progressHandler.start(defaultWarmupTime * 1000);
@@ -383,10 +457,11 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                     @Override
                     public void run() {
                         textDeviceLevel.setText(R.string.no_valid_dba_value);
+                        textStatus.setText(getString(R.string.calibration_status_waiting_for_start_timer));
+                        updateScatterChart();
                     }
                 });
                 playNewTrack();
-                textStatus.setText(getString(R.string.calibration_status_waiting_for_start_timer));
                 splBackroundNoise = leqStats.getLeqMean();
                 progressHandler.start(defaultWarmupTime * 1000);
             }
@@ -426,4 +501,25 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         }
     }
 
+
+    private static final class LinearCalibrationResult {
+        private LeqStats[] measure;
+        private FFTSignalProcessing.ProcessingResult whiteNoiseLevel;
+
+        public LinearCalibrationResult(FFTSignalProcessing.ProcessingResult whiteNoiseLevel) {
+            this.whiteNoiseLevel = whiteNoiseLevel;
+            this.measure = new LeqStats[whiteNoiseLevel.getdBaLevels().length];
+            for(int idFreq = 0; idFreq < this.measure.length; idFreq++) {
+                this.measure[idFreq] = new LeqStats();
+            }
+
+        }
+
+        public void pushMeasure(FFTSignalProcessing.ProcessingResult measure) {
+            float[] measureLevels = measure.getdBaLevels();
+            for(int idFreq = 0; idFreq < this.measure.length; idFreq++) {
+                this.measure[idFreq].addLeq(measureLevels[idFreq]);
+            }
+        }
+    }
 }

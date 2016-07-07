@@ -103,7 +103,6 @@ public class MeasurementActivity extends MainActivity implements
 
     private boolean hasMaximalMeasurementTime;
     private int maximalMeasurementTime = 0;
-    private double calibrationScale = 0;
 
     private static final String LOG_SCALE_SETTING = "settings_spectrogram_logscalemode";
     private static final String DELETE_LEQ_ON_PAUSE_SETTING = "settings_delete_leq_on_pause";
@@ -159,7 +158,6 @@ public class MeasurementActivity extends MainActivity implements
         // Depending of the settings
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
-        calibrationScale = getDouble(sharedPref, "settings_recording_gain", 0);
         Boolean CheckNbRunSettings = sharedPref.getBoolean("settings_caution", true);
 
         hasMaximalMeasurementTime = sharedPref.getBoolean(HAS_MAXIMAL_MEASURE_TIME_SETTING,

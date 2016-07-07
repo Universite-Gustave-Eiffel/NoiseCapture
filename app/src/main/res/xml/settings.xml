@@ -51,13 +51,13 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/setting_calibration_group">
         <EditTextPreference
-            android:defaultValue="5"
+            android:defaultValue="4"
             android:key="settings_calibration_warmup_time"
             android:title="@string/title_settings_calibration_warmup_time"
             android:summary="@string/title_settings_calibration_warmup_time_description"
             android:inputType="number"/>
         <EditTextPreference
-            android:defaultValue="10"
+            android:defaultValue="4"
             android:key="settings_calibration_time"
             android:title="@string/title_settings_calibration_time"
             android:summary="@string/title_settings_calibration_time_description"

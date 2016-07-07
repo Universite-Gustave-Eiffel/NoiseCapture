@@ -150,6 +150,7 @@
     <string name="title_activity_map">Map</string>
     <string name="title_activity_start">Noise Capture</string>
     <string name="title_activity_calibration_start">Calibration</string>
+    <string name="title_activity_calibration_linearity">Linearity calibration</string>
 
     <string name="start_text_title">NoiseCapture</string>
     <string name="start_text_subtitle">Measuring your sound environment</string>
@@ -200,7 +201,9 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_status_waiting_for_user_start">Waiting for calibration start..</string>
     <string name="calibration_status_waiting_for_start_timer">Calibration is about to start..</string>
     <string name="calibration_status_on">Calibration..</string>
+    <string name="calibration_linear_status_on">Calibration at %1$.0f dB</string>
     <string name="calibration_status_end">Calibration done</string>
+    <string name="calibration_status_background_noise">Measuring background noise</string>
     <string name="calibration_button_start">Start</string>
     <string name="calibration_leq_title">Measured Leq:</string>
     <string name="calibration_measure_title">Reference value:</string>

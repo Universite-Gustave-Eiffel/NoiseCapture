@@ -91,6 +91,10 @@
             android:name=".CalibrationActivity"
             android:windowSoftInputMode="stateHidden"
             android:label="@string/title_activity_calibration_start"/>
+        <activity
+            android:name=".CalibrationLinearityActivity"
+            android:windowSoftInputMode="stateHidden"
+            android:label="@string/title_activity_calibration_start"/>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

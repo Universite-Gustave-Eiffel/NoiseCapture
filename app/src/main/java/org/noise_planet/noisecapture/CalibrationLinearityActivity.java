@@ -473,10 +473,9 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         ArrayList<BarEntry> yMeasure = new ArrayList<BarEntry>();
         int idfreq = 0;
         for (double value : pearsons) {
-            float percValue = (float)value * 100;
-            YMax = Math.max(YMax, percValue);
-            YMin = Math.min(YMin, percValue);
-            yMeasure.add(new BarEntry(percValue, idfreq++));
+            YMax = Math.max(YMax, (float)value);
+            YMin = Math.min(YMin, (float)value);
+            yMeasure.add(new BarEntry((float)value, idfreq++));
         }
         BarDataSet freqSet = new BarDataSet(yMeasure, "Pearson's correlation");
         freqSet.setColor(ColorTemplate.COLORFUL_COLORS[0]);
@@ -575,10 +574,13 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         int dataSetCount = freqLeqStats.get(freqLeqStats.size() - 1).whiteNoiseLevel.getdBaLevels().length;
 
         Set<Integer> whiteNoiseValuesSet = new TreeSet<Integer>();
+
+        float referenceDbLevel = freqLeqStats.get(0).whiteNoiseLevel.getGlobaldBaValue();
+
         // Read all white noise values for indexing before usage
         for(LinearCalibrationResult result : freqLeqStats) {
             for(float dbLevel : result.whiteNoiseLevel.getdBaLevels()) {
-                whiteNoiseValuesSet.add((int)dbLevel);
+                whiteNoiseValuesSet.add((int)(dbLevel - referenceDbLevel));
             }
         }
         // Convert into ordered list
@@ -600,7 +602,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                 ArrayList<Entry> yMeasure = new ArrayList<Entry>();
                 for (LinearCalibrationResult result : freqLeqStats) {
                     float dbLevel = (float) result.measure[freqId].getLeqMean();
-                    int whiteNoise = (int) result.whiteNoiseLevel.getdBaLevels()[freqId];
+                    int whiteNoise = (int) (result.whiteNoiseLevel.getdBaLevels()[freqId] - referenceDbLevel);
                     YMax = Math.max(YMax, dbLevel);
                     YMin = Math.min(YMin, dbLevel);
                     yMeasure.add(new Entry(dbLevel, Arrays.binarySearch(whiteNoiseValues, whiteNoise)));
@@ -754,8 +756,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         super.onPause();
         if(audioTrack != null) {
             if(audioTrack.getState() == AudioTrack.PLAYSTATE_PLAYING) {
-                audioTrack.pause();
-                audioTrack.flush();
+                audioTrack.stop();
             }
         }
     }
@@ -786,7 +787,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         } else if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
             if(splBackroundNoise != 0) {
                 // TODO remove || splLoop > x
-                if (leqStats.getLeqMean() < splBackroundNoise + 3 || splLoop > 8 ) {
+                if (leqStats.getLeqMean() < splBackroundNoise + 3) {
                     // Almost reach the background noise, stop calibration
                     calibration_step = CALIBRATION_STEP.END;
                     runOnUiThread(new Runnable() {

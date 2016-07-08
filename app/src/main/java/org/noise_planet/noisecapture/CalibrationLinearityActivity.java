@@ -44,6 +44,11 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
@@ -52,13 +57,22 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.charts.ScatterChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.YAxis;
+import com.github.mikephil.charting.data.BarData;
+import com.github.mikephil.charting.data.BarDataSet;
+import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.data.ScatterData;
 import com.github.mikephil.charting.data.ScatterDataSet;
+import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.interfaces.datasets.IScatterDataSet;
 import com.github.mikephil.charting.utils.ColorTemplate;
 
@@ -77,20 +91,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
-public class CalibrationLinearityActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
+public class CalibrationLinearityActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener,ViewPager.OnPageChangeListener {
     private enum CALIBRATION_STEP {IDLE, WARMUP, CALIBRATION, END}
     private int splLoop = 0;
     private double splBackroundNoise = 0;
-    private static final int DB_STEP = 6;
+    private static final int DB_STEP = 3;
     private double whiteNoisedB = 0;
     private ProgressBar progressBar_wait_calibration_recording;
     private Button startButton;
     private Button applyButton;
-    private ScatterChart scatterChart;
     private Button resetButton;
     private CALIBRATION_STEP calibration_step = CALIBRATION_STEP.IDLE;
     private TextView textStatus;
@@ -102,10 +115,21 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     private LeqStats leqStats;
     private List<LinearCalibrationResult> freqLeqStats = new ArrayList<>();
     private boolean mIsBound = false;
+    private TabLayout tabLayout;
     private MeasurementService measurementService;
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationLinearityActivity.class);
     private static final int COUNTDOWN_STEP_MILLISECOND = 125;
     private ProgressHandler progressHandler = new ProgressHandler(this);
+    private Set<Integer> selectedFrequencies = new HashSet<>(Arrays.asList(1000));
+    private ViewPager viewPager;
+    private static final int PAGE_SCATTER_CHART = 0;
+    private static final int PAGE_LINE_CHART = 1;
+    private static final int PAGE_BAR_CHART = 2;
+
+
+    private AtomicBoolean scatterInit = new AtomicBoolean(false);
+    private AtomicBoolean lineInit = new AtomicBoolean(false);
+    private AtomicBoolean barInit = new AtomicBoolean(false);
 
     private static final String SETTINGS_CALIBRATION_WARMUP_TIME = "settings_calibration_warmup_time";
     private static final String SETTINGS_CALIBRATION_TIME = "settings_calibration_time";
@@ -133,8 +157,11 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         textStatus = (TextView) findViewById(R.id.textView_recording_state);
         textDeviceLevel = (TextView) findViewById(R.id.textView_value_SL_i);
         testGainCheckBox = (CheckBox) findViewById(R.id.checkbox_test_gain);
-        scatterChart = (ScatterChart) findViewById(R.id.autoCalibrationChart);
         startButton = (Button) findViewById(R.id.btn_start);
+        viewPager = (ViewPager) findViewById(R.id.viewpager);
+        setupViewPager(viewPager);
+        tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
         resetButton = (Button) findViewById(R.id.btn_reset);
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -148,12 +175,131 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                 onReset();
             }
         });
+        viewPager.addOnPageChangeListener(this);
         initCalibration();
-        initGraph();
     }
 
-    private void initGraph() {
 
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+    }
+
+    @Override
+    public void onPageSelected(int position) {
+
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+        if(state == ViewPager.SCROLL_STATE_SETTLING) {
+            switch (viewPager.getCurrentItem()) {
+                case PAGE_SCATTER_CHART:
+                    if(!scatterInit.getAndSet(true)) {
+                        initScatter();
+                    }
+                    updateScatterChart();
+                    break;
+                case PAGE_LINE_CHART:
+                    if(!barInit.getAndSet(true)) {
+                        initLine();
+                    }
+                    updateLineChart();
+                    break;
+                case PAGE_BAR_CHART:
+                    if(!lineInit.getAndSet(true)) {
+                        initBar();
+                    }
+                    updateBarChart();
+                    break;
+            }
+        }
+    }
+
+    private ScatterChart getScatterChart() {
+        View view = ((ViewPagerAdapter)viewPager.getAdapter()).getItem(PAGE_SCATTER_CHART).getView();
+        if(view != null) {
+            return (ScatterChart) view.findViewById(R.id.autoCalibrationScatterChart);
+        } else {
+            return null;
+        }
+    }
+
+
+    private BarChart getBarChart() {
+        View view = ((ViewPagerAdapter)viewPager.getAdapter()).getItem(PAGE_BAR_CHART).getView();
+        if(view != null) {
+            return (BarChart) view.findViewById(R.id.autoCalibrationBarChart);
+        } else {
+            return null;
+        }
+    }
+
+    private LineChart getLineChart() {
+        View view = ((ViewPagerAdapter)viewPager.getAdapter()).getItem(PAGE_LINE_CHART).getView();
+        if(view != null) {
+            return (LineChart) view.findViewById(R.id.autoCalibrationLineChart);
+        } else {
+            return null;
+        }
+    }
+
+    private void setupViewPager(ViewPager viewPager) {
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        adapter.addFragment(new CalibrationScatterFragment(), "Scatter");
+        adapter.addFragment(new CalibrationLineFragment(), "Line");
+        adapter.addFragment(new CalibrationBarFragment(), "Pearson");
+        viewPager.setAdapter(adapter);
+    }
+
+    private void initBar() {
+        BarChart barChart = getBarChart();
+        if(barChart == null) {
+            barInit.set(false);
+            return;
+        }
+        barChart.setDescription("");
+
+        barChart.setDrawGridBackground(false);
+
+        barChart.setTouchEnabled(true);
+
+        // enable scaling and dragging
+        barChart.setDragEnabled(false);
+        barChart.setScaleEnabled(false);
+
+        barChart.setMaxVisibleValueCount(200);
+        barChart.setPinchZoom(false);
+
+        Legend l = barChart.getLegend();
+        l.setPosition(Legend.LegendPosition.ABOVE_CHART_LEFT);
+        l.setTextColor(Color.WHITE);
+
+        YAxis yl = barChart.getAxisLeft();
+        yl.setAxisMinValue(95);
+        yl.setAxisMaxValue(105);
+        yl.setTextColor(Color.WHITE);
+        yl.setGridColor(Color.WHITE);
+        barChart.getAxisRight().setEnabled(false);
+
+        XAxis xl = barChart.getXAxis();
+        xl.setDrawGridLines(false);
+        xl.setTextColor(Color.WHITE);
+        xl.setGridColor(Color.WHITE);
+        xl.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xl.setDrawAxisLine(true);
+        xl.setLabelRotationAngle(-90);
+        xl.setDrawLabels(true);
+        xl.setLabelsToSkip(0);
+    }
+
+
+    private void initScatter() {
+        ScatterChart scatterChart = getScatterChart();
+        if(scatterChart == null) {
+            scatterInit.set(false);
+            return;
+        }
         scatterChart.setDescription("");
 
         scatterChart.setDrawGridBackground(false);
@@ -161,11 +307,9 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         scatterChart.setTouchEnabled(true);
 
         // enable scaling and dragging
-        scatterChart.setDragEnabled(false);
-        scatterChart.setScaleEnabled(false);
+        scatterChart.setTouchEnabled(false);
 
         scatterChart.setMaxVisibleValueCount(200);
-        scatterChart.setPinchZoom(false);
 
         Legend l = scatterChart.getLegend();
         l.setPosition(Legend.LegendPosition.RIGHT_OF_CHART);
@@ -182,6 +326,47 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         xl.setDrawGridLines(false);
         xl.setTextColor(Color.WHITE);
         xl.setGridColor(Color.WHITE);
+    }
+
+    private void initLine() {
+        LineChart lineChart = getLineChart();
+        if(lineChart == null) {
+            lineInit.set(false);
+            return;
+        }
+        lineChart.setDescription("");
+
+        lineChart.setDrawGridBackground(false);
+
+        lineChart.setTouchEnabled(true);
+
+        // enable scaling and dragging
+        lineChart.setDragEnabled(false);
+        lineChart.setScaleEnabled(false);
+
+        lineChart.setMaxVisibleValueCount(200);
+        lineChart.setPinchZoom(false);
+
+        Legend l = lineChart.getLegend();
+        l.setPosition(Legend.LegendPosition.RIGHT_OF_CHART);
+        l.setTextColor(Color.WHITE);
+
+        YAxis yl = lineChart.getAxisLeft();
+        yl.setAxisMinValue(45f);
+        yl.setAxisMaxValue(110f);
+        yl.setTextColor(Color.WHITE);
+        yl.setGridColor(Color.WHITE);
+        lineChart.getAxisRight().setEnabled(false);
+
+        XAxis xl = lineChart.getXAxis();
+        xl.setDrawGridLines(false);
+        xl.setTextColor(Color.WHITE);
+        xl.setGridColor(Color.WHITE);
+        xl.setPosition(XAxis.XAxisPosition.BOTTOM);
+        xl.setDrawAxisLine(true);
+        xl.setLabelRotationAngle(-90);
+        xl.setDrawLabels(true);
+        xl.setLabelsToSkip(0);
     }
 
     private void onApply() {
@@ -240,8 +425,15 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         whiteNoisedB = fftSignalProcessing.computeGlobalLeq();
         freqLeqStats.add(new LinearCalibrationResult(fftSignalProcessing.processSample(true, false, false)));
         LOGGER.info("Emit white noise of "+whiteNoisedB+" dB");
-        audioTrack = new AudioTrack(AudioManager.STREAM_RING, 44100, AudioFormat.CHANNEL_OUT_MONO,
-                AudioFormat.ENCODING_PCM_16BIT,data.length * (Short.SIZE / 8), AudioTrack.MODE_STATIC);
+        if(audioTrack == null) {
+            audioTrack = new AudioTrack(AudioManager.STREAM_RING, 44100, AudioFormat.CHANNEL_OUT_MONO,
+                    AudioFormat.ENCODING_PCM_16BIT, data.length * (Short.SIZE / 8), AudioTrack.MODE_STATIC);
+        } else {
+            if(audioTrack.getState() == AudioTrack.PLAYSTATE_PLAYING) {
+                audioTrack.pause();
+                audioTrack.flush();
+            }
+        }
         audioTrack.setLoopPoints(0, audioTrack.write(data, 0, data.length), -1);
         audioTrack.play();
     }
@@ -289,7 +481,111 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         }
     }
 
+    private void updateBarChart() {
+        BarChart barChart = getBarChart();
+        if(barChart == null) {
+            return;
+        }
+        if(freqLeqStats.size() <= 2) {
+            return;
+        }
+        double[] pearsons = computePearson();
+        if(pearsons == null) {
+            return;
+        }
+
+        float YMin = Float.MAX_VALUE;
+        float YMax = Float.MIN_VALUE;
+
+        ArrayList<IBarDataSet> dataSets = new ArrayList<IBarDataSet>();
+
+        // Read all white noise values for indexing before usage
+        ArrayList<BarEntry> yMeasure = new ArrayList<BarEntry>();
+        int idfreq = 0;
+        for (double value : pearsons) {
+            float percValue = (float)value * 100;
+            YMax = Math.max(YMax, percValue);
+            YMin = Math.min(YMin, percValue);
+            yMeasure.add(new BarEntry(percValue, idfreq++));
+        }
+        BarDataSet freqSet = new BarDataSet(yMeasure, "Pearson's correlation");
+        freqSet.setColor(ColorTemplate.COLORFUL_COLORS[0]);
+        freqSet.setValueTextColor(Color.WHITE);
+        freqSet.setDrawValues(true);
+        dataSets.add(freqSet);
+
+
+        ArrayList<String> xVals = new ArrayList<String>();
+        double[] freqs = FFTSignalProcessing.computeFFTCenterFrequency(AudioProcess.REALTIME_SAMPLE_RATE_LIMITATION);
+        for (double freqValue : freqs) {
+            xVals.add(Spectrogram.formatFrequency((int)freqValue));
+        }
+
+        // create a data object with the datasets
+        BarData data = new BarData(xVals, dataSets);
+        barChart.setData(data);
+        YAxis yl = barChart.getAxisLeft();
+        yl.setAxisMinValue(YMin - 2);
+        yl.setAxisMaxValue(YMax + 2);
+        barChart.invalidate();
+    }
+
+    private void updateLineChart() {
+        LineChart lineChart = getLineChart();
+        if(lineChart == null) {
+            return;
+        }
+        if(freqLeqStats.isEmpty()) {
+            return;
+        }
+        float YMin = Float.MAX_VALUE;
+        float YMax = Float.MIN_VALUE;
+
+        ArrayList<ILineDataSet> dataSets = new ArrayList<ILineDataSet>();
+
+        // Read all white noise values for indexing before usage
+        int idStep = 0;
+        for(LinearCalibrationResult result : freqLeqStats) {
+            ArrayList<Entry> yMeasure = new ArrayList<Entry>();
+            int idfreq = 0;
+            for (LeqStats leqStat : result.measure) {
+                float dbLevel = (float)leqStat.getLeqMean();
+                YMax = Math.max(YMax, dbLevel);
+                YMin = Math.min(YMin, dbLevel);
+                yMeasure.add(new Entry(dbLevel, idfreq++));
+            }
+            LineDataSet freqSet = new LineDataSet(yMeasure, String.format(Locale.getDefault(),"%d dB",
+                    (int)result.whiteNoiseLevel.getGlobaldBaValue()));
+            freqSet.setColor(ColorTemplate.COLORFUL_COLORS[idStep % ColorTemplate.COLORFUL_COLORS.length]);
+            freqSet.setFillColor(ColorTemplate.COLORFUL_COLORS[idStep % ColorTemplate.COLORFUL_COLORS.length]);
+            freqSet.setValueTextColor(Color.WHITE);
+            freqSet.setDrawValues(false);
+            freqSet.setMode(LineDataSet.Mode.LINEAR);
+            dataSets.add(freqSet);
+            idStep++;
+        }
+
+
+        ArrayList<String> xVals = new ArrayList<String>();
+        double[] freqs = FFTSignalProcessing.computeFFTCenterFrequency(AudioProcess.REALTIME_SAMPLE_RATE_LIMITATION);
+        for (double freqValue : freqs) {
+            xVals.add(Spectrogram.formatFrequency((int)freqValue));
+        }
+
+        // create a data object with the datasets
+        LineData data = new LineData(xVals, dataSets);
+        lineChart.setData(data);
+        YAxis yl = lineChart.getAxisLeft();
+        yl.setAxisMinValue(YMin - 3);
+        yl.setAxisMaxValue(YMax + 3);
+        lineChart.invalidate();
+    }
+
     private void updateScatterChart() {
+        ScatterChart scatterChart = getScatterChart();
+        if(scatterChart == null) {
+            return;
+        }
         if(freqLeqStats.isEmpty()) {
             return;
         }
@@ -322,28 +618,31 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             XMin = Math.min(XMin, dbValue);
         }
 
-        for(int freqId = 0; freqId < dataSetCount; freqId += dataSetCount / 5.) {
-            ArrayList<Entry> yMeasure = new ArrayList<Entry>();
-            for(LinearCalibrationResult result : freqLeqStats) {
-                float dbLevel = (float)result.measure[freqId].getLeqMean();
-                int whiteNoise = (int)result.whiteNoiseLevel.getdBaLevels()[freqId];
-                YMax = Math.max(YMax, dbLevel);
-                YMin = Math.min(YMin, dbLevel);
-                yMeasure.add(new Entry(dbLevel, Arrays.binarySearch(whiteNoiseValues, whiteNoise)));
+        double[] freqs = FFTSignalProcessing.computeFFTCenterFrequency(AudioProcess.REALTIME_SAMPLE_RATE_LIMITATION);
+        for(int freqId = 0; freqId < dataSetCount; freqId += 1) {
+            int freqValue = (int)freqs[freqId];
+            if(selectedFrequencies.contains(freqValue)) {
+                ArrayList<Entry> yMeasure = new ArrayList<Entry>();
+                for (LinearCalibrationResult result : freqLeqStats) {
+                    float dbLevel = (float) result.measure[freqId].getLeqMean();
+                    int whiteNoise = (int) result.whiteNoiseLevel.getdBaLevels()[freqId];
+                    YMax = Math.max(YMax, dbLevel);
+                    YMin = Math.min(YMin, dbLevel);
+                    yMeasure.add(new Entry(dbLevel, Arrays.binarySearch(whiteNoiseValues, whiteNoise)));
+                }
+                ScatterDataSet freqSet = new ScatterDataSet(yMeasure,
+                        Spectrogram.formatFrequency((int) ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[freqId]));
+                freqSet.setScatterShape(ScatterChart.ScatterShape.CIRCLE);
+                freqSet.setColor(ColorTemplate.COLORFUL_COLORS[freqId % ColorTemplate.COLORFUL_COLORS.length]);
+                freqSet.setScatterShapeSize(8f);
+                freqSet.setValueTextColor(Color.WHITE);
+                freqSet.setDrawValues(false);
+                dataSets.add(freqSet);
             }
-            ScatterDataSet freqSet = new ScatterDataSet(yMeasure,
-                    Spectrogram.formatFrequency((int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[freqId]));
-            freqSet.setScatterShape(ScatterChart.ScatterShape.CIRCLE);
-            freqSet.setColor(ColorTemplate.COLORFUL_COLORS[freqId % ColorTemplate.COLORFUL_COLORS.length]);
-            freqSet.setScatterShapeSize(8f);
-            freqSet.setValueTextColor(Color.WHITE);
-            freqSet.setDrawValues(false);
-            dataSets.add(freqSet);
         }
 
         // create a data object with the datasets
         ScatterData data = new ScatterData(xVals, dataSets);
-
         scatterChart.setData(data);
         YAxis yl = scatterChart.getAxisLeft();
         yl.setAxisMinValue(YMin - 3);
@@ -469,8 +768,10 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     protected void onPause() {
         super.onPause();
         if(audioTrack != null) {
-            audioTrack.stop();
-            initCalibration();
+            if(audioTrack.getState() == AudioTrack.PLAYSTATE_PLAYING) {
+                audioTrack.pause();
+                audioTrack.flush();
+            }
         }
     }
 
@@ -499,7 +800,8 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             calibration_step = CALIBRATION_STEP.CALIBRATION;
         } else if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
             if(splBackroundNoise != 0) {
-                if (leqStats.getLeqMean() < splBackroundNoise + 3 ) {
+                // TODO remove || splLoop > x
+                if (leqStats.getLeqMean() < splBackroundNoise + 3 || splLoop > 8 ) {
                     // Almost reach the background noise, stop calibration
                     calibration_step = CALIBRATION_STEP.END;
                     runOnUiThread(new Runnable() {
@@ -507,7 +809,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                         public void run() {
                             textDeviceLevel.setText(R.string.no_valid_dba_value);
                             textStatus.setText(R.string.calibration_status_end);
-                            updateScatterChart();
+                            onPageScrollStateChanged(ViewPager.SCROLL_STATE_SETTLING);
                         }
                     });
                     measurementService.stopRecording();
@@ -527,10 +829,11 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                         public void run() {
                             textDeviceLevel.setText(R.string.no_valid_dba_value);
                             textStatus.setText(getString(R.string.calibration_status_waiting_for_start_timer));
-                            updateScatterChart();
+                            onPageScrollStateChanged(ViewPager.SCROLL_STATE_SETTLING);
                         }
                     });
-                    audioTrack.stop();
+                    audioTrack.pause();
+                    audioTrack.flush();
                     playNewTrack();
                     progressHandler.start(defaultWarmupTime * 1000);
                 }
@@ -542,7 +845,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                     public void run() {
                         textDeviceLevel.setText(R.string.no_valid_dba_value);
                         textStatus.setText(getString(R.string.calibration_status_waiting_for_start_timer));
-                        updateScatterChart();
+                        onPageScrollStateChanged(ViewPager.SCROLL_STATE_SETTLING);
                     }
                 });
                 playNewTrack();
@@ -606,6 +909,34 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             for(int idFreq = 0; idFreq < this.measure.length; idFreq++) {
                 this.measure[idFreq].addLeq(measureLevels[idFreq]);
             }
+        }
+    }
+    private static class ViewPagerAdapter extends FragmentPagerAdapter {
+        private final List<Fragment> mFragmentList = new ArrayList<>();
+        private final List<String> mFragmentTitleList = new ArrayList<>();
+
+        public ViewPagerAdapter(FragmentManager manager) {
+            super(manager);
+        }
+
+        @Override
+        public Fragment getItem(int position) {
+            return mFragmentList.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return mFragmentList.size();
+        }
+
+        public void addFragment(Fragment fragment, String title) {
+            mFragmentList.add(fragment);
+            mFragmentTitleList.add(title);
+        }
+
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mFragmentTitleList.get(position);
         }
     }
 }

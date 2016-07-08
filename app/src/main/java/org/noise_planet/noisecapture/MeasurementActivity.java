@@ -747,7 +747,6 @@ public class MeasurementActivity extends MainActivity implements
     }
 
 
-
     private MeasurementService measurementService;
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -816,7 +815,7 @@ public class MeasurementActivity extends MainActivity implements
     protected void onRestart() {
         super.onRestart();
         // Reconnect from measurement
-        measurementService.addPropertyChangeListener(doProcessing);
+        doBindService();
         initGuiState();
     }
 
@@ -824,7 +823,7 @@ public class MeasurementActivity extends MainActivity implements
     protected void onStop() {
         super.onStop();
         // Disconnect listener from measurement
-        measurementService.removePropertyChangeListener(doProcessing);
+        doUnbindService();
     }
 
     @Override

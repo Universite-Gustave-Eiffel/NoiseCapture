@@ -92,7 +92,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class CalibrationLinearityActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener,ViewPager.OnPageChangeListener {
@@ -125,11 +124,6 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     private static final int PAGE_SCATTER_CHART = 0;
     private static final int PAGE_LINE_CHART = 1;
     private static final int PAGE_BAR_CHART = 2;
-
-
-    private AtomicBoolean scatterInit = new AtomicBoolean(false);
-    private AtomicBoolean lineInit = new AtomicBoolean(false);
-    private AtomicBoolean barInit = new AtomicBoolean(false);
 
     private static final String SETTINGS_CALIBRATION_WARMUP_TIME = "settings_calibration_warmup_time";
     private static final String SETTINGS_CALIBRATION_TIME = "settings_calibration_time";
@@ -193,26 +187,25 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     @Override
     public void onPageScrollStateChanged(int state) {
         if(state == ViewPager.SCROLL_STATE_SETTLING) {
-            switch (viewPager.getCurrentItem()) {
-                case PAGE_SCATTER_CHART:
-                    if(!scatterInit.getAndSet(true)) {
-                        initScatter();
-                    }
-                    updateScatterChart();
-                    break;
-                case PAGE_LINE_CHART:
-                    if(!barInit.getAndSet(true)) {
-                        initLine();
-                    }
-                    updateLineChart();
-                    break;
-                case PAGE_BAR_CHART:
-                    if(!lineInit.getAndSet(true)) {
-                        initBar();
-                    }
-                    updateBarChart();
-                    break;
-            }
+            updateSelectedGraph();
+        }
+    }
+
+    private void updateSelectedGraph() {
+
+        switch (viewPager.getCurrentItem()) {
+            case PAGE_SCATTER_CHART:
+                initScatter();
+                updateScatterChart();
+                break;
+            case PAGE_LINE_CHART:
+                initLine();
+                updateLineChart();
+                break;
+            case PAGE_BAR_CHART:
+                initBar();
+                updateBarChart();
+                break;
         }
     }
 
@@ -255,29 +248,19 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     private void initBar() {
         BarChart barChart = getBarChart();
         if(barChart == null) {
-            barInit.set(false);
             return;
         }
         barChart.setDescription("");
 
         barChart.setDrawGridBackground(false);
 
-        barChart.setTouchEnabled(true);
-
-        // enable scaling and dragging
-        barChart.setDragEnabled(false);
-        barChart.setScaleEnabled(false);
-
         barChart.setMaxVisibleValueCount(200);
-        barChart.setPinchZoom(false);
 
         Legend l = barChart.getLegend();
         l.setPosition(Legend.LegendPosition.ABOVE_CHART_LEFT);
         l.setTextColor(Color.WHITE);
 
         YAxis yl = barChart.getAxisLeft();
-        yl.setAxisMinValue(95);
-        yl.setAxisMaxValue(105);
         yl.setTextColor(Color.WHITE);
         yl.setGridColor(Color.WHITE);
         barChart.getAxisRight().setEnabled(false);
@@ -297,17 +280,11 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     private void initScatter() {
         ScatterChart scatterChart = getScatterChart();
         if(scatterChart == null) {
-            scatterInit.set(false);
             return;
         }
         scatterChart.setDescription("");
 
         scatterChart.setDrawGridBackground(false);
-
-        scatterChart.setTouchEnabled(true);
-
-        // enable scaling and dragging
-        scatterChart.setTouchEnabled(false);
 
         scatterChart.setMaxVisibleValueCount(200);
 
@@ -316,8 +293,6 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         l.setTextColor(Color.WHITE);
 
         YAxis yl = scatterChart.getAxisLeft();
-        yl.setAxisMinValue(45f);
-        yl.setAxisMaxValue(110f);
         yl.setTextColor(Color.WHITE);
         yl.setGridColor(Color.WHITE);
         scatterChart.getAxisRight().setEnabled(false);
@@ -331,14 +306,11 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     private void initLine() {
         LineChart lineChart = getLineChart();
         if(lineChart == null) {
-            lineInit.set(false);
             return;
         }
         lineChart.setDescription("");
 
         lineChart.setDrawGridBackground(false);
-
-        lineChart.setTouchEnabled(true);
 
         // enable scaling and dragging
         lineChart.setDragEnabled(false);
@@ -352,8 +324,6 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         l.setTextColor(Color.WHITE);
 
         YAxis yl = lineChart.getAxisLeft();
-        yl.setAxisMinValue(45f);
-        yl.setAxisMaxValue(110f);
         yl.setTextColor(Color.WHITE);
         yl.setGridColor(Color.WHITE);
         lineChart.getAxisRight().setEnabled(false);
@@ -527,6 +497,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         YAxis yl = barChart.getAxisLeft();
         yl.setAxisMinValue(YMin - 2);
         yl.setAxisMaxValue(YMax + 2);
+
         barChart.invalidate();
     }
 
@@ -559,7 +530,11 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             freqSet.setColor(ColorTemplate.COLORFUL_COLORS[idStep % ColorTemplate.COLORFUL_COLORS.length]);
             freqSet.setFillColor(ColorTemplate.COLORFUL_COLORS[idStep % ColorTemplate.COLORFUL_COLORS.length]);
             freqSet.setValueTextColor(Color.WHITE);
+            freqSet.setCircleColorHole(ColorTemplate.COLORFUL_COLORS[idStep % ColorTemplate.COLORFUL_COLORS.length]);
             freqSet.setDrawValues(false);
+            freqSet.setDrawFilled(true);
+            freqSet.setFillAlpha(255);
+            freqSet.setDrawCircles(true);
             freqSet.setMode(LineDataSet.Mode.LINEAR);
             dataSets.add(freqSet);
             idStep++;
@@ -661,9 +636,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         int dataSetCount = freqLeqStats.get(freqLeqStats.size() - 1).whiteNoiseLevel.getdBaLevels().length;
         double[] pearsonCoefficient = new double[dataSetCount];
 
-        PearsonsCorrelation pearsonsCorrelation = new PearsonsCorrelation();
-
-
+        StringBuilder log = new StringBuilder();
         for(int freqId = 0; freqId < dataSetCount; freqId++) {
             double[] xValues = new double[freqLeqStats.size()];
             double[] yValues = new double[freqLeqStats.size()];
@@ -673,9 +646,21 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                 double whiteNoise = result.whiteNoiseLevel.getdBaLevels()[freqId];
                 xValues[idStep] = whiteNoise;
                 yValues[idStep] = dbLevel;
+                if(freqId == 0) {
+                    LOGGER.info("100 hZ white noise " + whiteNoise + " dB spl: " + dbLevel+ " dB");
+                }
+                idStep++;
             }
-            pearsonCoefficient[freqId] = pearsonsCorrelation.correlation(xValues, yValues);
+            pearsonCoefficient[freqId] = new PearsonsCorrelation().correlation(xValues, yValues);
+            if(log.length() == 0) {
+                log.append("[");
+            } else {
+                log.append(", ");
+            }
+            log.append(String.format(Locale.getDefault(), "%.2f %%",pearsonCoefficient[freqId] * 100 ));
         }
+        log.append("]");
+        LOGGER.info("Pearson's values : "+log.toString());
         return pearsonCoefficient;
     }
 
@@ -809,7 +794,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                         public void run() {
                             textDeviceLevel.setText(R.string.no_valid_dba_value);
                             textStatus.setText(R.string.calibration_status_end);
-                            onPageScrollStateChanged(ViewPager.SCROLL_STATE_SETTLING);
+                            updateSelectedGraph();
                         }
                     });
                     measurementService.stopRecording();
@@ -829,7 +814,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                         public void run() {
                             textDeviceLevel.setText(R.string.no_valid_dba_value);
                             textStatus.setText(getString(R.string.calibration_status_waiting_for_start_timer));
-                            onPageScrollStateChanged(ViewPager.SCROLL_STATE_SETTLING);
+                            updateSelectedGraph();
                         }
                     });
                     audioTrack.pause();
@@ -845,7 +830,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                     public void run() {
                         textDeviceLevel.setText(R.string.no_valid_dba_value);
                         textStatus.setText(getString(R.string.calibration_status_waiting_for_start_timer));
-                        onPageScrollStateChanged(ViewPager.SCROLL_STATE_SETTLING);
+                        updateSelectedGraph();
                     }
                 });
                 playNewTrack();

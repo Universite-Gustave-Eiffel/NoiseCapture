@@ -41,12 +41,13 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.view.Menu;
-import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -115,6 +116,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         spinner = (Spinner) findViewById(R.id.spinner_calibration_mode);
         startButton = (Button) findViewById(R.id.btn_start);
         resetButton = (Button) findViewById(R.id.btn_reset);
+        LinearLayout layout_progress = (LinearLayout) findViewById(R.id.layout_progress);
         userInput = (EditText) findViewById(R.id.edit_text_external_measured);
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -129,6 +131,8 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             }
         });
 
+        layout_progress.setOnTouchListener(new hiddenCalibrationTouchEvent(this));
+
         // Load spinner values
         // Create an ArrayAdapter using the string array and a default spinner layout
         ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
@@ -142,6 +146,42 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
 
 
         initCalibration();
+    }
+
+    private static final class hiddenCalibrationTouchEvent implements View.OnTouchListener {
+        private CalibrationActivity calibrationActivity;
+        private boolean mBooleanIsPressed = false;
+        private final Handler handler = new Handler();
+        private final Runnable runnable = new Runnable() {
+            public void run() {
+                if(mBooleanIsPressed) {
+                    Intent im = new Intent(calibrationActivity, CalibrationLinearityActivity.class);
+                    im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    calibrationActivity.startActivity(im);
+                    calibrationActivity.finish();
+                }
+            }
+        };
+
+        public hiddenCalibrationTouchEvent(CalibrationActivity calibrationActivity) {
+            this.calibrationActivity = calibrationActivity;
+        }
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            if(event.getAction() == MotionEvent.ACTION_DOWN) {
+                handler.postDelayed(runnable, 2000);
+                mBooleanIsPressed = true;
+            }
+
+            if(event.getAction() == MotionEvent.ACTION_UP) {
+                if(mBooleanIsPressed) {
+                    mBooleanIsPressed = false;
+                    handler.removeCallbacks(runnable);
+                }
+            }
+            return false;
+        }
     }
 
     private void onApply() {
@@ -227,24 +267,32 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
-        if(calibration_step == CALIBRATION_STEP.CALIBRATION &&
+        if((calibration_step == CALIBRATION_STEP.CALIBRATION || calibration_step == CALIBRATION_STEP.WARMUP) &&
                 AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName())) {
             // New leq
-            AudioProcess.DelayedStandardAudioMeasure measure =
-                    (AudioProcess.DelayedStandardAudioMeasure) event.getNewValue();
+            AudioProcess.AudioMeasureResult measure =
+                    (AudioProcess.AudioMeasureResult) event.getNewValue();
             final double leq;
             // Use global dB value or only the selected frequency band
             if(spinner.getSelectedItemPosition() == 0) {
-                leq = measure.getGlobaldBaValue();
+                leq = measure.getSignalLeq();
             } else {
                 leq = measure.getLeqs()[spinner.getSelectedItemPosition() - 1];
             }
-            leqStats.addLeq(leq);
+            if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
+                leqStats.addLeq(leq);
+            }
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    double leqToShow;
+                    if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
+                        leqToShow = leqStats.getLeqMean();
+                    } else {
+                        leqToShow = leq;
+                    }
                     textDeviceLevel.setText(
-                            String.format(Locale.getDefault(), "%.1f", leq));
+                            String.format(Locale.getDefault(), "%.1f", leqToShow));
                 }
             });
         }

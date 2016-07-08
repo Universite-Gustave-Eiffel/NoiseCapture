@@ -34,7 +34,6 @@ import android.util.Log;
 
 import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.FFTSignalProcessing;
-import org.orbisgis.sos.LeqStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +67,7 @@ public class AudioProcess implements Runnable {
     private final MovingLeqProcessing fftLeqProcessing;
     private final StandartLeqProcessing standartLeqProcessing;
     private long beginRecordTime;
-    private static final int REALTIME_SAMPLE_RATE_LIMITATION = 16000;
+    public static final int REALTIME_SAMPLE_RATE_LIMITATION = 16000;
     private float gain = 1;
     private boolean hasGain = false;
     private boolean weightingA = true;
@@ -277,7 +276,6 @@ public class AudioProcess implements Runnable {
         private final AudioProcess audioProcess;
         private AtomicBoolean processing = new AtomicBoolean(false);
         private FFTSignalProcessing signalProcessing;
-        private float[] fftResultLvl = new float[0];
         private double leq = 0;
 
         // 0.066 mean 15 fps max
@@ -330,12 +328,16 @@ public class AudioProcess implements Runnable {
                     FFTSignalProcessing.ProcessingResult result =
                             signalProcessing.processSample(audioProcess.hanningWindowFast,
                                     audioProcess.weightingA, true);
-                    fftResultLvl = result.getFftResult();
                     thirdOctaveSplLevels = result.getdBaLevels();
                     // Compute leq
                     leq = signalProcessing.computeGlobalLeq();
+                    // Compute record time
+                    long beginRecordTime = audioProcess.beginRecordTime +
+                        (long) ((pushedSamples  /
+                                (double) audioProcess.getRate()) * 1000);
                     audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
-                            null, fftResultLvl);
+                            null,
+                            new AudioMeasureResult(result,  beginRecordTime, leq));
             }
         }
 
@@ -439,7 +441,6 @@ public class AudioProcess implements Runnable {
                             FFTSignalProcessing.ProcessingResult result =
                                     fftSignalProcessing.processSample(audioProcess.hanningWindowOneSecond,
                                             audioProcess.weightingA, false);
-                            float[] leqs = result.getdBaLevels();
                             // Compute record time
                             long beginRecordTime = audioProcess.beginRecordTime +
                                     (long) (((secondCursor + buffer.length
@@ -447,7 +448,8 @@ public class AudioProcess implements Runnable {
                                             (double) audioProcess.getRate()) * 1000);
                             audioProcess.listeners.firePropertyChange(
                                     AudioProcess.PROP_DELAYED_STANDART_PROCESSING, null,
-                                    new DelayedStandardAudioMeasure(result,  beginRecordTime));
+                                    new AudioMeasureResult(result,  beginRecordTime,
+                                            fftSignalProcessing.computeGlobalLeq()));
                             lastProcessedSamples = secondCursor;
                             // Add not processed samples for the next batch
                             if(remainingSamplesToPostPone > 0) {
@@ -471,13 +473,26 @@ public class AudioProcess implements Runnable {
         }
     }
 
-    public static final class DelayedStandardAudioMeasure {
+    public static final class AudioMeasureResult {
         private final FFTSignalProcessing.ProcessingResult result;
         private final long beginRecordTime;
+        private double signalLeq;
 
-        public DelayedStandardAudioMeasure(FFTSignalProcessing.ProcessingResult result, long beginRecordTime) {
+        public AudioMeasureResult(FFTSignalProcessing.ProcessingResult result, long beginRecordTime, double signalLeq) {
             this.result = result;
             this.beginRecordTime = beginRecordTime;
+            this.signalLeq = signalLeq;
+        }
+
+        public FFTSignalProcessing.ProcessingResult getResult() {
+            return result;
+        }
+
+        /**
+         * @return Leq computed using signal; not recomposed third-octave bands
+         */
+        public double getSignalLeq() {
+            return signalLeq;
         }
 
         /**

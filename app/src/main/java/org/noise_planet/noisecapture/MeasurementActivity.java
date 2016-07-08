@@ -103,7 +103,6 @@ public class MeasurementActivity extends MainActivity implements
 
     private boolean hasMaximalMeasurementTime;
     private int maximalMeasurementTime = 0;
-    private double calibrationScale = 0;
 
     private static final String LOG_SCALE_SETTING = "settings_spectrogram_logscalemode";
     private static final String DELETE_LEQ_ON_PAUSE_SETTING = "settings_delete_leq_on_pause";
@@ -159,7 +158,6 @@ public class MeasurementActivity extends MainActivity implements
         // Depending of the settings
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
-        calibrationScale = getDouble(sharedPref, "settings_recording_gain", 0);
         Boolean CheckNbRunSettings = sharedPref.getBoolean("settings_caution", true);
 
         hasMaximalMeasurementTime = sharedPref.getBoolean(HAS_MAXIMAL_MEASURE_TIME_SETTING,
@@ -563,8 +561,10 @@ public class MeasurementActivity extends MainActivity implements
         @Override
         public void propertyChange(PropertyChangeEvent event) {
             if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
+                AudioProcess.AudioMeasureResult measure =
+                        (AudioProcess.AudioMeasureResult) event.getNewValue();
                 // Realtime audio processing
-                activity.spectrogram.addTimeStep((float[]) event.getNewValue(),
+                activity.spectrogram.addTimeStep(measure.getResult().getFftResult(),
                         activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));
@@ -690,7 +690,7 @@ public class MeasurementActivity extends MainActivity implements
                     // Change the text and the textcolor in the corresponding textview
                     // for the Leqi value
                     LeqStats leqStats =
-                            activity.measurementService.getLeqStats();
+                            activity.measurementService.getFastLeqStats();
                     final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
                     formatdBA(leq, mTextView);
                     if(activity.measurementService.getLeqAdded() != 0) {
@@ -745,7 +745,6 @@ public class MeasurementActivity extends MainActivity implements
             }
         }
     }
-
 
 
     private MeasurementService measurementService;
@@ -816,7 +815,7 @@ public class MeasurementActivity extends MainActivity implements
     protected void onRestart() {
         super.onRestart();
         // Reconnect from measurement
-        measurementService.addPropertyChangeListener(doProcessing);
+        doBindService();
         initGuiState();
     }
 
@@ -824,7 +823,7 @@ public class MeasurementActivity extends MainActivity implements
     protected void onStop() {
         super.onStop();
         // Disconnect listener from measurement
-        measurementService.removePropertyChangeListener(doProcessing);
+        doUnbindService();
     }
 
     @Override

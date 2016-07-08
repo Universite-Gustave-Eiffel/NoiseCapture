@@ -97,6 +97,7 @@ public class MeasurementService extends Service {
 
     private NavigableMap<Long, Location> timeLocation = new TreeMap<Long, Location>();
     private LeqStats leqStats = new LeqStats();
+    private LeqStats leqStatsFast = new LeqStats();
 
     private NotificationManager mNM;
 
@@ -130,6 +131,10 @@ public class MeasurementService extends Service {
         return leqStats;
     }
 
+
+    public LeqStats getFastLeqStats() {
+        return leqStatsFast;
+    }
     public int getRecordId() {
         return recordId;
     }
@@ -375,6 +380,9 @@ public class MeasurementService extends Service {
             }
             leqStats = newLeqStats;
         }
+        if(newState && recordId > -1) {
+            leqStatsFast = new LeqStats();
+        }
     }
 
     /**
@@ -501,8 +509,8 @@ public class MeasurementService extends Service {
                     ())) {
                 if (measurementService.isStoring() && !measurementService.isPaused.get()) {
                     // Delayed audio processing
-                    AudioProcess.DelayedStandardAudioMeasure measure =
-                            (AudioProcess.DelayedStandardAudioMeasure) event.getNewValue();
+                    AudioProcess.AudioMeasureResult measure =
+                            (AudioProcess.AudioMeasureResult) event.getNewValue();
                     Location location = measurementService.fetchLocation(measure.getBeginRecordTime());
                     Storage.Leq leq;
                     if (location == null) {
@@ -529,6 +537,11 @@ public class MeasurementService extends Service {
                             .addLeqBatch(new MeasurementManager.LeqBatch(leq, leqValueList));
                     measurementService.leqAdded.addAndGet(1);
                 }
+            } else if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName
+                    ())) {
+                AudioProcess.AudioMeasureResult measure =
+                        (AudioProcess.AudioMeasureResult) event.getNewValue();
+                measurementService.leqStatsFast.addLeq(measure.getSignalLeq());
             } else if (AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
                 if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
                     if(measurementService.recordId > -1) {

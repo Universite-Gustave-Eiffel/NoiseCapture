@@ -239,6 +239,15 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     </string-array>
     <string name="share_message">I measure %.01f dB(A)</string>
 
+    <string-array name="output_mode_labels">
+        <item>Voice call</item>
+        <item>System sound</item>
+        <item>Ring tone</item>
+        <item>Music</item>
+        <item>Alarm</item>
+        <item>Notification</item>
+        <item>DTMF</item>
+    </string-array>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

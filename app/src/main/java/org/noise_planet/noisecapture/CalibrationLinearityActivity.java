@@ -386,7 +386,31 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         progressHandler.start(defaultWarmupTime * 1000);
     }
 
+    private int getAudioOutput() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        String value = sharedPref.getString("settings_calibration_audio_output", "STREAM_RING");
+
+        if("STREAM_VOICE_CALL".equals(value)) {
+            return AudioManager.STREAM_VOICE_CALL;
+        } else if("STREAM_SYSTEM".equals(value)) {
+            return AudioManager.STREAM_SYSTEM;
+        } else if("STREAM_RING".equals(value)) {
+            return AudioManager.STREAM_RING;
+        } else if("STREAM_MUSIC".equals(value)) {
+            return AudioManager.STREAM_MUSIC;
+        } else if("STREAM_ALARM".equals(value)) {
+            return AudioManager.STREAM_ALARM;
+        } else if("STREAM_NOTIFICATION".equals(value)) {
+            return AudioManager.STREAM_NOTIFICATION;
+        } else if("STREAM_DTMF".equals(value)) {
+            return AudioManager.STREAM_DTMF;
+        } else {
+            return AudioManager.STREAM_RING;
+        }
+    }
+
     private void playNewTrack() {
+
         double rms = dbToRms(99 - (splLoop++) * DB_STEP);
         short[] data = makeWhiteNoiseSignal(44100, rms);
         double[] fftCenterFreq = FFTSignalProcessing.computeFFTCenterFrequency(AudioProcess.REALTIME_SAMPLE_RATE_LIMITATION);
@@ -396,7 +420,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         freqLeqStats.add(new LinearCalibrationResult(fftSignalProcessing.processSample(true, false, false)));
         LOGGER.info("Emit white noise of "+whiteNoisedB+" dB");
         if(audioTrack == null) {
-            audioTrack = new AudioTrack(AudioManager.STREAM_RING, 44100, AudioFormat.CHANNEL_OUT_MONO,
+            audioTrack = new AudioTrack(getAudioOutput(), 44100, AudioFormat.CHANNEL_OUT_MONO,
                     AudioFormat.ENCODING_PCM_16BIT, data.length * (Short.SIZE / 8), AudioTrack.MODE_STATIC);
         } else {
             if(audioTrack.getState() == AudioTrack.PLAYSTATE_PLAYING) {

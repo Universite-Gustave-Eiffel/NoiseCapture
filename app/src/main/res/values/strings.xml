@@ -167,6 +167,7 @@
 
     <string name="measurement_processlastsamples">Processing remaining %d samples..</string>
     <string name="history_item_choice_title">Measurement %s</string>
+    <string name="calibration_select_frequency">Choose frequency to show</string>
     <string name="local_service_started">Localisation service started</string>
     <string name="measurement_service_disconnected">Measurement service disconnected</string>
     <string name="measurement_pause">Measurement paused</string>

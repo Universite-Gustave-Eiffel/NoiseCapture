@@ -27,8 +27,10 @@
 
 package org.noise_planet.noisecapture;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -51,6 +53,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.Menu;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.ProgressBar;
@@ -87,6 +90,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -187,25 +191,47 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     @Override
     public void onPageScrollStateChanged(int state) {
         if(state == ViewPager.SCROLL_STATE_SETTLING) {
+            initSelectedGraph();
+        } else if(state == ViewPager.SCROLL_STATE_IDLE) {
             updateSelectedGraph();
         }
     }
 
-    private void updateSelectedGraph() {
+    private void initSelectedGraph() {
+        try {
+            switch (viewPager.getCurrentItem()) {
+                case PAGE_SCATTER_CHART:
+                    initScatter();
+                    break;
+                case PAGE_LINE_CHART:
+                    initLine();
+                    break;
+                case PAGE_BAR_CHART:
+                    initBar();
+                    break;
+            }
+        } catch (NullPointerException ex) {
+            // May arise while measuring
+            LOGGER.error(ex.getLocalizedMessage(), ex);
+        }
+    }
 
-        switch (viewPager.getCurrentItem()) {
-            case PAGE_SCATTER_CHART:
-                initScatter();
-                updateScatterChart();
-                break;
-            case PAGE_LINE_CHART:
-                initLine();
-                updateLineChart();
-                break;
-            case PAGE_BAR_CHART:
-                initBar();
-                updateBarChart();
-                break;
+    private void updateSelectedGraph() {
+        try {
+            switch (viewPager.getCurrentItem()) {
+                case PAGE_SCATTER_CHART:
+                    updateScatterChart();
+                    break;
+                case PAGE_LINE_CHART:
+                    updateLineChart();
+                    break;
+                case PAGE_BAR_CHART:
+                    updateBarChart();
+                    break;
+            }
+        } catch (NullPointerException ex) {
+            // May arise while measuring
+            LOGGER.error(ex.getLocalizedMessage(), ex);
         }
     }
 
@@ -276,12 +302,51 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         xl.setLabelsToSkip(0);
     }
 
+    private static final class ItemActionOnClickListener implements DialogInterface.OnClickListener {
+        CalibrationLinearityActivity calibrationLinearityActivity;
+        ScatterChart scatterChart;
+
+        public ItemActionOnClickListener(CalibrationLinearityActivity calibrationLinearityActivity, ScatterChart scatterChart) {
+            this.calibrationLinearityActivity = calibrationLinearityActivity;
+            this.scatterChart = scatterChart;
+        }
+
+        @Override
+        public void onClick(DialogInterface dialog, int which) {
+            if(which > 0) {
+                calibrationLinearityActivity.selectedFrequencies = new HashSet<Integer>(
+                        Collections.singletonList((int)
+                                ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[which - 1]));
+            } else {
+                // Select all frequencies
+                calibrationLinearityActivity.selectedFrequencies = new HashSet<Integer>();
+                for(double freq : ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED) {
+                    calibrationLinearityActivity.selectedFrequencies.add((int)freq);
+                }
+            }
+            calibrationLinearityActivity.updateSelectedGraph();
+        }
+    }
 
     private void initScatter() {
-        ScatterChart scatterChart = getScatterChart();
+        final ScatterChart scatterChart = getScatterChart();
         if(scatterChart == null) {
             return;
         }
+        scatterChart.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Show
+                AlertDialog.Builder builder = new AlertDialog.Builder(CalibrationLinearityActivity.this);
+                builder.setTitle(CalibrationLinearityActivity.this.getText(R.string.calibration_select_frequency));
+                ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(CalibrationLinearityActivity.this,
+                        R.array.calibrate_type_list_array, android.R.layout.simple_selectable_list_item);
+                builder.setAdapter(adapter,
+                        new ItemActionOnClickListener(CalibrationLinearityActivity.this, scatterChart));
+                builder.show();
+            }
+        });
+
         scatterChart.setDescription("");
 
         scatterChart.setDrawGridBackground(false);
@@ -313,11 +378,6 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         lineChart.setDrawGridBackground(false);
 
         // enable scaling and dragging
-        lineChart.setDragEnabled(false);
-        lineChart.setScaleEnabled(false);
-
-        lineChart.setMaxVisibleValueCount(200);
-        lineChart.setPinchZoom(false);
 
         Legend l = lineChart.getLegend();
         l.setPosition(Legend.LegendPosition.RIGHT_OF_CHART);
@@ -423,9 +483,11 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             audioTrack = new AudioTrack(getAudioOutput(), 44100, AudioFormat.CHANNEL_OUT_MONO,
                     AudioFormat.ENCODING_PCM_16BIT, data.length * (Short.SIZE / 8), AudioTrack.MODE_STATIC);
         } else {
-            if(audioTrack.getState() == AudioTrack.PLAYSTATE_PLAYING) {
+            try {
                 audioTrack.pause();
                 audioTrack.flush();
+            } catch (IllegalStateException ex) {
+                // Ignore
             }
         }
         audioTrack.setLoopPoints(0, audioTrack.write(data, 0, data.length), -1);
@@ -518,8 +580,8 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         BarData data = new BarData(xVals, dataSets);
         barChart.setData(data);
         YAxis yl = barChart.getAxisLeft();
-        yl.setAxisMinValue(YMin - 2);
-        yl.setAxisMaxValue(YMax + 2);
+        yl.setAxisMinValue(YMin - 0.1f);
+        yl.setAxisMaxValue(YMax + 0.1f);
 
         barChart.invalidate();
     }
@@ -539,6 +601,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
 
         // Read all white noise values for indexing before usage
         int idStep = 0;
+        double referenceLevel = freqLeqStats.get(0).whiteNoiseLevel.getGlobaldBaValue();
         for(LinearCalibrationResult result : freqLeqStats) {
             ArrayList<Entry> yMeasure = new ArrayList<Entry>();
             int idfreq = 0;
@@ -549,7 +612,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                 yMeasure.add(new Entry(dbLevel, idfreq++));
             }
             LineDataSet freqSet = new LineDataSet(yMeasure, String.format(Locale.getDefault(),"%d dB",
-                    (int)result.whiteNoiseLevel.getGlobaldBaValue()));
+                    (int)(result.whiteNoiseLevel.getGlobaldBaValue() - referenceLevel)));
             freqSet.setColor(ColorTemplate.COLORFUL_COLORS[idStep % ColorTemplate.COLORFUL_COLORS.length]);
             freqSet.setFillColor(ColorTemplate.COLORFUL_COLORS[idStep % ColorTemplate.COLORFUL_COLORS.length]);
             freqSet.setValueTextColor(Color.WHITE);
@@ -599,11 +662,12 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
 
         Set<Integer> whiteNoiseValuesSet = new TreeSet<Integer>();
 
-        float referenceDbLevel = freqLeqStats.get(0).whiteNoiseLevel.getGlobaldBaValue();
 
         // Read all white noise values for indexing before usage
         for(LinearCalibrationResult result : freqLeqStats) {
-            for(float dbLevel : result.whiteNoiseLevel.getdBaLevels()) {
+            for(int idFreq = 0; idFreq < result.whiteNoiseLevel.getdBaLevels().length; idFreq++) {
+                float dbLevel = result.whiteNoiseLevel.getdBaLevels()[idFreq];
+                float referenceDbLevel = freqLeqStats.get(0).whiteNoiseLevel.getdBaLevels()[idFreq];
                 whiteNoiseValuesSet.add((int)(dbLevel - referenceDbLevel));
             }
         }
@@ -626,6 +690,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                 ArrayList<Entry> yMeasure = new ArrayList<Entry>();
                 for (LinearCalibrationResult result : freqLeqStats) {
                     float dbLevel = (float) result.measure[freqId].getLeqMean();
+                    float referenceDbLevel = freqLeqStats.get(0).whiteNoiseLevel.getdBaLevels()[freqId];
                     int whiteNoise = (int) (result.whiteNoiseLevel.getdBaLevels()[freqId] - referenceDbLevel);
                     YMax = Math.max(YMax, dbLevel);
                     YMin = Math.min(YMin, dbLevel);
@@ -779,9 +844,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     protected void onPause() {
         super.onPause();
         if(audioTrack != null) {
-            if(audioTrack.getState() == AudioTrack.PLAYSTATE_PLAYING) {
-                audioTrack.stop();
-            }
+            audioTrack.stop();
         }
     }
 
@@ -806,12 +869,20 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             });
             // Start calibration
             leqStats = new LeqStats();
+            if(!freqLeqStats.isEmpty()) {
+                freqLeqStats.get(freqLeqStats.size() - 1).setGlobalMeasure(leqStats);
+            }
             progressHandler.start(defaultCalibrationTime * 1000);
             calibration_step = CALIBRATION_STEP.CALIBRATION;
         } else if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
             if(splBackroundNoise != 0) {
-                // TODO remove || splLoop > x
-                if (leqStats.getLeqMean() < splBackroundNoise + 3) {
+                double previousLeq = Double.MAX_VALUE;
+                if(freqLeqStats.size() > 1) {
+                    previousLeq = freqLeqStats.get(freqLeqStats.size() - 2).globalMeasure.getLeqMean();
+                }
+                // If the powered calibration reach the background noise or
+                // if the last leq is superior than the previous leq
+                if (leqStats.getLeqMean() < splBackroundNoise + 3 || leqStats.getLeqMean() > previousLeq) {
                     // Almost reach the background noise, stop calibration
                     calibration_step = CALIBRATION_STEP.END;
                     runOnUiThread(new Runnable() {
@@ -842,8 +913,6 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                             updateSelectedGraph();
                         }
                     });
-                    audioTrack.pause();
-                    audioTrack.flush();
                     playNewTrack();
                     progressHandler.start(defaultWarmupTime * 1000);
                 }
@@ -902,10 +971,15 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     private static final class LinearCalibrationResult {
         private LeqStats[] measure;
         private FFTSignalProcessing.ProcessingResult whiteNoiseLevel;
+        private LeqStats globalMeasure;
 
         public LinearCalibrationResult(FFTSignalProcessing.ProcessingResult whiteNoiseLevel) {
             this.whiteNoiseLevel = whiteNoiseLevel;
 
+        }
+
+        public void setGlobalMeasure(LeqStats globalMeasure) {
+            this.globalMeasure = globalMeasure;
         }
 
         public void pushMeasure(FFTSignalProcessing.ProcessingResult measure) {

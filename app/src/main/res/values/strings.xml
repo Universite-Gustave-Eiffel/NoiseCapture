@@ -49,7 +49,7 @@
     <string name="SEL_dBA">Noise exposure dB(A)</string>
 
     <string name="hello_world">Hello world!</string>
-    <string name="title_settings_calibration_warmup_time">Calibration warmup time</string>
+    <string name="title_settings_calibration_warmup_time">Calibration warm-up time</string>
     <string name="title_settings_calibration_warmup_time_description">Waiting time in seconds before calibration</string>
     <string name="title_settings_calibration_time">Calibration time</string>
     <string name="title_settings_calibration_time_description">Calibration time in seconds</string>
@@ -108,7 +108,7 @@
         <item>Export result</item>
         <item>Edit description</item>
         <item>Show result</item>
-        <item>Show map</item>
+        <item>Show on map</item>
         <item>Delete</item>
     </string-array>
 
@@ -202,7 +202,7 @@
     <string name="start_text_subtitle">Measuring your sound environment</string>
     <string name="start_text_developed_by">Developed by</string>
     <string name="start_text_supported_by">Supported by</string>
-    <string name="upload_progress_title">Uploading..</string>
+    <string name="upload_progress_title">Uploading...</string>
     <string name="upload_progress_message">Uploading measurement</string>
 
     <string name="history_length">Duration: %d seconds</string>
@@ -218,7 +218,6 @@
     <string name="measurement_service_disconnected">Measurement service disconnected</string>
     <string name="measurement_service_connected">Measurement service connected</string>
     <string name="measurement_pause">Measurement paused</string>
-    w
 
     <string name="delete">Delete</string>
     <string name="hint_userinput">Tap here to set a description</string>
@@ -251,8 +250,8 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="userinfo_unpleasant">Unpleasant</string>
     <string name="userinfo_pleasant">Pleasant</string>
     <string name="userinfo_pleasantness">Pleasantness</string>
-    <string name="calibration_status_waiting_for_user_start">Waiting for calibration start..</string>
-    <string name="calibration_status_waiting_for_start_timer">Calibration is about to start..</string>
+    <string name="calibration_status_waiting_for_user_start">Waiting for calibration start...</string>
+    <string name="calibration_status_waiting_for_start_timer">Calibration is about to start...</string>
     <string name="calibration_status_on">Calibration..</string>
     <string name="calibration_status_end">Calibration done</string>
     <string name="calibration_button_start">Start</string>

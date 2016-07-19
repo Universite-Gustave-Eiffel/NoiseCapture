@@ -3,23 +3,33 @@
     <meta content="text/html; charset=windows-1252" http-equiv="content-type">
     <basefont size="3">
     <link rel="stylesheet" href="style/style.css">
-    <script async="" defer="defer" src="https://buttons.github.io/buttons.js"></script>
     <title>About</title>
   </head>
   <body> <img src="images/logo_NoiseCapture.png" alt="NoiseCapture App" style="width:100px">
     <br>
-    Copyright (C)<br>
-    IFSTTAR (LAE) &amp; Lab-STICC CNRS UMR 6285 (Equipe DECIDE Vannes)
-    <h2>Description</h2>
+    Copyright © Isttar, CNRS - All rights reserved<br>
+    <br>
+    <span style="color: #0099cc;">Content:</span><br>
+    <ul>
+      <li><a href="#about_description">Description</a></li>
+      <li><a href="#about_developments">Developments</a></li>
+      <li><a href="#about_funding">Funding</a></li>
+      <li><a href="#about_license">License</a></li>
+      <li><a href="#about_others_license">Third party library licenses</a></li>
+      <li><a href="#about_contributing"><span style="text-decoration: underline;">Contributing</span></a></li>
+      <li><span style=" text-decoration: underline;"><a href="#about_privacy">Privacy</a><br>
+        </span></li>
+    </ul>
+    <h2><a name="about_description"></a>Description</h2>
     NoiseCapture is an Android App <b>research project</b> for measuring
     environmental noise using a smartphone. The goal is to produce relevant
     noise indicators from audio recordings, including a geospatial
     representation.
-    <h2>Developments</h2>
+    <h2><a name="about_developments"></a>Developments</h2>
     NoiseCapture is a collaboration between the <a title="LAE website" href="www.lae.ifsttar.fr">Environmental
       Acoustic Laboratory</a> (Ifsttar) and the <a title="Lab-STICC website" href="http://www.lab-sticc.fr/">Lab-STICC
-      CNRS</a>.<br>
-    <h2>Funding</h2>
+      CNRS</a> (DECIDE team).
+    <h2><a name="about_funding"></a>Funding</h2>
     This application is co-funded by the <b>ENERGIC-OD Research Project</b>
     (European Network for Redistributing Geospatial Information to user
     Communities - Open Data). ENERGIC-OD (<a href="http://www.energic-od.eu/">http://www.energic-od.eu/</a>)
@@ -27,7 +37,7 @@
     of the Competitiveness and Innovation Framework Programme by the European
     Community. The application work is also supported by the French geographic
     portal <b>GEOPAL</b> of the Pays de la Loire region (<a href="http://www.geopal.org">http://www.geopal.org</a>).
-    <h2>Licence</h2>
+    <h2><a name="about_license"></a>License</h2>
     <span style="font-weight: bold;">NoiseCapture is a free software</span>; you
     can redistribute it and/or modify it under the terms of the GNU General
     Public License as published by the Free Software Foundation; either version
@@ -35,12 +45,36 @@
     distributed in the hope that it will be useful,but WITHOUT ANY WARRANTY;
     without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
     PARTICULAR PURPOSE.
-    <h2>Source Code</h2>
-    <p>Feel free to explore the code and to fork the project on GitHub: <a title="https://github.com/Ifsttar/NoiseCapture"
-
-        href="https://github.com/Ifsttar/NoiseCapture">https://github.com/Ifsttar/NoiseCapture</a></p>
-    <h2>Report an issue</h2>
-    <p>If you experience some issues, please report them to <a href="https://github.com/Ifsttar/NoiseCapture/issues">https://github.com/Ifsttar/NoiseCapture/issues</a></p>
-          
+    <h2><a name="about_others_license"></a>Third party library licenses</h2>
+    <ul>
+      <li>MPAndroidChart v2.2.5: Copyright 2016 Philipp Jahoda. Licensed under
+        the Apache License;</li>
+      <li>slf4j v1.7.12: Copyright (c) 2004-2013, QOS.ch. Source code and
+        binaries are distributed under the MIT license;</li>
+      <li>JTransforms v3.1: Copyright (c) 2007 onward, Piotr Wendykier. Source
+        code and binaries are distributed under the BSD 2-Clause licence;</li>
+      <li>Apache commons-math library: Licensed to the Apache Software
+        Foundation (ASF)</li>
+    </ul>
+    <h2><a name="about_contributing"></a>Contributing</h2>
+    <ul>
+      <li>Source code: Feel free to explore the code and to fork the project on
+        GitHub: <a title="https://github.com/Ifsttar/NoiseCapture" href="https://github.com/Ifsttar/NoiseCapture">https://github.com/Ifsttar/NoiseCapture</a></li>
+      <li>Report an issue: If you experience some issues, please report them to
+        <a href="https://github.com/Ifsttar/NoiseCapture/issues">https://github.com/Ifsttar/NoiseCapture/issues</a></li>
+    </ul>
+    <h2><a name="about_privacy"></a>Privacy
+    </h2>
+    <p><span style="font-weight: bold;">NoiseCapture respect your private life:</span></p>
+    <ul>
+      <li>No data are uploaded to the server until your valid the <span style="font-weight: bold;">Data
+          transfer </span>options in the<span style="font-weight: bold;">
+          Settings </span>parameters (see <a href="help.html">Help</a> page);</li>
+      <li>When <span style="font-weight: bold;">Data transfer</span> are
+        enable, <span style="text-decoration: underline;">only anonymous data
+          are uploaded</span>;</li>
+      <li>NoiseCapture needs only permissions that are are required for
+        measuring and transferring data.</li>
+    </ul>
   </body>
 </html>

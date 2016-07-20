@@ -42,8 +42,8 @@
       <li><a href="#about_resources"><span style="text-decoration: underline;">Resources</span></a></li>
     </ul>
     <p class="p_warning"> &#9888; NoiseCapture is an application, made by experts, but
-      do not remember that it will never replace a professional sonometer. If
-      you need a professional assistance, please contact a specialist.</p>
+      do not forget that it will never replace a professional sonometer. If you
+      need a professional assistance, please contact a specialist.</p>
     <ul>
     </ul>
     <ul>
@@ -101,8 +101,8 @@
     <p class="p_inf">&#10071; Depending on the corresponding <span style="font-weight: bold;">Settings
         </span>value, some elements of the description can be uploaded to the
       server. Only the anonymous elements 'Pleasantness' and 'Tags' are uploads.
-      The 'Description', as well as, the 'Picture', are store on your smartphone
-      only and, thus, not uploaded.</p>
+      The 'Description', as well as, the 'Picture', are stored on your
+      smartphone only and, thus, not uploaded.</p>
     <span style="color: #0099cc;"> </span>
     <h2> <a name="analyse_results"></a>Analyze results</h2>
     <p>On the <span style="font-weight: bold;">Results </span>menu item, you
@@ -123,7 +123,7 @@
           measurement period. LA90 is a useful descriptor to quantify the <span
             style="font-weight: bold;">background noise level</span>;</li>
         <li>LA50: A-weighted noise level that is exceeded for 50% of the
-          measurement period. LA50is the <span style="font-weight: bold;">median
+          measurement period. LA50 is the <span style="font-weight: bold;">median
             sound level</span>;</li>
         <li>LA10: A-weighted noise level that is exceeded for 10% of the
           measurement period. LA10&nbsp; is a useful descriptor of road traffic
@@ -134,7 +134,7 @@
         dB(A), on the whole measurement duration [at the center of colored
         circle];</li>
       <li><span style="font-weight: bold;">repartition of the noise exposure </span>(RNE):
-        this indicator represent the distribution over the time of your noise
+        this indicator represents the distribution over the time of your noise
         exposure. Each of the five colors correspond to a given noise level
         range.</li>
       <li>a <span style="font-weight: bold;">noise level spectrum</span>,
@@ -164,9 +164,9 @@
     <h2> <a name="explore_history"></a>Explore the measurement history</h2>
     <p>On the <span style="font-weight: bold;">History </span>menu item, users
       can access to all measurements that are stored in the smartphone memory. </p>
-    <p>All measurement that are done with the smartphone are archived in the
-      history. You can access to the state of the measurement ('Upload' or 'Not
-      upload' to the server) with the 'Cloud' symbol, </p>
+    <p>All measurement that are performed with the smartphone are archived in
+      the history. You can access to the state of the measurement ('Upload' or
+      'Not upload' to the server) with the 'Cloud' symbol, </p>
     <p>By tapping on item from the history, you can:</p>
     <ul>
       <li>'Upload to the community': if the corresponding measurement has not be
@@ -193,7 +193,7 @@
     <p class="p_inf">&#10071; If a measurement is removed from the history, but was
       previously transferred to the web server, it is not removed from the web
       server. Remember that all data that are uploaded to the server are
-      anonymized; thus, be confident! (see Privacy)</p>
+      anonymized; thus, be confident! (see <a href="about.html">Privacy</a>)</p>
     <ul>
     </ul>
     <h2> <a name="smartphone_calibration"></a>Calibrate your smartphone</h2>
@@ -202,7 +202,7 @@
     <p class="p_warning">&#9888; The smartphone calibration is a crucial and necessary
       step. Without calibration, you can be sure that the measured data will be
       wrong!</p>
-    <p>The methodology is the based on the knowledge of a <span style="font-weight: bold;">Reference
+    <p>The methodology is based on the knowledge of a <span style="font-weight: bold;">Reference
         value </span>for the equivalent noise level Leq (in dB, not in dB(A))
       for a given duration, from a reference device (an acoustic calibrator, a
       calibrated smartphone, a sound level meter). The calibration can be
@@ -211,7 +211,7 @@
       compared to the <span style="font-weight: bold;">Measured Leq </span>(in
       dB) using the smartphone. The difference between these two values gives a
       <span style="font-weight: bold;">correction factor</span> (i.e. the signal
-      gain) that will be applied to the input signal at the next measurements.</p>
+      gain) that will be applied to the input signal.</p>
     <p class="p_warning">&#9888; The correction factor is applied for the whole
       signal. Multi-frequency calibration is not possible for now.</p>
     <ul>
@@ -226,7 +226,8 @@
           Before calibration starts, you have a warm-up time that can help you
           to prepare your calibration (prepare to turn on the reference device,
           if necessary). Then, the calibration measurement starts for a given
-          duration, which should be the same that for the reference device. <span
+          duration. For a better accuracy, the measurement duration should be
+          the same both for the smartphone and for the reference device. <span
             style="color: #33cc00;"><br>
           </span></li>
         <li>Once the measurement is done, enter the <span style="font-weight: bold;">Reference
@@ -333,11 +334,11 @@
           omnidirectional microphone</span>.</li>
     </ul>
     <span style="color: #0099cc;">In addition, if you want to produce noise
-      measurements that will be very useful for producing collaborative noise
-      maps, please:</span><br>
+      measurements that will be very useful for producing collaborative
+      (outdoor) noise maps, please check these points:</span><br>
     <ul>
-      <li>The measurement must be done <span style="font-weight: bold;">outside
-          buildings</span>;</li>
+      <li>The measurement must be <span style="font-weight: bold;">performed
+          outside buildings</span>;</li>
       <li>The measurement must be done when the <span style="font-weight: bold;">GPS
           signal is correct</span>;</li>
       <li><span style="font-weight: bold;">'Tags' must be specified</span> when

@@ -522,6 +522,10 @@ public class MeasurementActivity extends MainActivity implements
     }
 
     private void initGuiState() {
+        if(measurementService == null) {
+            // measurementService is required
+            return;
+        }
         // Update buttons: cancel enabled; record button to stop;
         // Show start measure hint
         TextView overlayMessage = (TextView) findViewById(R.id.textView_message_overlay);
@@ -817,8 +821,9 @@ public class MeasurementActivity extends MainActivity implements
         if(measurementService == null) {
             // Reconnect from measurement
             doBindService();
+        } else {
+            initGuiState();
         }
-        initGuiState();
     }
 
     @Override

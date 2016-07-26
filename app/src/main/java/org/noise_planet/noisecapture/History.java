@@ -163,19 +163,6 @@ public class History extends MainActivity {
         }
     }
 
-    private static final class HistoryItemSelectionListener implements View.OnLongClickListener {
-        private History history;
-
-        public HistoryItemSelectionListener(History history) {
-            this.history = history;
-        }
-
-        @Override
-        public boolean onLongClick(View v) {
-            return false;
-        }
-    }
-
     private static final class HistoryItemListener implements OnItemClickListener {
         private History historyActivity;
 

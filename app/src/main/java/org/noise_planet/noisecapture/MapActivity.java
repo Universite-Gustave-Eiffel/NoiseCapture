@@ -126,7 +126,6 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
     @Override
     public void onMapLoaded() {
         Resources res = getResources();
-        mMap.clear();
         Spinner spinner = (Spinner) findViewById(R.id.spinner_map);
         boolean onlySelected = spinner.getSelectedItemPosition() == 0;
         // Add markers and move the camera.
@@ -181,22 +180,25 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
                     .getSupportFragmentManager();
             SupportMapFragment mapFragment = ((SupportMapFragment)fragmentManager.findFragmentById(R.id.map));
             WebView webView = (WebView) mapActivity.findViewById(R.id.webmapview);
+            if(webView == null) {
+                return;
+            }
             if(position <= 1) {
                 if(mapFragment != null && mapFragment.isHidden()) {
                     fragmentManager.beginTransaction()
                                    .show(mapFragment).commit();
                     webView.setVisibility(View.GONE);
                 }
-                mapActivity.onMapLoaded();
+                if(mapActivity.mMap != null) {
+                    mapActivity.onMapLoaded();
+                }
             } else {
                 // TODO server side map
                 if(mapFragment != null) {
                     fragmentManager.beginTransaction()
                                    .hide(mapFragment).commit();
                     webView.setVisibility(View.VISIBLE);
-                    if(webView != null) {
-                        mapActivity.loadWebView();
-                    }
+                    mapActivity.loadWebView();
                 }
             }
         }

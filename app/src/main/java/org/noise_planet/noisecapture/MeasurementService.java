@@ -539,9 +539,11 @@ public class MeasurementService extends Service {
                 }
             } else if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName
                     ())) {
-                AudioProcess.AudioMeasureResult measure =
-                        (AudioProcess.AudioMeasureResult) event.getNewValue();
-                measurementService.leqStatsFast.addLeq(measure.getSignalLeq());
+                if (measurementService.isStoring() && !measurementService.isPaused.get()) {
+                    AudioProcess.AudioMeasureResult measure =
+                            (AudioProcess.AudioMeasureResult) event.getNewValue();
+                    measurementService.leqStatsFast.addLeq(measure.getSignalLeq());
+                }
             } else if (AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
                 if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
                     if(measurementService.recordId > -1) {

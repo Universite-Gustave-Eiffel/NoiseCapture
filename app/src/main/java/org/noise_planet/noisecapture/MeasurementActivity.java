@@ -818,10 +818,8 @@ public class MeasurementActivity extends MainActivity implements
     @Override
     protected void onRestart() {
         super.onRestart();
-        if(measurementService == null) {
-            // Reconnect from measurement
-            doBindService();
-        } else {
+        doBindService();
+        if(measurementService != null) {
             initGuiState();
         }
     }

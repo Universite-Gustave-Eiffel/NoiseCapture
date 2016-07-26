@@ -1,6 +1,6 @@
 <html>
     <head>
-        <title>Demo leaflet.TileLayer.WMTS</title>
+        <title>NoiseCapture interactive community map</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
         <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
@@ -9,9 +9,138 @@
     <body>
         <div id="map" style="height: 100%; width: 100%"></div>
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+    <script src="proj4.js"></script>
     <script src="L.TileLayer.BetterWMS.js"></script>
         <script>
-<!-- https://gist.github.com/rclark/6908938 -->
+<!-- http://www.redblobgames.com/grids/hexagons -->
+var hexOverlay = null;
+// Hex size
+var size = 25.;
+
+// While moving the mouse do not redraw if hex coordinate is the same
+var lastDrawnHex = {q:0, r:0};
+
+/**
+ * @param hex Hex index
+ * @return Local coordinate of hexagon index
+ */
+function hex_to_meter(hex) {
+    x = size * Math.sqrt(3.) * (hex.q + hex.r/2.);
+    y = size * 3./2. * hex.r;
+    return {x:x, y:y};
+}
+	
+/**
+ * @param center Hex center position
+ * @param size Hex size
+ * @param i Vertex [0-5]
+ * @return Vertex coordinate
+ */
+function hex_corner(center, size, i) {
+    var angle_deg = 60. * i   + 30.;
+    var angle_rad = Math.PI / 180. * angle_deg;
+    return {x:center.x + size * Math.cos(angle_rad), y:center.y + size * Math.sin(angle_rad)};
+ }
+
+/**
+ * @param hex Hex index
+ * @return x,y,z cube index
+ */
+function hex_to_cube(h) {
+    var x = h.q
+    var z = h.r
+    var y = -x-z
+    return {x:x, y:y, z:z}
+}
+
+/**
+ * @param h Cube index
+ * @return q,r hex index
+ */
+function cube_to_hex(h) {
+    var q = h.x
+    var r = h.z
+    return {q:q, r:r}
+}
+	
+/**
+ * @param h aproximate cube index
+ * @return h Cube index
+ */
+function cube_round(h) {
+    var rx = Math.round(h.x);
+    var ry = Math.round(h.y);
+    var rz = Math.round(h.z);
+
+    var x_diff = Math.abs(rx - h.x);
+    var y_diff = Math.abs(ry - h.y);
+    var z_diff = Math.abs(rz - h.z);
+
+    if (x_diff > y_diff && x_diff > z_diff)
+        rx = -ry-rz
+    else if (y_diff > z_diff)
+        ry = -rx-rz
+    else
+        rz = -rx-ry
+
+    return {x:rx, y:ry, z:rz}
+}
+
+/**
+ * @param h aprox hex index
+ * @return h hex index
+ */
+function hex_round(h) {
+    return cube_to_hex(cube_round(hex_to_cube(h)));
+}
+
+/**
+ * @param x x coordinate
+ * @param y y coordinate
+ * @return q,r hex index
+ */
+function meterToHex(x, y) {
+    var q = (x * Math.sqrt(3.)/3. - y / 3.) / size;
+    var r = y * 2./3. / size;
+    return hex_round({q:q, r:r});
+}
+
+/**
+ *	Mousemove callback function updating labels and input elements
+ */
+function updateHexOverlay(evt) {
+	var pos = evt.latlng,
+		opts = this.options;
+	if (pos) {
+		pos = pos.wrap();
+		gPos = proj4('EPSG:3857', [pos.lat, pos.lng]);
+		hPos = meterToHex(gPos[0], gPos[1]);
+		if(lastDrawnHex.q != hPos.q || lastDrawnHex.r != hPos.r) {
+			if(hexOverlay) {
+				map.removeLayer(hexOverlay)
+			}
+			lastDrawnHex = hPos;
+			// Compute corners of hex
+			var center = hex_to_meter(hPos)
+			var vertices = []			
+			for(i=0;i<6;i++) {
+				var v = hex_corner(center, size, i);
+				var vGPos = proj4('EPSG:3857','EPSG:4326', [v.x, v.y]);
+				vertices.push(new L.LatLng(vGPos[0],vGPos[1]));
+			}
+			// Close the ring
+			vertices.push(vertices[0]);
+			hexOverlay = new L.Polyline(vertices, {
+			color: 'gray',
+			clickable: false,
+			weight: 3,
+			opacity: 0.5,
+			smoothFactor: 1
+			});
+			hexOverlay.addTo(map);
+		}
+	}
+}
 
 var map = L.map('map').setView([47.1535576,-1.6542087], 13);
 
@@ -19,8 +148,8 @@ var osm =  L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
   });
 var url = "http://onomap-gs.noise-planet.org/geoserver/gwc/service/wms";
-var onomap = L.tileLayer.betterWms(url, {
-	layers: 'noisecapture:todaypoints',
+var onomap = L.tileLayer.wms(url, {
+	layers: 'noisecapture:noisecapture_point',
 	transparent: true,
 	format: 'image/png'
   })
@@ -28,6 +157,9 @@ L.control.scale({'position':'bottomleft','metric':true,'imperial':false}).addTo(
 
 map.addLayer(osm)
 map.addLayer(onomap)
+
+map.on("mousemove", updateHexOverlay, this);
+
   
 var baseLayers = {"OpenStreetMap" : osm};
 

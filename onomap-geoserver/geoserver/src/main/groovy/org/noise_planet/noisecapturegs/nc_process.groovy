@@ -28,9 +28,11 @@
 
 package org.noise_planet.noisecapturegs
 
+import com.vividsolutions.jts.geom.Coordinate
 import groovy.sql.Sql
 import java.sql.Connection
 import java.sql.SQLException
+import java.sql.Timestamp
 
 
 title = 'nc_process'
@@ -44,29 +46,103 @@ outputs = [
         result: [name: 'result', title: 'Processed cells', type: Integer.class]
 ]
 
+/**
+ * Fetch all measurements within a range and compute local stats over this area
+ * @param hex
+ * @param range
+ * @param sql
+ */
+def processArea(Hex hex, float range, Sql sql) {
+    def Pos center = hex.toMeter()
+    def Coordinate centerCoord = center.toCoordinate();
+    def geom = "POINT( " + center.x + " " + center.y + ")"
+    float sumLeq = 0;
+    int pointCount = 0;
+    float sumPleasantness = 0
+    int pleasantnessCount = 0
+    long firstUtc = 0;
+    long lastUtc = 0;
+    sql.eachRow("SELECT ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY, p.noise_level," +
+            " t.pleasantness,time_date FROM noisecapture_point p, NOISECAPTURE_TRACK t WHERE " +
+            "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom ORDER BY time_date", [geom: geom, range: range])
+            { row ->
+                Pos pos = new Pos(x: row.PTX, y: row.PTY)
+                if (pos.toCoordinate().distance(centerCoord) < range) {
+                    if(firstUtc == 0) {
+                        firstUtc = row.time_date
+                    }
+                    lastUtc = row.time_date
+                    if (row.pleasantness) {
+                        pleasantnessCount++;
+                        sumPleasantness += row.pleasantness;
+                    }
+                    pointCount++
+                    sumLeq += Math.pow(10.0, row.noise_level / 10.0)
+                }
+            }
+    // Delete old cell
+    sql.execute("DELETE FROM noisecapture_area a WHERE a.cell_q = :cellq and a.cell_r = :cellr", [cellq:hex.q, cellr:hex.r])
+
+    // Insert updated cell
+
+    // Create area geometry
+    def hexaGeom = new StringBuilder("POLYGON (")
+    for(int i=0; i<6 ; i++) {
+        Pos vertex = hex.hex_corner(center, i)
+        hexaGeom.append(vertex.x)
+        hexaGeom.append(" ")
+        hexaGeom.append(vertex.y)
+    }
+    hexaGeom.append(")")
+
+    // Prepare insert
+    def fields = [cell_q     : hex.q,
+                  cell_r : hex.r,
+                  the_geom     : hexaGeom,
+                  mean_leq     : 10 * Math.log10(sumLeq / pointCount),
+                  mean_pleasantness : sumPleasantness / pleasantnessCount,
+                  measure_count : pointCount,
+                  first_measure    : new Timestamp(firstUtc),
+                  last_measure: new Timestamp(lastUtc)]
+    sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, the_geom, mean_leq, mean_pleasantness," +
+            " measure_count, first_measure, last_measure) VALUES (:cell_q, :cell_r, " +
+            "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :mean_leq," +
+            " :mean_pleasantness, :measure_count, :first_measure, :last_measure)", fields)
+}
+
+/**
+ * Compute and process the list of area that contains new measurements
+ * @param connection
+ * @param precisionFilter
+ * @return
+ */
+
 def process(Connection connection, float precisionFilter) {
     float hexSize = 25.0
+    float hexRange = 25.0
     connection.setAutoCommit(false)
     int processed = 0
     try {
         // List the area identifier using the new measures coordinates
         def sql = new Sql(connection)
         Set<Hex> areaIndex = new HashSet()
-        def processedTrack = new HashSet()
-        sql.eachRow("SELECT ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY," +
-                " q.pk_track FROM noisecapture_process_queue q, noisecapture_point p " +
+        sql.eachRow("SELECT ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY FROM" +
+                " noisecapture_process_queue q, noisecapture_point p " +
                 "WHERE q.pk_track = p.pk_track and p.accuracy > :precision and NOT ST_ISEMPTY(p.the_geom)",
                 [precision: precisionFilter]) { row ->
-            areaIndex.add(new Pos(x:row.PTX, y:row.PTY).toHex(hexSize))
-            processedTrack.add(row.pk_track)
+            def hex = new Pos(x:row.PTX, y:row.PTY).toHex(hexSize)
+            areaIndex.add(hex)
+            //TODO use hexRange by navigating from hex to neighbors
         }
 
         // Process areas
         for (Hex hex : areaIndex) {
-
+            processArea(hex, hexRange, sql)
             processed++
         }
 
+        // Clear queue (since the beginning of transaction no new items has been added in queue)
+        sql.execute("DELETE FROM noisecapture_process_queue")
 
         // Accept changes
         connection.commit();
@@ -89,12 +165,16 @@ def run(input) {
 }
 
 class Pos {
-    def x
-    def y
+    double x
+    double y
     def toHex(float size) {
         def q = (x * Math.sqrt(3.0)/3.0 - y / 3.0) / size;
         def r = y * 2.0/3.0 / size;
         return new Hex(q:q, r:r, size:size).round();
+    }
+
+    def Coordinate toCoordinate() {
+        return new Coordinate(x, y)
     }
 }
 
@@ -103,10 +183,20 @@ class Hex {
     final float r
     final float size
 
+    static final def directions = [
+    new Hex(q:+1,  r:0), new Hex(q:+1, r:-1), new Hex(q:0, r:-1),
+    new Hex(q:-1,  r:0), new Hex(q:-1, r:+1),new Hex(q:0, r:+1)
+    ]
+
+    def neighbor(hex, int direction) {
+        def dir = directions[direction]
+        return new Hex(q:hex.q + dir.q, r:hex.r + dir.r, size:size)
+    }
+
     /**
      * @return Local coordinate of hexagon index
      */
-    def toMeter() {
+    def Pos toMeter() {
             def x = size * Math.sqrt(3.0) * (q + r/2.0);
             def y = size * 3.0/2.0 * r;
             return new Pos(x:x, y:y);

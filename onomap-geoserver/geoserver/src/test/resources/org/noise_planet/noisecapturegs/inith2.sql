@@ -66,17 +66,6 @@ CREATE TABLE NOISECAPTURE_USER (
     CONSTRAINT NOISECAPTURE_USER_PK PRIMARY KEY (PK_USER)
 );
 
-
-CREATE TABLE NOISECAPTURE_CALIBRATE (
-    PK_TRACK int NOT NULL,
-    FREQUENCY smallint NOT NULL,
-    DELTA float NOT NULL   ,
-    CONSTRAINT NOISECAPTURE_CALIBRATE_PK PRIMARY KEY (PK_TRACK, FREQUENCY) 
-);
-
-COMMENT ON COLUMN NOISECAPTURE_CALIBRATE.FREQUENCY IS 'Frequency Hz';
-COMMENT ON COLUMN NOISECAPTURE_CALIBRATE.DELTA IS 'Sound level delta in dB(A)';
-
 CREATE TABLE NOISECAPTURE_TAG (
     PK_TAG serial  NOT NULL,
 	TAG_NAME text NOT NULL
@@ -86,6 +75,12 @@ CREATE TABLE NOISECAPTURE_TRACK_TAG (
     PK_TRACK int NOT NULL,
     PK_TAG int NOT NULL   ,
     CONSTRAINT NOISECAPTURE_TRACK_TAG_PK PRIMARY KEY (PK_TRACK, PK_TAG)
+);
+
+
+-- Table: NOISECAPTURE_PROCESS_QUEUE, tracks inserted but not processed for community map
+CREATE TABLE NOISECAPTURE_PROCESS_QUEUE (
+    PK_TRACK int NOT NULL
 );
 
 --- Ajout des clés étangeres
@@ -103,6 +98,12 @@ CREATE INDEX fki_noisecapture_track_pk_user_fk
 CREATE INDEX fki_noisecapture_point_pk_track_fk
   ON noisecapture_point(pk_track);
 
+
+  ALTER TABLE noisecapture_process_queue
+  ADD CONSTRAINT noisecapture_process_queue_pk_track_fk FOREIGN KEY (pk_track) REFERENCES noisecapture_track (pk_track)
+   ON UPDATE CASCADE ON DELETE CASCADE;
+CREATE INDEX fki_noisecapture_process_queue_pk_track_fk
+  ON noisecapture_process_queue(pk_track);
 
   ALTER TABLE noisecapture_freq
   ADD CONSTRAINT noisecapture_freq_pk_point_fk FOREIGN KEY (pk_point) REFERENCES noisecapture_point (pk_point)

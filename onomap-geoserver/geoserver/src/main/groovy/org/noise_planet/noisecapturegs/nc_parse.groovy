@@ -206,6 +206,9 @@ def processFile(Connection connection, File zipFile) {
             }
         }
 
+        // Push track into process queue
+        Map processQueue = [pk_track : recordId]
+        sql.executeInsert("INSERT INTO NOISECAPTURE_PROCESS_QUEUE VALUES (:pk_track)", processQueue)
 
         // Accept changes
         connection.commit();
@@ -240,7 +243,7 @@ def Connection openPostgreSQLConnection() {
 }
 
 
-def Connection openPostgreSQLDataStoreConnection() {
+def static Connection openPostgreSQLDataStoreConnection() {
     Store store = new GeoServer().catalog.getStore("postgis")
     JDBCDataStore jdbcDataStore = (JDBCDataStore)store.getDataStoreInfo().getDataStore(null)
     return jdbcDataStore.getDataSource().getConnection()

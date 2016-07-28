@@ -126,6 +126,9 @@ function updateHexOverlay(evt) {
 			for(i=0;i<6;i++) {
 				var v = hex_corner(center, size, i);
 				var vGPos = proj4('EPSG:3857','EPSG:4326', [v.x, v.y]);
+				if(isNaN(vGPos[0]) || isNaN(vGPos[1])) {
+					return;
+				}
 				vertices.push(new L.LatLng(vGPos[0],vGPos[1]));
 			}
 			// Close the ring
@@ -149,7 +152,7 @@ var osm =  L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
   });
 var url = "http://onomap-gs.noise-planet.org/geoserver/gwc/service/wms";
 var onomap = L.tileLayer.wms(url, {
-	layers: 'noisecapture:noisecapture_point',
+	layers: 'noisecapture:noisecapture_area',
 	transparent: true,
 	format: 'image/png'
   })

@@ -63,15 +63,15 @@ def processArea(Hex hex, float range, Sql sql) {
     long firstUtc = 0;
     long lastUtc = 0;
     sql.eachRow("SELECT ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY, p.noise_level," +
-            " t.pleasantness,time_date FROM noisecapture_point p, NOISECAPTURE_TRACK t WHERE " +
-            "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom ORDER BY time_date", [geom: geom, range: range])
+            " t.pleasantness,EXTRACT(MILLISECOND FROM time_date) measureTime FROM noisecapture_point p, NOISECAPTURE_TRACK t WHERE " +
+            "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom ORDER BY time_date", [geom: geom.toString(), range: range])
             { row ->
                 Pos pos = new Pos(x: row.PTX, y: row.PTY)
                 if (pos.toCoordinate().distance(centerCoord) < range) {
                     if(firstUtc == 0) {
-                        firstUtc = row.time_date
+                        firstUtc = row.measureTime
                     }
-                    lastUtc = row.time_date
+                    lastUtc = row.measureTime
                     if (row.pleasantness) {
                         pleasantnessCount++;
                         sumPleasantness += row.pleasantness;
@@ -83,31 +83,45 @@ def processArea(Hex hex, float range, Sql sql) {
     // Delete old cell
     sql.execute("DELETE FROM noisecapture_area a WHERE a.cell_q = :cellq and a.cell_r = :cellr", [cellq:hex.q, cellr:hex.r])
 
+    if(pointCount == 0) {
+        return false;
+    }
     // Insert updated cell
 
     // Create area geometry
-    def hexaGeom = new StringBuilder("POLYGON (")
+    def hexaGeom = new StringBuilder()
     for(int i=0; i<6 ; i++) {
+        if(hexaGeom.length() != 0) {
+            hexaGeom.append(", ")
+        } else {
+            hexaGeom.append("POLYGON((")
+        }
         Pos vertex = hex.hex_corner(center, i)
         hexaGeom.append(vertex.x)
         hexaGeom.append(" ")
         hexaGeom.append(vertex.y)
     }
-    hexaGeom.append(")")
+    hexaGeom.append(", ")
+    Pos vertex = hex.hex_corner(center, 0)
+    hexaGeom.append(vertex.x)
+    hexaGeom.append(" ")
+    hexaGeom.append(vertex.y)
+    hexaGeom.append("))")
 
     // Prepare insert
-    def fields = [cell_q     : hex.q,
-                  cell_r : hex.r,
-                  the_geom     : hexaGeom,
-                  mean_leq     : 10 * Math.log10(sumLeq / pointCount),
-                  mean_pleasantness : sumPleasantness / pleasantnessCount,
-                  measure_count : pointCount,
+    def fields = [cell_q           : hex.q,
+                  cell_r           : hex.r,
+                  the_geom         : hexaGeom.toString(),
+                  mean_leq         : 10 * Math.log10(sumLeq / pointCount),
+                  mean_pleasantness: sumPleasantness / pleasantnessCount,
+                  measure_count    : pointCount,
                   first_measure    : new Timestamp(firstUtc),
-                  last_measure: new Timestamp(lastUtc)]
+                  last_measure     : new Timestamp(lastUtc)]
     sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, the_geom, mean_leq, mean_pleasantness," +
             " measure_count, first_measure, last_measure) VALUES (:cell_q, :cell_r, " +
             "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :mean_leq," +
             " :mean_pleasantness, :measure_count, :first_measure, :last_measure)", fields)
+    return true
 }
 
 /**
@@ -137,8 +151,9 @@ def process(Connection connection, float precisionFilter) {
 
         // Process areas
         for (Hex hex : areaIndex) {
-            processArea(hex, hexRange, sql)
-            processed++
+            if(processArea(hex, hexRange, sql)) {
+                processed++
+            }
         }
 
         // Clear queue (since the beginning of transaction no new items has been added in queue)
@@ -179,10 +194,30 @@ class Pos {
 }
 
 class Hex {
-    final float q
-    final float r
-    final float size
+    float q
+    float r
+    float size
 
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
+
+        Hex hex = (Hex) o
+
+        if (Float.compare(hex.q, q) != 0) return false
+        if (Float.compare(hex.r, r) != 0) return false
+        if (Float.compare(hex.size, size) != 0) return false
+
+        return true
+    }
+
+    int hashCode() {
+        int result
+        result = (q != +0.0f ? Float.floatToIntBits(q) : 0)
+        result = 31 * result + (r != +0.0f ? Float.floatToIntBits(r) : 0)
+        result = 31 * result + (size != +0.0f ? Float.floatToIntBits(size) : 0)
+        return result
+    }
     static final def directions = [
     new Hex(q:+1,  r:0), new Hex(q:+1, r:-1), new Hex(q:0, r:-1),
     new Hex(q:-1,  r:0), new Hex(q:-1, r:+1),new Hex(q:0, r:+1)
@@ -227,10 +262,10 @@ class Hex {
 }
 
 class Cube {
-    final float x
-    final float y
-    final float z
-    final float size
+    float x
+    float y
+    float z
+    float size
 
     def toHex() {
         return new Hex(q:x, r: z, size:size);

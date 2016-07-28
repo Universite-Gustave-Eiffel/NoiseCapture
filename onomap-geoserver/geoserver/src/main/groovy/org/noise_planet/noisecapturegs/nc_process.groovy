@@ -29,7 +29,11 @@
 package org.noise_planet.noisecapturegs
 
 import com.vividsolutions.jts.geom.Coordinate
+import geoserver.GeoServer
+import geoserver.catalog.Store
 import groovy.sql.Sql
+import org.geotools.jdbc.JDBCDataStore
+
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Timestamp
@@ -52,7 +56,7 @@ outputs = [
  * @param range
  * @param sql
  */
-def processArea(Hex hex, float range, Sql sql) {
+def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     def Pos center = hex.toMeter()
     def Coordinate centerCoord = center.toCoordinate();
     def geom = "POINT( " + center.x + " " + center.y + ")"
@@ -63,8 +67,8 @@ def processArea(Hex hex, float range, Sql sql) {
     def firstUtc;
     def lastUtc;
     sql.eachRow("SELECT ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY, p.noise_level," +
-            " t.pleasantness,time_date FROM noisecapture_point p, NOISECAPTURE_TRACK t WHERE " +
-            "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom ORDER BY time_date", [geom: geom.toString(), range: range])
+            " t.pleasantness,time_date FROM noisecapture_point p, NOISECAPTURE_TRACK t WHERE p.pk_track = t.pk_track AND p.accuracy < :precision AND " +
+            "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom ORDER BY time_date", [geom: geom.toString(), range: range, precision : precisionFiler])
             { row ->
                 Pos pos = new Pos(x: row.PTX, y: row.PTY)
                 if (pos.toCoordinate().distance(centerCoord) < range) {
@@ -142,7 +146,7 @@ def process(Connection connection, float precisionFilter) {
         Set<Hex> areaIndex = new HashSet()
         sql.eachRow("SELECT ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY FROM" +
                 " noisecapture_process_queue q, noisecapture_point p " +
-                "WHERE q.pk_track = p.pk_track and p.accuracy > :precision and NOT ST_ISEMPTY(p.the_geom)",
+                "WHERE q.pk_track = p.pk_track and p.accuracy < :precision and NOT ST_ISEMPTY(p.the_geom)",
                 [precision: precisionFilter]) { row ->
             def hex = new Pos(x:row.PTX, y:row.PTY).toHex(hexSize)
             areaIndex.add(hex)
@@ -151,7 +155,7 @@ def process(Connection connection, float precisionFilter) {
 
         // Process areas
         for (Hex hex : areaIndex) {
-            if(processArea(hex, hexRange, sql)) {
+            if(processArea(hex, hexRange, precisionFilter, sql)) {
                 processed++
             }
         }
@@ -168,12 +172,17 @@ def process(Connection connection, float precisionFilter) {
     return processed
 }
 
+def Connection openPostgreSQLDataStoreConnection() {
+    Store store = new GeoServer().catalog.getStore("postgis")
+    JDBCDataStore jdbcDataStore = (JDBCDataStore)store.getDataStoreInfo().getDataStore(null)
+    return jdbcDataStore.getDataSource().getConnection()
+}
 
 def run(input) {
     // Open PostgreSQL connection
-    Connection connection = nc_parse.openPostgreSQLDataStoreConnection()
+    Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : process(connection, (float)input)]
+        return [result : process(connection, input["locationPrecisionFilter"])]
     } finally {
         connection.close()
     }

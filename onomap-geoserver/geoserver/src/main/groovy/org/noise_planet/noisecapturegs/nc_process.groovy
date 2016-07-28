@@ -60,18 +60,18 @@ def processArea(Hex hex, float range, Sql sql) {
     int pointCount = 0;
     float sumPleasantness = 0
     int pleasantnessCount = 0
-    long firstUtc = 0;
-    long lastUtc = 0;
+    def firstUtc;
+    def lastUtc;
     sql.eachRow("SELECT ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY, p.noise_level," +
-            " t.pleasantness,EXTRACT(MILLISECOND FROM time_date) measureTime FROM noisecapture_point p, NOISECAPTURE_TRACK t WHERE " +
+            " t.pleasantness,time_date FROM noisecapture_point p, NOISECAPTURE_TRACK t WHERE " +
             "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom ORDER BY time_date", [geom: geom.toString(), range: range])
             { row ->
                 Pos pos = new Pos(x: row.PTX, y: row.PTY)
                 if (pos.toCoordinate().distance(centerCoord) < range) {
-                    if(firstUtc == 0) {
-                        firstUtc = row.measureTime
+                    if(firstUtc == null) {
+                        firstUtc = row.time_date
                     }
-                    lastUtc = row.measureTime
+                    lastUtc = row.time_date
                     if (row.pleasantness) {
                         pleasantnessCount++;
                         sumPleasantness += row.pleasantness;
@@ -115,8 +115,8 @@ def processArea(Hex hex, float range, Sql sql) {
                   mean_leq         : 10 * Math.log10(sumLeq / pointCount),
                   mean_pleasantness: sumPleasantness / pleasantnessCount,
                   measure_count    : pointCount,
-                  first_measure    : new Timestamp(firstUtc),
-                  last_measure     : new Timestamp(lastUtc)]
+                  first_measure    : firstUtc,
+                  last_measure     : lastUtc]
     sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, the_geom, mean_leq, mean_pleasantness," +
             " measure_count, first_measure, last_measure) VALUES (:cell_q, :cell_r, " +
             "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :mean_leq," +

@@ -114,7 +114,7 @@ function updateHexOverlay(evt) {
 	if (pos) {
 		pos = pos.wrap();
 		gPos = proj4('EPSG:3857', [pos.lat, pos.lng]);
-		hPos = meterToHex(gPos[0], gPos[1]);
+		hPos = meterToHex(gPos[1], gPos[0]);
 		if(lastDrawnHex.q != hPos.q || lastDrawnHex.r != hPos.r) {
 			if(hexOverlay) {
 				map.removeLayer(hexOverlay)
@@ -125,7 +125,7 @@ function updateHexOverlay(evt) {
 			var vertices = []			
 			for(i=0;i<6;i++) {
 				var v = hex_corner(center, size, i);
-				var vGPos = proj4('EPSG:3857','EPSG:4326', [v.x, v.y]);
+				var vGPos = proj4('EPSG:3857','EPSG:4326', [v.y, v.x]);
 				if(isNaN(vGPos[0]) || isNaN(vGPos[1])) {
 					return;
 				}

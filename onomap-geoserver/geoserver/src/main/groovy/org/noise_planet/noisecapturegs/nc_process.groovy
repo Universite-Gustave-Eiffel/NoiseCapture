@@ -136,7 +136,7 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
  */
 
 def process(Connection connection, float precisionFilter) {
-    float hexSize = 25.0
+    float hexSize = 3.0
     float hexRange = 25.0
     connection.setAutoCommit(false)
     int processed = 0
@@ -150,7 +150,15 @@ def process(Connection connection, float precisionFilter) {
                 [precision: precisionFilter]) { row ->
             def hex = new Pos(x:row.PTX, y:row.PTY).toHex(hexSize)
             areaIndex.add(hex)
-            //TODO use hexRange by navigating from hex to neighbors
+            // use hexRange by navigating from hex to neighbors
+            def centerCube = hex.toCube()
+            def final int n = (int)Math.ceil(hexRange / hexSize)
+            for(int dx = -n; dx <= n; dx++) {
+                for(int dy = Math.max(-n, -dx-n); dy <= Math.min(n, -dx+n); dy++) {
+                    def dz = -dx-dy
+                    areaIndex.add(new Cube(x:dx+centerCube.x, y:dy+centerCube.y, z:dz+centerCube.z, size:hexSize).toHex())
+                }
+            }
         }
 
         // Process areas

@@ -15,7 +15,7 @@
 <!-- http://www.redblobgames.com/grids/hexagons -->
 var hexOverlay = null;
 // Hex size
-var size = 25.;
+var size = 15.;
 
 // While moving the mouse do not redraw if hex coordinate is the same
 var lastDrawnHex = {q:0, r:0};
@@ -113,9 +113,10 @@ function updateHexOverlay(evt) {
 		opts = this.options;
 	if (pos) {
 		pos = pos.wrap();
-		gPos = proj4('EPSG:3857', [pos.lat, pos.lng]);
-		hPos = meterToHex(gPos[1], gPos[0]);
+		gPos = proj4('EPSG:3857', [pos.lng, pos.lat]);
+		hPos = meterToHex(gPos[0], gPos[1]);
 		if(lastDrawnHex.q != hPos.q || lastDrawnHex.r != hPos.r) {
+			//console.log("EPSG:3857 = " + gPos + "; EPSG:4326 = " + pos)
 			if(hexOverlay) {
 				map.removeLayer(hexOverlay)
 			}
@@ -125,11 +126,13 @@ function updateHexOverlay(evt) {
 			var vertices = []			
 			for(i=0;i<6;i++) {
 				var v = hex_corner(center, size, i);
-				var vGPos = proj4('EPSG:3857','EPSG:4326', [v.y, v.x]);
+				
+				var vGPos = proj4('EPSG:3857','EPSG:4326', [v.x, v.y]);
+				
 				if(isNaN(vGPos[0]) || isNaN(vGPos[1])) {
 					return;
 				}
-				vertices.push(new L.LatLng(vGPos[0],vGPos[1]));
+				vertices.push(new L.LatLng(vGPos[1],vGPos[0]));
 			}
 			// Close the ring
 			vertices.push(vertices[0]);
@@ -145,7 +148,7 @@ function updateHexOverlay(evt) {
 	}
 }
 
-var map = L.map('map').setView([47.1535576,-1.6542087], 13);
+var map = L.map('map').setView([47.1535576,-1.6502087], 16);
 
 var osm =  L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'

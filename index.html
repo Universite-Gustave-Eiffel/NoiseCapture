@@ -11,6 +11,32 @@
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script src="proj4.js"></script>
     <script src="L.TileLayer.OnoMap.js"></script>
+    <script src="leaflet-hash.js"></script>
+	<style>
+	.info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+	}
+	.info h4 {
+		margin: 0 0 5px;
+		color: #777;
+	}
+	.legend {
+    line-height: 18px;
+    color: #555;
+}
+.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+}
+	</style>
         <script>
 
 var map = L.map('map').setView([47.1535576,-1.6502087], 16);
@@ -32,6 +58,27 @@ map.addLayer(onomap)
 var baseLayers = {"OpenStreetMap" : osm};
 
 L.control.layers(baseLayers, {"Carte Onomap" : onomap}).addTo(map);  
+
+var hash = new L.Hash(map);
+
+var legend = L.control({position: 'bottomright'});
+
+legend.onAdd = function (map) {
+
+    var div = L.DomUtil.create('div', 'info legend'),
+        labels = [];
+	// loop through our density intervals and generate a label with a colored square for each interval
+	var color = {30:"#82A6AD", 35:"#A0BABF", 40:"#B8D6D1", 45:"#CEE4CC", 50:"#E2F2BF", 55:"#F3C683", 60:"#E87E4D", 65:"#CD463E", 70:"#A11A4D", 75:"#75085C", 80:"#430A4A"};
+    for (var i = 30; i <= 80; i+=5) {
+        div.innerHTML +=
+            '<i style="background:' + color[i] + '"></i> ' +
+            i + (i<80 ? ' &lt; ' + (i + 5) + '<br>' : ' +') ;
+    }
+
+    return div;
+};
+
+legend.addTo(map);
 
         </script>
     </body>

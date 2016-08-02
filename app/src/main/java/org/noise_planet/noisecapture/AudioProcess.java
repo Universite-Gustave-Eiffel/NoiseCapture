@@ -117,6 +117,7 @@ public class AudioProcess implements Runnable {
 
     public void setHannWindowFast(boolean hannWindowFast) {
         this.hannWindowFast = hannWindowFast;
+        fftLeqProcessing.initSampleBuffer();
     }
 
     public void setHannWindowOneSecond(boolean hannWindowOneSecond) {
@@ -275,13 +276,10 @@ public class AudioProcess implements Runnable {
     private static final class MovingLeqProcessing implements Runnable {
         private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
         private final AudioProcess audioProcess;
+        private short[] sampleBuffer;
         private AtomicBoolean processing = new AtomicBoolean(false);
         private FFTSignalProcessing signalProcessing;
-        // rectangular : 125 ms or hann 375 ms
-        private short[] sampleBuffer;
-        private AudioMeasureResult audioMeasureResultTMinus2;
-        private AudioMeasureResult audioMeasureResultTMinus1;
-        private AudioMeasureResult audioMeasureResultT0;
+        private double leq = 0;
 
         // 0.066 mean 15 fps max
         public final static double FFT_TIMELENGTH_FACTOR = Math.min(1, AcousticIndicators.TIMEPERIOD_FAST);
@@ -294,11 +292,17 @@ public class AudioProcess implements Runnable {
         public MovingLeqProcessing(AudioProcess audioProcess) {
             this.audioProcess = audioProcess;
             expectedFFTSize = (int)(audioProcess.getRate() * FFT_TIMELENGTH_FACTOR);
-            this.sampleBuffer = new short[audioProcess.hannWindowFast ?  : expectedFFTSize];
+            initSampleBuffer();
             fftCenterFreq = FFTSignalProcessing.computeFFTCenterFrequency(REALTIME_SAMPLE_RATE_LIMITATION);
             this.signalProcessing = new FFTSignalProcessing(audioProcess.getRate(),
                     fftCenterFreq, expectedFFTSize);
             thirdOctaveSplLevels = new float[fftCenterFreq.length];
+        }
+
+        private void initSampleBuffer() {
+            this.sampleBuffer = new short[audioProcess.hannWindowFast ?
+                    (int)(Math.ceil(audioProcess.getRate() * (5. / 3.) * FFT_TIMELENGTH_FACTOR ))
+                    : expectedFFTSize];
         }
 
         /**
@@ -313,22 +317,7 @@ public class AudioProcess implements Runnable {
         }
 
         public double getLeq() {
-            if(audioProcess.hannWindowFast) {
-                // If hann window, do energetic sum of last 3 leq
-                double sum = 0;
-                if(audioMeasureResultT0 != null) {
-                    sum += Math.pow(10, audioMeasureResultT0.getGlobaldBaValue() / 10.);
-                }
-                if(audioMeasureResultTMinus1 != null) {
-                    sum += Math.pow(10, audioMeasureResultTMinus1.getGlobaldBaValue() / 10.);
-                }
-                if(audioMeasureResultTMinus2 != null) {
-                    sum += Math.pow(10, audioMeasureResultTMinus2.getGlobaldBaValue() / 10.);
-                }
-                return 10 * Math.log10(sum);
-            } else {
-                return audioMeasureResultT0.getGlobaldBaValue();
-            }
+            return leq;
         }
 
         /**
@@ -344,40 +333,47 @@ public class AudioProcess implements Runnable {
 
         private void processSample(int pushedSamples) {
             if((pushedSamples - lastProcessedSpectrum) / (double)audioProcess.getRate() >
-                    (audioProcess.hannWindowFast ? SECOND_FIRE_MOVING_SPECTRUM / 3.  : SECOND_FIRE_MOVING_SPECTRUM)) {
-                    lastProcessedSpectrum = pushedSamples;
-                    FFTSignalProcessing.ProcessingResult result =
-                            signalProcessing.processSample(audioProcess.hannWindowFast,
+                    (audioProcess.hannWindowFast ? SECOND_FIRE_MOVING_SPECTRUM / 3.
+                            : SECOND_FIRE_MOVING_SPECTRUM)) {
+                lastProcessedSpectrum = pushedSamples;
+                FFTSignalProcessing.ProcessingResult result;
+                if(audioProcess.hannWindowFast) {
+                    // Window, energetic sum of overlapping
+                    int step = (int)(audioProcess.getRate() * (SECOND_FIRE_MOVING_SPECTRUM / 3.));
+                    int start = Math.max(0, sampleBuffer.length - step * 5);
+                    FFTSignalProcessing.ProcessingResult[] results =
+                            new FFTSignalProcessing.ProcessingResult[3];
+                    signalProcessing.addSample(Arrays.copyOfRange(sampleBuffer, start,
+                            Math.min(sampleBuffer.length, start + (3 * step))));
+                    results[0] = signalProcessing.processSample(audioProcess.hannWindowFast,
                                     audioProcess.weightingA, true);
-                    thirdOctaveSplLevels = result.getdBaLevels();
-                    // Compute record time
-                    long beginRecordTime = audioProcess.beginRecordTime +
+                    start +=  3 * step;
+                    signalProcessing.addSample(Arrays.copyOfRange(sampleBuffer, start,
+                            Math.min(sampleBuffer.length, start + step)));
+                    results[1] = signalProcessing.processSample(audioProcess.hannWindowFast,
+                            audioProcess.weightingA, true);
+                    start += step;
+                    signalProcessing.addSample(Arrays.copyOfRange(sampleBuffer, start,
+                            Math.min(sampleBuffer.length, start + step)));
+                    results[2] = signalProcessing.processSample(audioProcess.hannWindowFast,
+                            audioProcess.weightingA, true);
+                    result = new FFTSignalProcessing.ProcessingResult(results);
+                } else {
+                    // No window
+                    signalProcessing.addSample(sampleBuffer);
+                    result = signalProcessing.processSample(audioProcess.hannWindowFast,
+                                    audioProcess.weightingA, true);
+                }
+                thirdOctaveSplLevels = result.getdBaLevels();
+                // Compute leq
+                leq = signalProcessing.computeGlobalLeq();
+                // Compute record time
+                long beginRecordTime = audioProcess.beginRecordTime +
                         (long) ((pushedSamples  /
                                 (double) audioProcess.getRate()) * 1000);
-                    AudioMeasureResult measureResult;
-                    if(audioProcess.hannWindowFast) {
-                        // rotate results
-                        audioMeasureResultTMinus2 = audioMeasureResultTMinus1;
-                        audioMeasureResultTMinus1 = audioMeasureResultT0;
-                        audioMeasureResultT0 = new AudioMeasureResult(result, beginRecordTime,
-                                signalProcessing.computeGlobalLeq());
-                        // Merge audio
-                        if (audioMeasureResultTMinus1 != null && audioMeasureResultTMinus2 != null) {
-                            measureResult = new AudioMeasureResult(
-                                    new FFTSignalProcessing.ProcessingResult(audioMeasureResultT0.result,
-                                            audioMeasureResultTMinus1.result, audioMeasureResultTMinus2.result),
-                                    beginRecordTime, signalProcessing.computeGlobalLeq());
-                        } else {
-                            measureResult = audioMeasureResultT0;
-                        }
-                    } else {
-                        audioMeasureResultT0 = new AudioMeasureResult(result, beginRecordTime,
-                                signalProcessing.computeGlobalLeq());
-                        measureResult = audioMeasureResultT0;
-                    }
-                    // Compute leq
-                    audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
-                            null, measureResult);
+                audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
+                        null,
+                        new AudioMeasureResult(result,  beginRecordTime, leq));
             }
         }
 
@@ -389,18 +385,21 @@ public class AudioProcess implements Runnable {
         public void run() {
             int secondCursor = 0;
             try {
-                try {
-                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                } catch (IllegalArgumentException | SecurityException ex) {
-                    // Ignore
-                }
                 while (audioProcess.currentState != STATE.WAITING_END_PROCESSING &&
                         !audioProcess.canceled.get()
                         && audioProcess.currentState != STATE.CLOSED) {
                     while (!bufferToProcess.isEmpty() && !audioProcess.canceled.get()) {
                         processing.set(true);
                         short[] buffer = bufferToProcess.poll();
-                        signalProcessing.addSample(buffer);
+                        if(buffer.length < sampleBuffer.length) {
+                            // Move previous samples backward
+                            System.arraycopy(sampleBuffer, buffer.length, sampleBuffer, 0, sampleBuffer.length - buffer.length);
+                            System.arraycopy(buffer, 0, sampleBuffer, sampleBuffer.length - buffer.length, buffer.length);
+                        } else {
+                            // Take last samples
+                            System.arraycopy(buffer, Math.max(0, buffer.length - sampleBuffer.length), sampleBuffer, 0,
+                                    sampleBuffer.length);
+                        }
                         secondCursor += buffer.length;
                     }
                     processSample(secondCursor);

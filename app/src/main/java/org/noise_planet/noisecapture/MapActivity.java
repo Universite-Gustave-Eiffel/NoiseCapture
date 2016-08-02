@@ -62,6 +62,7 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
     private MeasurementManager measurementManager;
     private Storage.Record record;
     private GoogleMap mMap;
+    private LatLngBounds.Builder builder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,8 +120,12 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
         webSettings.setJavaScriptEnabled(true);
         leaflet.clearCache(true);
         leaflet.setInitialScale(200);
-        leaflet.loadUrl("http://webcarto.orbisgis.org/noisemap.html");
-
+        String location = "";
+        if(builder != null) {
+            LatLng latLng = builder.build().getCenter();
+            location = "/#18/"+latLng.latitude+"/"+latLng.longitude;
+        }
+        leaflet.loadUrl("http://nicolas-f.github.io/NoiseCapture" + location);
     }
 
     @Override
@@ -131,7 +136,7 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
         // Add markers and move the camera.
         List<MeasurementManager.LeqBatch> measurements = new ArrayList<MeasurementManager.LeqBatch>();
         measurements = measurementManager.getRecordLocations(onlySelected ? record.getId() : -1, true);
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder = new LatLngBounds.Builder();
         for(int idMarker = 0; idMarker < measurements.size(); idMarker++) {
             MeasurementManager.LeqBatch leq = measurements.get(idMarker);
             LatLng position = new LatLng(leq.getLeq().getLatitude(), leq.getLeq().getLongitude());

@@ -366,14 +366,14 @@ public class AudioProcess implements Runnable {
                 }
                 thirdOctaveSplLevels = result.getdBaLevels();
                 // Compute leq
-                leq = signalProcessing.computeGlobalLeq();
+                leq = result.getGlobaldBaValue();
                 // Compute record time
                 long beginRecordTime = audioProcess.beginRecordTime +
                         (long) ((pushedSamples  /
                                 (double) audioProcess.getRate()) * 1000);
                 audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
                         null,
-                        new AudioMeasureResult(result,  beginRecordTime, leq));
+                        new AudioMeasureResult(result,  beginRecordTime, 0));
             }
         }
 

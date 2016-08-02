@@ -385,6 +385,11 @@ public class AudioProcess implements Runnable {
         public void run() {
             int secondCursor = 0;
             try {
+                try {
+                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+                } catch (IllegalArgumentException | SecurityException ex) {
+                    // Ignore
+                }
                 while (audioProcess.currentState != STATE.WAITING_END_PROCESSING &&
                         !audioProcess.canceled.get()
                         && audioProcess.currentState != STATE.CLOSED) {
@@ -404,7 +409,7 @@ public class AudioProcess implements Runnable {
                     }
                     processSample(secondCursor);
                     try {
-                        Thread.sleep(1);
+                        Thread.sleep(5);
                     } catch (InterruptedException ex) {
                         break;
                     }

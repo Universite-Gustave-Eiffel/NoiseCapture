@@ -95,7 +95,7 @@ public class MeasurementActivity extends MainActivity implements
     private boolean mIsBound = false;
     private AtomicBoolean chronometerWaitingToStart = new AtomicBoolean(false);
 
-    public final static double MIN_SHOWN_DBA_VALUE = 35;
+    public final static double MIN_SHOWN_DBA_VALUE = 20;
     public final static double MAX_SHOWN_DBA_VALUE = 120;
 
     private static final int DEFAULT_MINIMAL_LEQ = 1;
@@ -777,8 +777,8 @@ public class MeasurementActivity extends MainActivity implements
             measurementService.getAudioProcess().setDoFastLeq(true);
             measurementService.getAudioProcess().setDoOneSecondLeq(true);
             measurementService.getAudioProcess().setWeightingA(true);
-            measurementService.getAudioProcess().setHanningWindowOneSecond(false);
-            measurementService.getAudioProcess().setHanningWindowFast(true);
+            measurementService.getAudioProcess().setHannWindowOneSecond(false);
+            measurementService.getAudioProcess().setHannWindowFast(true);
             initGuiState();
         }
 

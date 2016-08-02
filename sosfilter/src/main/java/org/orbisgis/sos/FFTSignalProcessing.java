@@ -218,6 +218,40 @@ public class FFTSignalProcessing {
             this.globaldBaValue = globaldBaValue;
         }
 
+        /**
+         * Energetic sums of provided results. Used when using window functions
+         * @param toMerge
+         */
+        public ProcessingResult(ProcessingResult... toMerge) {
+            if(toMerge.length > 0) {
+                if(toMerge[0].fftResult != null) {
+                    this.fftResult = new float[toMerge[0].fftResult.length];
+                    for(ProcessingResult merge : toMerge) {
+                        for(int i = 0; i < fftResult.length; i++) {
+                            fftResult[i] += Math.pow(10, merge.fftResult[i] / 10.);
+                        }
+                    }
+                    for(int i = 0; i < fftResult.length; i++) {
+                        fftResult[i] = (float)(10. * Math.log10(fftResult[i]));
+                    }
+                }
+                this.dBaLevels = new float[toMerge[0].dBaLevels.length];
+                for(ProcessingResult merge : toMerge) {
+                    for(int i = 0; i < dBaLevels.length; i++) {
+                        dBaLevels[i] += Math.pow(10, merge.dBaLevels[i] / 10.);
+                    }
+                }
+                for(int i = 0; i < dBaLevels.length; i++) {
+                    dBaLevels[i] = (float)(10. * Math.log10(dBaLevels[i]));
+                }
+                double sum = 0;
+                for(ProcessingResult merge : toMerge) {
+                    sum += Math.pow(10, merge.getGlobaldBaValue() / 10.);
+                }
+                this.globaldBaValue = (float)(10. * Math.log10(sum));
+            }
+        }
+
         public float[] getFftResult() {
             return fftResult;
         }

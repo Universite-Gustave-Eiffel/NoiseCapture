@@ -800,7 +800,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             measurementService.getAudioProcess().setDoFastLeq(false);
             measurementService.getAudioProcess().setDoOneSecondLeq(true);
             measurementService.getAudioProcess().setWeightingA(false);
-            measurementService.getAudioProcess().setHanningWindowOneSecond(true);
+            measurementService.getAudioProcess().setHannWindowOneSecond(true);
         }
 
         public void onServiceDisconnected(ComponentName className) {

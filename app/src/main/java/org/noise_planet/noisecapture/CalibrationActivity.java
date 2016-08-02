@@ -315,7 +315,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             measurementService.getAudioProcess().setDoFastLeq(false);
             measurementService.getAudioProcess().setDoOneSecondLeq(true);
             measurementService.getAudioProcess().setWeightingA(false);
-            measurementService.getAudioProcess().setHanningWindowOneSecond(false);
+            measurementService.getAudioProcess().setHannWindowOneSecond(false);
         }
 
         public void onServiceDisconnected(ComponentName className) {

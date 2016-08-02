@@ -28,6 +28,7 @@
 package org.noise_planet.noisecapture;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
@@ -37,6 +38,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -83,7 +85,9 @@ public class CommentActivity extends MainActivity {
         setContentView(R.layout.activity_comment);
 
         View mainView = findViewById(R.id.mainLayout);
-        mainView.setOnTouchListener(new MainOnTouchListener(this));
+        if(mainView != null) {
+            mainView.setOnTouchListener(new MainOnTouchListener(this));
+        }
 
         // Read record activity parameter
         // Use last record of no parameter provided

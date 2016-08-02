@@ -27,7 +27,7 @@ xml_data2 = """<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="1.0.0
     <wps:Input>
       <ows:Identifier>locationPrecisionFilter</ows:Identifier>
       <wps:Data>
-        <wps:LiteralData>15</wps:LiteralData>
+        <wps:LiteralData>20</wps:LiteralData>
       </wps:Data>
     </wps:Input>
   </wps:DataInputs>
@@ -51,7 +51,7 @@ def triggerParsing():
 	
 	if resp.status_code != 200:
 		# This means something went wrong.
-		raise Exception(httplib.responses[resp.status_code])
+		raise Networkerror(httplib.responses[resp.status_code])
 	else:
 		print resp.content
 def triggerProcess():
@@ -66,19 +66,26 @@ def triggerProcess():
 	
 	if resp.status_code != 200:
 		# This means something went wrong.
-		raise Exception(httplib.responses[resp.status_code])
+		raise Networkerror(httplib.responses[resp.status_code])
 	else:
 		print resp.content		
 def main():
 	while True:
 		uploaded_files = [f for f in os.listdir("data_dir/onomap_uploading") if f.endswith(".zip")]
 		if len(uploaded_files) > 0:
-			triggerParsing()
-			triggerProcess()
+			try:
+				triggerParsing()
+				triggerProcess()
+			except Networkerror as neterr:
+				print("Network error: {0}".format(neterr))
+			except Exception:
+				print("Unexpected error:", sys.exc_info()[0])				
 		# Wait 5 seconds
 		time.sleep(5)
 
 
-
+class Networkerror(RuntimeError):
+   def __init__(self, arg):
+      self.args = arg
 	
 main()

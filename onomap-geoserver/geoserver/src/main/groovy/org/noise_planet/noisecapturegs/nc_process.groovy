@@ -136,8 +136,8 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
  */
 
 def process(Connection connection, float precisionFilter) {
-    float hexSize = 3.0
-    float hexRange = 25.0
+    float hexSize = 15.0
+    float hexRange = 15.0
     connection.setAutoCommit(false)
     int processed = 0
     try {
@@ -148,15 +148,15 @@ def process(Connection connection, float precisionFilter) {
                 " noisecapture_process_queue q, noisecapture_point p " +
                 "WHERE q.pk_track = p.pk_track and p.accuracy < :precision and NOT ST_ISEMPTY(p.the_geom)",
                 [precision: precisionFilter]) { row ->
-            def hex = new Pos(x:row.PTX, y:row.PTY).toHex(hexSize)
+            def hex = new Pos(x: row.PTX, y: row.PTY).toHex(hexSize)
             areaIndex.add(hex)
             // use hexRange by navigating from hex to neighbors
             def centerCube = hex.toCube()
-            def final int n = (int)Math.ceil(hexRange / hexSize)
-            for(int dx = -n; dx <= n; dx++) {
-                for(int dy = Math.max(-n, -dx-n); dy <= Math.min(n, -dx+n); dy++) {
-                    def dz = -dx-dy
-                    areaIndex.add(new Cube(x:dx+centerCube.x, y:dy+centerCube.y, z:dz+centerCube.z, size:hexSize).toHex())
+            def final int n = (int) Math.ceil(hexRange / hexSize)
+            for (int dx = -n; dx <= n; dx++) {
+                for (int dy = Math.max(-n, -dx - n); dy <= Math.min(n, -dx + n); dy++) {
+                    def dz = -dx - dy
+                    areaIndex.add(new Cube(x: dx + centerCube.x, y: dy + centerCube.y, z: dz + centerCube.z, size: hexSize).toHex())
                 }
             }
         }

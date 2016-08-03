@@ -419,6 +419,10 @@ public class Results extends MainActivity {
         int maxClassId = 0;
         for (int idEntry = 0; idEntry < classRangeValue.size(); idEntry++) {
             float value = classRangeValue.get(classRangeValue.size() - 1 - idEntry).floatValue();
+            // Fix background color issue if the pie is too thin
+            if(value < 0.01) {
+                value = 0;
+            }
             yVals1.add(new Entry(value, idEntry));
             xVals.add(catNE[idEntry]);
             if (value > maxValue) {

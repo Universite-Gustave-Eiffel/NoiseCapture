@@ -180,20 +180,8 @@ public class Results extends MainActivity {
                 finish();
             }
         });
-
-        // Action on comment button
-        Button buttonComment=(Button)findViewById(R.id.userCommentBtn);
-        buttonComment.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Go to map page
-                Intent a = new Intent(getApplicationContext(), CommentActivity.class);
-                a.putExtra(CommentActivity.COMMENT_RECORD_ID, record.getId());
-                startActivity(a);
-                finish();
-            }
-        });
-
+        Button measureButton = (Button) findViewById(R.id.measureBtn);
+        measureButton.setOnClickListener(new OnGoToMeasurePage(this));
         // Action on export button
 
         Button exportComment=(Button)findViewById(R.id.uploadBtn);
@@ -215,6 +203,21 @@ public class Results extends MainActivity {
         });
 
         exportComment.setEnabled(record.getUploadId().isEmpty());
+    }
+
+    private static final class OnGoToMeasurePage implements View.OnClickListener {
+        private Results activity;
+
+        public OnGoToMeasurePage(Results activity) {
+            this.activity = activity;
+        }
+
+        @Override
+        public void onClick(View v) {
+            //Open result page
+            Intent ir = new Intent(activity, MeasurementActivity.class);
+            activity.startActivity(ir);
+        }
     }
 
     @Override

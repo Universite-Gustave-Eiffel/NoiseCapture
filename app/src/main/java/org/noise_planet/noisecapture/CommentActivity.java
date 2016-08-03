@@ -117,8 +117,6 @@ public class CommentActivity extends MainActivity {
             Button resultsBtn = (Button) findViewById(R.id.resultsBtn);
             resultsBtn.setOnClickListener(new OnGoToResultPage(this));
         }
-        Button measureButton = (Button) findViewById(R.id.measureBtn);
-        measureButton.setOnClickListener(new OnGoToMeasurePage(this));
         initDrawer(record != null ? record.getId() : null);
         SeekBar seekBar = (SeekBar) findViewById(R.id.pleasantness_slider);
 
@@ -356,21 +354,6 @@ public class CommentActivity extends MainActivity {
             //Open result page
             Intent ir = new Intent(activity, Results.class);
             ir.putExtra(Results.RESULTS_RECORD_ID, activity.record.getId());
-            activity.startActivity(ir);
-        }
-    }
-
-    private static final class OnGoToMeasurePage implements View.OnClickListener {
-        private CommentActivity activity;
-
-        public OnGoToMeasurePage(CommentActivity activity) {
-            this.activity = activity;
-        }
-
-        @Override
-        public void onClick(View v) {
-            //Open result page
-            Intent ir = new Intent(activity, MeasurementActivity.class);
             activity.startActivity(ir);
         }
     }

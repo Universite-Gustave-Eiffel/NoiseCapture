@@ -237,11 +237,13 @@
         android:layout_alignParentBottom="true"
         android:id="@+id/linearLayout">
 
-        <Button android:id="@+id/userCommentBtn"
+        <Button
+            android:id="@+id/measureBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="@string/result_button_user_feedback"/>
+            android:text="@string/userinfo_button_measure"
+            />
         <Button android:id="@+id/uploadBtn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"

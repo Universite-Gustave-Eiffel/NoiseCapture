@@ -33,6 +33,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -243,9 +244,7 @@ public class CommentActivity extends MainActivity {
     private void addTag(String tagName, int id, LinearLayout column) {
         ToggleButton tagButton = new ToggleButton(this);
         column.addView(tagButton);
-
-
-        tagButton.setTextOff("N̶I̶C̶O̶D̶E̶ ̶g̶e̶");
+        tagButton.setTextOff(tagName);
         tagButton.setTextOn(tagName);
         tagButton.setChecked(checkedTags.contains(id));
         tagButton.setOnCheckedChangeListener(new TagStateListener(id, checkedTags));
@@ -270,8 +269,10 @@ public class CommentActivity extends MainActivity {
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             if(isChecked) {
                 checkList.add(id);
+                buttonView.setTextColor(Color.GREEN);
             } else {
                 checkList.remove(id);
+                buttonView.setTextColor(Color.WHITE);
             }
         }
     }

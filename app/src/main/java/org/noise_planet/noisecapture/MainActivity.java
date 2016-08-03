@@ -447,22 +447,32 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if(!recordsToTransfer.isEmpty()) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    // Export
-                    final ProgressDialog progress = ProgressDialog.show(MainActivity.this,
-                            MainActivity.this.getText(R.string.upload_progress_title),
-                            MainActivity.this.getText(R.string.upload_progress_message), true);
-                    new Thread(new SendZipToServer(MainActivity.this, recordsToTransfer, progress,
-                            new OnUploadedListener() {
-                                @Override
-                                public void onMeasurementUploaded() {
-                                    onTransferRecord();
-                                }
-                            })).start();
-                }
-            });
+            runOnUiThread(new SendResults(this, recordsToTransfer));
+        }
+    }
+
+    protected static final class SendResults implements Runnable {
+        private MainActivity mainActivity;
+        private List<Integer> recordsToTransfer;
+
+        public SendResults(MainActivity mainActivity, List<Integer> recordsToTransfer) {
+            this.mainActivity = mainActivity;
+            this.recordsToTransfer = recordsToTransfer;
+        }
+
+        @Override
+        public void run() {
+            // Export
+            final ProgressDialog progress = ProgressDialog.show(mainActivity,
+                    mainActivity.getText(R.string.upload_progress_title),
+                    mainActivity.getText(R.string.upload_progress_message), true);
+            new Thread(new SendZipToServer(mainActivity, recordsToTransfer, progress,
+                    new OnUploadedListener() {
+                        @Override
+                        public void onMeasurementUploaded() {
+                            mainActivity.onTransferRecord();
+                        }
+                    })).start();
         }
     }
 

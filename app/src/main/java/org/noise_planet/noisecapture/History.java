@@ -120,22 +120,30 @@ public class History extends MainActivity {
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            // Calls getSelectedIds method from ListViewAdapter Class
+            SparseBooleanArray selected = history.historyListAdapter
+                    .getSelectedIds();
+            // Captures all selected ids with a loop
+            List<Integer> selectedRecordIds = new ArrayList<Integer>();
+            for (int i = (selected.size() - 1); i >= 0; i--) {
+                if (selected.valueAt(i)) {
+                    selectedRecordIds.add((int)history.historyListAdapter.getItemId(selected.keyAt(i)));
+
+                }
+            }
             switch (item.getItemId()) {
                 case R.id.delete:
-                    // Calls getSelectedIds method from ListViewAdapter Class
-                    SparseBooleanArray selected = history.historyListAdapter
-                            .getSelectedIds();
-                    // Captures all selected ids with a loop
-                    List<Integer> recordIdToDelete = new ArrayList<Integer>();
-                    for (int i = (selected.size() - 1); i >= 0; i--) {
-                        if (selected.valueAt(i)) {
-                            recordIdToDelete.add((int)history.historyListAdapter.getItemId(selected.keyAt(i)));
-
-                        }
-                    }
-                    if(!recordIdToDelete.isEmpty()) {
+                    if(!selectedRecordIds.isEmpty()) {
                         // Remove selected items following the ids
-                        history.historyListAdapter.remove(recordIdToDelete);
+                        history.historyListAdapter.remove(selectedRecordIds);
+                    }
+                    // Close CAB
+                    mode.finish();
+                    return true;
+                case R.id.publish:
+                    if(!selectedRecordIds.isEmpty()) {
+                        // publish selected items following the ids
+                        history.runOnUiThread(new SendResults(history, selectedRecordIds));
                     }
                     // Close CAB
                     mode.finish();
@@ -161,6 +169,11 @@ public class History extends MainActivity {
             // TODO Auto-generated method stub
             return false;
         }
+    }
+
+    @Override
+    protected void onTransferRecord() {
+        historyListAdapter.reload();
     }
 
     private static final class HistoryItemListener implements OnItemClickListener {

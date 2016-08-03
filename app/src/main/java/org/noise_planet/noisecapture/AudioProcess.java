@@ -333,8 +333,7 @@ public class AudioProcess implements Runnable {
 
         private void processSample(int pushedSamples) {
             if((pushedSamples - lastProcessedSpectrum) / (double)audioProcess.getRate() >
-                    (audioProcess.hannWindowFast ? SECOND_FIRE_MOVING_SPECTRUM / 3.
-                            : SECOND_FIRE_MOVING_SPECTRUM)) {
+                    SECOND_FIRE_MOVING_SPECTRUM) {
                 lastProcessedSpectrum = pushedSamples;
                 FFTSignalProcessing.ProcessingResult result;
                 if(audioProcess.hannWindowFast) {
@@ -406,8 +405,9 @@ public class AudioProcess implements Runnable {
                                     sampleBuffer.length);
                         }
                         secondCursor += buffer.length;
+                        // Process pushed samples
+                        processSample(secondCursor);
                     }
-                    processSample(secondCursor);
                     try {
                         Thread.sleep(5);
                     } catch (InterruptedException ex) {

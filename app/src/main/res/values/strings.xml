@@ -109,6 +109,9 @@
         <item>About</item>
     </string-array>
     <string name="result_share">Share this result</string>
+    <string name="result_button_map">Show map</string>
+    <string name="result_button_upload">Upload</string>
+    <string name="result_button_user_feedback">Description</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <string name="url_about">file:///android_asset/html/about.html</string>
@@ -199,6 +202,8 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="title_activity_comment">CommentActivity</string>
     <string name="userinfo_unpleasant">Unpleasant</string>
     <string name="userinfo_pleasant">Pleasant</string>
+    <string name="userinfo_button_measure">New measurement</string>
+    <string name="userinfo_button_results">Show Result</string>
     <string name="calibration_status_waiting_for_user_start">Waiting for calibration start..</string>
     <string name="calibration_status_waiting_for_start_timer">Calibration is about to start..</string>
     <string name="calibration_status_on">Calibration..</string>
@@ -249,6 +254,4 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>Notification</item>
         <item>DTMF</item>
     </string-array>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

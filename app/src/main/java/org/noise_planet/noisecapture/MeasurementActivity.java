@@ -150,10 +150,6 @@ public class MeasurementActivity extends MainActivity implements
         setContentView(R.layout.activity_measurement);
         initDrawer();
 
-        // Message for starting a record
-        Toast.makeText(getApplicationContext(),
-                getString(R.string.record_message), Toast.LENGTH_LONG).show();
-
         // Check if the dialog box (for caution) must be displayed
         // Depending of the settings
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);

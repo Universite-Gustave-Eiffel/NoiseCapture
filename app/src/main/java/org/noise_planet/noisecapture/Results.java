@@ -37,6 +37,7 @@ import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -167,7 +168,7 @@ public class Results extends MainActivity {
                 .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa90())]);
 
         // Action on Map button
-        ImageButton buttonmap=(ImageButton)findViewById(R.id.mapBtn);
+        Button buttonmap=(Button)findViewById(R.id.mapBtn);
         buttonmap.setEnabled(true);
         buttonmap.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -181,7 +182,7 @@ public class Results extends MainActivity {
         });
 
         // Action on comment button
-        ImageButton buttonComment=(ImageButton)findViewById(R.id.userCommentBtn);
+        Button buttonComment=(Button)findViewById(R.id.userCommentBtn);
         buttonComment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -195,7 +196,7 @@ public class Results extends MainActivity {
 
         // Action on export button
 
-        ImageButton exportComment=(ImageButton)findViewById(R.id.uploadBtn);
+        Button exportComment=(Button)findViewById(R.id.uploadBtn);
         exportComment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -235,7 +236,7 @@ public class Results extends MainActivity {
     protected void onTransferRecord() {
         // Nothing to do
         // Change upload state
-        ImageButton exportComment=(ImageButton)findViewById(R.id.uploadBtn);
+        Button exportComment=(Button)findViewById(R.id.uploadBtn);
         // Refresh record
         record = measurementManager.getRecord(record.getId());
         exportComment.setEnabled(record.getUploadId().isEmpty());

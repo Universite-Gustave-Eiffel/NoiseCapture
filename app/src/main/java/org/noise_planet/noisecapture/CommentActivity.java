@@ -38,12 +38,15 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.SpannableString;
+import android.text.style.StrikethroughSpan;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -110,9 +113,11 @@ public class CommentActivity extends MainActivity {
         if(record != null) {
             ImageButton addPhoto = (ImageButton) findViewById(R.id.btn_add_photo);
             addPhoto.setOnClickListener(new OnAddPhotoClickListener(this));
-            ImageButton resultsBtn = (ImageButton) findViewById(R.id.resultsBtn);
+            Button resultsBtn = (Button) findViewById(R.id.resultsBtn);
             resultsBtn.setOnClickListener(new OnGoToResultPage(this));
         }
+        Button measureButton = (Button) findViewById(R.id.measureBtn);
+        measureButton.setOnClickListener(new OnGoToMeasurePage(this));
         initDrawer(record != null ? record.getId() : null);
         SeekBar seekBar = (SeekBar) findViewById(R.id.pleasantness_slider);
 
@@ -238,7 +243,9 @@ public class CommentActivity extends MainActivity {
     private void addTag(String tagName, int id, LinearLayout column) {
         ToggleButton tagButton = new ToggleButton(this);
         column.addView(tagButton);
-        tagButton.setTextOff(tagName);
+
+
+        tagButton.setTextOff("N̶I̶C̶O̶D̶E̶ ̶g̶e̶");
         tagButton.setTextOn(tagName);
         tagButton.setChecked(checkedTags.contains(id));
         tagButton.setOnCheckedChangeListener(new TagStateListener(id, checkedTags));
@@ -348,6 +355,21 @@ public class CommentActivity extends MainActivity {
             //Open result page
             Intent ir = new Intent(activity, Results.class);
             ir.putExtra(Results.RESULTS_RECORD_ID, activity.record.getId());
+            activity.startActivity(ir);
+        }
+    }
+
+    private static final class OnGoToMeasurePage implements View.OnClickListener {
+        private CommentActivity activity;
+
+        public OnGoToMeasurePage(CommentActivity activity) {
+            this.activity = activity;
+        }
+
+        @Override
+        public void onClick(View v) {
+            //Open result page
+            Intent ir = new Intent(activity, MeasurementActivity.class);
             activity.startActivity(ir);
         }
     }

@@ -47,7 +47,8 @@
     <string name="title_settings_calibration_warmup_time_description">Waiting time in seconds before calibration</string>
     <string name="title_settings_calibration_time">Calibration time</string>
     <string name="title_settings_calibration_time_description">Calibration time in seconds</string>
-
+    <string name="title_settings_calibration_linear_title">Audio output</string>
+    <string name="title_settings_calibration_linear_description">Device output for linear correlation test</string>
     <string name="setting_general_group">General</string>
     <string name="setting_measurement_group">Measurement</string>
     <string name="setting_calibration_group">Calibration</string>

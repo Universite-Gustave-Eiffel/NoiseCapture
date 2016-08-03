@@ -64,9 +64,9 @@
             android:inputType="number"/>
         <ListPreference
             android:key="settings_calibration_audio_output"
-            android:title="Audio output"
+            android:title="@string/title_settings_calibration_linear_title"
             android:defaultValue="STREAM_RING"
-            android:summary="Device output for auto-calibration"
+            android:summary="@string/title_settings_calibration_linear_description"
             android:entryValues="@array/output_mode"
             android:entries="@array/output_mode_labels"
             />

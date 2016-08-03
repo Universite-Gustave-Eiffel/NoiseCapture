@@ -1,7 +1,52 @@
-body {
-font-family: verdana;
-color: rgb(51,181,229);
+a {  
+  text-decoration: underline;  
+  color: #9e9e9e;
 }
-h1 {
-font-family: verdana;
-color: rgb(0,153,204);}
+
+body {  
+  font-family: verdana;  
+  color: #9e9e9e;
+}
+
+h1 {  
+  font-family: verdana;  
+  color: #0099cc;
+}
+
+h2 {  
+  font-family: verdana;  
+  color: #0099cc;
+}
+
+.p_warning {  
+  font-family: verdana;  
+  color: #ffcc66;  
+  font-style: italic;  
+  border-top-width: thin;  
+  border-bottom-width: thin;  
+  border-top-style: solid;  
+  border-bottom-style: solid;
+}
+
+.p_tip {  
+  font-family: verdana;  
+  color: #33cc00;  
+  border-top-width: thin;  
+  border-bottom-width: thin;  
+  border-top-style: dashed;  
+  border-bottom-style: dashed;
+}
+
+.p_inf {  
+  font-family: verdana;  
+  color: #0099cc;  
+  border-top-width: thin;  
+  border-bottom-width: thin;  
+  border-top-style: dotted;  
+  border-bottom-style: dotted;
+}
+
+ul {  
+  bottom: 0px;
+}
+

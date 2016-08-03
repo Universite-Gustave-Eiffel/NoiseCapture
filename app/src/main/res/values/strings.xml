@@ -43,7 +43,7 @@
     <string name="SL_dB">dB</string>
 
     <string name="hello_world">Hello world!</string>
-    <string name="title_settings_calibration_warmup_time">Calibration warmup time</string>
+    <string name="title_settings_calibration_warmup_time">Calibration warm-up time</string>
     <string name="title_settings_calibration_warmup_time_description">Waiting time in seconds before calibration</string>
     <string name="title_settings_calibration_time">Calibration time</string>
     <string name="title_settings_calibration_time_description">Calibration time in seconds</string>
@@ -93,7 +93,7 @@
         <item>Export result</item>
         <item>Edit description</item>
         <item>Show result</item>
-        <item>Show map</item>
+        <item>Show on map</item>
         <item>Delete</item>
     </string-array>
 
@@ -159,7 +159,7 @@
     <string name="start_text_subtitle">Measuring your sound environment</string>
     <string name="start_text_developed_by">Developed by</string>
     <string name="start_text_supported_by">Supported by</string>
-    <string name="upload_progress_title">Uploading..</string>
+    <string name="upload_progress_title">Uploading...</string>
     <string name="upload_progress_message">Uploading measurement</string>
 
     <string name="history_length">Duration: %d seconds</string>
@@ -199,13 +199,14 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
 - bearing Movement orientation.See https://developer.android.com/reference/android/location/Location.html#getBearing()\n
 - speed Estimated device speed in m/s\n
 - leq_frequency 1s mean equivalent sound level in dB(A) for the specified frequency\n</string>
-    <string name="title_activity_comment">CommentActivity</string>
+    <string name="title_activity_comment">Description</string>
     <string name="userinfo_unpleasant">Unpleasant</string>
     <string name="userinfo_pleasant">Pleasant</string>
+    <string name="userinfo_pleasantness">Pleasantness</string>
+    <string name="calibration_status_waiting_for_user_start">Waiting for calibration start...</string>
+    <string name="calibration_status_waiting_for_start_timer">Calibration is about to start...</string>
     <string name="userinfo_button_measure">New measurement</string>
     <string name="userinfo_button_results">Show Result</string>
-    <string name="calibration_status_waiting_for_user_start">Waiting for calibration start..</string>
-    <string name="calibration_status_waiting_for_start_timer">Calibration is about to start..</string>
     <string name="calibration_status_on">Calibration..</string>
     <string name="calibration_linear_status_on">Calibration at %1$.0f dB</string>
     <string name="calibration_status_end">Calibration done</string>

@@ -309,13 +309,14 @@
         +12dB relatively to 90dB (Sound Pressure Level).</li>
     </ul>
     <p><span style="color: #ffcc66;">In conclusion, in the current situation,
-        even after a rigorous calibration and without any further correction, it
-        is not possible to ensure the quality of the measurement for low and
-        high noise levels, as well as, beyond 4000Hz, whatever the device and
-        the Android version.</span></p>
+        even after a rigorous calibration, it is not possible to ensure the
+        quality of the measurement for low and high noise levels, as well as,
+        beyond 4000Hz, whatever the device and the Android version.</span></p>
     <!-- <h4><span style="color: #0099cc;">What does it means in practice?</span></h4>
-    <p>There are few scientific references in the corresponding literature,      discussing the possibility of using smartphones for measuring      environmental noise.</p>    <ul>      <li>On can also cite the work by [Murhpy, 2016], comparing several Android        and iOS Apps, on many different smartphones. Particularly, the results        show that there is a relationship between the phone age and the quality        of measurement, and, in addition, that iOS Apps gives the best results,
-        compared to Android Apps!</li>      <li>From [Aumond, 2016], in the context of noise pollution in urban areas,        it seems that after calibrating smartphones with a correction factor        that depends of the sound level (because the the amplitude response of        the smartphone is not linear with the sound level), instantaneous sound        levels measured using smartphones, as well as LA50 and LA90 (over a        duration of 10mn), are very well correlated with reference measurements.        </li>
+    <p>There are few scientific references in the corresponding literature,      discussing the possibility of using smartphones for measuring      environmental noise.</p>    <ul>
+      <li>On can also cite the work by [Murhpy, 2016], comparing several Android        and iOS Apps, on many different smartphones. Particularly, the results        show that there is a relationship between the phone age and the quality        of measurement, and, in addition, that iOS Apps gives the best results,
+        compared to Android Apps!</li>      <li>From [Aumond, 2016], in the context of noise pollution in urban areas,        it seems that after calibrating smartphones with a correction factor        that depends of the sound level (because the the amplitude response of
+        the smartphone is not linear with the sound level), instantaneous sound        levels measured using smartphones, as well as LA50 and LA90 (over a        duration of 10mn), are very well correlated with reference measurements.        </li>
     </ul>    </p>-->
     <p><span style="color: #0099cc;"></span> </p>
     <h2><a name="best_pratice"></a>Best practice for the best noise measurement</h2>

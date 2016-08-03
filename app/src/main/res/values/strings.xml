@@ -154,7 +154,7 @@
     <string name="title_activity_map">Map</string>
     <string name="title_activity_start">Noise Capture</string>
     <string name="title_activity_calibration_start">Calibration</string>
-    <string name="title_activity_calibration_linearity_start">test</string>
+    <string name="title_activity_calibration_linearity">Linearity correlation test</string>
 
     <string name="start_text_title">NoiseCapture</string>
     <string name="start_text_subtitle">Measuring your sound environment</string>

@@ -72,10 +72,10 @@ class TestNoiseCaptureProcess extends GroovyTestCase {
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureProcess.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
         def processed = new nc_process().process(connection, 10)
-        assertEquals(2, processed)
+        assertEquals(6, processed)
         // Read db; check content
         Sql sql = new Sql(connection)
-        assertEquals(2, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area").get("cpt"))
+        assertEquals(6, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area").get("cpt"))
 
     }
 

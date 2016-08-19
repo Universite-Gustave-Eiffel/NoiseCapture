@@ -33,7 +33,7 @@
   */
 L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
    //http://www.redblobgames.com/grids/hexagons
-
+    COLOR_RAMP : {30:"#82A6AD", 35:"#A0BABF", 40:"#B8D6D1", 45:"#CEE4CC", 50:"#E2F2BF", 55:"#F3C683", 60:"#E87E4D", 65:"#CD463E", 70:"#A11A4D", 75:"#75085C", 80:"#430A4A"},
 	hexOverlay : null,
 	// Hex size
 	size : 15.,
@@ -195,9 +195,10 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
       crossDomain: true,
       data: postData,
       contentType: "text/plain",
+      dataType: "json",
       url: url,
       success: function (data, status, xhr) {
-        var err = typeof data === 'string' ? null : data;
+        var err = data["leq"] != null ? null : data;
         showResults(err, evt.latlng, data);
       },
       error: function (xhr, status, error) {
@@ -261,10 +262,31 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
   showGetFeatureInfo: function (err, latlng, content) {
     if (err) { console.log(err); return; } // do nothing if there's an error
     // Otherwise show the content in a popup, or something.
-    L.popup({ maxWidth: 800})
-      .setLatLng(latlng)
-      .setContent(escape(content))
-      .openOn(this._map);
+    info.update("        <div class=\"popup_main\">\
+                             <ul class=\"list-group\">\
+                               <li class=\"list-group-item\" id=\"leq\">\
+                                 <h4 class=\"list-group-item-heading compact\">Leq</h4>\
+                                 "+Math.round(content["leq"])+" dB(A)\
+                               </li>\
+                               <li class=\"list-group-item\">\
+                                 <h4 class=\"list-group-item-heading compact\">Pleasantness</h4>\
+                                 "+Math.round(content["mean_pleasantness"])+"%\
+                               </li>\
+                               <li class=\"list-group-item\">\
+                                 <h4 class=\"list-group-item-heading compact\">First measure</h4>\
+                                "+content["first_measure"]+"\
+                               </li>\
+                               <li class=\"list-group-item\">\
+                                 <h4 class=\"list-group-item-heading compact\">Last measure</h4>\
+                                 "+content["last_measure"]+"\
+                               </li>\
+                               <li class=\"list-group-item\">\
+                                 <h4 class=\"list-group-item-heading compact\">Measure length</h4>\
+                                 "+content["measure_count"]+" seconds\
+                               </li>\
+                             </ul>\
+                           </div>\
+                         </div>");
   }
 });
 

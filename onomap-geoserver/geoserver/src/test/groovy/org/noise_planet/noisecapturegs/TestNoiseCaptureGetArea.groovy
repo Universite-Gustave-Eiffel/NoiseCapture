@@ -28,6 +28,7 @@
 
 package org.noise_planet.noisecapturegs
 
+import groovy.json.JsonOutput
 import groovy.sql.Sql
 import org.h2.Driver
 import org.junit.After
@@ -80,6 +81,26 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         assertEquals(40, (int)arrayData.measure_count)
         assertEquals(new Timestamp(1465474645151), arrayData.first_measure)
         assertEquals(new Timestamp(1465474682599), arrayData.last_measure)
+
+        // Check with NaN in pleasantness
+        def sql = new Sql(connection)
+        def fields = [cell_q           : 5,
+                      cell_r           : 10,
+                      the_geom         : "POLYGON EMPTY",
+                      mean_leq         : 10,
+                      mean_pleasantness: null,
+                      measure_count    : 1,
+                      first_measure    : new Timestamp(1465474645151),
+                      last_measure     : new Timestamp(1465474645151)]
+        sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, the_geom, mean_leq, mean_pleasantness," +
+                " measure_count, first_measure, last_measure) VALUES (:cell_q, :cell_r, " +
+                "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :mean_leq," +
+                " :mean_pleasantness, :measure_count, :first_measure, :last_measure)", fields)
+        // Fetch data
+        arrayData = new nc_get_area_info().getAreaInfo(connection, 5, 10)
+        assertNull(arrayData.mean_pleasantness)
+        JsonOutput.toJson(arrayData);
+
     }
 
 }

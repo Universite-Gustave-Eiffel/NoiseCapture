@@ -50,7 +50,7 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
 		y = this.size * 3./2. * hex.r;
 		return {x:x, y:y};
 	},
-		
+
 	/**
 	 * @param center Hex center position
 	 * @param size Hex size
@@ -83,7 +83,7 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
 		var r = h.z
 		return {q:q, r:r}
 	},
-		
+
 	/**
 	 * @param h aproximate cube index
 	 * @return h Cube index
@@ -144,12 +144,12 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
 				this.lastDrawnHex = hPos;
 				// Compute corners of hex
 				var center = this.hex_to_meter(hPos)
-				var vertices = []			
+				var vertices = []
 				for(i=0;i<6;i++) {
 					var v = this.hex_corner(center, this.size, i);
-					
+
 					var vGPos = proj4('EPSG:3857','EPSG:4326', [v.x, v.y]);
-					
+
 					if(isNaN(vGPos[0]) || isNaN(vGPos[1])) {
 						return;
 					}
@@ -176,7 +176,7 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
     map.on('click', this.getFeatureInfo, this);
 	map.on("mousemove", this.updateHexOverlay, this);
   },
-  
+
   onRemove: function (map) {
     // Triggered when the layer is removed from a map.
     //   Unregister a click listener, then do all the upstream WMS things
@@ -184,61 +184,90 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
     map.off('click', this.getFeatureInfo, this);
 	map.off("mousemove", this.updateHexOverlay, this);
   },
-  
+
   getFeatureInfo: function (evt) {
     // Make an AJAX request to the server and hope for the best
-    var url = this.getFeatureInfoUrl(evt.latlng),
+    var url = this.getFeatureInfoUrl(),
         showResults = L.Util.bind(this.showGetFeatureInfo, this);
+    var postData = this.getFeatureInfoContent(evt.latlng);
     $.ajax({
+      type: 'POST',
+      crossDomain: true,
+      data: postData,
+      contentType: "text/plain",
       url: url,
       success: function (data, status, xhr) {
         var err = typeof data === 'string' ? null : data;
         showResults(err, evt.latlng, data);
       },
       error: function (xhr, status, error) {
-        showResults(error);  
+        showResults(error);
       }
     });
   },
-  
-  getFeatureInfoUrl: function (latlng) {
-    // Construct a GetFeatureInfo request URL given a point
-    var point = this._map.latLngToContainerPoint(latlng, this._map.getZoom()),
+
+  getFeatureInfoUrl: function () {
+    // Construct a GetFeatureInfo request URL
         size = this._map.getSize(),
-        
         params = {
-          request: 'GetFeatureInfo',
-          service: 'WMS',
-          srs: 'EPSG:4326',
-          styles: this.wmsParams.styles,
-          transparent: this.wmsParams.transparent,
-          version: this.wmsParams.version,      
-          format: this.wmsParams.format,
-          bbox: this._map.getBounds().toBBoxString(),
-          height: size.y,
-          width: size.x,
-          layers: this.wmsParams.layers,
-          query_layers: this.wmsParams.layers,
-          //info_format: 'application/vnd.ogc.gml/3.1.1'
-		  info_format: 'text/html'
+          request: 'Execute',
+          service: 'wps',
+          version: '1.0.0'
         };
-    
-    params[params.version === '1.3.0' ? 'i' : 'x'] = point.x;
-    params[params.version === '1.3.0' ? 'j' : 'y'] = point.y;
-    
     return this._url + L.Util.getParamString(params, this._url, true);
   },
-  
+
+  getFeatureInfoContent: function (latlng) {
+    // Construct a GetFeatureInfo request content given a point
+    if (latlng) {
+    			var gPos = proj4('EPSG:3857', [latlng.lng, latlng.lat]);
+    			var hPos = this.meterToHex(gPos[0], gPos[1]);
+    			var qIndex = hPos.q;
+    			var rIndex = hPos.r;
+            var data = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><wps:Execute version=\"1.0.0\" service=\"WPS\"\
+             xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xmlns=\"http://www.opengis.net/wps/1.0.0\"\
+              xmlns:wfs=\"http://www.opengis.net/wfs\" xmlns:wps=\"http://www.opengis.net/wps/1.0.0\" \
+              xmlns:ows=\"http://www.opengis.net/ows/1.1\" xmlns:gml=\"http://www.opengis.net/gml\" \
+              xmlns:ogc=\"http://www.opengis.net/ogc\" xmlns:wcs=\"http://www.opengis.net/wcs/1.1.1\" \
+              xmlns:xlink=\"http://www.w3.org/1999/xlink\" \
+              xsi:schemaLocation=\"http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd\">\
+          <ows:Identifier>groovy:nc_get_area_info</ows:Identifier>\
+          <wps:DataInputs>\
+            <wps:Input>\
+              <ows:Identifier>rIndex</ows:Identifier>\
+              <wps:Data>\
+                <wps:LiteralData>"+rIndex+"</wps:LiteralData>\
+              </wps:Data>\
+            </wps:Input>\
+            <wps:Input>\
+              <ows:Identifier>qIndex</ows:Identifier>\
+              <wps:Data>\
+                <wps:LiteralData>"+qIndex+"</wps:LiteralData>\
+              </wps:Data>\
+            </wps:Input>\
+          </wps:DataInputs>\
+          <wps:ResponseForm>\
+            <wps:RawDataOutput>\
+              <ows:Identifier>result</ows:Identifier>\
+            </wps:RawDataOutput>\
+          </wps:ResponseForm>\
+        </wps:Execute>";
+            return data;
+        } else {
+            return ""
+        }
+  },
+
   showGetFeatureInfo: function (err, latlng, content) {
     if (err) { console.log(err); return; } // do nothing if there's an error
     // Otherwise show the content in a popup, or something.
     L.popup({ maxWidth: 800})
       .setLatLng(latlng)
-      .setContent(content)
+      .setContent(escape(content))
       .openOn(this._map);
   }
 });
 
 L.tileLayer.OnoMap = function (url, options) {
-  return new L.TileLayer.OnoMap(url, options);  
+  return new L.TileLayer.OnoMap(url, options);
 };

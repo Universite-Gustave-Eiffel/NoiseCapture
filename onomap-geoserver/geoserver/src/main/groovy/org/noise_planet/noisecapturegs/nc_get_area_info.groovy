@@ -62,7 +62,8 @@ def getAreaInfo(Connection connection, long qIndex, long rIndex) {
                 "WHERE CELL_Q = :qIndex and CELL_R = :rIndex",
                 [qIndex: qIndex, rIndex: rIndex]) { row ->
             data = [ leq : row.mean_leq,
-                     mean_pleasantness : row.mean_pleasantness  instanceof Number ? row.mean_pleasantness : null,
+                     mean_pleasantness : row.mean_pleasantness  instanceof Number &&
+                             !row.mean_pleasantness.isNaN() ? row.mean_pleasantness : null,
                      first_measure : row.first_measure,
                      last_measure : row.last_measure,
                      measure_count : row.measure_count]

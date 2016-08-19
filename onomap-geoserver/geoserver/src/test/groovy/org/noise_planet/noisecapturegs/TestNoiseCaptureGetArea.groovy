@@ -88,7 +88,7 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
                       cell_r           : 10,
                       the_geom         : "POLYGON EMPTY",
                       mean_leq         : 10,
-                      mean_pleasantness: null,
+                      mean_pleasantness: Double.NaN,
                       measure_count    : 1,
                       first_measure    : new Timestamp(1465474645151),
                       last_measure     : new Timestamp(1465474645151)]

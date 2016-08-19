@@ -57,6 +57,8 @@ outputs = [
  * @param sql
  */
 def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
+    // A ratio < 1 add blank area between hexagons
+    float hexSizeRatio = 0.8
     def Pos center = hex.toMeter()
     def Coordinate centerCoord = center.toCoordinate();
     def geom = "POINT( " + center.x + " " + center.y + ")"
@@ -100,13 +102,13 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
         } else {
             hexaGeom.append("POLYGON((")
         }
-        Pos vertex = hex.hex_corner(center, i)
+        Pos vertex = hex.hex_corner(center, i, hexSizeRatio)
         hexaGeom.append(vertex.x)
         hexaGeom.append(" ")
         hexaGeom.append(vertex.y)
     }
     hexaGeom.append(", ")
-    Pos vertex = hex.hex_corner(center, 0)
+    Pos vertex = hex.hex_corner(center, 0, hexSizeRatio)
     hexaGeom.append(vertex.x)
     hexaGeom.append(" ")
     hexaGeom.append(vertex.y)
@@ -257,10 +259,10 @@ class Hex {
      * @param i Vertex [0-5]
      * @return Vertex coordinate
      */
-    def hex_corner(Pos center, int i) {
+    def hex_corner(Pos center, int i, float ratio = 1.0) {
         def angle_deg = 60.0 * i   + 30.0;
         def angle_rad = Math.PI / 180.0 * angle_deg;
-        return new Pos(x:center.x + size * Math.cos(angle_rad), y:center.y + size * Math.sin(angle_rad));
+        return new Pos(x:center.x + (size * ratio) * Math.cos(angle_rad), y:center.y + (size * ratio) * Math.sin(angle_rad));
     }
 
     /**

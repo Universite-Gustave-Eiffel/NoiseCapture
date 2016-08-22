@@ -126,7 +126,7 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
             LatLng latLng = builder.build().getCenter();
             location = "/#18/"+latLng.latitude+"/"+latLng.longitude;
         }
-        leaflet.loadUrl("http://nicolas-f.github.io/NoiseCapture" + location);
+        leaflet.loadUrl("http://onomap.noise-planet.org" + location);
     }
 
     @Override

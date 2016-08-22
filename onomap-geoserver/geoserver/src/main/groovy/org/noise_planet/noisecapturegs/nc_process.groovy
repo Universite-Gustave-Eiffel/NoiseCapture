@@ -58,7 +58,7 @@ outputs = [
  */
 def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     // A ratio < 1 add blank area between hexagons
-    float hexSizeRatio = 0.8
+    float hexSizeRatio = 0.98
     def Pos center = hex.toMeter()
     def Coordinate centerCoord = center.toCoordinate();
     def geom = "POINT( " + center.x + " " + center.y + ")"

@@ -55,6 +55,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.slf4j.Logger;
@@ -63,8 +64,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 
@@ -127,6 +130,23 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
         return true;
+    }
+
+    /**
+     * @return Version information on this application
+     * @throws PackageManager.NameNotFoundException
+     */
+    public static String getVersionString(Activity activity) throws PackageManager.NameNotFoundException {
+        String versionName = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
+        Date buildDate = new Date(BuildConfig.TIMESTAMP);
+        String gitHash = BuildConfig.GITHASH;
+        if(gitHash == null || gitHash.isEmpty()) {
+            gitHash = "";
+        } else {
+            gitHash = gitHash.substring(0, 7);
+        }
+        return activity.getString(R.string.title_appversion, versionName,
+                DateFormat.getDateInstance().format(buildDate), gitHash);
     }
 
     /**

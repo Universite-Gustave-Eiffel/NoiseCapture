@@ -63,6 +63,7 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
     private Storage.Record record;
     private GoogleMap mMap;
     private LatLngBounds.Builder builder;
+    private boolean validBoundingBox = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -121,7 +122,7 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
         leaflet.clearCache(true);
         leaflet.setInitialScale(200);
         String location = "";
-        if(builder != null) {
+        if(builder != null && validBoundingBox) {
             LatLng latLng = builder.build().getCenter();
             location = "/#18/"+latLng.latitude+"/"+latLng.longitude;
         }
@@ -137,6 +138,7 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
         List<MeasurementManager.LeqBatch> measurements = new ArrayList<MeasurementManager.LeqBatch>();
         measurements = measurementManager.getRecordLocations(onlySelected ? record.getId() : -1, true);
         builder = new LatLngBounds.Builder();
+        validBoundingBox = measurements.size() > 1;
         for(int idMarker = 0; idMarker < measurements.size(); idMarker++) {
             MeasurementManager.LeqBatch leq = measurements.get(idMarker);
             LatLng position = new LatLng(leq.getLeq().getLatitude(), leq.getLeq().getLongitude());
@@ -152,7 +154,7 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
             mMap.addMarker(marker);
             builder.include(position);
         }
-        if(!measurements.isEmpty()) {
+        if(validBoundingBox) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 0));
         } else {
             Toast.makeText(getApplicationContext(), getString(R.string.no_gps_results),

@@ -116,6 +116,8 @@ public class CommentActivity extends MainActivity {
             addPhoto.setOnClickListener(new OnAddPhotoClickListener(this));
             Button resultsBtn = (Button) findViewById(R.id.resultsBtn);
             resultsBtn.setOnClickListener(new OnGoToResultPage(this));
+            Button deleteBts = (Button) findViewById(R.id.deleteBtn);
+            deleteBts.setOnClickListener(new OnDeleteMeasurement(this));
         }
         initDrawer(record != null ? record.getId() : null);
         SeekBar seekBar = (SeekBar) findViewById(R.id.pleasantness_slider);
@@ -354,7 +356,42 @@ public class CommentActivity extends MainActivity {
             //Open result page
             Intent ir = new Intent(activity, Results.class);
             ir.putExtra(Results.RESULTS_RECORD_ID, activity.record.getId());
+            ir.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             activity.startActivity(ir);
+        }
+    }
+
+
+    private static final class OnDeleteMeasurement implements View.OnClickListener {
+        private CommentActivity activity;
+
+        public OnDeleteMeasurement(CommentActivity activity) {
+            this.activity = activity;
+        }
+
+        @Override
+        public void onClick(View v) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            // Add the buttons
+            builder.setPositiveButton(R.string.comment_delete_record, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // Delete record
+                    activity.measurementManager.deleteRecord(activity.record.getId());
+                    activity.record = null;
+                    // Open measurement page
+                    Intent ir = new Intent(activity, MeasurementActivity.class);
+                    ir.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    activity.startActivity(ir);
+                }
+            });
+            builder.setNegativeButton(R.string.comment_cancel_change, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                }
+            });
+            // Create the AlertDialog
+            AlertDialog dialog = builder.create();
+            dialog.setTitle(R.string.comment_title_delete);
+            dialog.show();
         }
     }
 

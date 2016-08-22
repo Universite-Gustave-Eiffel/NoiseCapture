@@ -280,6 +280,26 @@ public class History extends MainActivity {
             historyActivity.startActivity(ir);
         }
 
+        private void delete() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(historyActivity);
+            // Add the buttons
+            builder.setPositiveButton(R.string.comment_delete_record, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // Delete record
+                    historyActivity.measurementManager.deleteRecord(recordId);
+                    historyActivity.historyListAdapter.reload();
+                }
+            });
+            builder.setNegativeButton(R.string.comment_cancel_change, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                }
+            });
+            // Create the AlertDialog
+            AlertDialog dialog = builder.create();
+            dialog.setTitle(R.string.comment_title_delete);
+            dialog.show();
+        }
+
         @Override
         public void onClick(DialogInterface dialog, int which) {
             switch (which) {
@@ -303,9 +323,7 @@ public class History extends MainActivity {
                     launchMap();
                     break;
                 case 5:
-                    // Delete record
-                    historyActivity.measurementManager.deleteRecord(recordId);
-                    historyActivity.historyListAdapter.reload();
+                    delete();
                     break;
             }
         }
@@ -373,9 +391,24 @@ public class History extends MainActivity {
             return informationHistoryList.get(position);
         }
 
-        public void remove(Collection<Integer> ids) {
-            activity.measurementManager.deleteRecords(ids);
-            reload();
+        public void remove(final Collection<Integer> ids) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            // Add the buttons
+            builder.setPositiveButton(R.string.comment_delete_record, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // Delete records
+                    activity.measurementManager.deleteRecords(ids);
+                    reload();
+                }
+            });
+            builder.setNegativeButton(R.string.comment_cancel_change, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                }
+            });
+            // Create the AlertDialog
+            AlertDialog dialog = builder.create();
+            dialog.setTitle(R.string.history_title_delete);
+            dialog.show();
         }
 
         @Override

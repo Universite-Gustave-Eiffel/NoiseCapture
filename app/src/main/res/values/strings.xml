@@ -5,7 +5,10 @@
     <string name="action_settings">Settings</string>
     <string name="comment_cancel_change">Cancel</string>
     <string name="comment_save_change">Save</string>
+    <string name="comment_delete_record">Delete</string>
     <string name="comment_title_save_change">Save changes ?</string>
+    <string name="comment_title_delete">Delete the measurement ?</string>
+    <string name="history_title_delete">Delete the selected measurement(s) ?</string>
 
     <string name="record_message">Press the record button to start</string>
     <string name="calibrate_done">Calibration done, gain is set to %1$f dB</string>

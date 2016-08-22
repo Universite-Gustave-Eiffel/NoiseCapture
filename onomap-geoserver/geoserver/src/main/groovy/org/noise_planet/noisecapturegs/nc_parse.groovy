@@ -62,7 +62,7 @@ class ZipFileFilter implements FilenameFilter {
     }
 }
 
-def processFile(Connection connection, File zipFile) throws Exception {
+def processFile(Connection connection, File zipFile, boolean storeFrequencyLevels = true) throws Exception {
     def zipFileName = zipFile.getName()
     def recordUUID = zipFileName.substring("track_".length(), zipFileName.length() - ".zip".length())
     connection.setAutoCommit(false)
@@ -195,13 +195,15 @@ def processFile(Connection connection, File zipFile) throws Exception {
         def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
                 " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
                 " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location)", fields)[0][0] as Integer
-        // Insert frequency
-        sql.withBatch("INSERT INTO noisecapture_freq VALUES (:pkpoint, :freq, :noiselvl)") { batch ->
-            p.findAll { it.key ==~ 'leq_[0-9]{3,5}' }.each { key, spl ->
-                freq = key.substring("leq_".length()) as Integer
-                batch.addBatch([pkpoint: ptId, freq: freq, noiselvl: spl as Double])
+        if(storeFrequencyLevels) {
+            // Insert frequency
+            sql.withBatch("INSERT INTO noisecapture_freq VALUES (:pkpoint, :freq, :noiselvl)") { batch ->
+                p.findAll { it.key ==~ 'leq_[0-9]{3,5}' }.each { key, spl ->
+                    freq = key.substring("leq_".length()) as Integer
+                    batch.addBatch([pkpoint: ptId, freq: freq, noiselvl: spl as Double])
+                }
+                batch.executeBatch()
             }
-            batch.executeBatch()
         }
     }
 
@@ -248,7 +250,7 @@ def run(input) {
             try {
                 for (File zipFile : files) {
                     try {
-                        processFile(connection, zipFile)
+                        processFile(connection, zipFile, false)
                     } catch (SQLException ex) {
                         connection.rollback();
                         throw ex

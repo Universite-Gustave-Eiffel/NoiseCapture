@@ -262,31 +262,14 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
   showGetFeatureInfo: function (err, latlng, content) {
     if (err) { console.log(err); return; } // do nothing if there's an error
     // Otherwise show the content in a popup, or something.
-    info.update("        <div class=\"popup_main\">\
-                             <ul class=\"list-group\">\
-                               <li class=\"list-group-item\" id=\"leq\">\
-                                 <h4 class=\"list-group-item-heading compact\">Leq</h4>\
-                                 "+Math.round(content["leq"])+" dB(A)\
-                               </li>\
-                               <li class=\"list-group-item\">\
-                                 <h4 class=\"list-group-item-heading compact\">Pleasantness</h4>\
-                                 "+Math.round(content["mean_pleasantness"])+"%\
-                               </li>\
-                               <li class=\"list-group-item\">\
-                                 <h4 class=\"list-group-item-heading compact\">First measure</h4>\
-                                "+content["first_measure"]+"\
-                               </li>\
-                               <li class=\"list-group-item\">\
-                                 <h4 class=\"list-group-item-heading compact\">Last measure</h4>\
-                                 "+content["last_measure"]+"\
-                               </li>\
-                               <li class=\"list-group-item\">\
-                                 <h4 class=\"list-group-item-heading compact\">Measure length</h4>\
-                                 "+content["measure_count"]+" seconds\
-                               </li>\
-                             </ul>\
-                           </div>\
-                         </div>");
+    info.update("<table class=\"table table-condensed\"><thead><th>Leq</th><th>Pleasantness</th><th>First measure</th>\
+    <th>Last measure</th><th>Measure length</th></thead><tbody>\
+    <tr><td>"+Math.round(content["leq"])+" dB(A)</td></tr>\
+    <tr><td>"+Math.round(content["mean_pleasantness"])+"%</td></tr>\
+    <tr><td>"+content["first_measure"]+"</td></tr>\
+    <tr><td>"+content["last_measure"]+"</td></tr>\
+    <tr><td>"+content["measure_count"]+" seconds</td></tr>\
+    </tbody></table>");
   }
 });
 

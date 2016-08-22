@@ -528,7 +528,7 @@ public class MeasurementActivity extends MainActivity implements
 
         initComponents();
         if (measurementService.isStoring()) {
-            overlayMessage.setText("");
+            overlayMessage.setVisibility(View.INVISIBLE);
             buttonPause.setEnabled(true);
             buttonrecord.setImageResource(R.drawable.button_record_pressed);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -547,6 +547,7 @@ public class MeasurementActivity extends MainActivity implements
             Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer_recording_time);
             chronometer.stop();
             overlayMessage.setText(R.string.no_data_text_description);
+            overlayMessage.setVisibility(View.VISIBLE);
         }
     }
 

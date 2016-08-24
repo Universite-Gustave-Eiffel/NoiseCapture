@@ -228,21 +228,27 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         applyButton.setEnabled(false);
         resetButton.setEnabled(false);
         testGainCheckBox.setEnabled(true);
+        startButton.setText(R.string.calibration_button_start);
     }
 
     private void onCalibrationStart() {
-        textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
-        calibration_step = CALIBRATION_STEP.WARMUP;
-        // Link measurement service with gui
-        if(checkAndAskPermissions()) {
-            // Application have right now all permissions
-            doBindService();
+        if(calibration_step == CALIBRATION_STEP.IDLE) {
+            textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
+            calibration_step = CALIBRATION_STEP.WARMUP;
+            // Link measurement service with gui
+            if (checkAndAskPermissions()) {
+                // Application have right now all permissions
+                doBindService();
+            }
+            spinner.setEnabled(false);
+            startButton.setText(R.string.calibration_button_cancel);
+            testGainCheckBox.setEnabled(false);
+            timeHandler = new Handler(Looper.getMainLooper(), progressHandler);
+            progressHandler.start(defaultWarmupTime * 1000);
+        } else {
+            calibration_step = CALIBRATION_STEP.IDLE;
+            onReset();
         }
-        spinner.setEnabled(false);
-        startButton.setEnabled(false);
-        testGainCheckBox.setEnabled(false);
-        timeHandler = new Handler(Looper.getMainLooper(), progressHandler);
-        progressHandler.start(defaultWarmupTime * 1000);
     }
 
     @Override
@@ -410,7 +416,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             int newProg = (int)((((beginTime + delay) - currentTime) / (float)delay) *
                     activity.progressBar_wait_calibration_recording.getMax());
             activity.progressBar_wait_calibration_recording.setProgress(newProg);
-            if(currentTime < beginTime + delay) {
+            if(currentTime < beginTime + delay && activity.calibration_step != CALIBRATION_STEP.IDLE) {
                 activity.timeHandler.sendEmptyMessageDelayed(0, COUNTDOWN_STEP_MILLISECOND);
             } else {
                 activity.onTimerEnd();

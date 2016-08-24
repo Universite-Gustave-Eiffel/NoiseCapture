@@ -11,7 +11,7 @@
     <string name="history_title_delete">Delete the selected measurement(s) ?</string>
 
     <string name="record_message">Press the record button to start</string>
-    <string name="calibrate_done">Calibration done, gain is set to %1$f dB</string>
+    <string name="calibrate_done">Calibration done, gain is set to %1$.1f dB</string>
     <string name="calibration_out_bounds">Calibration sound level is incompatible with hardware specification bounds,it must be between %1$f dB an %2$f dB</string>
     <string name="fail_share">Generation of the shared file failed</string>
     <string name="no_results">There is no result. Start a record before.</string>
@@ -217,6 +217,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_status_end">Calibration done</string>
     <string name="calibration_status_background_noise">Measuring background noise</string>
     <string name="calibration_button_start">Start</string>
+    <string name="calibration_button_cancel">Cancel</string>
     <string name="calibration_leq_title">Measured Leq:</string>
     <string name="calibration_measure_title">Reference value:</string>
     <string name="calibration_button_apply">Apply</string>

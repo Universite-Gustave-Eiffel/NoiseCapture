@@ -94,7 +94,7 @@
         <activity
             android:name=".CalibrationLinearityActivity"
             android:screenOrientation="portrait"
-            android:label="@string/title_activity_calibration_start"/>
+            android:label="@string/title_activity_calibration_linearity"/>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"

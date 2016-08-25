@@ -28,12 +28,15 @@
 package org.noise_planet.noisecapture;
 
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.ActionBar;
 import android.util.TypedValue;
 import android.view.Menu;
 import android.webkit.WebView;
+import android.webkit.WebViewClient;
 
 
 public class View_html_page extends MainActivity {
@@ -44,8 +47,17 @@ public class View_html_page extends MainActivity {
         Intent intent = getIntent();
         setContentView(R.layout.activity_view_html_page);
         initDrawer();
-        WebView myWebView = (WebView) findViewById(R.id.webview);
+        final WebView myWebView = (WebView) findViewById(R.id.webview);
+        myWebView.getSettings().setJavaScriptEnabled(true);
         myWebView.loadUrl(intent.getStringExtra("pagetosee"));
+        runJs();
+        myWebView.setWebViewClient(new WebViewClient(){
+            @Override
+            public void onPageFinished(WebView view, String url) {
+                super.onPageFinished(view, url);
+                runJs();
+            }
+        });
         // Get background color
         TypedValue a = new TypedValue();
         getTheme().resolveAttribute(android.R.attr.windowBackground, a, true);
@@ -57,6 +69,24 @@ public class View_html_page extends MainActivity {
             actionBar.setTitle(intent.getStringExtra("titletosee"));
         }
 
+    }
+
+    private void runJs() {
+        final WebView webView = (WebView) findViewById(R.id.webview);
+        // Load extra parameters
+        String versionInfo = "";
+        try {
+            versionInfo = getVersionString(View_html_page.this);
+        } catch (PackageManager.NameNotFoundException ex){
+            MAINLOGGER.error(ex.getLocalizedMessage(), ex);
+        }
+        String content = "<h1>"+getText(R.string.app_name)+"</h1> "+versionInfo;
+        String js = "document.getElementById(\"about_title\").innerHTML = \""+content+"\"";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            webView.evaluateJavascript(js, null);
+        } else {
+            webView.loadUrl("javascript:"+js);
+        }
     }
 
     @Override

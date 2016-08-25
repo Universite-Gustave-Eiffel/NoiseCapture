@@ -55,6 +55,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import org.slf4j.Logger;
@@ -63,8 +64,10 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 
 
@@ -127,6 +130,23 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
         return true;
+    }
+
+    /**
+     * @return Version information on this application
+     * @throws PackageManager.NameNotFoundException
+     */
+    public static String getVersionString(Activity activity) throws PackageManager.NameNotFoundException {
+        String versionName = activity.getPackageManager().getPackageInfo(activity.getPackageName(), 0).versionName;
+        Date buildDate = new Date(BuildConfig.TIMESTAMP);
+        String gitHash = BuildConfig.GITHASH;
+        if(gitHash == null || gitHash.isEmpty()) {
+            gitHash = "";
+        } else {
+            gitHash = gitHash.substring(0, 7);
+        }
+        return activity.getString(R.string.title_appversion, versionName,
+                DateFormat.getDateInstance().format(buildDate), gitHash);
     }
 
     /**
@@ -447,22 +467,32 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if(!recordsToTransfer.isEmpty()) {
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    // Export
-                    final ProgressDialog progress = ProgressDialog.show(MainActivity.this,
-                            MainActivity.this.getText(R.string.upload_progress_title),
-                            MainActivity.this.getText(R.string.upload_progress_message), true);
-                    new Thread(new SendZipToServer(MainActivity.this, recordsToTransfer, progress,
-                            new OnUploadedListener() {
-                                @Override
-                                public void onMeasurementUploaded() {
-                                    onTransferRecord();
-                                }
-                            })).start();
-                }
-            });
+            runOnUiThread(new SendResults(this, recordsToTransfer));
+        }
+    }
+
+    protected static final class SendResults implements Runnable {
+        private MainActivity mainActivity;
+        private List<Integer> recordsToTransfer;
+
+        public SendResults(MainActivity mainActivity, List<Integer> recordsToTransfer) {
+            this.mainActivity = mainActivity;
+            this.recordsToTransfer = recordsToTransfer;
+        }
+
+        @Override
+        public void run() {
+            // Export
+            final ProgressDialog progress = ProgressDialog.show(mainActivity,
+                    mainActivity.getText(R.string.upload_progress_title),
+                    mainActivity.getText(R.string.upload_progress_message), true);
+            new Thread(new SendZipToServer(mainActivity, recordsToTransfer, progress,
+                    new OnUploadedListener() {
+                        @Override
+                        public void onMeasurementUploaded() {
+                            mainActivity.onTransferRecord();
+                        }
+                    })).start();
         }
     }
 

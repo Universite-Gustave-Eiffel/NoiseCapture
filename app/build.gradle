@@ -24,8 +24,8 @@ android {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 12
-        versionName "0.3.6 (alpha)"
+        versionCode 14
+        versionName "0.3.8 (alpha)"
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""
@@ -92,6 +92,7 @@ dependencies {
     compile 'com.android.support:support-vector-drawable:23.2.0'
     compile 'com.android.support:animated-vector-drawable:23.2.0'
     compile 'com.google.android.gms:play-services-maps:9.0.2'
+    compile group: 'com.nhaarman.supertooltips', name: 'library', version: '3.0.0'
     //compile 'com.android.support:multidex:1.0.0'
     // Testing-only dependencies
     // Force usage of support annotations in the test app, since it is internally used by the runner module.

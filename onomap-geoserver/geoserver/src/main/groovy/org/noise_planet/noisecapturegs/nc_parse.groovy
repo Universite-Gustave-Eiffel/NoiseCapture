@@ -62,130 +62,129 @@ class ZipFileFilter implements FilenameFilter {
     }
 }
 
-def processFile(Connection connection, File zipFile) {
-    try {
-        def zipFileName = zipFile.getName()
-        def recordUUID = zipFileName.substring("track_".length(), zipFileName.length() - ".zip".length())
-        connection.setAutoCommit(false)
-        def sql = new Sql(connection)
-        // Fetch metadata
-        Properties meta = null;
-        zipFile.withInputStream { is ->
-            ZipInputStream zipInputStream = new ZipInputStream(is)
-            ZipEntry zipEntry
-            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                if ("meta.properties".equals(zipEntry.getName())) {
-                    meta = new Properties();
-                    meta.load(zipInputStream)
-                }
+def processFile(Connection connection, File zipFile, boolean storeFrequencyLevels = true) throws Exception {
+    def zipFileName = zipFile.getName()
+    def recordUUID = zipFileName.substring("track_".length(), zipFileName.length() - ".zip".length())
+    connection.setAutoCommit(false)
+    def sql = new Sql(connection)
+    // Fetch metadata
+    Properties meta = null;
+    zipFile.withInputStream { is ->
+        ZipInputStream zipInputStream = new ZipInputStream(is)
+        ZipEntry zipEntry
+        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+            if ("meta.properties".equals(zipEntry.getName())) {
+                meta = new Properties();
+                meta.load(zipInputStream)
             }
         }
-        if (meta == null) {
-            throw new InvalidParameterException("No meta file")
-        }
-        // Check content
-        // Check uuid
-        if (!(meta.getProperty("uuid") ==~ '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')) {
-            // Wrong UUID
-            throw new InvalidParameterException("Wrong UUID \"" + meta.getProperty("uuid") + "\"")
-        }
-        if (!(Integer.valueOf(meta.getProperty("version_number")) > 0)) {
-            throw new InvalidParameterException("Wrong version \"" + meta.getProperty("version_number") + "\"")
-        }
-        if (!(Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")) > 0)) {
-            throw new InvalidParameterException("Wrong leq_mean \"" + meta.getProperty("leq_mean") + "\"")
-        }
-        if (!(meta.getProperty("pleasantness") == null || Integer.valueOf(meta.getProperty("pleasantness")) >= 0 &&
-                Integer.valueOf(meta.getProperty("pleasantness")) <= 100)) {
-            throw new InvalidParameterException("Wrong pleasantness \"" + meta.getProperty("pleasantness") + "\"")
-        }
+    }
+    if (meta == null) {
+        throw new InvalidParameterException("No meta file")
+    }
+    // Check content
+    // Check uuid
+    if (!(meta.getProperty("uuid") ==~ '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}')) {
+        // Wrong UUID
+        throw new InvalidParameterException("Wrong UUID \"" + meta.getProperty("uuid") + "\"")
+    }
+    if (!(Integer.valueOf(meta.getProperty("version_number")) > 0)) {
+        throw new InvalidParameterException("Wrong version \"" + meta.getProperty("version_number") + "\"")
+    }
+    if (!(Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")) > 0)) {
+        throw new InvalidParameterException("Wrong leq_mean \"" + meta.getProperty("leq_mean") + "\"")
+    }
+    if (!(meta.getProperty("pleasantness") == null || Integer.valueOf(meta.getProperty("pleasantness")) >= 0 &&
+            Integer.valueOf(meta.getProperty("pleasantness")) <= 100)) {
+        throw new InvalidParameterException("Wrong pleasantness \"" + meta.getProperty("pleasantness") + "\"")
+    }
 
-        // Fetch or insert user
-        GroovyRowResult res = sql.firstRow("SELECT * FROM noisecapture_user WHERE user_uuid=:uuid",
-                [uuid: meta.getProperty("uuid")])
-        def idUser
-        if (res == null) {
-            // Create user
-            idUser = sql.executeInsert("INSERT INTO noisecapture_user(user_uuid, date_creation) VALUES (:uuid, current_date)",
-                    [uuid: meta.getProperty("uuid")])[0][0]
-        } else {
-            idUser = res.get("pk_user")
+    // Fetch or insert user
+    GroovyRowResult res = sql.firstRow("SELECT * FROM noisecapture_user WHERE user_uuid=:uuid",
+            [uuid: meta.getProperty("uuid")])
+    def idUser
+    if (res == null) {
+        // Create user
+        idUser = sql.executeInsert("INSERT INTO noisecapture_user(user_uuid, date_creation) VALUES (:uuid, current_date)",
+                [uuid: meta.getProperty("uuid")])[0][0]
+    } else {
+        idUser = res.get("pk_user")
+    }
+    // Check if this measurement has not been already uploaded
+    def oldTrackCount = sql.firstRow("SELECT count(*) cpt FROM  noisecapture_track where record_utc=:recordutc and pk_user=:userid",
+            [recordutc: new Timestamp(Long.valueOf(meta.getProperty("record_utc"))), userid: idUser]).cpt as Integer
+    if (oldTrackCount > 0) {
+        def previousTrack = sql.firstRow("SELECT track_uuid FROM  noisecapture_track where record_utc=:recordutc and pk_user=:userid",
+                [recordutc: new Timestamp(Long.valueOf(meta.getProperty("record_utc"))), userid: idUser])
+        throw new InvalidParameterException("User tried to reupload " + previousTrack.get("track_uuid"))
+    }
+    // insert record
+    Map record = [track_uuid         : recordUUID,
+                  pk_user            : idUser,
+                  version_number     : meta.getProperty("version_number") as int,
+                  record_utc         : new Timestamp(Long.valueOf(meta.getProperty("record_utc"))),
+                  pleasantness       : meta.getOrDefault("pleasantness", null) as Integer,
+                  device_product     : meta.get("device_product"),
+                  device_model       : meta.get("device_model"),
+                  device_manufacturer: meta.get("device_manufacturer"),
+                  noise_level        : Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")),
+                  time_length        : meta.get("time_length") as int,
+                  gain_calibration   : Double.valueOf(meta.getProperty("gain_calibration", "0").replace(",", "."))]
+    def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
+            " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration) VALUES (" +
+            ":track_uuid, :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
+            " :device_manufacturer, :noise_level, :time_length, :gain_calibration)", record)[0][0] as Integer
+    // insert tags
+    String tags = meta.getProperty("tags", "")
+    if (!tags.isEmpty()) {
+        // Cache tags
+        Map<String, Integer> tagToIdTag = new HashMap<>()
+        sql.eachRow("SELECT pk_tag, tag_name FROM noisecapture_tag") { row ->
+            tagToIdTag.put(row.tag_name, row.pk_tag)
         }
-        // Check if this measurement has not been already uploaded
-        def oldTrackCount = sql.firstRow("SELECT count(*) cpt FROM  noisecapture_track where record_utc=:recordutc and pk_user=:userid",
-                [recordutc:new Timestamp(Long.valueOf(meta.getProperty("record_utc"))), userid:idUser]).cpt as Integer
-        if(oldTrackCount > 0) {
-            def previousTrack = sql.firstRow("SELECT track_uuid FROM  noisecapture_track where record_utc=:recordutc and pk_user=:userid",
-                    [recordutc:new Timestamp(Long.valueOf(meta.getProperty("record_utc"))), userid:idUser])
-            throw new InvalidParameterException("User tried to reupload "+ previousTrack.get("track_uuid"))
-        }
-        // insert record
-        Map record = [track_uuid         : recordUUID,
-                      pk_user            : idUser,
-                      version_number     : meta.getProperty("version_number") as int,
-                      record_utc         : new Timestamp(Long.valueOf(meta.getProperty("record_utc"))),
-                      pleasantness       : meta.getOrDefault("pleasantness", null) as Integer,
-                      device_product     : meta.get("device_product"),
-                      device_model       : meta.get("device_model"),
-                      device_manufacturer: meta.get("device_manufacturer"),
-                      noise_level        : Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")),
-                      time_length        : meta.get("time_length") as int,
-                      gain_calibration   : Double.valueOf(meta.getProperty("gain_calibration", "0").replace(",", "."))]
-        def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
-                " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration) VALUES (" +
-                ":track_uuid, :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
-                " :device_manufacturer, :noise_level, :time_length, :gain_calibration)", record)[0][0] as Integer
-        // insert tags
-        String tags = meta.getProperty("tags", "")
-        if (!tags.isEmpty()) {
-            // Cache tags
-            Map<String, Integer> tagToIdTag = new HashMap<>()
-            sql.eachRow("SELECT pk_tag, tag_name FROM noisecapture_tag") { row ->
-                tagToIdTag.put(row.tag_name, row.pk_tag)
+        // Insert tags
+        tags.tokenize(",").each() { String tag ->
+            def tagId = tagToIdTag.get(tag.toLowerCase()) as Integer
+            if (tagId == null) {
+                // Insert new tag
+                tagId = sql.executeInsert("INSERT INTO noisecapture_tag (tag_name) VALUES (:tag_name)",
+                        [tag_name: tag.toLowerCase()])[0][0]
+                tagToIdTag.put(tag.toLowerCase(), (int) tagId)
             }
-            // Insert tags
-            tags.tokenize(",").each () { String tag ->
-                def tagId = tagToIdTag.get(tag.toLowerCase()) as Integer
-                if(tagId == null) {
-                    // Insert new tag
-                    tagId = sql.executeInsert("INSERT INTO noisecapture_tag (tag_name) VALUES (:tag_name)",
-                            [tag_name:tag.toLowerCase()])[0][0]
-                    tagToIdTag.put(tag.toLowerCase(), (int)tagId)
-                }
-                sql.executeInsert("INSERT INTO noisecapture_track_tag VALUES (:pktrack, :pktag)",
-                        [pktrack:recordId, pktag:tagId])
-            }
+            sql.executeInsert("INSERT INTO noisecapture_track_tag VALUES (:pktrack, :pktag)",
+                    [pktrack: recordId, pktag: tagId])
         }
+    }
 
-        // Fetch GeoJSON
-        def jsonSlurper = new JsonSlurper()
-        def jsonRoot
-        zipFile.withInputStream { is ->
-            ZipInputStream zipInputStream = new ZipInputStream(is)
-            ZipEntry zipEntry
-            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
-                if ("track.geojson".equals(zipEntry.getName())) {
-                    jsonRoot = jsonSlurper.parse(zipInputStream)
-                    break
-                }
+    // Fetch GeoJSON
+    def jsonSlurper = new JsonSlurper()
+    def jsonRoot
+    zipFile.withInputStream { is ->
+        ZipInputStream zipInputStream = new ZipInputStream(is)
+        ZipEntry zipEntry
+        while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+            if ("track.geojson".equals(zipEntry.getName())) {
+                jsonRoot = jsonSlurper.parse(zipInputStream)
+                break
             }
         }
-        if(jsonRoot == null) {
-            throw new InvalidParameterException("No track.geojson file")
-        }
+    }
+    if (jsonRoot == null) {
+        throw new InvalidParameterException("No track.geojson file")
+    }
 
-        jsonRoot.features.each() { feature ->
-            def theGeom = "GEOMETRYCOLLECTION EMPTY"
-            if(feature.geometry != null) {
-                def (x, y, z) = feature.geometry.coordinates
-                if(z != null) {
-                    theGeom = "POINT($x $y $z)" as String
-                } else {
-                    theGeom = "POINT($x $y)" as String
-                }
+    jsonRoot.features.each() { feature ->
+        def theGeom = "GEOMETRYCOLLECTION EMPTY"
+        if (feature.geometry != null) {
+            def (x, y, z) = feature.geometry.coordinates
+            if (z != null) {
+                theGeom = "POINT($x $y $z)" as String
+            } else {
+                theGeom = "POINT($x $y)" as String
             }
-            def p = feature.properties
-            def fields = [the_geom     : theGeom,
+        }
+        def p = feature.properties
+        def fields = [the_geom     : theGeom,
                       pk_track     : recordId,
                       noise_level  : p.leq_mean as Double,
                       speed        : p.speed as Double,
@@ -193,33 +192,27 @@ def processFile(Connection connection, File zipFile) {
                       orientation  : p.bearing as Double,
                       time_date    : new Timestamp(p.leq_utc as Long),
                       time_location: new Timestamp(p.location_utc as Long)]
-            def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
-                    " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
-                    " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location)", fields)[0][0] as Integer
+        def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
+                " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
+                " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location)", fields)[0][0] as Integer
+        if(storeFrequencyLevels) {
             // Insert frequency
             sql.withBatch("INSERT INTO noisecapture_freq VALUES (:pkpoint, :freq, :noiselvl)") { batch ->
-                p.findAll { it.key ==~ 'leq_[0-9]{3,5}'}.each { key, spl ->
+                p.findAll { it.key ==~ 'leq_[0-9]{3,5}' }.each { key, spl ->
                     freq = key.substring("leq_".length()) as Integer
-                    batch.addBatch([pkpoint:ptId, freq:freq, noiselvl:spl as Double])
+                    batch.addBatch([pkpoint: ptId, freq: freq, noiselvl: spl as Double])
                 }
                 batch.executeBatch()
             }
         }
-
-
-        // Accept changes
-        connection.commit();
-    } catch (SQLException ex) {
-        connection.rollback();
-        throw ex
-    } finally {
-        // Move file to processed folder
-        File processedDir = new File("data_dir/onomap_archive");
-        if (!processedDir.exists()) {
-            processedDir.mkdirs()
-        }
-        zipFile.renameTo(new File(processedDir, zipFile.getName()))
     }
+
+    // Push track into process queue
+    Map processQueue = [pk_track: recordId]
+    sql.executeInsert("INSERT INTO NOISECAPTURE_PROCESS_QUEUE VALUES (:pk_track)", processQueue)
+
+    // Accept changes
+    connection.commit();
 }
 
 def Connection openPostgreSQLConnection() {
@@ -240,7 +233,7 @@ def Connection openPostgreSQLConnection() {
 }
 
 
-def Connection openPostgreSQLDataStoreConnection() {
+def static Connection openPostgreSQLDataStoreConnection() {
     Store store = new GeoServer().catalog.getStore("postgis")
     JDBCDataStore jdbcDataStore = (JDBCDataStore)store.getDataStoreInfo().getDataStore(null)
     return jdbcDataStore.getDataSource().getConnection()
@@ -256,7 +249,19 @@ def run(input) {
             Connection connection = openPostgreSQLDataStoreConnection()
             try {
                 for (File zipFile : files) {
-                    processFile(connection, zipFile)
+                    try {
+                        processFile(connection, zipFile, false)
+                    } catch (SQLException ex) {
+                        connection.rollback();
+                        throw ex
+                    } finally {
+                        // Move file to processed folder
+                        File processedDir = new File("data_dir/onomap_archive");
+                        if (!processedDir.exists()) {
+                            processedDir.mkdirs()
+                        }
+                        zipFile.renameTo(new File(processedDir, zipFile.getName()))
+                    }
                     processed++
                 }
             } finally {

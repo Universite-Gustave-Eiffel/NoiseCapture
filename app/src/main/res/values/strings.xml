@@ -5,10 +5,13 @@
     <string name="action_settings">Settings</string>
     <string name="comment_cancel_change">Cancel</string>
     <string name="comment_save_change">Save</string>
+    <string name="comment_delete_record">Delete</string>
     <string name="comment_title_save_change">Save changes ?</string>
+    <string name="comment_title_delete">Delete the measurement ?</string>
+    <string name="history_title_delete">Delete the selected measurement(s) ?</string>
 
     <string name="record_message">Press the record button to start</string>
-    <string name="calibrate_done">Calibration done, gain is set to %1$f dB</string>
+    <string name="calibrate_done">Calibration done, gain is set to %1$.1f dB</string>
     <string name="calibration_out_bounds">Calibration sound level is incompatible with hardware specification bounds,it must be between %1$f dB an %2$f dB</string>
     <string name="fail_share">Generation of the shared file failed</string>
     <string name="no_results">There is no result. Start a record before.</string>
@@ -43,11 +46,12 @@
     <string name="SL_dB">dB</string>
 
     <string name="hello_world">Hello world!</string>
-    <string name="title_settings_calibration_warmup_time">Calibration warmup time</string>
+    <string name="title_settings_calibration_warmup_time">Calibration warm-up time</string>
     <string name="title_settings_calibration_warmup_time_description">Waiting time in seconds before calibration</string>
     <string name="title_settings_calibration_time">Calibration time</string>
     <string name="title_settings_calibration_time_description">Calibration time in seconds</string>
-
+    <string name="title_settings_calibration_linear_title">Audio output</string>
+    <string name="title_settings_calibration_linear_description">Device output for linear correlation test</string>
     <string name="setting_general_group">General</string>
     <string name="setting_measurement_group">Measurement</string>
     <string name="setting_calibration_group">Calibration</string>
@@ -56,8 +60,9 @@
     <string name="title_settings_transfer_wifi_only">Wifi only</string>
     <string name="summary_settings_transfer_wifi_only">Automatic transfer by wifi only</string>
     <string name="title_settings_recording">Recording</string>
-    <string name="summary_settings_recording">Set maximal recording time</string>
-    <string name="title_settings_caution">Caution message</string>
+    <string name="summary_settings_recording">Set maximal recording time</string><string name="title_settings_caution">Caution message</string>
+    <string name="summary_settings_tooltip">Check to display tooltip when touching elements in NoiseCapture</string>
+    <string name="title_settings_tooltip">Tooltip message</string>
     <string name="summary_settings_caution">Check to display the caution message during the launch of the application</string>
     <string name="title_settings_recording_duration">Recording duration</string>
 
@@ -93,7 +98,7 @@
         <item>Export result</item>
         <item>Edit description</item>
         <item>Show result</item>
-        <item>Show map</item>
+        <item>Show on map</item>
         <item>Delete</item>
     </string-array>
 
@@ -109,6 +114,20 @@
         <item>About</item>
     </string-array>
     <string name="result_share">Share this result</string>
+    <string name="result_button_map">Show map</string>
+    <string name="result_button_upload">Upload</string>
+    <string name="result_button_user_feedback">Description</string>
+    <string name="result_tooltip_nei">equivalent noise level in dB(A), on the whole measurement duration [at the center of colored circle]</string>
+    <string name="result_tooltip_rne">This indicator represents the distribution over the time of your noise
+        exposure. Each of the five colors correspond to a given noise level range.</string>
+    <string name="result_tooltip_minsl">Minimal 1 second A-weighted noise level</string>
+    <string name="result_tooltip_maxsl">Maximal 1 second A-weighted noise level</string>
+    <string name="result_tooltip_la10">LA10: A-weighted noise level that is exceeded for 10% of the
+          measurement period. LA10 is a useful descriptor of road traffic noise, which is correlated with the noise annoyance</string>
+    <string name="result_tooltip_la50">LA50: A-weighted noise level that is exceeded for 50% of the
+          measurement period. LA50 is the median sound level</string>
+    <string name="result_tooltip_la90">A-weighted noise level that is exceeded for 90% of the
+          measurement period. LA90 is a useful descriptor to quantify the background noise level</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <string name="url_about">file:///android_asset/html/about.html</string>
@@ -150,18 +169,19 @@
     <string name="title_activity_map">Map</string>
     <string name="title_activity_start">Noise Capture</string>
     <string name="title_activity_calibration_start">Calibration</string>
-    <string name="title_activity_calibration_linearity">Linearity calibration</string>
+    <string name="title_activity_calibration_linearity">Linearity correlation test</string>
 
     <string name="start_text_title">NoiseCapture</string>
     <string name="start_text_subtitle">Measuring your sound environment</string>
     <string name="start_text_developed_by">Developed by</string>
     <string name="start_text_supported_by">Supported by</string>
-    <string name="upload_progress_title">Uploading..</string>
+    <string name="upload_progress_title">Uploading...</string>
     <string name="upload_progress_message">Uploading measurement</string>
 
     <string name="history_length">Duration: %d seconds</string>
     <string name="history_date">Date: %s</string>
     <string name="history_sel">%.01f dB(A)</string>
+    <string name="history_upload_top">Upload</string>
     <string name="map_marker_label">%1$.01f dB(A) Precision: %2$s m</string>
     <string name="history_uploadeddescr">Is this result has been uploaded to community map server</string>
 
@@ -196,16 +216,20 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
 - bearing Movement orientation.See https://developer.android.com/reference/android/location/Location.html#getBearing()\n
 - speed Estimated device speed in m/s\n
 - leq_frequency 1s mean equivalent sound level in dB(A) for the specified frequency\n</string>
-    <string name="title_activity_comment">CommentActivity</string>
+    <string name="title_activity_comment">Description</string>
     <string name="userinfo_unpleasant">Unpleasant</string>
     <string name="userinfo_pleasant">Pleasant</string>
-    <string name="calibration_status_waiting_for_user_start">Waiting for calibration start..</string>
-    <string name="calibration_status_waiting_for_start_timer">Calibration is about to start..</string>
+    <string name="userinfo_pleasantness">Pleasantness</string>
+    <string name="calibration_status_waiting_for_user_start">Waiting for calibration start...</string>
+    <string name="calibration_status_waiting_for_start_timer">Calibration is about to start...</string>
+    <string name="userinfo_button_measure">Measure</string>
+    <string name="userinfo_button_results">Valid</string>
     <string name="calibration_status_on">Calibration..</string>
     <string name="calibration_linear_status_on">Calibration at %1$.0f dB</string>
     <string name="calibration_status_end">Calibration done</string>
     <string name="calibration_status_background_noise">Measuring background noise</string>
     <string name="calibration_button_start">Start</string>
+    <string name="calibration_button_cancel">Cancel</string>
     <string name="calibration_leq_title">Measured Leq:</string>
     <string name="calibration_measure_title">Reference value:</string>
     <string name="calibration_button_apply">Apply</string>
@@ -249,6 +273,4 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>Notification</item>
         <item>DTMF</item>
     </string-array>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

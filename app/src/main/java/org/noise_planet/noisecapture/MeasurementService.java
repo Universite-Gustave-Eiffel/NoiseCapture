@@ -542,7 +542,7 @@ public class MeasurementService extends Service {
                 if (measurementService.isStoring() && !measurementService.isPaused.get()) {
                     AudioProcess.AudioMeasureResult measure =
                             (AudioProcess.AudioMeasureResult) event.getNewValue();
-                    measurementService.leqStatsFast.addLeq(measure.getSignalLeq());
+                    measurementService.leqStatsFast.addLeq(measure.getGlobaldBaValue());
                 }
             } else if (AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
                 if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {

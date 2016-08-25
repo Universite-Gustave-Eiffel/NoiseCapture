@@ -67,17 +67,8 @@ public class Start extends Activity {
         }
     // read app version name
     try {
-        String versionName = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-        Date buildDate = new Date(BuildConfig.TIMESTAMP);
-        String gitHash = BuildConfig.GITHASH;
-        if(gitHash == null || gitHash.isEmpty()) {
-            gitHash = "";
-        } else {
-            gitHash = gitHash.substring(0, 7);
-        }
         TextView versionText = (TextView) findViewById(R.id.textView_appversion);
-        versionText.setText(getString(R.string.title_appversion, versionName,
-                DateFormat.getDateInstance().format(buildDate), gitHash));
+        versionText.setText(MainActivity.getVersionString(this));
     } catch (PackageManager.NameNotFoundException ex) {
         LOGGER.error(ex.getLocalizedMessage(), ex);
     }

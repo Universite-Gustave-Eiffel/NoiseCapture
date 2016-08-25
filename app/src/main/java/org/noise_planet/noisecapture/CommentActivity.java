@@ -28,20 +28,26 @@
 package org.noise_planet.noisecapture;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.text.SpannableString;
+import android.text.style.StrikethroughSpan;
+import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -83,7 +89,9 @@ public class CommentActivity extends MainActivity {
         setContentView(R.layout.activity_comment);
 
         View mainView = findViewById(R.id.mainLayout);
-        mainView.setOnTouchListener(new MainOnTouchListener(this));
+        if(mainView != null) {
+            mainView.setOnTouchListener(new MainOnTouchListener(this));
+        }
 
         // Read record activity parameter
         // Use last record of no parameter provided
@@ -106,8 +114,10 @@ public class CommentActivity extends MainActivity {
         if(record != null) {
             ImageButton addPhoto = (ImageButton) findViewById(R.id.btn_add_photo);
             addPhoto.setOnClickListener(new OnAddPhotoClickListener(this));
-            ImageButton resultsBtn = (ImageButton) findViewById(R.id.resultsBtn);
+            Button resultsBtn = (Button) findViewById(R.id.resultsBtn);
             resultsBtn.setOnClickListener(new OnGoToResultPage(this));
+            Button deleteBts = (Button) findViewById(R.id.deleteBtn);
+            deleteBts.setOnClickListener(new OnDeleteMeasurement(this));
         }
         initDrawer(record != null ? record.getId() : null);
         SeekBar seekBar = (SeekBar) findViewById(R.id.pleasantness_slider);
@@ -259,8 +269,10 @@ public class CommentActivity extends MainActivity {
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             if(isChecked) {
                 checkList.add(id);
+                buttonView.setTextColor(Color.GREEN);
             } else {
                 checkList.remove(id);
+                buttonView.setTextColor(Color.WHITE);
             }
         }
     }
@@ -344,7 +356,42 @@ public class CommentActivity extends MainActivity {
             //Open result page
             Intent ir = new Intent(activity, Results.class);
             ir.putExtra(Results.RESULTS_RECORD_ID, activity.record.getId());
+            ir.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             activity.startActivity(ir);
+        }
+    }
+
+
+    private static final class OnDeleteMeasurement implements View.OnClickListener {
+        private CommentActivity activity;
+
+        public OnDeleteMeasurement(CommentActivity activity) {
+            this.activity = activity;
+        }
+
+        @Override
+        public void onClick(View v) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            // Add the buttons
+            builder.setPositiveButton(R.string.comment_delete_record, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // Delete record
+                    activity.measurementManager.deleteRecord(activity.record.getId());
+                    activity.record = null;
+                    // Open measurement page
+                    Intent ir = new Intent(activity, MeasurementActivity.class);
+                    ir.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                    activity.startActivity(ir);
+                }
+            });
+            builder.setNegativeButton(R.string.comment_cancel_change, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                }
+            });
+            // Create the AlertDialog
+            AlertDialog dialog = builder.create();
+            dialog.setTitle(R.string.comment_title_delete);
+            dialog.show();
         }
     }
 

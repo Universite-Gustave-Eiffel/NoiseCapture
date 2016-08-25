@@ -136,13 +136,6 @@ public class MeasurementExport {
         JSONObject main = new JSONObject();
 
         try {
-            // Add CRS
-            JSONObject crs = new JSONObject();
-            JSONObject crsProperty = new JSONObject();
-            crsProperty.put("name", "urn:ogc:def:crs:OGC:1.3:CRS84");
-            crs.put("type", "name");
-            crs.put("properties", crsProperty);
-            main.put("crs", crs);
 
             // Add measures
             main.put("type", "FeatureCollection");

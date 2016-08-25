@@ -184,7 +184,7 @@
                     android:id="@+id/textView_message_overlay"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="#ff000000"
+                    android:background="@drawable/round_corner"
                     android:layout_centerInParent="true"
                     android:textSize="18sp"
                     android:textStyle="bold" />

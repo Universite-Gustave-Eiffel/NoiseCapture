@@ -95,7 +95,7 @@ public class MeasurementActivity extends MainActivity implements
     private boolean mIsBound = false;
     private AtomicBoolean chronometerWaitingToStart = new AtomicBoolean(false);
 
-    public final static double MIN_SHOWN_DBA_VALUE = 35;
+    public final static double MIN_SHOWN_DBA_VALUE = 20;
     public final static double MAX_SHOWN_DBA_VALUE = 120;
 
     private static final int DEFAULT_MINIMAL_LEQ = 1;
@@ -149,10 +149,6 @@ public class MeasurementActivity extends MainActivity implements
         }
         setContentView(R.layout.activity_measurement);
         initDrawer();
-
-        // Message for starting a record
-        Toast.makeText(getApplicationContext(),
-                getString(R.string.record_message), Toast.LENGTH_LONG).show();
 
         // Check if the dialog box (for caution) must be displayed
         // Depending of the settings
@@ -532,7 +528,7 @@ public class MeasurementActivity extends MainActivity implements
 
         initComponents();
         if (measurementService.isStoring()) {
-            overlayMessage.setText("");
+            overlayMessage.setVisibility(View.INVISIBLE);
             buttonPause.setEnabled(true);
             buttonrecord.setImageResource(R.drawable.button_record_pressed);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -551,6 +547,7 @@ public class MeasurementActivity extends MainActivity implements
             Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer_recording_time);
             chronometer.stop();
             overlayMessage.setText(R.string.no_data_text_description);
+            overlayMessage.setVisibility(View.VISIBLE);
         }
     }
 
@@ -777,8 +774,8 @@ public class MeasurementActivity extends MainActivity implements
             measurementService.getAudioProcess().setDoFastLeq(true);
             measurementService.getAudioProcess().setDoOneSecondLeq(true);
             measurementService.getAudioProcess().setWeightingA(true);
-            measurementService.getAudioProcess().setHanningWindowOneSecond(false);
-            measurementService.getAudioProcess().setHanningWindowFast(true);
+            measurementService.getAudioProcess().setHannWindowOneSecond(false);
+            measurementService.getAudioProcess().setHannWindowFast(true);
             initGuiState();
         }
 

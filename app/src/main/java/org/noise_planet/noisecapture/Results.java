@@ -29,13 +29,16 @@ package org.noise_planet.noisecapture;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
@@ -60,6 +63,9 @@ import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.github.mikephil.charting.utils.ViewPortHandler;
+import com.nhaarman.supertooltips.ToolTip;
+import com.nhaarman.supertooltips.ToolTipRelativeLayout;
+import com.nhaarman.supertooltips.ToolTipView;
 
 import org.noise_planet.noisecapture.util.CustomPercentFormatter;
 import org.orbisgis.sos.LeqStats;
@@ -81,6 +87,9 @@ public class Results extends MainActivity {
     private static final double[][] CLASS_RANGES = new double[][]{{Double.MIN_VALUE, 45}, {45, 55},
             {55, 65}, {65, 75},{75, Double.MAX_VALUE}};
 
+    private ToolTipRelativeLayout toolTip;
+    private ToolTipView lastShownTooltip = null;
+
 
     // For the Charts
     public PieChart rneChart;
@@ -96,6 +105,8 @@ public class Results extends MainActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean showTooltip = sharedPref.getBoolean("settings_tooltip", true);
         setContentView(R.layout.activity_results);
         this.measurementManager = new MeasurementManager(this);
         Intent intent = getIntent();
@@ -115,11 +126,16 @@ public class Results extends MainActivity {
             }
         }
         initDrawer(record.getId());
+        toolTip = (ToolTipRelativeLayout) findViewById(R.id.activity_tooltip);
+
         loadMeasurement();
         LeqStats.LeqOccurrences leqOccurrences = leqStats.computeLeqOccurrences(CLASS_RANGES);
 
         // RNE PieChart
         rneChart = (PieChart) findViewById(R.id.RNEChart);
+        if(showTooltip) {
+            rneChart.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_rne));
+        }
         initRNEChart();
         setRNEData(leqOccurrences.getUserDefinedOccurrences());
         Legend lrne = rneChart.getLegend();
@@ -130,6 +146,9 @@ public class Results extends MainActivity {
 
         // NEI PieChart
         neiChart = (PieChart) findViewById(R.id.NEIChart);
+        if(showTooltip) {
+            neiChart.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_nei));
+        }
         initNEIChart();
         setNEIData();
         Legend lnei = neiChart.getLegend();
@@ -144,26 +163,41 @@ public class Results extends MainActivity {
 
         TextView minText = (TextView) findViewById(R.id.textView_value_Min_SL);
         minText.setText(String.format("%.01f", leqStats.getLeqMin()));
+        if(showTooltip) {
+            minText.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_minsl));
+        }
         findViewById(R.id.textView_color_Min_SL)
                 .setBackgroundColor(NE_COLORS[getNEcatColors(leqStats.getLeqMin())]);
 
         TextView maxText = (TextView) findViewById(R.id.textView_value_Max_SL);
         maxText.setText(String.format("%.01f", leqStats.getLeqMax()));
+        if(showTooltip) {
+            maxText.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_maxsl));
+        }
         findViewById(R.id.textView_color_Max_SL)
                 .setBackgroundColor(NE_COLORS[getNEcatColors(leqStats.getLeqMax())]);
 
         TextView la10Text = (TextView) findViewById(R.id.textView_value_LA10);
         la10Text.setText(String.format("%.01f", leqOccurrences.getLa10()));
+        if(showTooltip) {
+            la10Text.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_la10));
+        }
         findViewById(R.id.textView_color_LA10)
                 .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa10())]);
 
         TextView la50Text = (TextView) findViewById(R.id.textView_value_LA50);
         la50Text.setText(String.format("%.01f", leqOccurrences.getLa50()));
+        if(showTooltip) {
+            la50Text.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_la50));
+        }
         findViewById(R.id.textView_color_LA50)
                 .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa50())]);
 
         TextView la90Text = (TextView) findViewById(R.id.textView_value_LA90);
         la90Text.setText(String.format("%.01f", leqOccurrences.getLa90()));
+        if(showTooltip) {
+            la90Text.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_la90));
+        }
         findViewById(R.id.textView_color_LA90)
                 .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa90())]);
 
@@ -203,6 +237,7 @@ public class Results extends MainActivity {
         });
 
         exportComment.setEnabled(record.getUploadId().isEmpty());
+
     }
 
     private static final class OnGoToMeasurePage implements View.OnClickListener {
@@ -520,6 +555,31 @@ public class Results extends MainActivity {
                 }
             }
             return "";
+        }
+    }
+
+    private static class ToolTipListener implements View.OnTouchListener {
+        private Results results;
+        private int resId;
+
+        public ToolTipListener(Results results, final int resId) {
+            this.results = results;
+            this.resId = resId;
+        }
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            if(results.lastShownTooltip != null && results.lastShownTooltip.isShown()) {
+                // Hide last shown tooltip
+                results.lastShownTooltip.remove();
+            }
+            ToolTip toolTipMinSL = new ToolTip()
+                    .withText(resId)
+                    .withColor(Color.DKGRAY)
+                    .withShadow()
+                    .withAnimationType(ToolTip.AnimationType.FROM_TOP);
+            results.lastShownTooltip = results.toolTip.showToolTipForView(toolTipMinSL, v);
+            return false;
         }
     }
 }

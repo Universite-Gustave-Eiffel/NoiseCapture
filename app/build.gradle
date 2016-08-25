@@ -92,6 +92,7 @@ dependencies {
     compile 'com.android.support:support-vector-drawable:23.2.0'
     compile 'com.android.support:animated-vector-drawable:23.2.0'
     compile 'com.google.android.gms:play-services-maps:9.0.2'
+    compile group: 'com.nhaarman.supertooltips', name: 'library', version: '3.0.0'
     //compile 'com.android.support:multidex:1.0.0'
     // Testing-only dependencies
     // Force usage of support annotations in the test app, since it is internally used by the runner module.

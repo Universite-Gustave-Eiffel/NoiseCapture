@@ -60,8 +60,9 @@
     <string name="title_settings_transfer_wifi_only">Wifi only</string>
     <string name="summary_settings_transfer_wifi_only">Automatic transfer by wifi only</string>
     <string name="title_settings_recording">Recording</string>
-    <string name="summary_settings_recording">Set maximal recording time</string>
-    <string name="title_settings_caution">Caution message</string>
+    <string name="summary_settings_recording">Set maximal recording time</string><string name="title_settings_caution">Caution message</string>
+    <string name="summary_settings_tooltip">Check to display tooltip when touching elements in NoiseCapture</string>
+    <string name="title_settings_tooltip">Tooltip message</string>
     <string name="summary_settings_caution">Check to display the caution message during the launch of the application</string>
     <string name="title_settings_recording_duration">Recording duration</string>
 
@@ -116,6 +117,17 @@
     <string name="result_button_map">Show map</string>
     <string name="result_button_upload">Upload</string>
     <string name="result_button_user_feedback">Description</string>
+    <string name="result_tooltip_nei">equivalent noise level in dB(A), on the whole measurement duration [at the center of colored circle]</string>
+    <string name="result_tooltip_rne">This indicator represents the distribution over the time of your noise
+        exposure. Each of the five colors correspond to a given noise level range.</string>
+    <string name="result_tooltip_minsl">Minimal 1 second A-weighted noise level</string>
+    <string name="result_tooltip_maxsl">Maximal 1 second A-weighted noise level</string>
+    <string name="result_tooltip_la10">LA10: A-weighted noise level that is exceeded for 10% of the
+          measurement period. LA10 is a useful descriptor of road traffic noise, which is correlated with the noise annoyance</string>
+    <string name="result_tooltip_la50">LA50: A-weighted noise level that is exceeded for 50% of the
+          measurement period. LA50 is the median sound level</string>
+    <string name="result_tooltip_la90">A-weighted noise level that is exceeded for 90% of the
+          measurement period. LA90 is a useful descriptor to quantify the background noise level</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>
     <string name="url_about">file:///android_asset/html/about.html</string>

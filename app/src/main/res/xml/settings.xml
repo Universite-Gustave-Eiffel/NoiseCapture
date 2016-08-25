@@ -2,6 +2,11 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
  <PreferenceCategory android:title="@string/setting_general_group">
      <CheckBoxPreference
+         android:key="settings_tooltip"
+         android:title="@string/title_settings_tooltip"
+         android:summary="@string/summary_settings_tooltip"
+         android:defaultValue="true" />
+     <CheckBoxPreference
          android:key="settings_caution"
          android:title="@string/title_settings_caution"
          android:summary="@string/summary_settings_caution"

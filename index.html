@@ -72,18 +72,18 @@ tbody td {
 }
 	</style>
         <script>
-
-var map = L.map('map').setView([47.1535576,-1.6502087], 16);
+		
+var map = L.map('map').setView([46.649,9.382], 5);
 
 var osm =  L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
   });
 var url = "http://onomap-gs.noise-planet.org/geoserver/ows";
-var onomap = L.tileLayer.OnoMap(url, {
-	layers: 'noisecapture:noisecapture_area',
+var onomap = L.tileLayer.wms(url, {
+	layers: 'noisecapture:noisecapture_point',
 	transparent: true,
 	format: 'image/png'
-  })
+  });
 L.control.scale({'position':'bottomleft','metric':true,'imperial':false}).addTo(map);
 
 map.addLayer(osm)

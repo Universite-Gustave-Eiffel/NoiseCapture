@@ -75,7 +75,7 @@ def checkTimeMatrixExists(Connection connection) {
     }
     if(create) {
         sql.execute("CREATE TABLE delta_sigma_time_matrix " +
-                "( hour_ref integer, hour_target integer, delta_db real, sigma_db real," +
+                "( hour_ref integer, hour_target integer, delta_db real, delta_sigma real," +
                 " CONSTRAINT delta_sigma_time_matrix_area_pk PRIMARY KEY (hour_ref, hour_target))")
         sql.withBatch("INSERT INTO delta_sigma_time_matrix VALUES (:hour_ref, :hour_target, 0, 0)") { batch ->
             for(int hour_ref = 1; hour_ref <= 72; hour_ref++) {
@@ -120,10 +120,10 @@ def processInput(Connection connection, URI csvPath, String dataType) {
         String csvContent = csvPath.toURL().getText();
         def lines = csvContent.split("\n")
         sql.execute("DROP TABLE IF EXISTS stations_ref")
-        sql.execute("CREATE TABLE stations_ref(id_station integer, hour integer, std_dev real, mu real, sigma real) " +
+        sql.execute("CREATE TABLE stations_ref(id_station integer, hour integer, std_dev real, mu real, sigma real, " +
                 "CONSTRAINT stations_ref_id_station_pk PRIMARY KEY (id_station, hour))");
         def refHour = 1;
-        sql.withBatch("INSERT INTO stations_ref_id_station_pk(hour, std_dev, mu,sigma) VALUES (:hour, :std_dev, :mu, :sigma)") { batch ->
+        sql.withBatch("INSERT INTO stations_ref(id_station, hour, std_dev, mu,sigma) VALUES (:id_station, :hour, :std_dev, :mu, :sigma)") { batch ->
             for(String line : lines) {
                 def cols = line.split(",")
                 def stationCount = cols.length / 3
@@ -131,7 +131,7 @@ def processInput(Connection connection, URI csvPath, String dataType) {
                     def sigma = cols[stationId * 3]
                     def stdDev = cols[stationId * 3 + 1]
                     def mu = cols[stationId * 3 + 2]
-                    batch.addBatch([hour: refHour, std_dev: stdDev, mu: mu, sigma:sigma])
+                    batch.addBatch([id_station: stationId, hour: refHour, std_dev: stdDev, mu: mu, sigma:sigma])
                     processed++
                 }
                 refHour++

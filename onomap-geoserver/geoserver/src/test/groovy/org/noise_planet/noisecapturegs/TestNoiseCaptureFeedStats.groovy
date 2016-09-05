@@ -82,13 +82,67 @@ class TestNoiseCaptureFeedStats extends GroovyTestCase {
                 out.write("\n")
             }
         }
+        File csvSigmaFile = folder.newFile("time_matrix_sigma.csv")
+        csvSigmaFile.withWriter { out ->
+            for(int hour_ref = 1; hour_ref <= 72; hour_ref++) {
+                for(int hour_target = 1; hour_target <= 72; hour_target++) {
+                    def value = Math.random() * 12 - 6
+                    if(hour_target > 1) {
+                        out.write(",")
+                    }
+                    out.write(String.format(Locale.ROOT, "%.4f", value))
+                }
+                out.write("\n")
+            }
+        }
         // Parse csv files
-        new nc_feed_stats().processInput(connection, csvFile.toURI(), "time_matrix_mu")
+        assertEquals(72*72, new nc_feed_stats().processInput(connection, csvFile.toURI(), "time_matrix_mu"))
+        assertEquals(72*72, new nc_feed_stats().processInput(connection, csvSigmaFile.toURI(), "time_matrix_sigma"))
         // Read db; check content
         Sql sql = new Sql(connection)
         def res = sql.firstRow("SELECT COUNT(*) cpt FROM delta_sigma_time_matrix")
         assertEquals(72*72, res["cpt"]);
         res = sql.firstRow("SELECT MAX(delta_db) maxdelta FROM delta_sigma_time_matrix")
         assertTrue(res["maxdelta"] > 0);
+        res = sql.firstRow("SELECT MAX(delta_sigma) maxsigma FROM delta_sigma_time_matrix")
+        assertTrue(res["maxsigma"] > 0);
+    }
+
+
+
+    void testStation() {
+        Sql.LOG.level = java.util.logging.Level.SEVERE
+        // Generate CSV file
+        File csvFile = folder.newFile("stations.csv")
+        csvFile.withWriter { out ->
+            for(int hour_ref = 1; hour_ref <= 72; hour_ref++) {
+                for(int stationid = 0; stationid < 23; stationid++) {
+                    if(stationid > 0) {
+                        out.write(",")
+                    }
+                    // sigma
+                    out.write(String.format(Locale.ROOT, "%.4f", 0.5))
+                    out.write(",")
+                    // std_dev
+                    out.write(String.format(Locale.ROOT, "%.4f", -0.3))
+                    out.write(",")
+                    // mu
+                    out.write(String.format(Locale.ROOT, "%.4f", 0.2))
+                }
+                out.write("\n")
+            }
+        }
+        // Parse csv files
+        assertEquals(72*23, new nc_feed_stats().processInput(connection, csvFile.toURI(), "stations"))
+        // Read db; check content
+        Sql sql = new Sql(connection)
+        def res = sql.firstRow("SELECT COUNT(*) cpt FROM stations_ref")
+        assertEquals(72*23, res["cpt"]);
+        res = sql.firstRow("SELECT MAX(std_dev) maxstd_dev FROM stations_ref")
+        assertEquals(-0.3, res["maxstd_dev"], 0.01);
+        res = sql.firstRow("SELECT MAX(mu) max_mu FROM stations_ref")
+        assertEquals(0.2, res["max_mu"], 0.01);
+        res = sql.firstRow("SELECT MAX(sigma) max_sigma FROM stations_ref")
+        assertEquals(0.5, res["max_sigma"], 0.01);
     }
 }

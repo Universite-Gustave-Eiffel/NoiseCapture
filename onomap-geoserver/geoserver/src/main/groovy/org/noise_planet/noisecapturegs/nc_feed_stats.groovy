@@ -32,6 +32,7 @@ import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.sql.Sql
 import org.geotools.jdbc.JDBCDataStore
+import org.springframework.security.core.context.SecurityContextHolder
 
 import java.sql.Connection
 import java.sql.SQLException;
@@ -144,6 +145,11 @@ def processInput(Connection connection, URI csvPath, String dataType) {
 }
 
 def Map run(input) {
+    // Sensible WPS process, add a layer of security by checking for authenticated user
+    def user = SecurityContextHolder.getContext().getAuthentication();
+    if(!user.isAuthenticated()) {
+        throw new IllegalStateException("This WPS process require authentication")
+    }
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
         return [result : processInput(connection, URI.create((String)input["dataUrl"]), (String)input["dataType"])]

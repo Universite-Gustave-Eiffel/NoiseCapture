@@ -65,7 +65,7 @@ class ZipFileFilter implements FilenameFilter {
 }
 
 /**
- * Convert EPOCH time to local timestamp
+ * Convert EPOCH time to ISO 8601
  * @param epochMillisec
  * @return
  */

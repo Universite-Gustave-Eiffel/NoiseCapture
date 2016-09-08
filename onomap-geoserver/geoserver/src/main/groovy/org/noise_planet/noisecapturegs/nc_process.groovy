@@ -32,17 +32,14 @@ import com.vividsolutions.jts.geom.Coordinate
 import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.sql.Sql
+import org.apache.commons.math3.stat.regression.SimpleRegression
 import org.geotools.jdbc.JDBCDataStore
 
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Timestamp
 import java.time.DayOfWeek
-import java.time.Instant
-import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.ZonedDateTime
-
 
 title = 'nc_process'
 description = 'Recompute cells that contains new measures'
@@ -58,6 +55,7 @@ class Record{
     def levels = []
     def hour
     def track_id
+    def L50 = null
 
     Record(track_id) {
         this.track_id = track_id
@@ -65,6 +63,7 @@ class Record{
 
     void addLeq(leq) {
         levels.add(leq)
+        this.L50 = null
     }
 
     /**
@@ -83,7 +82,10 @@ class Record{
      * @return Average or L50% value of the noise.
      */
     def getL50() {
-        return levels.sum() / levels.size()
+        if(!L50) {
+            this.L50 = levels.sum() / levels.size()
+        }
+        return L50
     }
 }
 /**
@@ -110,6 +112,7 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     def firstUtc;
     def lastUtc;
     def records = []
+    Set<Integer> hourMeasure = new HashSet<>()
     sql.eachRow("SELECT p.pk_track, ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY, p.noise_level," +
             " t.pleasantness,time_date FROM noisecapture_point p, noisecapture_track t WHERE p.pk_track = t.pk_track AND p.accuracy < :precision AND " +
             "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom ORDER BY p.pk_track, time_date", [geom: geom.toString(), range: range, precision : precisionFiler])
@@ -119,7 +122,7 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
                     if(records.isEmpty() || records.last().track_id != row.pk_track)
                     {
                         records.add(new Record(row.pk_track))
-                        ZonedDateTime zonedDateTime = ((Timestamp)row.time_date).toLocalDateTime().atZone(tz.toZoneId())
+                        ZonedDateTime zonedDateTime = ((Timestamp)row.time_date).toInstant().atZone(tz.toZoneId())
                         def currentRecord = records.last()
                         if(zonedDateTime.dayOfWeek == DayOfWeek.SUNDAY) {
                             currentRecord.setHour(48 + zonedDateTime.hour)
@@ -128,6 +131,7 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
                         } else {
                             currentRecord.setHour(zonedDateTime.hour)
                         }
+                        hourMeasure.add(currentRecord.hour)
                     }
                     def currentRecord = records.last()
                     currentRecord.addLeq(row.noise_level)
@@ -148,7 +152,56 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     if(pointCount == 0) {
         return false;
     }
+
+    /////////////////////
+    // 1: Search most appropriate stations (closest to measures)
+    def station_error=[:]
+    sql.eachRow("SELECT * FROM stations_ref s WHERE hour in ("+hourMeasure.join(",")+") ORDER BY id_station, hour")
+    { row ->
+        records.each { record ->
+            if(record.hour == row.hour) {
+                if(!station_error[row.id_station]) {
+                    station_error[row.id_station] = 0
+                }
+                station_error[row.id_station] += Math.pow(record.getL50() - row.mu, 2)
+            }
+        }
+    }
+
+    // Min quadratic error
+    def id_station = (station_error.min { it.value }).key
+
+    // Fit station and measurement into a new 72 hours profile
+    SimpleRegression simpleRegression = new SimpleRegression();
+    sql.eachRow("SELECT * FROM stations_ref s WHERE hour in (" + hourMeasure.join(",") + ") AND " +
+            "id_station=:id_station ORDER BY hour", [id_station: id_station])
+    { row ->
+        records.each { record ->
+            if (record.hour == row.hour) {
+                simpleRegression.addData(row.mu, record.getL50())
+            }
+        }
+    }
+    def doFit = false
+
+    def correctedValues = []
+    if(doFit && simpleRegression.getN() > 1) {
+        // If enough values
+        sql.eachRow("SELECT * FROM stations_ref s WHERE id_station=:id_station ORDER BY hour", [id_station: id_station])
+        { row ->
+            correctedValues.add(simpleRegression.predict(row.mu))
+        }
+    } else {
+        // Only one hour passage
+        sql.eachRow("SELECT * FROM stations_ref s WHERE id_station=:id_station ORDER BY hour", [id_station: id_station])
+        { row ->
+            correctedValues.add(row.mu)
+        }
+    }
+
     // Insert updated cell
+
+
 
     def sumLeq = 75
 

@@ -71,59 +71,58 @@ class TestNoiseCaptureProcess extends GroovyTestCase {
         folder.delete()
     }
 
-    void testProcess1() {
-        Sql sql = new Sql(connection)
-        // Load timezone file
-        sql.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
-        sql.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
-        // Insert measure data
-        // insert record
-        def t = LocalDateTime.ofInstant(Instant.ofEpochMilli(1473255793226), ZoneId.of("UTC"))
-        Map record = [track_uuid         : "1b03b7cb-ca16-4965-881c-f3591cd07342",
+    def addTestRecord(sql, time, location, levels) {
+        Map record = [track_uuid         : UUID.randomUUID().toString(),
                       pk_user            : 1,
                       version_number     : 14,
-                      record_utc         : new Timestamp(1469630873762),
+                      record_utc         : time,
                       pleasantness       : 50,
                       device_product     : "NC",
                       device_model       : "NC",
                       device_manufacturer: "NC",
-                      noise_level        : 75,
-                      time_length        : 3,
+                      noise_level        : 10 * Math.log10(levels.sum({Math.pow(10.0, it / 10.0)})),
+                      time_length        : levels.size(),
                       gain_calibration   : 0]
-        sql.execute("INSERT INTO noisecapture_user(user_uuid, date_creation) VALUES ('6cb5a12a-74fb-11e6-8b77-86f30ca893d3', current_date)")
+        sql.execute("INSERT INTO noisecapture_user(user_uuid, date_creation) VALUES ('"+UUID.randomUUID()+"', current_date)")
         def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
                 " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration) VALUES (" +
                 ":track_uuid, :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
                 " :device_manufacturer, :noise_level, :time_length, :gain_calibration)", record)[0][0] as Integer
         // Add 3 points
-        def fields = [the_geom     : "POINT(23.73847 37.97503)",
-                      pk_track     : recordId,
-                      noise_level  : 75,
-                      speed        : 0,
-                      accuracy     : 4,
-                      orientation  : 120,
-                      time_date    : new Timestamp(1469620073762),
-                      time_location: new Timestamp(1469620073762)]
-        def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
-                " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
-                " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location)", fields)[0][0] as Integer
-        fields.the_geom =  "POINT(23.73836 37.97519)"
-        fields.time_date = new Timestamp(1469630874762)
-        ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
-                " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
-                " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location)", fields)[0][0] as Integer
-        fields.the_geom =  "POINT(23.73826 37.97509)"
-        fields.time_date = new Timestamp(1469630875762)
-        ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
-                " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
-                " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location)", fields)[0][0] as Integer
+        for(float level : levels) {
+            def fields = [the_geom     : location,
+                          pk_track     : recordId,
+                          noise_level  : level,
+                          speed        : 0,
+                          accuracy     : 4,
+                          orientation  : 120,
+                          time_date    : time,
+                          time_location: time]
+            def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
+                    " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
+                    " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location)", fields)[0][0] as Integer
+        }
         // Push track into process queue
         Map processQueue = [pk_track: recordId]
         sql.executeInsert("INSERT INTO NOISECAPTURE_PROCESS_QUEUE VALUES (:pk_track)", processQueue)
+    }
+
+    void testProcess1() {
+        Sql sql = new Sql(connection)
+        // Load timezone file
+        sql.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
+        sql.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
+        new nc_feed_stats().processInput(connection,
+                TestNoiseCaptureProcess.getResource("gevfit_of_stations.txt").toURI(), "stations")
+        // Insert measure data
+        // insert records
+        addTestRecord(sql, "2016-09-07T13:43:13Z", "POINT(23.73847 37.97503)", [70, 75, 72])
+        addTestRecord(sql, "2016-09-04T18:43:13Z", "POINT(23.73847 37.97503)", [60, 61, 58])
+        addTestRecord(sql, "2016-09-03T16:43:13Z", "POINT(23.73847 37.97503)", [65, 68, 64])
         def processed = new nc_process().process(connection, 10)
-        assertEquals(6, processed)
+        assertEquals(1, processed)
         // Read db; check content
-        assertEquals(6, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area").get("cpt"))
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area").get("cpt"))
 
     }
 

@@ -37,6 +37,11 @@ import org.geotools.jdbc.JDBCDataStore
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Timestamp
+import java.time.DayOfWeek
+import java.time.Instant
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
 
 title = 'nc_process'
@@ -49,11 +54,43 @@ inputs = [
 outputs = [
         result: [name: 'result', title: 'Processed cells', type: Integer.class]
 ]
+class Record{
+    def levels = []
+    def hour
+    def track_id
 
+    Record(track_id) {
+        this.track_id = track_id
+    }
+
+    void addLeq(leq) {
+        levels.add(leq)
+    }
+
+    /**
+     * @param hour Local hour 0-24 for week, 24-72 for week-end
+     * @return
+     */
+    def setHour(hour) {
+        this.hour = hour
+    }
+
+    def getLeq() {
+        return 10 * Math.log10(levels.sum({Math.pow(10.0, it / 10.0)}))
+    }
+
+    /**
+     * @return Average or L50% value of the noise.
+     */
+    def getL50() {
+        return levels.sum() / levels.size()
+    }
+}
 /**
  * Fetch all measurements within a range and compute local stats over this area
  * @param hex
  * @param range
+ * @param precisionFiler GPS location greater than this value are ignored
  * @param sql
  */
 def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
@@ -62,18 +99,38 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     def Pos center = hex.toMeter()
     def Coordinate centerCoord = center.toCoordinate();
     def geom = "POINT( " + center.x + " " + center.y + ")"
-    float sumLeq = 0;
+    // Fetch hex timezone
+    def res = sql.firstRow("SELECT TZID FROM tz_world WHERE " +
+            "ST_TRANSFORM(ST_GeomFromText(:geom,3857),4326) && the_geom AND" +
+            " ST_Intersects(ST_TRANSFORM(ST_GeomFromText(:geom,3857),4326), the_geom) LIMIT 1", [geom: geom.toString()])
+    TimeZone tz = res == null ? TimeZone.default : TimeZone.getTimeZone(res.TZID);
     int pointCount = 0;
     float sumPleasantness = 0
     int pleasantnessCount = 0
     def firstUtc;
     def lastUtc;
-    sql.eachRow("SELECT ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY, p.noise_level," +
-            " t.pleasantness,time_date FROM noisecapture_point p, NOISECAPTURE_TRACK t WHERE p.pk_track = t.pk_track AND p.accuracy < :precision AND " +
-            "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom ORDER BY time_date", [geom: geom.toString(), range: range, precision : precisionFiler])
+    def records = []
+    sql.eachRow("SELECT p.pk_track, ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY, p.noise_level," +
+            " t.pleasantness,time_date FROM noisecapture_point p, noisecapture_track t WHERE p.pk_track = t.pk_track AND p.accuracy < :precision AND " +
+            "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom ORDER BY p.pk_track, time_date", [geom: geom.toString(), range: range, precision : precisionFiler])
             { row ->
                 Pos pos = new Pos(x: row.PTX, y: row.PTY)
                 if (pos.toCoordinate().distance(centerCoord) < range) {
+                    if(records.isEmpty() || records.last().track_id != row.pk_track)
+                    {
+                        records.add(new Record(row.pk_track))
+                        ZonedDateTime zonedDateTime = ((Timestamp)row.time_date).toLocalDateTime().atZone(tz.toZoneId())
+                        def currentRecord = records.last()
+                        if(zonedDateTime.dayOfWeek == DayOfWeek.SUNDAY) {
+                            currentRecord.setHour(48 + zonedDateTime.hour)
+                        } else if(zonedDateTime.dayOfWeek == DayOfWeek.SATURDAY) {
+                            currentRecord.setHour(24 + zonedDateTime.hour)
+                        } else {
+                            currentRecord.setHour(zonedDateTime.hour)
+                        }
+                    }
+                    def currentRecord = records.last()
+                    currentRecord.addLeq(row.noise_level)
                     if(firstUtc == null) {
                         firstUtc = row.time_date
                     }
@@ -83,7 +140,6 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
                         sumPleasantness += row.pleasantness;
                     }
                     pointCount++
-                    sumLeq += Math.pow(10.0, row.noise_level / 10.0)
                 }
             }
     // Delete old cell
@@ -93,6 +149,8 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
         return false;
     }
     // Insert updated cell
+
+    def sumLeq = 75
 
     // Create area geometry
     def hexaGeom = new StringBuilder()

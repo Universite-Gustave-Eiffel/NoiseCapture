@@ -36,9 +36,7 @@ import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
 import java.sql.Connection
-import java.sql.ResultSet
 import java.sql.Statement
-import java.sql.Timestamp
 
 /**
  * Test parsing of csv files using H2GIS database

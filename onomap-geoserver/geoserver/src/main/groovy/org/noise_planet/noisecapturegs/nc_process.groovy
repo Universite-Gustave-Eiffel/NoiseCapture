@@ -35,6 +35,8 @@ import groovy.sql.Sql
 import org.ejml.ops.CommonOps
 import org.ejml.simple.SimpleMatrix
 import org.geotools.jdbc.JDBCDataStore
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.sql.Connection
 import java.sql.SQLException
@@ -223,7 +225,7 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     // Prepare insert
     def fields = [cell_q           : hex.q,
                   cell_r           : hex.r,
-                  tzid : tz.getID(),
+                  tzid : tz.getID() as String,
                   the_geom         : hexaGeom.toString(),
                   mean_leq         : 10 * Math.log10(sumLeq / pointCount),
                   mean_pleasantness: sumPleasantness / pleasantnessCount,
@@ -252,6 +254,7 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
  */
 
 def process(Connection connection, float precisionFilter) {
+    Logger logger = LoggerFactory.getLogger("nc_process")
     float hexSize = 15.0
     float hexRange = 15.0
     connection.setAutoCommit(false)

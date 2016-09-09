@@ -34,11 +34,14 @@ import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import geoserver.GeoServer
 import org.geotools.jdbc.JDBCDataStore
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.security.InvalidParameterException
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
+import java.sql.Timestamp
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -122,10 +125,10 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
         idUser = res.get("pk_user")
     }
     // Check if this measurement has not been already uploaded
-    def oldTrackCount = sql.firstRow("SELECT count(*) cpt FROM  noisecapture_track where record_utc=:recordutc and pk_user=:userid",
+    def oldTrackCount = sql.firstRow("SELECT count(*) cpt FROM  noisecapture_track where record_utc=:recordutc::timestamptz and pk_user=:userid",
             [recordutc: epochToRFCTime(Long.valueOf(meta.getProperty("record_utc"))), userid: idUser]).cpt as Integer
     if (oldTrackCount > 0) {
-        def previousTrack = sql.firstRow("SELECT track_uuid FROM  noisecapture_track where record_utc=:recordutc and pk_user=:userid",
+        def previousTrack = sql.firstRow("SELECT track_uuid FROM  noisecapture_track where record_utc=:recordutc::timestamptz and pk_user=:userid",
                 [recordutc: epochToRFCTime(Long.valueOf(meta.getProperty("record_utc"))), userid: idUser])
         throw new InvalidParameterException("User tried to reupload " + previousTrack.get("track_uuid"))
     }
@@ -143,7 +146,7 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
                   gain_calibration   : Double.valueOf(meta.getProperty("gain_calibration", "0").replace(",", "."))]
     def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
             " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration) VALUES (" +
-            ":track_uuid, :pk_user, :version_number,:record_utc, :pleasantness, :device_product, :device_model," +
+            ":track_uuid, :pk_user, :version_number,:record_utc::timestamptz, :pleasantness, :device_product, :device_model," +
             " :device_manufacturer, :noise_level, :time_length, :gain_calibration)", record)[0][0] as Integer
     // insert tags
     String tags = meta.getProperty("tags", "")
@@ -205,7 +208,7 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
                       time_location: epochToRFCTime(p.location_utc as Long)]
         def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
                 " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
-                " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location)", fields)[0][0] as Integer
+                " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date::timestamptz, :time_location::timestamptz)", fields)[0][0] as Integer
         if(storeFrequencyLevels) {
             // Insert frequency
             sql.withBatch("INSERT INTO noisecapture_freq VALUES (:pkpoint, :freq, :noiselvl)") { batch ->
@@ -251,6 +254,7 @@ def static Connection openPostgreSQLDataStoreConnection() {
 }
 
 def run(input) {
+    Logger logger = LoggerFactory.getLogger("logger_nc_parse")
     File dataDir = new File("data_dir/onomap_uploading");
     int processed = 0
     if (dataDir.exists()) {
@@ -262,16 +266,36 @@ def run(input) {
                 for (File zipFile : files) {
                     try {
                         processFile(connection, zipFile, false)
-                    } catch (SQLException ex) {
-                        connection.rollback();
-                        throw ex
-                    } finally {
                         // Move file to processed folder
                         File processedDir = new File("data_dir/onomap_archive");
                         if (!processedDir.exists()) {
                             processedDir.mkdirs()
                         }
                         zipFile.renameTo(new File(processedDir, zipFile.getName()))
+                    } catch (SQLException ex) {
+                        // Move file to error folder
+                        File processedDir = new File("data_dir/onomap_archive_error");
+                        if (!processedDir.exists()) {
+                            processedDir.mkdirs()
+                        }
+                        zipFile.renameTo(new File(processedDir, zipFile.getName()))
+                        // Log error
+                        logger.error("SQLState: " +
+                                ex.getSQLState());
+
+                        logger.error("Error Code: " +
+                                ex.getErrorCode());
+
+                        logger.error("Message: " + ex.getMessage());
+
+                        Throwable t = ex.getCause();
+                        while(t != null) {
+                            logger.error("Cause: " + t);
+                            t = t.getCause();
+                        }
+                        throw ex
+                        //connection.rollback();
+                    } finally {
                     }
                     processed++
                 }

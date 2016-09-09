@@ -108,7 +108,7 @@ def processInput(Connection connection, URI csvPath, String dataType) {
             for(String line : lines) {
                 int targetHour = 0
                 for(String row : line.split(",")) {
-                    batch.addBatch([var: Double.valueOf(row), hour_ref: refHour, hour_target: targetHour])
+                    batch.addBatch([var: Double.valueOf(row), hour_ref: refHour as Integer, hour_target: targetHour as Integer])
                     processed++
                     targetHour++
                 }
@@ -131,7 +131,7 @@ def processInput(Connection connection, URI csvPath, String dataType) {
                     def sigma = cols[stationId * 3]
                     def stdDev = cols[stationId * 3 + 1]
                     def mu = cols[stationId * 3 + 2]
-                    batch.addBatch([id_station: stationId, hour: refHour, std_dev: stdDev, mu: mu, sigma:sigma])
+                    batch.addBatch([id_station: stationId as Integer, hour: refHour as Integer, std_dev: stdDev as Double, mu: mu as Double, sigma:sigma as Double])
                     processed++
                 }
                 refHour++

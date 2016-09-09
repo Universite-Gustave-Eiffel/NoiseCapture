@@ -108,7 +108,6 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
             "ST_TRANSFORM(ST_GeomFromText(:geom,3857),4326) && the_geom AND" +
             " ST_Intersects(ST_TRANSFORM(ST_GeomFromText(:geom,3857),4326), the_geom) LIMIT 1", [geom: geom.toString()])
     TimeZone tz = res == null ? TimeZone.default : TimeZone.getTimeZone(res.TZID);
-    int timeOffset = 0;
     int pointCount = 0;
     float sumPleasantness = 0
     int pleasantnessCount = 0
@@ -126,7 +125,6 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
                     {
                         records.add(new Record(row.pk_track))
                         ZonedDateTime zonedDateTime = ((Timestamp)row.time_date).toInstant().atZone(tz.toZoneId())
-                        timeOffset = zonedDateTime.getOffset().totalSeconds
                         def currentRecord = records.last()
                         if(zonedDateTime.dayOfWeek == DayOfWeek.SUNDAY) {
                             currentRecord.setHour(48 + zonedDateTime.hour)
@@ -225,15 +223,15 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     // Prepare insert
     def fields = [cell_q           : hex.q,
                   cell_r           : hex.r,
-                  local_utc_offset : timeOffset,
+                  tzid : tz.getID(),
                   the_geom         : hexaGeom.toString(),
                   mean_leq         : 10 * Math.log10(sumLeq / pointCount),
                   mean_pleasantness: sumPleasantness / pleasantnessCount,
                   measure_count    : pointCount,
                   first_measure    : firstUtc,
                   last_measure     : lastUtc]
-    def pkArea = sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, local_utc_offset, the_geom, mean_leq, mean_pleasantness," +
-            " measure_count, first_measure, last_measure) VALUES (:cell_q, :cell_r, :local_utc_offset, " +
+    def pkArea = sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, tzid, the_geom, mean_leq, mean_pleasantness," +
+            " measure_count, first_measure, last_measure) VALUES (:cell_q, :cell_r, :tzid, " +
             "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :mean_leq," +
             " :mean_pleasantness, :measure_count, :first_measure, :last_measure)", fields)[0][0] as Integer
     // Add profile

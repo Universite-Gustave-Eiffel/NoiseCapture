@@ -66,7 +66,8 @@ def getAreaInfo(Connection connection, long qIndex, long rIndex) {
                              !row.mean_pleasantness.isNaN() ? row.mean_pleasantness : null,
                      first_measure : row.first_measure,
                      last_measure : row.last_measure,
-                     measure_count : row.measure_count]
+                     measure_count : row.measure_count,
+                     time_zone : row.tzid]
         }
 
     } catch (SQLException ex) {

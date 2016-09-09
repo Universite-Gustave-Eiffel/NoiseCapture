@@ -32,11 +32,6 @@ import com.vividsolutions.jts.geom.Coordinate
 import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.sql.Sql
-import org.apache.commons.math3.linear.MatrixUtils
-import org.apache.commons.math3.linear.RealMatrix
-import org.apache.commons.math3.linear.RealVector
-import org.apache.commons.math3.stat.regression.SimpleRegression
-import org.ejml.data.DenseMatrix64F
 import org.ejml.ops.CommonOps
 import org.ejml.simple.SimpleMatrix
 import org.geotools.jdbc.JDBCDataStore
@@ -45,6 +40,7 @@ import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Timestamp
 import java.time.DayOfWeek
+import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 title = 'nc_process'
@@ -112,6 +108,7 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
             "ST_TRANSFORM(ST_GeomFromText(:geom,3857),4326) && the_geom AND" +
             " ST_Intersects(ST_TRANSFORM(ST_GeomFromText(:geom,3857),4326), the_geom) LIMIT 1", [geom: geom.toString()])
     TimeZone tz = res == null ? TimeZone.default : TimeZone.getTimeZone(res.TZID);
+    int timeOffset = 0;
     int pointCount = 0;
     float sumPleasantness = 0
     int pleasantnessCount = 0
@@ -129,6 +126,7 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
                     {
                         records.add(new Record(row.pk_track))
                         ZonedDateTime zonedDateTime = ((Timestamp)row.time_date).toInstant().atZone(tz.toZoneId())
+                        timeOffset = zonedDateTime.getOffset().totalSeconds
                         def currentRecord = records.last()
                         if(zonedDateTime.dayOfWeek == DayOfWeek.SUNDAY) {
                             currentRecord.setHour(48 + zonedDateTime.hour)
@@ -177,36 +175,13 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     // Min quadratic error
     def id_station = (station_error.min { it.value }).key
 
-    // Fit station and measurement into a new 72 hours profile
-    def doFit = false
-
-    def correctedValues = []
-    if(doFit && hourMeasure.size() > 1) {
-        SimpleRegression simpleRegression = new SimpleRegression();
-        sql.eachRow("SELECT * FROM stations_ref s WHERE hour in (" + hourMeasure.join(",") + ") AND " +
-        "id_station=:id_station ORDER BY hour", [id_station: id_station])
-        { row ->
-            records.each { record ->
-                if (record.hour == row.hour) {
-                    simpleRegression.addData(row.mu, record.getL50())
-                }
-            }
-        }
-        // If enough values
-        sql.eachRow("SELECT * FROM stations_ref s WHERE id_station=:id_station ORDER BY hour", [id_station: id_station])
-        { row ->
-            correctedValues.add(simpleRegression.predict(row.mu))
-        }
-    } else {
-        // Only one hour passage
-        sql.eachRow("SELECT * FROM stations_ref s WHERE id_station=:id_station ORDER BY hour", [id_station: id_station])
-        { row ->
-            correctedValues.add(row.mu)
-        }
+    SimpleMatrix stationProfileMu = new SimpleMatrix(1, 72)
+    sql.eachRow("SELECT * FROM stations_ref s WHERE id_station=:id_station ORDER BY hour", [id_station: id_station])
+    { row ->
+        stationProfileMu.set(row.hour, row.mu)
     }
 
     // Create N-Series of each measure using the delta matrix mu and sigma
-    SimpleMatrix
     SimpleMatrix measurementProfileMu = new SimpleMatrix(records.size(), 72)
     //SimpleMatrix measurementProfileSigma = new SimpleMatrix(records.size(), 72)
     int idMeasurement = 0
@@ -219,13 +194,13 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
         idMeasurement++
     }
     def mergedMeasurementProfile = CommonOps.sumCols(measurementProfileMu.getMatrix(), null)
+    // Avg of measurements
     CommonOps.divide(mergedMeasurementProfile, records.size())
-    // Build weighted arithmetic mean
+    CommonOps.add(mergedMeasurementProfile, stationProfileMu.getMatrix(), mergedMeasurementProfile)
+    CommonOps.divide(mergedMeasurementProfile, 2)
+
     // Insert updated cell
-
-
-
-    def sumLeq = 75
+    def sumLeq = CommonOps.elementSum(mergedMeasurementProfile) / 72
 
     // Create area geometry
     def hexaGeom = new StringBuilder()
@@ -250,16 +225,24 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     // Prepare insert
     def fields = [cell_q           : hex.q,
                   cell_r           : hex.r,
+                  local_utc_offset : timeOffset,
                   the_geom         : hexaGeom.toString(),
                   mean_leq         : 10 * Math.log10(sumLeq / pointCount),
                   mean_pleasantness: sumPleasantness / pleasantnessCount,
                   measure_count    : pointCount,
                   first_measure    : firstUtc,
                   last_measure     : lastUtc]
-    sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, the_geom, mean_leq, mean_pleasantness," +
-            " measure_count, first_measure, last_measure) VALUES (:cell_q, :cell_r, " +
+    def pkArea = sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, local_utc_offset, the_geom, mean_leq, mean_pleasantness," +
+            " measure_count, first_measure, last_measure) VALUES (:cell_q, :cell_r, :local_utc_offset, " +
             "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :mean_leq," +
-            " :mean_pleasantness, :measure_count, :first_measure, :last_measure)", fields)
+            " :mean_pleasantness, :measure_count, :first_measure, :last_measure)", fields)[0][0] as Integer
+    // Add profile
+    sql.withBatch("INSERT INTO NOISECAPTURE_AREA_PROFILE(PK_AREA, HOUR, LEQ) VALUES (:pkarea, :hour, :leq)") { batch ->
+        for(int hour = 0; hour < 72; hour++) {
+            batch.addBatch([pkarea: pkArea, hour: hour, leq: mergedMeasurementProfile.get(0, hour)])
+        }
+        batch.executeBatch()
+    }
     return true
 }
 

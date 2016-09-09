@@ -32,6 +32,7 @@ import groovy.sql.Sql
 import org.h2.Driver
 import org.junit.After
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
@@ -71,6 +72,7 @@ class TestNoiseCaptureProcess extends GroovyTestCase {
         folder.delete()
     }
 
+    @Ignore
     def addTestRecord(sql, time, location, levels) {
         Map record = [track_uuid         : UUID.randomUUID().toString(),
                       pk_user            : 1,
@@ -108,6 +110,7 @@ class TestNoiseCaptureProcess extends GroovyTestCase {
     }
 
     void testProcess1() {
+        Sql.LOG.level = java.util.logging.Level.SEVERE
         Sql sql = new Sql(connection)
         // Load timezone file
         sql.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")

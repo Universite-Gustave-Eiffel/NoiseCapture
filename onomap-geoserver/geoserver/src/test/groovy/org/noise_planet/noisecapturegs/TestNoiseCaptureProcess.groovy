@@ -114,6 +114,10 @@ class TestNoiseCaptureProcess extends GroovyTestCase {
         sql.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
         new nc_feed_stats().processInput(connection,
                 TestNoiseCaptureProcess.getResource("gevfit_of_stations.txt").toURI(), "stations")
+        new nc_feed_stats().processInput(connection,
+                TestNoiseCaptureProcess.getResource("delta_matrix_mu.txt").toURI(), "time_matrix_mu")
+        new nc_feed_stats().processInput(connection,
+                TestNoiseCaptureProcess.getResource("delta_matrix_sigma.txt").toURI(), "time_matrix_sigma")
         // Insert measure data
         // insert records
         addTestRecord(sql, "2016-09-07T13:43:13Z", "POINT(23.73847 37.97503)", [70, 75, 72])

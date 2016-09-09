@@ -28,6 +28,7 @@ dependencies {
     }
     compile 'org.postgresql:postgresql:9.4-1201-jdbc41'
     compile 'org.codehaus.groovy:groovy-all:2.4.7'
+    compile group: 'org.ejml', name: 'all', version: '0.29'
     // TODO replace linear regression to BayesianRobustLinearRegression
     //compile 'gov.sandia.foundry:gov-sandia-cognition-learning-core:3.4.3'
     compile 'org.apache.commons:commons-math3:3.6.1'

@@ -32,7 +32,13 @@ import com.vividsolutions.jts.geom.Coordinate
 import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.sql.Sql
+import org.apache.commons.math3.linear.MatrixUtils
+import org.apache.commons.math3.linear.RealMatrix
+import org.apache.commons.math3.linear.RealVector
 import org.apache.commons.math3.stat.regression.SimpleRegression
+import org.ejml.data.DenseMatrix64F
+import org.ejml.ops.CommonOps
+import org.ejml.simple.SimpleMatrix
 import org.geotools.jdbc.JDBCDataStore
 
 import java.sql.Connection
@@ -172,20 +178,20 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     def id_station = (station_error.min { it.value }).key
 
     // Fit station and measurement into a new 72 hours profile
-    SimpleRegression simpleRegression = new SimpleRegression();
-    sql.eachRow("SELECT * FROM stations_ref s WHERE hour in (" + hourMeasure.join(",") + ") AND " +
-            "id_station=:id_station ORDER BY hour", [id_station: id_station])
-    { row ->
-        records.each { record ->
-            if (record.hour == row.hour) {
-                simpleRegression.addData(row.mu, record.getL50())
-            }
-        }
-    }
     def doFit = false
 
     def correctedValues = []
-    if(doFit && simpleRegression.getN() > 1) {
+    if(doFit && hourMeasure.size() > 1) {
+        SimpleRegression simpleRegression = new SimpleRegression();
+        sql.eachRow("SELECT * FROM stations_ref s WHERE hour in (" + hourMeasure.join(",") + ") AND " +
+        "id_station=:id_station ORDER BY hour", [id_station: id_station])
+        { row ->
+            records.each { record ->
+                if (record.hour == row.hour) {
+                    simpleRegression.addData(row.mu, record.getL50())
+                }
+            }
+        }
         // If enough values
         sql.eachRow("SELECT * FROM stations_ref s WHERE id_station=:id_station ORDER BY hour", [id_station: id_station])
         { row ->
@@ -199,6 +205,22 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
         }
     }
 
+    // Create N-Series of each measure using the delta matrix mu and sigma
+    SimpleMatrix
+    SimpleMatrix measurementProfileMu = new SimpleMatrix(records.size(), 72)
+    //SimpleMatrix measurementProfileSigma = new SimpleMatrix(records.size(), 72)
+    int idMeasurement = 0
+    records.each { record ->
+        sql.eachRow("SELECT hour_target, delta_db, delta_sigma FROM delta_sigma_time_matrix WHERE hour_ref=:hour_ref ORDER BY hour_target ASC", [hour_ref: record.hour])
+        { row ->
+            measurementProfileMu.set(idMeasurement, row.hour_target, record.getL50() + row.delta_db)
+            //measurementProfileSigma.set(idMeasurement, row.hour_target, row.delta_sigma)
+        }
+        idMeasurement++
+    }
+    def mergedMeasurementProfile = CommonOps.sumCols(measurementProfileMu.getMatrix(), null)
+    CommonOps.divide(mergedMeasurementProfile, records.size())
+    // Build weighted arithmetic mean
     // Insert updated cell
 
 

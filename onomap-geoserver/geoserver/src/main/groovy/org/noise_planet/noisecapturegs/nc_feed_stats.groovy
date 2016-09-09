@@ -78,8 +78,8 @@ def checkTimeMatrixExists(Connection connection) {
                 "( hour_ref integer, hour_target integer, delta_db real, delta_sigma real," +
                 " CONSTRAINT delta_sigma_time_matrix_area_pk PRIMARY KEY (hour_ref, hour_target))")
         sql.withBatch("INSERT INTO delta_sigma_time_matrix VALUES (:hour_ref, :hour_target, 0, 0)") { batch ->
-            for(int hour_ref = 1; hour_ref <= 72; hour_ref++) {
-                for(int hour_target = 1; hour_target <= 72; hour_target++) {
+            for(int hour_ref = 0; hour_ref < 72; hour_ref++) {
+                for(int hour_target = 0; hour_target < 72; hour_target++) {
                     batch.addBatch([hour_ref: hour_ref, hour_target: hour_target])
                 }
             }
@@ -95,7 +95,7 @@ def processInput(Connection connection, URI csvPath, String dataType) {
         checkTimeMatrixExists(connection)
         String csvContent = csvPath.toURL().getText();
         def lines = csvContent.split("\n")
-        int refHour = 1
+        int refHour = 0
         def update
         if(dataType.endsWith("mu")) {
             update = "delta_db = :var"
@@ -106,7 +106,7 @@ def processInput(Connection connection, URI csvPath, String dataType) {
         }
         sql.withBatch("UPDATE delta_sigma_time_matrix SET "+update+" WHERE hour_ref=:hour_ref AND hour_target=:hour_target") { batch ->
             for(String line : lines) {
-                int targetHour = 1
+                int targetHour = 0
                 for(String row : line.split(",")) {
                     batch.addBatch([var: Double.valueOf(row), hour_ref: refHour, hour_target: targetHour])
                     processed++
@@ -122,7 +122,7 @@ def processInput(Connection connection, URI csvPath, String dataType) {
         sql.execute("DROP TABLE IF EXISTS stations_ref")
         sql.execute("CREATE TABLE stations_ref(id_station integer, hour integer, std_dev real, mu real, sigma real, " +
                 "CONSTRAINT stations_ref_id_station_pk PRIMARY KEY (id_station, hour))");
-        def refHour = 1;
+        def refHour = 0;
         sql.withBatch("INSERT INTO stations_ref(id_station, hour, std_dev, mu,sigma) VALUES (:id_station, :hour, :std_dev, :mu, :sigma)") { batch ->
             for(String line : lines) {
                 def cols = line.split(",")

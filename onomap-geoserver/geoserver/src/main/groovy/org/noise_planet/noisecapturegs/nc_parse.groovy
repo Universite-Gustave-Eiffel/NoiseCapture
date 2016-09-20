@@ -272,30 +272,31 @@ def run(input) {
                             processedDir.mkdirs()
                         }
                         zipFile.renameTo(new File(processedDir, zipFile.getName()))
-                    } catch (SQLException ex) {
+                    } catch (SQLException|InvalidParameterException ex) {
                         // Move file to error folder
-                        File processedDir = new File("data_dir/onomap_archive_error");
-                        if (!processedDir.exists()) {
-                            processedDir.mkdirs()
+                        File errorDir = new File("data_dir/onomap_archive_error");
+                        if (!errorDir.exists()) {
+                            errorDir.mkdirs()
                         }
-                        zipFile.renameTo(new File(processedDir, zipFile.getName()))
+                        zipFile.renameTo(new File(errorDir, zipFile.getName()))
+
                         // Log error
-                        logger.error("SQLState: " +
-                                ex.getSQLState());
+                        logger.error(zipFile.getName() + " Message: " + ex.getMessage());
 
-                        logger.error("Error Code: " +
-                                ex.getErrorCode());
+                        if(ex instanceof SQLException) {
+                            logger.error("SQLState: " +
+                                    ex.getSQLState());
 
-                        logger.error("Message: " + ex.getMessage());
+                            logger.error("Error Code: " +
+                                    ex.getErrorCode());
 
-                        Throwable t = ex.getCause();
-                        while(t != null) {
-                            logger.error("Cause: " + t);
-                            t = t.getCause();
+                            Throwable t = ex.getCause();
+                            while (t != null) {
+                                logger.error("Cause: " + t);
+                                t = t.getCause();
+                            }
                         }
-                        throw ex
-                        //connection.rollback();
-                    } finally {
+                        connection.rollback();
                     }
                     processed++
                 }

@@ -42,7 +42,6 @@ import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Timestamp
 import java.time.DayOfWeek
-import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 title = 'nc_process'
@@ -102,7 +101,7 @@ class Record{
 def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     // A ratio < 1 add blank area between hexagons
     float hexSizeRatio = 0.85
-    boolean useOnlyNearestStation = true
+    boolean doNotUseDeltaSigma = true
     def Pos center = hex.toMeter()
     def Coordinate centerCoord = center.toCoordinate();
     def geom = "POINT( " + center.x + " " + center.y + ")"
@@ -183,7 +182,14 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     }
 
     def mergedMeasurementProfile
-    if(useOnlyNearestStation) {
+    if(doNotUseDeltaSigma) {
+        // Evaluate the average difference between the station and the measurements
+        def sumError = 0
+        records.each { record ->
+            sumError += record.getL50() - stationProfileMu.get(0, record.hour)
+        }
+        // Offset station by error value
+        CommonOps.add(stationProfileMu.matrix, sumError / records.size())
         mergedMeasurementProfile = stationProfileMu.matrix
     } else {
         // Create N-Series of each measure using the delta matrix mu and sigma
@@ -206,7 +212,7 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     }
 
     // Insert updated cell
-    def sumLeq = CommonOps.elementSum(mergedMeasurementProfile) / 72
+    def areaLeq = CommonOps.elementSum(mergedMeasurementProfile) / 72
 
     // Create area geometry
     def hexaGeom = new StringBuilder()
@@ -233,7 +239,7 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
                   cell_r           : hex.r,
                   tzid : tz.getID() as String,
                   the_geom         : hexaGeom.toString(),
-                  mean_leq         : 10 * Math.log10(sumLeq / pointCount),
+                  mean_leq         : areaLeq,
                   mean_pleasantness: sumPleasantness / pleasantnessCount,
                   measure_count    : pointCount,
                   first_measure    : firstUtc,

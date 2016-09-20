@@ -102,6 +102,7 @@ class Record{
 def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     // A ratio < 1 add blank area between hexagons
     float hexSizeRatio = 0.98
+    boolean useOnlyNearestStation = true
     def Pos center = hex.toMeter()
     def Coordinate centerCoord = center.toCoordinate();
     def geom = "POINT( " + center.x + " " + center.y + ")"
@@ -181,23 +182,28 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
         stationProfileMu.set(row.hour, row.mu)
     }
 
-    // Create N-Series of each measure using the delta matrix mu and sigma
-    SimpleMatrix measurementProfileMu = new SimpleMatrix(records.size(), 72)
-    //SimpleMatrix measurementProfileSigma = new SimpleMatrix(records.size(), 72)
-    int idMeasurement = 0
-    records.each { record ->
-        sql.eachRow("SELECT hour_target, delta_db, delta_sigma FROM delta_sigma_time_matrix WHERE hour_ref=:hour_ref ORDER BY hour_target ASC", [hour_ref: record.hour])
-        { row ->
-            measurementProfileMu.set(idMeasurement, row.hour_target, record.getL50() + row.delta_db)
-            //measurementProfileSigma.set(idMeasurement, row.hour_target, row.delta_sigma)
+    def mergedMeasurementProfile
+    if(useOnlyNearestStation) {
+        mergedMeasurementProfile = stationProfileMu.matrix
+    } else {
+        // Create N-Series of each measure using the delta matrix mu and sigma
+        SimpleMatrix measurementProfileMu = new SimpleMatrix(records.size(), 72)
+        //SimpleMatrix measurementProfileSigma = new SimpleMatrix(records.size(), 72)
+        int idMeasurement = 0
+        records.each { record ->
+            sql.eachRow("SELECT hour_target, delta_db, delta_sigma FROM delta_sigma_time_matrix WHERE hour_ref=:hour_ref ORDER BY hour_target ASC", [hour_ref: record.hour])
+                    { row ->
+                        measurementProfileMu.set(idMeasurement, row.hour_target, record.getL50() + row.delta_db)
+                        //measurementProfileSigma.set(idMeasurement, row.hour_target, row.delta_sigma)
+                    }
+            idMeasurement++
         }
-        idMeasurement++
+        mergedMeasurementProfile = CommonOps.sumCols(measurementProfileMu.getMatrix(), null)
+        // Avg of measurements
+        CommonOps.divide(mergedMeasurementProfile, records.size())
+        CommonOps.add(mergedMeasurementProfile, stationProfileMu.getMatrix(), mergedMeasurementProfile)
+        CommonOps.divide(mergedMeasurementProfile, 2)
     }
-    def mergedMeasurementProfile = CommonOps.sumCols(measurementProfileMu.getMatrix(), null)
-    // Avg of measurements
-    CommonOps.divide(mergedMeasurementProfile, records.size())
-    CommonOps.add(mergedMeasurementProfile, stationProfileMu.getMatrix(), mergedMeasurementProfile)
-    CommonOps.divide(mergedMeasurementProfile, 2)
 
     // Insert updated cell
     def sumLeq = CommonOps.elementSum(mergedMeasurementProfile) / 72

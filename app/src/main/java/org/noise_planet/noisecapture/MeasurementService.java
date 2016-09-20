@@ -234,6 +234,11 @@ public class MeasurementService extends Service {
     // RemoteService for a more complete example.
     private final IBinder mBinder = new LocalBinder();
 
+    private int getNotificationIcon() {
+        boolean useWhiteIcon = (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP);
+        return useWhiteIcon ? R.drawable.ic_measure_notification : R.mipmap.ic_launcher;
+    }
+
     /**
      * Show a notification while this service is running.
      */
@@ -248,7 +253,7 @@ public class MeasurementService extends Service {
 
         // Set the info for the views that show in the notification panel.
         Notification.Builder notification = new Notification.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher)  // the status icon
+                .setSmallIcon(getNotificationIcon())  // the status icon
                 .setWhen(System.currentTimeMillis())
                 .setTicker(text)  // the status text
                 .setWhen(System.currentTimeMillis())  // the time stamp

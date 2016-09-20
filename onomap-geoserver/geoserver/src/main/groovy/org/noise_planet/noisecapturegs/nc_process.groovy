@@ -38,6 +38,7 @@ import org.geotools.jdbc.JDBCDataStore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.security.InvalidParameterException
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Timestamp
@@ -296,6 +297,8 @@ def process(Connection connection, float precisionFilter) {
         for (Hex hex : areaIndex) {
             if(processArea(hex, hexRange, precisionFilter, sql)) {
                 processed++
+                // Accept changes
+                connection.commit();
             }
         }
 
@@ -304,9 +307,24 @@ def process(Connection connection, float precisionFilter) {
 
         // Accept changes
         connection.commit();
-    } catch (SQLException ex) {
-        connection.rollback();
-        throw ex
+    } catch (SQLException|InvalidParameterException ex) {
+        // Log error
+        logger.error("nc_process Message: " + ex.getMessage());
+
+        if(ex instanceof SQLException) {
+            logger.error("SQLState: " +
+                    ex.getSQLState());
+
+            logger.error("Error Code: " +
+                    ex.getErrorCode());
+
+            Throwable t = ex.getCause();
+            while (t != null) {
+                logger.error("Cause: " + t);
+                t = t.getCause();
+            }
+        }
+        connection.rollback()
     }
     return processed
 }

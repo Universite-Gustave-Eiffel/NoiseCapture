@@ -217,30 +217,51 @@ public class MeasurementManager {
     /**
      * Fetch all leq that hold a coordinate
      * @param recordId Record identifier, -1 for all
-     * @param
+     * @param withCoordinatesOnly Do not extract leq that does not contain a coordinate
+     * @param limitation Extract up to limitation point
      */
-    public List<LeqBatch> getRecordLocations(int recordId, boolean withCoordinatesOnly) {
+    public List<LeqBatch> getRecordLocations(int recordId, boolean withCoordinatesOnly, int limitation) {
         SQLiteDatabase database = storage.getReadableDatabase();
-        try {
+        // Divide number, ex 2 will take half of the measurement (only odd leq_id numbers)
+        String divMod = "1";
+        if(limitation > 0) {
+            // Count the number of stored locations
             Cursor cursor;
             if(recordId >= 0) {
+                cursor = database.rawQuery("SELECT COUNT(*) CPT FROM " + Storage.Leq.TABLE_NAME +
+                        " L WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
+                        Storage.Leq.COLUMN_ACCURACY + " > ?", new String[]{String.valueOf(recordId),
+                        withCoordinatesOnly ? "0" : "-1"});
+            } else {
+                cursor = database.rawQuery("SELECT COUNT(*) CPT FROM " + Storage.Leq.TABLE_NAME +
+                        " L WHERE L." + Storage.Leq.COLUMN_ACCURACY + " > ?",
+                        new String[]{withCoordinatesOnly ? "0" : "-1"});
+            }
+            if(cursor.moveToNext()) {
+                int totalLocations = cursor.getInt(0);
+                divMod = String.valueOf(Math.max(1, Math.ceil((double)totalLocations / limitation)));
+            }
+        }
+        try {
+            Cursor cursor;
+            if (recordId >= 0) {
                 cursor = database.rawQuery("SELECT L.*, LV." + Storage.LeqValue.COLUMN_SPL +
                         ", LV." + Storage.LeqValue.COLUMN_FREQUENCY +
                         " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
                         " LV WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
                         Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
-                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? ORDER BY L." +
+                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? AND L." + Storage.Leq.COLUMN_LEQ_ID + " % ? = 0 ORDER BY L." +
                         Storage.Leq.COLUMN_LEQ_ID + ", " +
-                        Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId), withCoordinatesOnly ? "0" : "-1"});
+                        Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId), withCoordinatesOnly ? "0" : "-1", divMod});
             } else {
                 cursor = database.rawQuery("SELECT L.*, LV." + Storage.LeqValue.COLUMN_SPL +
                         ", LV." + Storage.LeqValue.COLUMN_FREQUENCY +
                         " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
                         " LV WHERE L." +
                         Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
-                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? ORDER BY L." +
+                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? AND L." + Storage.Leq.COLUMN_LEQ_ID + " % ? = 0 ORDER BY L." +
                         Storage.Leq.COLUMN_LEQ_ID + ", " +
-                        Storage.LeqValue.COLUMN_FREQUENCY, new String[]{withCoordinatesOnly ? "0" : "-1"});
+                        Storage.LeqValue.COLUMN_FREQUENCY, new String[]{withCoordinatesOnly ? "0" : "-1", divMod});
             }
             try {
                 List<LeqBatch> leqBatches = new ArrayList<LeqBatch>();

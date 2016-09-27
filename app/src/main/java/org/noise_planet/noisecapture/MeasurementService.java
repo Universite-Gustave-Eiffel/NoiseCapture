@@ -380,7 +380,7 @@ public class MeasurementService extends Service {
             // Recompute LeqStats altered by the removed leq
             LeqStats newLeqStats = new LeqStats();
             for(MeasurementManager.LeqBatch leq : measurementManager
-                    .getRecordLocations(recordId, false)) {
+                    .getRecordLocations(recordId, false, 0)) {
                 newLeqStats.addLeq(leq.computeGlobalLeq());
             }
             leqStats = newLeqStats;

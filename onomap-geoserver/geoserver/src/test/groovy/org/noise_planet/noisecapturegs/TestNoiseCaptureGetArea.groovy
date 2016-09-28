@@ -60,6 +60,15 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
                 "CALL H2GIS_EXTENSION();")
         // Init schema
         st.execute(new File(TestNoiseCaptureGetArea.class.getResource("inith2.sql").getFile()).text)
+        // Load timezone file
+        st.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
+        st.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
+        new nc_feed_stats().processInput(connection,
+                TestNoiseCaptureProcess.getResource("gevfit_of_stations.txt").toURI(), "stations")
+        new nc_feed_stats().processInput(connection,
+                TestNoiseCaptureProcess.getResource("delta_matrix_mu.txt").toURI(), "time_matrix_mu")
+        new nc_feed_stats().processInput(connection,
+                TestNoiseCaptureProcess.getResource("delta_matrix_sigma.txt").toURI(), "time_matrix_sigma")
     }
 
     @After
@@ -76,11 +85,11 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         new nc_process().process(connection, 10)
         // Fetch data
         def arrayData = new nc_get_area_info().getAreaInfo(connection, -139656, 265210)
-        assertEquals(68.5494, (double)arrayData.leq, 0.01)
+        assertEquals(56.20, (double)arrayData.leq, 0.01)
         assertEquals(69, (double)arrayData.mean_pleasantness, 0.01)
         assertEquals(40, (int)arrayData.measure_count)
-        assertEquals(new Timestamp(1465474645151), arrayData.first_measure)
-        assertEquals(new Timestamp(1465474682599), arrayData.last_measure)
+        assertEquals(new Timestamp(1465474645000), arrayData.first_measure)
+        assertEquals(new Timestamp(1465474682000), arrayData.last_measure)
 
         // Check with NaN in pleasantness
         def sql = new Sql(connection)
@@ -91,11 +100,12 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
                       mean_pleasantness: Double.NaN,
                       measure_count    : 1,
                       first_measure    : new Timestamp(1465474645151),
-                      last_measure     : new Timestamp(1465474645151)]
+                      last_measure     : new Timestamp(1465474645151),
+                      tzid             : TimeZone.default.ID]
         sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, the_geom, mean_leq, mean_pleasantness," +
-                " measure_count, first_measure, last_measure) VALUES (:cell_q, :cell_r, " +
+                " measure_count, first_measure, last_measure, tzid) VALUES (:cell_q, :cell_r, " +
                 "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :mean_leq," +
-                " :mean_pleasantness, :measure_count, :first_measure, :last_measure)", fields)
+                " :mean_pleasantness, :measure_count, :first_measure, :last_measure, :tzid)", fields)
         // Fetch data
         arrayData = new nc_get_area_info().getAreaInfo(connection, 5, 10)
         assertNull(arrayData.mean_pleasantness)
@@ -103,4 +113,22 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
 
     }
 
+
+    void testGetAreaProfile() {
+        Sql.LOG.level = java.util.logging.Level.SEVERE
+        Sql sql = new Sql(connection)
+        // Insert measure data
+        // insert records
+        TestNoiseCaptureProcess.addTestRecord(sql, "2016-09-07T13:43:13Z", "POINT(23.73847 37.97503)", [70, 75, 72])
+        TestNoiseCaptureProcess.addTestRecord(sql, "2016-09-04T18:43:13Z", "POINT(23.73847 37.97503)", [60, 61, 58])
+        TestNoiseCaptureProcess.addTestRecord(sql, "2016-09-03T16:43:13Z", "POINT(23.73847 37.97503)", [65, 68, 64])
+        def processed = new nc_process().process(connection, 10)
+        assertEquals(1, processed)
+        // Read db; check content
+        def row = sql.firstRow("SELECT cell_q, cell_r FROM  noisecapture_area")
+        def arrayData = new nc_get_area_info().getAreaInfo(connection, row.cell_q, row.cell_r)
+        assertNotNull(arrayData)
+        assertEquals(72, arrayData["profile"].size())
+        JsonOutput.toJson(arrayData); // Check if conversion goes well
+    }
 }

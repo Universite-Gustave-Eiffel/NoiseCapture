@@ -73,6 +73,7 @@ class TestNoiseCaptureProcess extends GroovyTestCase {
     }
 
     @Ignore
+    static
     def addTestRecord(sql, time, location, levels) {
         Map record = [track_uuid         : UUID.randomUUID().toString(),
                       pk_user            : 1,

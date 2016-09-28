@@ -129,6 +129,7 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         def arrayData = new nc_get_area_info().getAreaInfo(connection, row.cell_q, row.cell_r)
         assertNotNull(arrayData)
         assertEquals(72, arrayData["profile"].size())
+        assertTrue(arrayData["profile"] instanceof Map)
         JsonOutput.toJson(arrayData); // Check if conversion goes well
     }
 }

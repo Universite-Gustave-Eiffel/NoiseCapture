@@ -7,6 +7,8 @@
         <link rel="stylesheet" href="leaflet-sidebar.css" />
         <link href="http://fontawesome.io/assets/font-awesome/css/font-awesome.css" rel="stylesheet">
         <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+        <link href="time_donut.css" rel="stylesheet">
+        <script src="time_donut.js"></script>
     </head>
     <body>
 
@@ -111,8 +113,11 @@
 
             <div class="sidebar-pane" id="hexainfo">
                 <h1 class="sidebar-header">Area noise time profile<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+                <h1>Working days</h1>
                 <div id="donut_working_day"></div>
+                <h1>Saturday</h1>
                 <div id="donut_saturday"></div>
+                <h1>Sunday</h1>
                 <div id="donut_sunday"></div>
             </div>
         </div>
@@ -189,6 +194,8 @@ var hash = new L.Hash(map);
 var sidebar = L.control.sidebar('sidebar');
 
 sidebar.addTo(map);
+var weekdonut = initTimeDonut("donut_working_day");
+
         </script>
     </body>
 </html>

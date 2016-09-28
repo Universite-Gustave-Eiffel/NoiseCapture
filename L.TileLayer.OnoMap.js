@@ -262,14 +262,7 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
   showGetFeatureInfo: function (err, latlng, content) {
     if (err) { console.log(err); return; } // do nothing if there's an error
     // Otherwise show the content in a popup, or something.
-    info.update("<table class=\"table table-condensed\"><thead><th>Leq</th><th>Pleasantness</th><th>First measure</th>\
-    <th>Last measure</th><th>Measure length</th></thead><tbody>\
-    <tr><td>"+Math.round(content["leq"])+" dB(A)</td></tr>\
-    <tr><td>"+Math.round(content["mean_pleasantness"])+"%</td></tr>\
-    <tr><td>"+content["first_measure"]+"</td></tr>\
-    <tr><td>"+content["last_measure"]+"</td></tr>\
-    <tr><td>"+content["measure_count"]+" seconds</td></tr>\
-    </tbody></table>");
+    weekdonut.loadLevels(content["profile"]);
   }
 });
 

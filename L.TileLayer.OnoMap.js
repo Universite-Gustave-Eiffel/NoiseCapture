@@ -32,8 +32,8 @@
   * http://www.redblobgames.com/grids/hexagons/
   */
 L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
-   //http://www.redblobgames.com/grids/hexagons
-    COLOR_RAMP : {30:"#82A6AD", 35:"#A0BABF", 40:"#B8D6D1", 45:"#CEE4CC", 50:"#E2F2BF", 55:"#F3C683", 60:"#E87E4D", 65:"#CD463E", 70:"#A11A4D", 75:"#75085C", 80:"#430A4A"},
+
+  COLOR_RAMP : {30:"#82A6AD", 35:"#A0BABF", 40:"#B8D6D1", 45:"#CEE4CC", 50:"#E2F2BF", 55:"#F3C683", 60:"#E87E4D", 65:"#CD463E", 70:"#A11A4D", 75:"#75085C", 80:"#430A4A"},
 	hexOverlay : null,
 	// Hex size
 	size : 15.,

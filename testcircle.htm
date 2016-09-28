@@ -11,5 +11,16 @@
   <script src="time_donut.js"></script>
 </head><body>
 <div id="circle_week"></div>
-<script>var weekdonut = initTimeDonut("circle_week");</script>
+<input id="loadDonut" type="button" value="Load" onclick="weekdonutLoad();" />
+<input id="unloadDonut" type="button" value="UnLoad" onclick="weekdonutUnLoad();" />
+<script>
+var profile = {"0":{"leq":64.86894,"uncertainty":255},"1":{"leq":60.66794,"uncertainty":255},"2":{"leq":56.705936,"uncertainty":255},"3":{"leq":54.970936,"uncertainty":255},"4":{"leq":56.355938,"uncertainty":255},"5":{"leq":62.245937,"uncertainty":255},"6":{"leq":70.03094,"uncertainty":255},"7":{"leq":73.84994,"uncertainty":255},"8":{"leq":75.283936,"uncertainty":255},"9":{"leq":75.32993,"uncertainty":255},"10":{"leq":74.55794,"uncertainty":255},"11":{"leq":74.26594,"uncertainty":255},"12":{"leq":74.118935,"uncertainty":255},"13":{"leq":74.21893,"uncertainty":255},"14":{"leq":74.30894,"uncertainty":255},"15":{"leq":74.58694,"uncertainty":255},"16":{"leq":74.61194,"uncertainty":255},"17":{"leq":74.96994,"uncertainty":255},"18":{"leq":75.008934,"uncertainty":255},"19":{"leq":74.77694,"uncertainty":255},"20":{"leq":74.04094,"uncertainty":255},"21":{"leq":71.90094,"uncertainty":255},"22":{"leq":70.37694,"uncertainty":255},"23":{"leq":68.85694,"uncertainty":255},"24":{"leq":67.90194,"uncertainty":255},"25":{"leq":64.28694,"uncertainty":255},"26":{"leq":61.957935,"uncertainty":255},"27":{"leq":58.846935,"uncertainty":255},"28":{"leq":58.672935,"uncertainty":255},"29":{"leq":61.969936,"uncertainty":255},"30":{"leq":65.82194,"uncertainty":255},"31":{"leq":67.66494,"uncertainty":255},"32":{"leq":70.95994,"uncertainty":255},"33":{"leq":72.18294,"uncertainty":255},"34":{"leq":72.81394,"uncertainty":255},"35":{"leq":73.17094,"uncertainty":255},"36":{"leq":73.26194,"uncertainty":255},"37":{"leq":73.62794,"uncertainty":255},"38":{"leq":73.575935,"uncertainty":255},"39":{"leq":73.99594,"uncertainty":255},"40":{"leq":74.049934,"uncertainty":255},"41":{"leq":74.38994,"uncertainty":255},"42":{"leq":74.75394,"uncertainty":255},"43":{"leq":74.55794,"uncertainty":255},"44":{"leq":74.66394,"uncertainty":255},"45":{"leq":73.44194,"uncertainty":255},"46":{"leq":71.687935,"uncertainty":255},"47":{"leq":71.117935,"uncertainty":255},"48":{"leq":68.81594,"uncertainty":255},"49":{"leq":65.87194,"uncertainty":255},"50":{"leq":63.721935,"uncertainty":255},"51":{"leq":60.637936,"uncertainty":255},"52":{"leq":59.459938,"uncertainty":255},"53":{"leq":59.782936,"uncertainty":255},"54":{"leq":62.248936,"uncertainty":255},"55":{"leq":64.06794,"uncertainty":255},"56":{"leq":65.11594,"uncertainty":255},"57":{"leq":67.91594,"uncertainty":255},"58":{"leq":70.17994,"uncertainty":255},"59":{"leq":71.86894,"uncertainty":255},"60":{"leq":72.921936,"uncertainty":255},"61":{"leq":73.38394,"uncertainty":255},"62":{"leq":73.08094,"uncertainty":255},"63":{"leq":73.38694,"uncertainty":255},"64":{"leq":73.60794,"uncertainty":255},"65":{"leq":73.82694,"uncertainty":255},"66":{"leq":73.70994,"uncertainty":255},"67":{"leq":74.16293,"uncertainty":255},"68":{"leq":73.534935,"uncertainty":255},"69":{"leq":71.71094,"uncertainty":255},"70":{"leq":69.98494,"uncertainty":255},"71":{"leq":67.532936,"uncertainty":255}};
+var weekdonut = initTimeDonut("circle_week");
+function weekdonutLoad(id) {
+  weekdonut.loadLevels(profile);
+}
+function weekdonutUnLoad(id) {
+  weekdonut.loadLevels();
+}
+</script>
 </body></html>

@@ -261,8 +261,19 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
 
   showGetFeatureInfo: function (err, latlng, content) {
     if (err) { console.log(err); return; } // do nothing if there's an error
-    // Otherwise show the content in a popup, or something.
-    weekdonut.loadLevels(content["profile"]);
+    // Split hour levels for week, saturday and sunday
+    var alldata = content["profile"];
+    var weekData = alldata;
+    var saturdayData = [];
+    var sundayData = [];
+    for(i=0; i<24; i++) {
+      var key = i.toString();
+      saturdayData.push(alldata[24 + i]);
+      sundayData.push(alldata[48 + i]);
+    }
+    weekdonut.loadLevels(weekData);
+    saturdaydonut.loadLevels(saturdayData);
+    sundaydonut.loadLevels(sundayData);
   }
 });
 

@@ -6,12 +6,17 @@
 <head>
   <meta charset='UTF-8'>
   <meta name="robots" content="noindex">
-  <link href="time_donut.css" rel="stylesheet">
-  <script src="time_donut.js"></script>
+  <link href="css/time_donut.css" rel="stylesheet">
+  <script src="js/time_donut.js"></script>
+<style>
+.mycircle {
+  width:15em;
+}
+</style>
 </head>
 
 <body>
-  <div id="circle_week"></div>
+  <div id="circle_week" class="mycircle"></div>
   <input id="loadDonut" type="button" value="Load" onclick="weekdonutLoad();" />
   <input id="unloadDonut" type="button" value="UnLoad" onclick="weekdonutUnLoad();" />
   <script>

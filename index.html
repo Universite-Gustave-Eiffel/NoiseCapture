@@ -119,17 +119,18 @@
 
             <div class="sidebar-pane" id="hexainfo">
                 <h1 class="sidebar-header">Area noise time profile<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
-                <h1>Working days</h1>
-                <div id="donut_working_day"></div>
-                <h1>Saturday</h1>
-                <div id="donut_saturday"></div>
-                <h1>Sunday</h1>
-                <div id="donut_sunday"></div>
+                <h2>Working days</h1>
+                <div id="donut_working_day" class="sidepanel_donut"></div>
+                <h2>Saturday</h1>
+                <div id="donut_saturday" class="sidepanel_donut"></div>
+                <h2>Sunday</h1>
+                <div id="donut_sunday" class="sidepanel_donut"></div>
             </div>
         </div>
     </div>
     <div id="map" style="height: 100%; width: 100%"></div>
 	<style>
+
 	.info {
     padding: 6px 8px;
     font: 14px/16px Arial, Helvetica, sans-serif;
@@ -165,7 +166,10 @@
 
  .compact {
    margin-left: -10px;
- }	</style>
+ }
+.sidepanel_donut {
+}
+ </style>
         <script>
 
 var map = L.map('map').setView([47.1535576,-1.6502087], 16);
@@ -195,6 +199,8 @@ var sidebar = L.control.sidebar('sidebar');
 
 sidebar.addTo(map);
 var weekdonut = initTimeDonut("donut_working_day");
+var saturdaydonut = initTimeDonut("donut_saturday");
+var sundaydonut = initTimeDonut("donut_sunday");
 
         </script>
     </body>

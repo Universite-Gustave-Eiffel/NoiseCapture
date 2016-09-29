@@ -126,7 +126,7 @@
           measurement period. LA10 is a useful descriptor of road traffic noise, which is correlated with the noise annoyance.</string>
     <string name="result_tooltip_la50">LA50: A-weighted noise level that is exceeded for 50% of the
           measurement period. LA50 is the median sound level</string>
-    <string name="result_tooltip_la90">A-weighted noise level that is exceeded for 90% of the
+    <string name="result_tooltip_la90">LA90: A-weighted noise level that is exceeded for 90% of the
           measurement period. LA90 is a useful descriptor to quantify the background noise level</string>
     <string name="drawer_open">Open navigation drawer</string>
     <string name="drawer_close">Close navigation drawer</string>

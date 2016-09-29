@@ -1,13 +1,13 @@
 <html>
     <head>
         <title>NoiseCapture interactive community map</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width">
         <link rel="stylesheet" href="css/leaflet.css" />
         <link rel="stylesheet" href="css/leaflet-sidebar.css" />
+        <link href="css/time_donut.css" rel="stylesheet">
         <link href="http://fontawesome.io/assets/font-awesome/css/font-awesome.css" rel="stylesheet">
         <script src="js/leaflet.js"></script>
-        <link href="css/time_donut.css" rel="stylesheet">
         <script src="js/time_donut.js"></script>
         <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
         <script src="js/proj4.js"></script>
@@ -15,6 +15,20 @@
         <script src="js/leaflet-hash.js"></script>
         <script src="js/leaflet-sidebar.js"></script>
         <script src="js/leaflet.wms.js"></script>
+        <style>
+
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body, #map {
+            height: 100%;
+            font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
+        }
+      .sidepanel_donut {
+        max-width: 14em;
+      }
+       </style>
     </head>
     <body>
 
@@ -128,52 +142,13 @@
             </div>
         </div>
     </div>
-    <div id="map" style="height: 100%; width: 100%"></div>
-	<style>
+    <div id="map" class="sidebar-map"></div>
 
-	.info {
-    padding: 6px 8px;
-    font: 14px/16px Arial, Helvetica, sans-serif;
-    background: white;
-    background: rgba(255,255,255,0.8);
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    border-radius: 5px;
-	}
-	.info h4 {
-		margin: 0 0 5px;
-		color: #777;
-	}
-	.legend {
-    line-height: 18px;
-    color: #555;
-}
-.legend i {
-    width: 18px;
-    height: 18px;
-    float: left;
-    margin-right: 8px;
-    opacity: 0.7;
-}
-
- .popup_main {
-   font-family: arial;
-   line-height: normal;
- }
-
- .popup_top_band {
-   text-align: center;
- }
-
- .compact {
-   margin-left: -10px;
- }
-.sidepanel_donut {
-  max-width: 14em;
-}
- </style>
         <script>
 
 var map = L.map('map').setView([47.1535576,-1.6502087], 16);
+
+var sidebar = L.control.sidebar('sidebar').addTo(map);
 
 var osm =  L.tileLayer('http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
@@ -193,7 +168,7 @@ var onomap_heat =  L.WMS.source(
                             }
                     );
 var onomap_heat_layer = onomap_heat.getLayer("noisecapture:heatmap_raw_points_density");
-onomap_heat_layer.setOpacity(0.7);
+//onomap_heat_layer.setOpacity(0.7);
 
 L.control.scale({'position':'bottomright','metric':true,'imperial':false}).addTo(map);
 
@@ -207,9 +182,6 @@ L.control.layers(baseLayers, {"NoiseCapture areas" : onomap, "HeatMap of measure
 
 var hash = new L.Hash(map);
 
-var sidebar = L.control.sidebar('sidebar');
-
-sidebar.addTo(map);
 var weekdonut = initTimeDonut("donut_working_day");
 var saturdaydonut = initTimeDonut("donut_saturday");
 var sundaydonut = initTimeDonut("donut_sunday");

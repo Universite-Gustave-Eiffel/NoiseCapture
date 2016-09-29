@@ -19,9 +19,9 @@
     <string name="no_gps_hint">No GPS</string>
     <string name="gps_hint_precision">%1$d m</string>
     <string name="loc_hint">Location status hint</string>
-    <string name="permission_explain_audio_record">NoiseCapture require microphone use permission for audio measures</string>
-    <string name="permission_explain_gps">NoiseCapture require GPS location for the localisation of noise levels on the map</string>
-    <string name="permission_explain_access_wifi_state">NoiseCapture require permission to access
+    <string name="permission_explain_audio_record">NoiseCapture requires microphone use permission for audio measures</string>
+    <string name="permission_explain_gps">NoiseCapture requires GPS location for the localisation of noise levels on the map</string>
+    <string name="permission_explain_access_wifi_state">NoiseCapture requires permission to access
         the wifi state in order to not transfer data if you are not connected using wifi</string>
 
     <string name="title_menu">Menu</string>

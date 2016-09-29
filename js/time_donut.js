@@ -29,6 +29,7 @@
 var TimeDonut = function(id, levels) {
   this.id = id;
   this.COLOR_RAMP = {
+    0: "#FFFFFF",
     30: "#82A6AD",
     35: "#A0BABF",
     40: "#B8D6D1",
@@ -54,7 +55,8 @@ TimeDonut.prototype.getcolor = function(level) {
     else
       prev = n;
   }
-  return this.COLOR_RAMP[this.COLOR_RAMP.keys().sort().last()];
+  var levels = Object.keys(this.COLOR_RAMP);
+  return this.COLOR_RAMP[levels[levels.length - 1]];
 }
 
 TimeDonut.prototype.hover = function(element) {

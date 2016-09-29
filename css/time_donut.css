@@ -23,12 +23,13 @@
 
 .text {
   position: absolute;
-  color: black;
+  color: grey;
   left: -100%;
   width: 200%;
   height: 200%;
-  font-size: 1vh;
+  font-size: 0.8em;
   text-align: center;
+  /*text-shadow: 1px 0 0 #AAA, 0 -1px 0 #AAA, 0 1px 0 #AAA, -1px 0 0 #AAA;*/
   transform: skewY(75deg) rotate(7.5deg);
   padding-top: 10px;
 }
@@ -155,7 +156,7 @@
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 1);
   color: #E2F2BF;
   text-align: center;
-  font-size: 6vw;
+  font-size: 5em;
   font-family: georgia, serif;
 }
 
@@ -169,6 +170,6 @@
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 1);
   color: #000000;
   text-align: center;
-  font-size: 1vw;
+  font-size: 1em;
   font-family: georgia, serif;
 }

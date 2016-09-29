@@ -3,12 +3,18 @@
         <title>NoiseCapture interactive community map</title>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width">
-        <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
-        <link rel="stylesheet" href="leaflet-sidebar.css" />
+        <link rel="stylesheet" href="css/leaflet.css" />
+        <link rel="stylesheet" href="css/leaflet-sidebar.css" />
         <link href="http://fontawesome.io/assets/font-awesome/css/font-awesome.css" rel="stylesheet">
-        <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
-        <link href="time_donut.css" rel="stylesheet">
-        <script src="time_donut.js"></script>
+        <script src="js/leaflet.js"></script>
+        <link href="css/time_donut.css" rel="stylesheet">
+        <script src="js/time_donut.js"></script>
+        <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+        <script src="js/proj4.js"></script>
+        <script src="js/L.TileLayer.OnoMap.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/leaflet-sidebar.js"></script>
+        <script src="js/leaflet.wms.js"></script>
     </head>
     <body>
 
@@ -53,22 +59,22 @@
                     <tr>
                       <td style="width: 20%; text-align: center;"><img style="width: 91px; height: 26px;"
 
-                          title="Ifsttar logo" alt="Ifsttar logo" src="IFSTTAR_logo_quadri.jpg"></td>
+                          title="Ifsttar logo" alt="Ifsttar logo" src="img/IFSTTAR_logo_quadri.jpg"></td>
                       <td style="width: 20%; text-align: center;"><img style="width: 40px; height: 40px;"
 
-                          title="CNRS logo" alt="CNRS logo" src="CNRSfr-grand.png"><br>
+                          title="CNRS logo" alt="CNRS logo" src="img/CNRSfr-grand.png"><br>
                       </td>
                       <td style="width: 20%; text-align: center;"><img style="width: 108px; height: 55px;"
 
-                          title="ENERGIC-OD logo" alt="ENERGIC-OD logo" src="logo_EnergicOD_HD.png"><br>
+                          title="ENERGIC-OD logo" alt="ENERGIC-OD logo" src="img/logo_EnergicOD_HD.png"><br>
                       </td>
                       <td style="width: 20%; text-align: center;"><img style="width: 51px; height: 45px;"
 
-                          title="Europa logo" alt="Europa logo" src="Logo_EUROPE.png"><br>
+                          title="Europa logo" alt="Europa logo" src="img/Logo_EUROPE.png"><br>
                       </td>
                       <td style="width: 20%; text-align: center;"><img style="width: 70px; height: 43px;"
 
-                          title="GEOPAL logo" alt="GEOPAL logo" src="Logo_GEOPAL.png"><br>
+                          title="GEOPAL logo" alt="GEOPAL logo" src="img/Logo_GEOPAL.png"><br>
                       </td>
                     </tr>
                   </tbody>
@@ -123,12 +129,6 @@
         </div>
     </div>
     <div id="map" style="height: 100%; width: 100%"></div>
-    <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-    <script src="proj4.js"></script>
-    <script src="L.TileLayer.OnoMap.js"></script>
-    <script src="leaflet-hash.js"></script>
-    <script src="leaflet-sidebar.js"></script>
-    <script src="leaflet.wms.js"></script>
 	<style>
 	.info {
     padding: 6px 8px;

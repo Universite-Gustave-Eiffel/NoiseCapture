@@ -26,12 +26,10 @@
  *  or write to scientific.computing@ifsttar.fr
  */
  /**
-  * Modified from BetterWms :
-  * https://gist.github.com/rclark/6908938
   * Hexagon formulae from :
   * http://www.redblobgames.com/grids/hexagons/
   */
-L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
+L.TileLayer.OnoMap = L.TileLayer.extend({
 
   COLOR_RAMP : {30:"#82A6AD", 35:"#A0BABF", 40:"#B8D6D1", 45:"#CEE4CC", 50:"#E2F2BF", 55:"#F3C683", 60:"#E87E4D", 65:"#CD463E", 70:"#A11A4D", 75:"#75085C", 80:"#430A4A"},
 	hexOverlay : null,
@@ -39,6 +37,7 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
 	size : 15.,
 	// While moving the mouse do not redraw if hex coordinate is the same
 	lastDrawnHex : {q:0, r:0},
+  ows_url:'http://onomap-gs.noise-planet.org/geoserver/ows',
 
 
 	/**
@@ -159,7 +158,7 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
 				vertices.push(vertices[0]);
 				this.hexOverlay = new L.Polyline(vertices, {
 				color: 'gray',
-				clickable: false,
+				interactive: false,
 				weight: 3,
 				opacity: 0.5,
 				smoothFactor: 1
@@ -171,18 +170,16 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
 
   onAdd: function (map) {
     // Triggered when the layer is added to a map.
-    //   Register a click listener, then do all the upstream WMS things
-    L.TileLayer.WMS.prototype.onAdd.call(this, map);
+    L.TileLayer.prototype.onAdd.call(this, map);
     map.on('click', this.getFeatureInfo, this);
-	map.on("mousemove", this.updateHexOverlay, this);
+	  map.on("mousemove", this.updateHexOverlay, this);
   },
 
   onRemove: function (map) {
     // Triggered when the layer is removed from a map.
-    //   Unregister a click listener, then do all the upstream WMS things
-    L.TileLayer.WMS.prototype.onRemove.call(this, map);
+    L.TileLayer.prototype.onRemove.call(this, map);
     map.off('click', this.getFeatureInfo, this);
-	map.off("mousemove", this.updateHexOverlay, this);
+	  map.off("mousemove", this.updateHexOverlay, this);
   },
 
   getFeatureInfo: function (evt) {
@@ -215,7 +212,7 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
           service: 'wps',
           version: '1.0.0'
         };
-    return this._url + L.Util.getParamString(params, this._url, true);
+    return this.ows_url + L.Util.getParamString(params, this.ows_url, true);
   },
 
   getFeatureInfoContent: function (latlng) {
@@ -260,6 +257,9 @@ L.TileLayer.OnoMap = L.TileLayer.WMS.extend({
   },
 
   showGetFeatureInfo: function (err, latlng, content) {
+    weekdonut.loadLevels();
+    saturdaydonut.loadLevels();
+    sundaydonut.loadLevels();
     if (err) { console.log(err); return; } // do nothing if there's an error
     // Split hour levels for week, saturday and sunday
     var alldata = content["profile"];

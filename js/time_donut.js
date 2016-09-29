@@ -54,6 +54,7 @@ TimeDonut.prototype.getcolor = function(level) {
     else
       prev = n;
   }
+  return this.COLOR_RAMP[this.COLOR_RAMP.keys().sort().last()];
 }
 
 TimeDonut.prototype.hover = function(element) {

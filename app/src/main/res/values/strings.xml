@@ -6,13 +6,13 @@
     <string name="comment_cancel_change">Cancel</string>
     <string name="comment_save_change">Save</string>
     <string name="comment_delete_record">Delete</string>
-    <string name="comment_title_save_change">Save changes ?</string>
-    <string name="comment_title_delete">Delete the measurement ?</string>
-    <string name="history_title_delete">Delete the selected measurement(s) ?</string>
+    <string name="comment_title_save_change">Save changes?</string>
+    <string name="comment_title_delete">Delete the measurement?</string>
+    <string name="history_title_delete">Delete the selected measurement(s)?</string>
 
     <string name="record_message">Press the record button to start</string>
     <string name="calibrate_done">Calibration done, gain is set to %1$.1f dB</string>
-    <string name="calibration_out_bounds">Calibration sound level is incompatible with hardware specification bounds,it must be between %1$f dB an %2$f dB</string>
+    <string name="calibration_out_bounds">Calibration sound level is incompatible with hardware specification bounds, it must be between %1$f dB an %2$f dB</string>
     <string name="fail_share">Generation of the shared file failed</string>
     <string name="no_results">There is no result. Start a record before.</string>
     <string name="no_gps_results">No GPS coordinates in this record</string>
@@ -117,13 +117,13 @@
     <string name="result_button_map">Show map</string>
     <string name="result_button_upload">Upload</string>
     <string name="result_button_user_feedback">Description</string>
-    <string name="result_tooltip_nei">equivalent noise level in dB(A), on the whole measurement duration [at the center of colored circle]</string>
+    <string name="result_tooltip_nei">Equivalent noise level in dB(A), on the whole measurement duration [at the center of colored circle]</string>
     <string name="result_tooltip_rne">This indicator represents the distribution over the time of your noise
         exposure. Each of the five colors correspond to a given noise level range.</string>
     <string name="result_tooltip_minsl">Minimal 1 second A-weighted noise level</string>
     <string name="result_tooltip_maxsl">Maximal 1 second A-weighted noise level</string>
     <string name="result_tooltip_la10">LA10: A-weighted noise level that is exceeded for 10% of the
-          measurement period. LA10 is a useful descriptor of road traffic noise, which is correlated with the noise annoyance</string>
+          measurement period. LA10 is a useful descriptor of road traffic noise, which is correlated with the noise annoyance.</string>
     <string name="result_tooltip_la50">LA50: A-weighted noise level that is exceeded for 50% of the
           measurement period. LA50 is the median sound level</string>
     <string name="result_tooltip_la90">A-weighted noise level that is exceeded for 90% of the
@@ -185,7 +185,7 @@
     <string name="map_marker_label">%1$.01f dB(A) Precision: %2$s m</string>
     <string name="history_uploadeddescr">Is this result has been uploaded to community map server</string>
 
-    <string name="measurement_processlastsamples">Processing remaining %d samples..</string>
+    <string name="measurement_processlastsamples">Processing remaining %d samples...</string>
     <string name="history_item_choice_title">Measurement %s</string>
     <string name="calibration_select_frequency">Choose frequency to show</string>
     <string name="local_service_started">Localisation service started</string>
@@ -224,7 +224,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_status_waiting_for_start_timer">Calibration is about to start...</string>
     <string name="userinfo_button_measure">Measure</string>
     <string name="userinfo_button_results">Valid</string>
-    <string name="calibration_status_on">Calibration..</string>
+    <string name="calibration_status_on">Calibration...</string>
     <string name="calibration_linear_status_on">Calibration at %1$.0f dB</string>
     <string name="calibration_status_end">Calibration done</string>
     <string name="calibration_status_background_noise">Measuring background noise</string>

@@ -80,7 +80,7 @@
                </div>
                <br>
                <span style="font-weight: bold;">NoiseCapture </span>is a collaboration
-               between two french research laboratories, the <a title="LAE website" href="www.lae.ifsttar.fr">Environmental
+               between two french research laboratories, the <a title="LAE website" href="http://www.lae.ifsttar.fr">Environmental
                Acoustic Laboratory</a> (Ifsttar) and the DECIDE team of the <a title="Lab-STICC website"
                   href="http://www.lab-sticc.fr/">Lab-STICC</a> (CNRS), as a part of the
                european<b> </b><a href="http://www.energic-od.eu/">ENERGIC-OD</a><b> </b>research
@@ -88,12 +88,12 @@
                </a>of the Pays de la Loire region.<br>
                <br>
                <div class="centered">
-               <img class="authorlogo" title="Ifsttar logo" alt="Ifsttar logo" src="img/IFSTTAR_logo_quadri.jpg">
-               <img class="authorlogo" title="CNRS logo" alt="CNRS logo" src="img/CNRSfr-grand.png">
+               <a target="_blank" href="http://www.lae.ifsttar.fr"><img class="authorlogo" title="Ifsttar logo" alt="Ifsttar logo" src="img/IFSTTAR_logo_quadri.jpg"></a>
+               <a target="_blank" href="http://www.lab-sticc.fr"><img class="authorlogo" title="CNRS logo" alt="CNRS logo" src="img/CNRSfr-grand.png"></a>
                <p>
-               <img class="orglogo" title="ENERGIC-OD logo" alt="ENERGIC-OD logo" src="img/logo_EnergicOD_HD.png">
-               <img class="orglogo" title="Europa logo" alt="Europa logo" src="img/Logo_EUROPE.png">
-               <img class="orglogo" title="GEOPAL logo" alt="GEOPAL logo" src="img/Logo_GEOPAL.png">
+               <a target="_blank" href="http://www.energic-od.eu/"><img class="orglogo" title="ENERGIC-OD logo" alt="ENERGIC-OD logo" src="img/logo_EnergicOD_HD.png"></a>
+               <a target="_blank" href="https://europa.eu/"><img class="orglogo" title="Europa logo" alt="Europa logo" src="img/Logo_EUROPE.png"></a>
+               <a target="_blank" href="http://www.geopal.org"><img class="orglogo" title="GEOPAL logo" alt="GEOPAL logo" src="img/Logo_GEOPAL.png"></a>
                </p>
              </div>
             </div>
@@ -124,7 +124,7 @@
                <h1 class="sidebar-header">Contact<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
                <p>For any questions involving the NoiseCapture Android App and the web
                   pages, please uses the Github plateform:<br>
-                  <a href="https://github.com/Ifsttar/NoiseCapture/issues">https://github.com/Ifsttar/NoiseCapture/issues</a>
+                  <a target="_blank" href="https://github.com/Ifsttar/NoiseCapture/issues">https://github.com/Ifsttar/NoiseCapture/issues</a>
                </p>
                <p>For any questions involving the project and the data, please contact us
                   at <a title="mailt ot: noisecapture@noise-planet.org" href="mailto:noisecapture@noise-planet.org">noisecapture(at)noise-planet.org</a>
@@ -132,6 +132,7 @@
             </div>
             <div class="sidebar-pane" id="legend">
                <h1 class="sidebar-header">Legend<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+               <p>Noise level LA50</p>
                <img src="http://onomap-gs.noise-planet.org/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=noisecapture:noisecapture_area&legend_options=fontName:Times%20New%20Roman;fontAntiAliasing:true;fontColor:0x000033;fontSize:14;dpi:120&TRANSPARENT=true"/>
             </div>
             <div class="sidebar-pane" id="hexainfo">
@@ -263,7 +264,7 @@
 
          var baseLayers = {"OpenStreetMap" : osm};
 
-         L.control.layers(baseLayers, {"NoiseCapture areas" : onomap, "HeatMap of measures" : onomap_heat_layer, "Location of measures" : onomap_pt}).addTo(map);
+         L.control.layers(baseLayers, {"NoiseCapture areas" : onomap, "Density of measures" : onomap_heat_layer, "Location of measures" : onomap_pt}).addTo(map);
 
          var hash = new L.Hash(map);
 

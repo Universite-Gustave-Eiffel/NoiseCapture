@@ -12,6 +12,9 @@
       top: 10px;
       bottom: 10px;
       transition: width 500ms; } }
+  @media (min-width: 480px) and (max-width: 768px) {
+    .sidebar {
+      width: 240px; } }
   @media (min-width: 768px) and (max-width: 991px) {
     .sidebar {
       width: 305px; } }

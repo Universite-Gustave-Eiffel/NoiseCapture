@@ -155,7 +155,13 @@ var osm =  L.tileLayer('http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png
   });
 var onomap =  L.tileLayer.OnoMap('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_area@EPSG:900913@png/{z}/{x}/{y}.png', {
     "attribution": "<a href='http://onomap-gs.noise-planet.org'>OnoMap server</a>",
-    tms: true
+    tms: true,
+    minZoom: 14
+  });
+var onomap_pt = L.tileLayer('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:raw_points@EPSG:900913@png/{z}/{x}/{y}.png', {
+    "attribution": "<a href='http://onomap-gs.noise-planet.org'>OnoMap server</a>",
+    tms: true,
+    minZoom: 14
   });
 var onomap_heat =  L.WMS.source(
                             "http://onomap-gs.noise-planet.org:80/geoserver/noisecapture/wms",
@@ -164,7 +170,8 @@ var onomap_heat =  L.WMS.source(
                                 "transparent": "true",
                                 "attribution": "<a href='http://onomap-gs.noise-planet.org'>OnoMap server</a>",
                                 "tiled": false,
-                                "identifyLayers" : []
+                                "identifyLayers" : [],
+                                "maxZoom": 13
                             }
                     );
 var onomap_heat_layer = onomap_heat.getLayer("noisecapture:heatmap_raw_points_density");
@@ -178,7 +185,7 @@ map.addLayer(onomap_heat_layer)
 
 var baseLayers = {"OpenStreetMap" : osm};
 
-L.control.layers(baseLayers, {"NoiseCapture areas" : onomap, "HeatMap of measures" : onomap_heat_layer}).addTo(map);
+L.control.layers(baseLayers, {"NoiseCapture areas" : onomap, "HeatMap of measures" : onomap_heat_layer, "Location of measures" : onomap_pt}).addTo(map);
 
 var hash = new L.Hash(map);
 

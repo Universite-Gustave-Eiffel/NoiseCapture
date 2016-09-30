@@ -35,12 +35,16 @@
          }
          .logo {
            max-width: 40%;
+           align-content: center;
          }
          .authorlogo {
-           max-width: 45%;
+          height: 4em;
          }
          .orglogo {
            max-width: 30%;
+         }
+         .centered {
+           text-align: center;
          }
       </style>
    </head>
@@ -63,7 +67,7 @@
          <div class="sidebar-content">
             <div class="sidebar-pane" id="home">
                <h1 class="sidebar-header">Home<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
-               <img src="img/noisecapture_logo.png" alt="logo" class="logo">
+               <div class="centered"><img src="img/noisecapture_logo.png" alt="logo" class="logo"></div>
                <p><span style="font-weight: bold;">NoiseCapture </span>is an initiative to
                   evaluate and represent the environmental noise following a participative
                   approach, with community contributors, using an Android application on a
@@ -71,7 +75,7 @@
                   Android App</span> and follow the instructions on the 'Help' page on
                   your smartphone.
                </p>
-               <div style="text-align: center;"><a href="https://play.google.com/store/apps/details?id=org.noise_planet.noisecapture"><img
+               <div class="centered"><a href="https://play.google.com/store/apps/details?id=org.noise_planet.noisecapture"><img
                   style="width: 164px; height: 63px;" alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"></a><br>
                </div>
                <br>
@@ -83,6 +87,7 @@
                project, and is supported by the French geographic portal <a href="http://www.geopal.org">GEOPAL
                </a>of the Pays de la Loire region.<br>
                <br>
+               <div class="centered">
                <img class="authorlogo" title="Ifsttar logo" alt="Ifsttar logo" src="img/IFSTTAR_logo_quadri.jpg">
                <img class="authorlogo" title="CNRS logo" alt="CNRS logo" src="img/CNRSfr-grand.png">
                <p>
@@ -90,6 +95,7 @@
                <img class="orglogo" title="Europa logo" alt="Europa logo" src="img/Logo_EUROPE.png">
                <img class="orglogo" title="GEOPAL logo" alt="GEOPAL logo" src="img/Logo_GEOPAL.png">
                </p>
+             </div>
             </div>
             <div class="sidebar-pane" id="licenses">
                <h1 class="sidebar-header">Licenses<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
@@ -131,12 +137,12 @@
             <div class="sidebar-pane" id="hexainfo">
                <h1 class="sidebar-header">Selected area<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
                <ul class="nav nav-tabs">
-                  <li class="active"><a data-toggle="tab" href="#l50">L50</a></li>
+                  <li class="active"><a data-toggle="tab" href="#la50">LA50</a></li>
                   <!--<li><a data-toggle="tab" href="#lden">Lden</a></li>-->
                   <!--<li><a data-toggle="tab" href="#leq">Leq</a></li>-->
                </ul>
                <div class="tab-content">
-                  <div id="l50" class="tab-pane fade in active">
+                  <div id="la50" class="tab-pane fade in active">
                      <div id="areainfo"></div>
                      <div>
                         <div class="donut_block">

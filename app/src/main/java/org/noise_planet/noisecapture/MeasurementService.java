@@ -97,6 +97,7 @@ public class MeasurementService extends Service {
 
     private NavigableMap<Long, Location> timeLocation = new TreeMap<Long, Location>();
     private LeqStats leqStats = new LeqStats();
+    private LeqStats leqStatsFast = new LeqStats();
 
     private NotificationManager mNM;
 
@@ -130,6 +131,10 @@ public class MeasurementService extends Service {
         return leqStats;
     }
 
+
+    public LeqStats getFastLeqStats() {
+        return leqStatsFast;
+    }
     public int getRecordId() {
         return recordId;
     }
@@ -229,6 +234,11 @@ public class MeasurementService extends Service {
     // RemoteService for a more complete example.
     private final IBinder mBinder = new LocalBinder();
 
+    private int getNotificationIcon() {
+        boolean useWhiteIcon = (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP);
+        return useWhiteIcon ? R.drawable.ic_measure_notification : R.mipmap.ic_launcher;
+    }
+
     /**
      * Show a notification while this service is running.
      */
@@ -243,7 +253,7 @@ public class MeasurementService extends Service {
 
         // Set the info for the views that show in the notification panel.
         Notification.Builder notification = new Notification.Builder(this)
-                .setSmallIcon(R.mipmap.ic_launcher)  // the status icon
+                .setSmallIcon(getNotificationIcon())  // the status icon
                 .setWhen(System.currentTimeMillis())
                 .setTicker(text)  // the status text
                 .setWhen(System.currentTimeMillis())  // the time stamp
@@ -375,6 +385,9 @@ public class MeasurementService extends Service {
             }
             leqStats = newLeqStats;
         }
+        if(newState && recordId > -1) {
+            leqStatsFast = new LeqStats();
+        }
     }
 
     /**
@@ -501,8 +514,8 @@ public class MeasurementService extends Service {
                     ())) {
                 if (measurementService.isStoring() && !measurementService.isPaused.get()) {
                     // Delayed audio processing
-                    AudioProcess.DelayedStandardAudioMeasure measure =
-                            (AudioProcess.DelayedStandardAudioMeasure) event.getNewValue();
+                    AudioProcess.AudioMeasureResult measure =
+                            (AudioProcess.AudioMeasureResult) event.getNewValue();
                     Location location = measurementService.fetchLocation(measure.getBeginRecordTime());
                     Storage.Leq leq;
                     if (location == null) {
@@ -528,6 +541,13 @@ public class MeasurementService extends Service {
                     measurementService.measurementManager
                             .addLeqBatch(new MeasurementManager.LeqBatch(leq, leqValueList));
                     measurementService.leqAdded.addAndGet(1);
+                }
+            } else if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName
+                    ())) {
+                if (measurementService.isStoring() && !measurementService.isPaused.get()) {
+                    AudioProcess.AudioMeasureResult measure =
+                            (AudioProcess.AudioMeasureResult) event.getNewValue();
+                    measurementService.leqStatsFast.addLeq(measure.getGlobaldBaValue());
                 }
             } else if (AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
                 if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {

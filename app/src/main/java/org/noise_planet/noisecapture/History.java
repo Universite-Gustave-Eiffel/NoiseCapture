@@ -120,22 +120,30 @@ public class History extends MainActivity {
 
         @Override
         public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
+            // Calls getSelectedIds method from ListViewAdapter Class
+            SparseBooleanArray selected = history.historyListAdapter
+                    .getSelectedIds();
+            // Captures all selected ids with a loop
+            List<Integer> selectedRecordIds = new ArrayList<Integer>();
+            for (int i = (selected.size() - 1); i >= 0; i--) {
+                if (selected.valueAt(i)) {
+                    selectedRecordIds.add((int)history.historyListAdapter.getItemId(selected.keyAt(i)));
+
+                }
+            }
             switch (item.getItemId()) {
                 case R.id.delete:
-                    // Calls getSelectedIds method from ListViewAdapter Class
-                    SparseBooleanArray selected = history.historyListAdapter
-                            .getSelectedIds();
-                    // Captures all selected ids with a loop
-                    List<Integer> recordIdToDelete = new ArrayList<Integer>();
-                    for (int i = (selected.size() - 1); i >= 0; i--) {
-                        if (selected.valueAt(i)) {
-                            recordIdToDelete.add((int)history.historyListAdapter.getItemId(selected.keyAt(i)));
-
-                        }
-                    }
-                    if(!recordIdToDelete.isEmpty()) {
+                    if(!selectedRecordIds.isEmpty()) {
                         // Remove selected items following the ids
-                        history.historyListAdapter.remove(recordIdToDelete);
+                        history.historyListAdapter.remove(selectedRecordIds);
+                    }
+                    // Close CAB
+                    mode.finish();
+                    return true;
+                case R.id.publish:
+                    if(!selectedRecordIds.isEmpty()) {
+                        // publish selected items following the ids
+                        history.runOnUiThread(new SendResults(history, selectedRecordIds));
                     }
                     // Close CAB
                     mode.finish();
@@ -163,17 +171,9 @@ public class History extends MainActivity {
         }
     }
 
-    private static final class HistoryItemSelectionListener implements View.OnLongClickListener {
-        private History history;
-
-        public HistoryItemSelectionListener(History history) {
-            this.history = history;
-        }
-
-        @Override
-        public boolean onLongClick(View v) {
-            return false;
-        }
+    @Override
+    protected void onTransferRecord() {
+        historyListAdapter.reload();
     }
 
     private static final class HistoryItemListener implements OnItemClickListener {
@@ -280,6 +280,26 @@ public class History extends MainActivity {
             historyActivity.startActivity(ir);
         }
 
+        private void delete() {
+            AlertDialog.Builder builder = new AlertDialog.Builder(historyActivity);
+            // Add the buttons
+            builder.setPositiveButton(R.string.comment_delete_record, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // Delete record
+                    historyActivity.measurementManager.deleteRecord(recordId);
+                    historyActivity.historyListAdapter.reload();
+                }
+            });
+            builder.setNegativeButton(R.string.comment_cancel_change, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                }
+            });
+            // Create the AlertDialog
+            AlertDialog dialog = builder.create();
+            dialog.setTitle(R.string.comment_title_delete);
+            dialog.show();
+        }
+
         @Override
         public void onClick(DialogInterface dialog, int which) {
             switch (which) {
@@ -303,9 +323,7 @@ public class History extends MainActivity {
                     launchMap();
                     break;
                 case 5:
-                    // Delete record
-                    historyActivity.measurementManager.deleteRecord(recordId);
-                    historyActivity.historyListAdapter.reload();
+                    delete();
                     break;
             }
         }
@@ -373,9 +391,24 @@ public class History extends MainActivity {
             return informationHistoryList.get(position);
         }
 
-        public void remove(Collection<Integer> ids) {
-            activity.measurementManager.deleteRecords(ids);
-            reload();
+        public void remove(final Collection<Integer> ids) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(activity);
+            // Add the buttons
+            builder.setPositiveButton(R.string.comment_delete_record, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                    // Delete records
+                    activity.measurementManager.deleteRecords(ids);
+                    reload();
+                }
+            });
+            builder.setNegativeButton(R.string.comment_cancel_change, new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                }
+            });
+            // Create the AlertDialog
+            AlertDialog dialog = builder.create();
+            dialog.setTitle(R.string.history_title_delete);
+            dialog.show();
         }
 
         @Override

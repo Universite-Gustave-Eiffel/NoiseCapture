@@ -95,7 +95,7 @@ public class MeasurementActivity extends MainActivity implements
     private boolean mIsBound = false;
     private AtomicBoolean chronometerWaitingToStart = new AtomicBoolean(false);
 
-    public final static double MIN_SHOWN_DBA_VALUE = 35;
+    public final static double MIN_SHOWN_DBA_VALUE = 20;
     public final static double MAX_SHOWN_DBA_VALUE = 120;
 
     private static final int DEFAULT_MINIMAL_LEQ = 1;
@@ -103,7 +103,6 @@ public class MeasurementActivity extends MainActivity implements
 
     private boolean hasMaximalMeasurementTime;
     private int maximalMeasurementTime = 0;
-    private double calibrationScale = 0;
 
     private static final String LOG_SCALE_SETTING = "settings_spectrogram_logscalemode";
     private static final String DELETE_LEQ_ON_PAUSE_SETTING = "settings_delete_leq_on_pause";
@@ -151,15 +150,10 @@ public class MeasurementActivity extends MainActivity implements
         setContentView(R.layout.activity_measurement);
         initDrawer();
 
-        // Message for starting a record
-        Toast.makeText(getApplicationContext(),
-                getString(R.string.record_message), Toast.LENGTH_LONG).show();
-
         // Check if the dialog box (for caution) must be displayed
         // Depending of the settings
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
-        calibrationScale = getDouble(sharedPref, "settings_recording_gain", 0);
         Boolean CheckNbRunSettings = sharedPref.getBoolean("settings_caution", true);
 
         hasMaximalMeasurementTime = sharedPref.getBoolean(HAS_MAXIMAL_MEASURE_TIME_SETTING,
@@ -245,6 +239,7 @@ public class MeasurementActivity extends MainActivity implements
     @Override
     public void onRequestPermissionsResult(int requestCode,
                                            String permissions[], int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case PERMISSION_RECORD_AUDIO_AND_GPS: {
                 // If request is cancelled, the result arrays are empty.
@@ -259,6 +254,12 @@ public class MeasurementActivity extends MainActivity implements
                 }
             }
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        checkTransferResults();
     }
 
     private View.OnClickListener onButtonPause = new View.OnClickListener() {
@@ -517,13 +518,17 @@ public class MeasurementActivity extends MainActivity implements
     }
 
     private void initGuiState() {
+        if(measurementService == null) {
+            // measurementService is required
+            return;
+        }
         // Update buttons: cancel enabled; record button to stop;
         // Show start measure hint
         TextView overlayMessage = (TextView) findViewById(R.id.textView_message_overlay);
 
         initComponents();
         if (measurementService.isStoring()) {
-            overlayMessage.setText("");
+            overlayMessage.setVisibility(View.INVISIBLE);
             buttonPause.setEnabled(true);
             buttonrecord.setImageResource(R.drawable.button_record_pressed);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
@@ -542,6 +547,7 @@ public class MeasurementActivity extends MainActivity implements
             Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer_recording_time);
             chronometer.stop();
             overlayMessage.setText(R.string.no_data_text_description);
+            overlayMessage.setVisibility(View.VISIBLE);
         }
     }
 
@@ -556,8 +562,10 @@ public class MeasurementActivity extends MainActivity implements
         @Override
         public void propertyChange(PropertyChangeEvent event) {
             if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
+                AudioProcess.AudioMeasureResult measure =
+                        (AudioProcess.AudioMeasureResult) event.getNewValue();
                 // Realtime audio processing
-                activity.spectrogram.addTimeStep((float[]) event.getNewValue(),
+                activity.spectrogram.addTimeStep(measure.getResult().getFftResult(),
                         activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));
@@ -683,7 +691,7 @@ public class MeasurementActivity extends MainActivity implements
                     // Change the text and the textcolor in the corresponding textview
                     // for the Leqi value
                     LeqStats leqStats =
-                            activity.measurementService.getLeqStats();
+                            activity.measurementService.getFastLeqStats();
                     final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
                     formatdBA(leq, mTextView);
                     if(activity.measurementService.getLeqAdded() != 0) {
@@ -740,7 +748,6 @@ public class MeasurementActivity extends MainActivity implements
     }
 
 
-
     private MeasurementService measurementService;
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -767,8 +774,8 @@ public class MeasurementActivity extends MainActivity implements
             measurementService.getAudioProcess().setDoFastLeq(true);
             measurementService.getAudioProcess().setDoOneSecondLeq(true);
             measurementService.getAudioProcess().setWeightingA(true);
-            measurementService.getAudioProcess().setHanningWindowOneSecond(false);
-            measurementService.getAudioProcess().setHanningWindowFast(true);
+            measurementService.getAudioProcess().setHannWindowOneSecond(false);
+            measurementService.getAudioProcess().setHannWindowFast(true);
             initGuiState();
         }
 
@@ -808,16 +815,19 @@ public class MeasurementActivity extends MainActivity implements
     @Override
     protected void onRestart() {
         super.onRestart();
-        // Reconnect from measurement
-        measurementService.addPropertyChangeListener(doProcessing);
-        initGuiState();
+        doBindService();
+        if(measurementService != null) {
+            initGuiState();
+        }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        // Disconnect listener from measurement
-        measurementService.removePropertyChangeListener(doProcessing);
+        if(!measurementService.isStoring()) {
+            // Disconnect listener from measurement
+            doUnbindService();
+        }
     }
 
     @Override

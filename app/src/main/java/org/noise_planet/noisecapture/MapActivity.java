@@ -62,6 +62,8 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
     private MeasurementManager measurementManager;
     private Storage.Record record;
     private GoogleMap mMap;
+    private LatLngBounds.Builder builder;
+    private boolean validBoundingBox = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -119,20 +121,24 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
         webSettings.setJavaScriptEnabled(true);
         leaflet.clearCache(true);
         leaflet.setInitialScale(200);
-        leaflet.loadUrl("http://webcarto.orbisgis.org/noisemap.html");
-
+        String location = "";
+        if(builder != null && validBoundingBox) {
+            LatLng latLng = builder.build().getCenter();
+            location = "/#18/"+latLng.latitude+"/"+latLng.longitude;
+        }
+        leaflet.loadUrl("http://onomap.noise-planet.org" + location);
     }
 
     @Override
     public void onMapLoaded() {
         Resources res = getResources();
-        mMap.clear();
         Spinner spinner = (Spinner) findViewById(R.id.spinner_map);
         boolean onlySelected = spinner.getSelectedItemPosition() == 0;
         // Add markers and move the camera.
         List<MeasurementManager.LeqBatch> measurements = new ArrayList<MeasurementManager.LeqBatch>();
         measurements = measurementManager.getRecordLocations(onlySelected ? record.getId() : -1, true);
-        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        builder = new LatLngBounds.Builder();
+        validBoundingBox = measurements.size() > 1;
         for(int idMarker = 0; idMarker < measurements.size(); idMarker++) {
             MeasurementManager.LeqBatch leq = measurements.get(idMarker);
             LatLng position = new LatLng(leq.getLeq().getLatitude(), leq.getLeq().getLongitude());
@@ -148,7 +154,7 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
             mMap.addMarker(marker);
             builder.include(position);
         }
-        if(!measurements.isEmpty()) {
+        if(validBoundingBox) {
             mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 0));
         } else {
             Toast.makeText(getApplicationContext(), getString(R.string.no_gps_results),
@@ -181,22 +187,25 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
                     .getSupportFragmentManager();
             SupportMapFragment mapFragment = ((SupportMapFragment)fragmentManager.findFragmentById(R.id.map));
             WebView webView = (WebView) mapActivity.findViewById(R.id.webmapview);
+            if(webView == null) {
+                return;
+            }
             if(position <= 1) {
                 if(mapFragment != null && mapFragment.isHidden()) {
                     fragmentManager.beginTransaction()
                                    .show(mapFragment).commit();
                     webView.setVisibility(View.GONE);
                 }
-                mapActivity.onMapLoaded();
+                if(mapActivity.mMap != null) {
+                    mapActivity.onMapLoaded();
+                }
             } else {
                 // TODO server side map
                 if(mapFragment != null) {
                     fragmentManager.beginTransaction()
                                    .hide(mapFragment).commit();
                     webView.setVisibility(View.VISIBLE);
-                    if(webView != null) {
-                        mapActivity.loadWebView();
-                    }
+                    mapActivity.loadWebView();
                 }
             }
         }

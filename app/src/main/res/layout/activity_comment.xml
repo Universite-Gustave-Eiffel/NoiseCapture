@@ -60,7 +60,6 @@
         </LinearLayout>
         </LinearLayout>
         <LinearLayout
-            android:id="@+id/linearLayout5"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:weightSum="1">
@@ -112,7 +111,6 @@
             android:layout_weight="1"
             android:fillViewport="true">
             <LinearLayout
-                android:id="@+id/tags_grid"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_horizontal"
@@ -128,18 +126,22 @@
         <!-- <Space android:layout_height="0dp" android:layout_width="wrap_content" android:layout_weight="1"/> -->
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/linearLayout"
+            android:orientation="horizontal"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:gravity="center_horizontal">
 
-            <ImageButton
+            <Button
+                android:id="@+id/deleteBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/delete"
+                />
+            <Button
                 android:id="@+id/resultsBtn"
-                android:layout_width="0dp"
-                android:layout_height="64dip"
-                android:background="#00000000"
-                android:layout_weight="1"
-                android:scaleType="fitCenter"
-                app:srcCompat="@drawable/results_activity"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/userinfo_button_results"
                 />
 
         </LinearLayout>

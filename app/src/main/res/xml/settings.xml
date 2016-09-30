@@ -2,6 +2,11 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
  <PreferenceCategory android:title="@string/setting_general_group">
      <CheckBoxPreference
+         android:key="settings_tooltip"
+         android:title="@string/title_settings_tooltip"
+         android:summary="@string/summary_settings_tooltip"
+         android:defaultValue="true" />
+     <CheckBoxPreference
          android:key="settings_caution"
          android:title="@string/title_settings_caution"
          android:summary="@string/summary_settings_caution"
@@ -16,7 +21,7 @@
         android:title="@string/title_settings_transfer_wifi_only"
         android:summary="@string/summary_settings_transfer_wifi_only"
         android:dependency="settings_data_transfer"
-        android:defaultValue="true" />
+        android:defaultValue="false" />
  </PreferenceCategory>
     <PreferenceCategory android:title="@string/setting_measurement_group">
     <CheckBoxPreference
@@ -51,16 +56,25 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/setting_calibration_group">
         <EditTextPreference
-            android:defaultValue="5"
+            android:defaultValue="4"
             android:key="settings_calibration_warmup_time"
             android:title="@string/title_settings_calibration_warmup_time"
             android:summary="@string/title_settings_calibration_warmup_time_description"
             android:inputType="number"/>
         <EditTextPreference
-            android:defaultValue="10"
+            android:defaultValue="4"
             android:key="settings_calibration_time"
             android:title="@string/title_settings_calibration_time"
             android:summary="@string/title_settings_calibration_time_description"
             android:inputType="number"/>
+        <ListPreference
+            android:key="settings_calibration_audio_output"
+            android:title="@string/title_settings_calibration_linear_title"
+            android:defaultValue="STREAM_RING"
+            android:summary="@string/title_settings_calibration_linear_description"
+            android:entryValues="@array/output_mode"
+            android:entries="@array/output_mode_labels"
+            />
+
     </PreferenceCategory>
 </PreferenceScreen>

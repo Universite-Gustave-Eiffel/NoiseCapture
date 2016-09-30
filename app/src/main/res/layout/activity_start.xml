@@ -19,7 +19,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/start_text_title"
-            android:id="@+id/textView_title_start_activity"
             android:textSize="45sp"
             android:textColor="#0099CC"
             android:layout_gravity="center_horizontal"
@@ -31,7 +30,6 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/start_text_subtitle"
-            android:id="@+id/textView_subtitle_start_activity"
             android:gravity="center_horizontal"
             android:layout_gravity="center_horizontal"
             android:textColor="#0099CC"
@@ -40,7 +38,6 @@
             style="?android:attr/progressBarStyleSmall"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:id="@+id/progressBar"
             android:layout_marginTop="5dp"
             android:layout_weight="3"
             />
@@ -55,7 +52,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/start_text_developed_by"
-                android:id="@+id/textView_Power_by"
                 android:textColor="#000"
                 android:textSize="15sp"
                 android:gravity="center"
@@ -72,7 +68,6 @@
                     android:layout_height="80dp"
                     android:scaleType="fitCenter"
                     android:layout_weight="1"
-                    android:id="@+id/imageView_CNRS"
                     android:src="@drawable/cnrs" />
 
                 <ImageView
@@ -82,7 +77,6 @@
                     android:layout_weight="2"
                     android:scaleY="1.8"
                     android:scaleX="1.8"
-                    android:id="@+id/imageView_Ifsttar"
                     android:src="@drawable/ifsttar"/>
 
             </LinearLayout>
@@ -97,14 +91,12 @@
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/LinearLayout">
+                android:layout_height="wrap_content">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/start_text_supported_by"
-                    android:id="@+id/textView_Support_by"
                     android:gravity="center_horizontal"
                     android:layout_gravity="center_horizontal"
                     android:textColor="#000"
@@ -122,7 +114,6 @@
                         android:layout_width="80dp"
                         android:layout_height="80dp"
                         android:scaleType="fitCenter"
-                        android:id="@+id/imageView_europe"
                         android:src="@drawable/europe"
                         android:layout_weight="1"/>
 
@@ -131,7 +122,6 @@
                         android:layout_height="80dp"
                         android:scaleType="fitCenter"
                         android:layout_weight="1"
-                        android:id="@+id/imageView_geopal"
                         android:src="@drawable/geopal"/>
                 </LinearLayout>
             </LinearLayout>

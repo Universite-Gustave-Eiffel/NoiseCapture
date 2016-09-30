@@ -32,7 +32,6 @@
             android:weightSum="1">
 
             <LinearLayout
-                android:id="@+id/linearLayout3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
@@ -117,7 +116,6 @@
                     </LinearLayout>
 
                         <TextView
-                            android:id="@+id/textView9"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/SL_dBA"
@@ -186,7 +184,7 @@
                     android:id="@+id/textView_message_overlay"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:background="#ff000000"
+                    android:background="@drawable/round_corner"
                     android:layout_centerInParent="true"
                     android:textSize="18sp"
                     android:textStyle="bold" />

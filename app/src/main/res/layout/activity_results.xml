@@ -29,7 +29,6 @@
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/linearLayout5"
             android:weightSum="1"
             android:gravity="center_horizontal" >
 
@@ -82,7 +81,6 @@
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/linearLayoutColors"
             android:weightSum="1"
             android:gravity="center_horizontal" >
 
@@ -144,7 +142,6 @@
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/linearLayout4"
             android:weightSum="1"
             android:gravity="center_horizontal"
             android:orientation="horizontal">
@@ -240,32 +237,32 @@
         android:layout_alignParentBottom="true"
         android:id="@+id/linearLayout">
 
-        <ImageButton android:id="@+id/userCommentBtn"
-            android:layout_width="64dip"
-            android:layout_height="64dip"
+        <Button
+            android:id="@+id/measureBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:srcCompat="@drawable/user_input_activity"
-            android:scaleType="fitCenter"
-            android:background="#00000000" />
-        <ImageButton android:id="@+id/uploadBtn"
-            android:layout_width="64dip"
-            android:layout_height="64dip"
+            android:text="@string/userinfo_button_measure"
+            />
+        <Button android:id="@+id/uploadBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:srcCompat="@drawable/button_export"
-            android:scaleType="fitCenter"
-            android:background="#00000000" />
-        <ImageButton android:id="@+id/mapBtn"
-            android:layout_width="64dip"
-            android:layout_height="64dip"
+            android:text="@string/result_button_upload"/>
+        <Button android:id="@+id/mapBtn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            app:srcCompat="@drawable/button_map"
-            android:scaleType="fitCenter"
-            android:background="#00000000" />
+            android:text="@string/result_button_map"/>
 
     </LinearLayout>
 
 </RelativeLayout>
 
+    <com.nhaarman.supertooltips.ToolTipRelativeLayout
+        android:id="@+id/activity_tooltip"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
     <ListView
         android:id="@+id/left_drawer"
         android:layout_width="@dimen/list_view_layout_width"

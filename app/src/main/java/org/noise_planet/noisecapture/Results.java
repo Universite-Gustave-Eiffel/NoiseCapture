@@ -29,16 +29,18 @@ package org.noise_planet.noisecapture;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
-import android.content.res.Resources;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.content.FileProvider;
+import android.preference.PreferenceManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -46,35 +48,30 @@ import android.widget.Toast;
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
+import com.github.mikephil.charting.components.Legend.LegendPosition;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.XAxis.XAxisPosition;
 import com.github.mikephil.charting.components.YAxis;
 import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
-import com.github.mikephil.charting.components.Legend.LegendPosition;
 import com.github.mikephil.charting.data.Entry;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
-import com.github.mikephil.charting.formatter.DefaultValueFormatter;
+import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
-import com.github.mikephil.charting.formatter.LargeValueFormatter;
-import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.github.mikephil.charting.utils.ViewPortHandler;
+import com.nhaarman.supertooltips.ToolTip;
+import com.nhaarman.supertooltips.ToolTipRelativeLayout;
+import com.nhaarman.supertooltips.ToolTipView;
 
 import org.noise_planet.noisecapture.util.CustomPercentFormatter;
 import org.orbisgis.sos.LeqStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -90,6 +87,9 @@ public class Results extends MainActivity {
     private static final double[][] CLASS_RANGES = new double[][]{{Double.MIN_VALUE, 45}, {45, 55},
             {55, 65}, {65, 75},{75, Double.MAX_VALUE}};
 
+    private ToolTipRelativeLayout toolTip;
+    private ToolTipView lastShownTooltip = null;
+
 
     // For the Charts
     public PieChart rneChart;
@@ -101,11 +101,12 @@ public class Results extends MainActivity {
     private String[] catNE; // List of noise level category (defined as ressources)
     private List<Float> splHistogram;
     private LeqStats leqStats = new LeqStats();
-    private ProgressDialog progress;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean showTooltip = sharedPref.getBoolean("settings_tooltip", true);
         setContentView(R.layout.activity_results);
         this.measurementManager = new MeasurementManager(this);
         Intent intent = getIntent();
@@ -125,11 +126,16 @@ public class Results extends MainActivity {
             }
         }
         initDrawer(record.getId());
+        toolTip = (ToolTipRelativeLayout) findViewById(R.id.activity_tooltip);
+
         loadMeasurement();
         LeqStats.LeqOccurrences leqOccurrences = leqStats.computeLeqOccurrences(CLASS_RANGES);
 
         // RNE PieChart
         rneChart = (PieChart) findViewById(R.id.RNEChart);
+        if(showTooltip) {
+            rneChart.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_rne));
+        }
         initRNEChart();
         setRNEData(leqOccurrences.getUserDefinedOccurrences());
         Legend lrne = rneChart.getLegend();
@@ -140,6 +146,9 @@ public class Results extends MainActivity {
 
         // NEI PieChart
         neiChart = (PieChart) findViewById(R.id.NEIChart);
+        if(showTooltip) {
+            neiChart.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_nei));
+        }
         initNEIChart();
         setNEIData();
         Legend lnei = neiChart.getLegend();
@@ -154,31 +163,46 @@ public class Results extends MainActivity {
 
         TextView minText = (TextView) findViewById(R.id.textView_value_Min_SL);
         minText.setText(String.format("%.01f", leqStats.getLeqMin()));
+        if(showTooltip) {
+            minText.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_minsl));
+        }
         findViewById(R.id.textView_color_Min_SL)
                 .setBackgroundColor(NE_COLORS[getNEcatColors(leqStats.getLeqMin())]);
 
         TextView maxText = (TextView) findViewById(R.id.textView_value_Max_SL);
         maxText.setText(String.format("%.01f", leqStats.getLeqMax()));
+        if(showTooltip) {
+            maxText.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_maxsl));
+        }
         findViewById(R.id.textView_color_Max_SL)
                 .setBackgroundColor(NE_COLORS[getNEcatColors(leqStats.getLeqMax())]);
 
         TextView la10Text = (TextView) findViewById(R.id.textView_value_LA10);
         la10Text.setText(String.format("%.01f", leqOccurrences.getLa10()));
+        if(showTooltip) {
+            la10Text.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_la10));
+        }
         findViewById(R.id.textView_color_LA10)
                 .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa10())]);
 
         TextView la50Text = (TextView) findViewById(R.id.textView_value_LA50);
         la50Text.setText(String.format("%.01f", leqOccurrences.getLa50()));
+        if(showTooltip) {
+            la50Text.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_la50));
+        }
         findViewById(R.id.textView_color_LA50)
                 .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa50())]);
 
         TextView la90Text = (TextView) findViewById(R.id.textView_value_LA90);
         la90Text.setText(String.format("%.01f", leqOccurrences.getLa90()));
+        if(showTooltip) {
+            la90Text.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_la90));
+        }
         findViewById(R.id.textView_color_LA90)
                 .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa90())]);
 
         // Action on Map button
-        ImageButton buttonmap=(ImageButton)findViewById(R.id.mapBtn);
+        Button buttonmap=(Button)findViewById(R.id.mapBtn);
         buttonmap.setEnabled(true);
         buttonmap.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -190,63 +214,72 @@ public class Results extends MainActivity {
                 finish();
             }
         });
-
-        // Action on comment button
-        ImageButton buttonComment=(ImageButton)findViewById(R.id.userCommentBtn);
-        buttonComment.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                // Go to map page
-                Intent a = new Intent(getApplicationContext(), CommentActivity.class);
-                a.putExtra(CommentActivity.COMMENT_RECORD_ID, record.getId());
-                startActivity(a);
-                finish();
-            }
-        });
-
+        Button measureButton = (Button) findViewById(R.id.measureBtn);
+        measureButton.setOnClickListener(new OnGoToMeasurePage(this));
         // Action on export button
 
-        ImageButton exportComment=(ImageButton)findViewById(R.id.uploadBtn);
+        Button exportComment=(Button)findViewById(R.id.uploadBtn);
         exportComment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Export
-                progress = ProgressDialog.show(Results.this,
+                final ProgressDialog progress = ProgressDialog.show(Results.this,
                         Results.this.getText(R.string.upload_progress_title),
                         Results.this.getText(R.string.upload_progress_message), true);
                 new Thread(new SendZipToServer(Results.this, Results.this.record.getId(), progress,
-                        new RefreshListener(Results.this))).start();
+                        new OnUploadedListener() {
+                            @Override
+                            public void onMeasurementUploaded() {
+                                onTransferRecord();
+                            }
+                        })).start();
             }
         });
 
         exportComment.setEnabled(record.getUploadId().isEmpty());
+
+    }
+
+    private static final class OnGoToMeasurePage implements View.OnClickListener {
+        private Results activity;
+
+        public OnGoToMeasurePage(Results activity) {
+            this.activity = activity;
+        }
+
+        @Override
+        public void onClick(View v) {
+            //Open result page
+            Intent ir = new Intent(activity, MeasurementActivity.class);
+            activity.startActivity(ir);
+        }
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        sChart.animateXY(1500,1500);
-        neiChart.animateXY(1500,1500);
-        rneChart.animateXY(1500,1500);
+        if(sChart != null) {
+            sChart.animateXY(1500, 1500);
+        }
+        if(neiChart != null) {
+            neiChart.animateXY(1500, 1500);
+        }
+        if(rneChart != null) {
+            rneChart.animateXY(1500, 1500);
+        }
+        // Transfer results automatically (with all checking)
+        checkTransferResults();
     }
 
-    private static final class RefreshListener implements OnUploadedListener {
-
-        private Results resultsActivity;
-
-        public RefreshListener(Results resultsActivity) {
-            this.resultsActivity = resultsActivity;
-        }
-
-        @Override
-        public void onMeasurementUploaded() {
-            // Change upload state
-            ImageButton exportComment=(ImageButton)resultsActivity.findViewById(R.id.uploadBtn);
-            // Refresh record
-            resultsActivity.record = resultsActivity.measurementManager.getRecord(resultsActivity.record.getId());
-            exportComment.setEnabled(resultsActivity.record.getUploadId().isEmpty());
-        }
+    protected void onTransferRecord() {
+        // Nothing to do
+        // Change upload state
+        Button exportComment=(Button)findViewById(R.id.uploadBtn);
+        // Refresh record
+        record = measurementManager.getRecord(record.getId());
+        exportComment.setEnabled(record.getUploadId().isEmpty());
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -425,6 +458,10 @@ public class Results extends MainActivity {
         int maxClassId = 0;
         for (int idEntry = 0; idEntry < classRangeValue.size(); idEntry++) {
             float value = classRangeValue.get(classRangeValue.size() - 1 - idEntry).floatValue();
+            // Fix background color issue if the pie is too thin
+            if(value < 0.01) {
+                value = 0;
+            }
             yVals1.add(new Entry(value, idEntry));
             xVals.add(catNE[idEntry]);
             if (value > maxValue) {
@@ -518,6 +555,31 @@ public class Results extends MainActivity {
                 }
             }
             return "";
+        }
+    }
+
+    private static class ToolTipListener implements View.OnTouchListener {
+        private Results results;
+        private int resId;
+
+        public ToolTipListener(Results results, final int resId) {
+            this.results = results;
+            this.resId = resId;
+        }
+
+        @Override
+        public boolean onTouch(View v, MotionEvent event) {
+            if(results.lastShownTooltip != null && results.lastShownTooltip.isShown()) {
+                // Hide last shown tooltip
+                results.lastShownTooltip.remove();
+            }
+            ToolTip toolTipMinSL = new ToolTip()
+                    .withText(resId)
+                    .withColor(Color.DKGRAY)
+                    .withShadow()
+                    .withAnimationType(ToolTip.AnimationType.FROM_TOP);
+            results.lastShownTooltip = results.toolTip.showToolTipForView(toolTipMinSL, v);
+            return false;
         }
     }
 }

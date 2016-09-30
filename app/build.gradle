@@ -8,8 +8,7 @@ def getCheckedOutGitCommitHash() {
      *      otherwise: a reference to a file containing the current commit hash
      */
     def head = new File(gitFolder + "HEAD").text.split(":") // .git/HEAD
-    def isCommit = head.length == 1 // e5a7c79edabbf7dd39888442df081b1c9d8e88fd
-    // def isRef = head.length > 1     // ref: refs/heads/master
+    def isCommit = head.length == 1
 
     if (isCommit) return head[0].trim()
 
@@ -25,8 +24,8 @@ android {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
         targetSdkVersion 23
-        versionCode 9
-        versionName "0.3.3 (alpha)"
+        versionCode 15
+        versionName "0.3.9 (alpha)"
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""
@@ -87,11 +86,13 @@ dependencies {
     compile 'org.slf4j:slf4j-simple:1.7.12'
     // multithreaded FFT for realtime visualisation of spectrum only
     compile 'com.github.wendykierp:JTransforms:3.1'
+    compile 'org.apache.commons:commons-math3:3.5'
     compile 'com.android.support:appcompat-v7:23.2.0'
     compile 'com.android.support:design:23.2.0'
     compile 'com.android.support:support-vector-drawable:23.2.0'
     compile 'com.android.support:animated-vector-drawable:23.2.0'
-    compile 'com.google.android.gms:play-services-maps:8.4.0'
+    compile 'com.google.android.gms:play-services-maps:9.0.2'
+    compile group: 'com.nhaarman.supertooltips', name: 'library', version: '3.0.0'
     //compile 'com.android.support:multidex:1.0.0'
     // Testing-only dependencies
     // Force usage of support annotations in the test app, since it is internally used by the runner module.
@@ -105,80 +106,3 @@ dependencies {
 }
 
 
-
-
-
-//
-// get the installed SDK and build tools version
-// based on: http://www.egeek.me/2013/12/07/gradle-auto-detect-android-sdk-and-build-tools-versions/
-// http://stackoverflow.com/questions/34534289/buildtoolsversion-range-or-in-gradle
-import org.codehaus.groovy.runtime.StackTraceUtils
-
-int[] sdksAvailable() {
-    def sdks = new ByteArrayOutputStream()
-    exec {
-        commandLine 'android', 'list'
-        standardOutput = sdks
-    }
-    sdks = sdks
-    // get the output
-            .toString()
-    // split to strings
-            .split('\n')
-    // leave only strings with API levels
-            .findAll { it ==~ /\s*API level:.*/ }
-    // extract the API levels
-            .collect { (it =~ /\s*API level:\s*(\d+).*/)[0][1].toInteger() }
-    // sort from highest to lowest
-            .sort( { a, b -> b <=> a } )
-    sdks
-}
-
-int highestSdkAvailable(int defaultSdk) {
-    try {
-        def sdks = sdksAvailable()
-        def highestSdk = sdks[0]
-        if (highestSdk != null) {
-            println "Using highest found SDK " + highestSdk
-            highestSdk
-        } else {
-            println "No installed SDKs found. Using default SDK " + defaultSdk
-            defaultSdk
-        }
-    } catch (any) {
-        println "Exception while determining highest SDK. Using default SDK " +
-                defaultSdk
-        StackTraceUtils.sanitize(any).printStackTrace()
-        defaultSdk
-    }
-}
-
-public String androidSDKDir() {
-    def sdkDir = android.getSdkDirectory().toString()
-    return sdkDir
-}
-
-String[] buildToolsAvailable() {
-    def buildToolsDir = new File(androidSDKDir(), "build-tools")
-    buildToolsDir.list().sort { a, b -> b <=> a }
-}
-
-String latestBuildToolsAvailable(String defaultBuildTools) {
-    try {
-        def buildToolsVersions = buildToolsAvailable()
-        def latestBuildTools = buildToolsVersions[0]
-        if (latestBuildTools != null) {
-            println "Using latest found build tools " + latestBuildTools
-            latestBuildTools
-        } else {
-            println "No installed build tools found. Using default build tools " +
-                    defaultBuildTools
-            defaultBuildTools
-        }
-    } catch (any) {
-        println "Exception while determining latest build tools. Using default build tools " +
-                defaultBuildTools
-        StackTraceUtils.sanitize(any).printStackTrace()
-        defaultBuildTools
-    }
-}

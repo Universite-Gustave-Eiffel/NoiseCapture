@@ -84,7 +84,7 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
             assertEquals(84, row.getDouble("time_length"), 0.01)
             assertEquals(72.94, row.getDouble("noise_level"), 0.01)
             assertEquals("f7ff7498-ddfd-46a3-ab17-36a96c01ba1b", row.getString("track_uuid"))
-            assertEquals(new Timestamp(1465474618170), row.getTimestamp("record_utc"))
+            assertEquals(new Timestamp(1465474618000), row.getTimestamp("record_utc"))
             // Check tags
             assertEquals(3, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_tag").get("cpt"))
             Set<String> tagStored = new HashSet()
@@ -126,7 +126,7 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
             assertEquals(11, row.getDouble("time_length"), 0.01)
             assertEquals(73.7, row.getDouble("noise_level"), 0.01)
             assertEquals("426f00da-dd68-408f-bd7b-f166ba022f4d", row.getString("track_uuid"))
-            assertEquals(new Timestamp(1465826253538), row.getTimestamp("record_utc"))
+            assertEquals(new Timestamp(1465826253000), row.getTimestamp("record_utc"))
             // Check tags
             assertEquals(0, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_tag").get("cpt"))
             // Check records
@@ -156,7 +156,7 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
             assertEquals(84, row.getDouble("time_length"), 0.01)
             assertEquals(72.94, row.getDouble("noise_level"), 0.01)
             assertEquals("f7ff7498-ddfd-46a3-ab17-36a96c01ba1b", row.getString("track_uuid"))
-            assertEquals(new Timestamp(1465474618170), row.getTimestamp("record_utc"))
+            assertEquals(new Timestamp(1465474618000), row.getTimestamp("record_utc"))
             // Check tags
             assertEquals(4, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_tag").get("cpt"))
             Set<String> tagStored = new HashSet()

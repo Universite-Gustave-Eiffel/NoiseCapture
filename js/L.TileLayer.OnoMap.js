@@ -257,6 +257,14 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
   },
 
   showGetFeatureInfo: function (err, latlng, content) {
+    var infoDiv = document.getElementById('areainfo');
+    var first_measure = moment(content["first_measure"]);
+    var last_measure = moment(content["last_measure"]);
+    infoDiv.innerHTML = "<h3 class='attribute_label'>L50:</h3>"+(content["leq"] ? Math.round(content["leq"])+" dB(A)" : "undefined")+"\
+    <h3 class='attribute_label'>First measure:</h3>"+first_measure.format('MMMM Do YYYY, h:mm:ss a Z')+"\
+    <h3 class='attribute_label'>Last measure:</h3>"+last_measure.format('MMMM Do YYYY, h:mm:ss a Z')+"\
+    <h3 class='attribute_label'>Pleasantness:</h3>"+(content["mean_pleasantness"] ? Math.round(content["mean_pleasantness"]) + " %" : "NC")+"\
+    <h3 class='attribute_label'>Measure length:</h3>"+(content["measure_count"] ? Math.round(content["measure_count"]) + " seconds" : "None");
     weekdonut.loadLevels();
     saturdaydonut.loadLevels();
     sundaydonut.loadLevels();
@@ -274,6 +282,7 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
     weekdonut.loadLevels(weekData);
     saturdaydonut.loadLevels(saturdayData);
     sundaydonut.loadLevels(sundayData);
+    sidebar.open('hexainfo');
   }
 });
 

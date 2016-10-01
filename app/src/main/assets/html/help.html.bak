@@ -49,14 +49,14 @@
       <li><a href="#best_pratice">Best practice for the best measurement</a></li>
       <li><a href="#about_resources"><span style="text-decoration: underline;">Ressources</span></a></li>
     </ul>
-    <p class="p_warning"> NoiseCapture App is an application, made by experts,
+    <p class="p_warning"> &#9888; NoiseCapture App is an application, made by experts,
       but do not forget that it will never replace a professional sonometer. If
       you need a professional assistance, please contact a specialist.</p>
     <ul>
     </ul>
     <ul>
     </ul>
-    <p class="p_warning">&nbsp;The quality of the measurement depend of the
+    <p class="p_warning"> &#9888; The quality of the measurement depend of the
       technical performance of the smartphone. Depending of the smartphone and
       the android version, some smartphone may produce bad estimation of the
       sound level. See <a href="#measurement_limits">section concerning the
@@ -65,7 +65,7 @@
     On the <strong>Measurement</strong> menu item, press the <span style="font-weight: bold;">RECORD
       button </span>to start a measurement. You can stop the measurement by
     pressing the <span style="font-weight: bold;">STOP button</span>.<br>
-    <p class="p_tip">&nbsp;You can pause/resume a measurement using the <span style="font-weight: bold;">PAUSE
+    <p class="p_tip">&#9728; You can pause/resume a measurement using the <span style="font-weight: bold;">PAUSE
         button</span>. Depending on the corresponding <span style="font-weight: bold;">Settings
         </span>value, when resuming the measurement, the last seconds of the
       measurement can be removed.</p>
@@ -102,8 +102,8 @@
       <li>valid the description by pressing the <span style="font-weight: bold;">VALID
           button</span>.</li>
     </ul>
-    <p class="p_inf">&nbsp;This step is optional but it could be useful to
-      evaluate the noise environments, as well as for a research purpose. Your
+    <p class="p_inf">&#10071; This step is optional but it could be useful to evaluate
+      the noise environments, as well as for a research purpose. Your
       contribution will be highly appreciated. Only the anonymous elements
       'Pleasantness' and 'Tags' are uploads. The 'Description', as well as, the
       'Picture', are stored on your smartphone only and, thus, not uploaded.</p>
@@ -192,7 +192,7 @@
       <li>'Delete': select this option if you want to remove the measurement
         from your smartphone.</li>
     </ul>
-    <p class="p_inf">&nbsp;If a measurement is removed from the history, but was
+    <p class="p_inf">&#10071; If a measurement is removed from the history, but was
       previously transferred to the web server, it is not removed from the web
       server. Remember that all data that are uploaded to the server are
       anonymized; thus, be confident! (see <a href="about.html">Privacy</a>)</p>
@@ -201,9 +201,9 @@
     <h2> <a name="smartphone_calibration"></a>Calibrate your smartphone</h2>
     <p>On the <span style="font-weight: bold;">Calibration </span>menu item,
       users have the opportunity to calibrate their smartphone.</p>
-    <p class="p_warning">&nbsp;The smartphone calibration is a crucial and
-      necessary step. Without calibration, you can be sure that the measured
-      data will be wrong!</p>
+    <p class="p_warning">&#9888; The smartphone calibration is a crucial and necessary
+      step. Without calibration, you can be sure that the measured data will be
+      wrong!</p>
     <ul>
       <li>The methodology is based on the knowledge of a <span style="font-weight: bold;">Reference
           value </span>for the equivalent noise level Leq (in dB, not in dB(A))
@@ -217,7 +217,7 @@
         a <span style="font-weight: bold;">correction factor</span> (i.e. the
         signal gain) that will be applied to the input signal.</li>
     </ul>
-    <p class="p_warning">&nbsp;The correction factor is applied for the whole
+    <p class="p_warning">&#9888; The correction factor is applied for the whole
       signal. Multi-frequency calibration is not possible for now.</p>
     <ul>
       <li><span style="color: #0099cc;"><span style="font-weight: bold;">Performing
@@ -263,18 +263,18 @@
         </ol>
       </li>
     </ul>
-    <p class="p_inf">&nbsp;When using a 'Global' value for the calibration, make
+    <p class="p_inf">&#10071; When using a 'Global' value for the calibration, make
       sure that the <span style="font-weight: bold;">Reference value </span>will
       be obtained using the same frequency range that your smartphone.</p>
-    <p class="p_inf">&nbsp;The 'Calibration warm-up time' and the 'Calibration
+    <p class="p_inf">&#10071; The 'Calibration warm-up time' and the 'Calibration
       duration' can be modified in the <span style="font-weight: bold;">Settings</span>.</p>
-    <p class="p_inf">&nbsp;The smartphone and the reference device must be used
-      in a similar way.</p>
+    <p class="p_inf">&#10071; The smartphone and the reference device must be used in a
+      similar way.</p>
     <ul>
       <ol>
       </ol>
     </ul>
-    <p class="p_tip">&nbsp;The correction factor (the signal gain) can also be
+    <p class="p_tip">&#9728; The correction factor (the signal gain) can also be
       manually given in the <span style="font-weight: bold;">Settings</span>.</p>
     <ul>
       <ol>

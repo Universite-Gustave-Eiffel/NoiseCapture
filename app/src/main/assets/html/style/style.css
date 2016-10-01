@@ -19,10 +19,13 @@ h2 {
   color: #0099cc;
 }
 
+p {  
+  line-height: 130%;
+}
+
 .p_warning {  
   font-family: verdana;  
   color: #ffcc66;  
-  font-style: italic;  
   border-top-width: thin;  
   border-bottom-width: thin;  
   border-top-style: solid;  
@@ -34,9 +37,9 @@ h2 {
   padding-top: 3px;  
   padding-bottom: 3px;
 }
-/* \26A0 */
+
 p.p_warning:before {  
-  content: "\26A0 ";
+  content: "\26A0  ";
 }
 
 .p_tip {  
@@ -53,9 +56,9 @@ p.p_warning:before {
   padding-top: 3px;  
   padding-bottom: 3px;
 }
-/* \2738 */
+
 p.p_tip:before {  
-  content: "\2738 ";
+  content: "\2738  ";
 }
 
 .p_inf {  
@@ -72,12 +75,16 @@ p.p_tip:before {
   padding-top: 3px;  
   padding-bottom: 3px;
 }
-/* \2714 */
+
 p.p_inf:before {  
-  content: "\2714 ";
+  content: "\2714  ";
 }
 
 ul {  
-  bottom: 0px;
+  bottom: 5px;
+}
+
+li {  
+  line-height: 20px;
 }
 

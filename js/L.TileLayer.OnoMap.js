@@ -37,8 +37,8 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
 	size : 15.,
 	// While moving the mouse do not redraw if hex coordinate is the same
 	lastDrawnHex : {q:0, r:0},
-  //ows_url:'http://onomap-gs.noise-planet.org/geoserver/ows',
-  ows_url:'http://127.0.0.1:8085/geoserver/ows',
+  ows_url:'http://onomap-gs.noise-planet.org/geoserver/ows',
+  //ows_url:'http://127.0.0.1:8085/geoserver/ows',
   // Last downloaded data
   data:null,
 

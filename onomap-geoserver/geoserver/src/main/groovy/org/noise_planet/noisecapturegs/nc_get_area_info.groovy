@@ -38,6 +38,7 @@ import org.geotools.jdbc.JDBCDataStore
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Timestamp
+import java.time.format.DateTimeFormatter
 
 
 title = 'nc_get_area_info'
@@ -62,11 +63,15 @@ def getAreaInfo(Connection connection, long qIndex, long rIndex) {
                 "WHERE CELL_Q = :qIndex and CELL_R = :rIndex",
                 [qIndex: qIndex, rIndex: rIndex])
         if(row) {
+            def time_zone = TimeZone.getTimeZone(row.tzid as String).toZoneId();
+            def formater = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+            def firstMeasure = row.first_measure.toInstant().atZone(time_zone).format(formater);
+            def lastMeasure = row.last_measure.toInstant().atZone(time_zone).format(formater);
             data = [leq              : row.mean_leq,
                     mean_pleasantness: row.mean_pleasantness instanceof Number &&
                             !row.mean_pleasantness.isNaN() ? row.mean_pleasantness : null,
-                    first_measure    : row.first_measure,
-                    last_measure     : row.last_measure,
+                    first_measure    : firstMeasure,
+                    last_measure     : lastMeasure,
                     measure_count    : row.measure_count,
                     time_zone        : row.tzid]
             // Query hours profile for this area

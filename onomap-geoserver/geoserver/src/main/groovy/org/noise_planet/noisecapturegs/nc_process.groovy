@@ -101,7 +101,7 @@ class Record{
  */
 def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     // A ratio < 1 add blank area between hexagons
-    float hexSizeRatio = 0.85
+    float hexSizeRatio = 1.
     boolean doNotUseDeltaSigma = true
     def Pos center = hex.toMeter()
     def Coordinate centerCoord = center.toCoordinate();

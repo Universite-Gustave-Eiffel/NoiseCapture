@@ -37,8 +37,10 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
 	size : 15.,
 	// While moving the mouse do not redraw if hex coordinate is the same
 	lastDrawnHex : {q:0, r:0},
-  ows_url:'http://onomap-gs.noise-planet.org/geoserver/ows',
-
+  //ows_url:'http://onomap-gs.noise-planet.org/geoserver/ows',
+  ows_url:'http://127.0.0.1:8085/geoserver/ows',
+  // Last downloaded data
+  data:null,
 
 	/**
 	 * @param hex Hex index
@@ -168,11 +170,33 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
 		}
 	},
 
+  onSelectLang: function(target) {
+    $('#time_lang')[0].setAttribute("lang",target.attributes.lang.value);
+    if(this.data) {
+      this.showGetFeatureInfo(null,null, this.data);
+    }
+  },
+
+  onSelectTimeOption: function(target) {
+    if(this.data) {
+      this.showGetFeatureInfo(null,null, this.data);
+    }
+  },
+
   onAdd: function (map) {
     // Triggered when the layer is added to a map.
     L.TileLayer.prototype.onAdd.call(this, map);
     map.on('click', this.getFeatureInfo, this);
 	  map.on("mousemove", this.updateHexOverlay, this);
+    // Fetch language selection
+    var _this = this;
+    $('#time_lang_list span').on('click',function(element) { _this.onSelectLang(element.target)});
+    // Fetch time option
+    $("input[name='tz-option']").on('click',function(element) { _this.onSelectTimeOption(element.target)});;
+    // Load default language
+    if(navigator.language) {
+      $('#time_lang')[0].setAttribute("lang",navigator.language);
+    }
   },
 
   onRemove: function (map) {
@@ -187,6 +211,7 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
     var url = this.getFeatureInfoUrl(),
         showResults = L.Util.bind(this.showGetFeatureInfo, this);
     var postData = this.getFeatureInfoContent(evt.latlng);
+    var _this = this;
     $.ajax({
       type: 'POST',
       crossDomain: true,
@@ -196,6 +221,9 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
       url: url,
       success: function (data, status, xhr) {
         var err = data["leq"] != null ? null : data;
+        if(data["leq"] != null) {
+          _this.data = data;
+        }
         showResults(err, evt.latlng, data);
       },
       error: function (xhr, status, error) {
@@ -258,11 +286,22 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
 
   showGetFeatureInfo: function (err, latlng, content) {
     var infoDiv = document.getElementById('areainfo');
-    var first_measure = moment(content["first_measure"]);
-    var last_measure = moment(content["last_measure"]);
-    infoDiv.innerHTML = "<h3 class='attribute_label'>L50:</h3>"+(content["leq"] ? Math.round(content["leq"])+" dB(A)" : "undefined")+"\
-    <h3 class='attribute_label'>First measure:</h3>"+first_measure.format('MMMM Do YYYY, h:mm:ss a Z')+"\
-    <h3 class='attribute_label'>Last measure:</h3>"+last_measure.format('MMMM Do YYYY, h:mm:ss a Z')+"\
+    var lang = $('#time_lang')[0].attributes.lang.value;
+    moment.locale(lang);
+    var first_measure;
+    var last_measure;
+    if($('input[name=tz-option]:checked')[0].attributes.onsite) {
+      // User check to see the time on the measurement zone (not on browser timezone)
+      first_measure = moment.parseZone(content["first_measure"]);
+      last_measure = moment.parseZone(content["last_measure"]);
+    } else {
+      // User want to see in local time
+      first_measure = moment(content["first_measure"]);
+      last_measure = moment(content["last_measure"]);
+    }
+    infoDiv.innerHTML = "<h3 class='attribute_label'>LA50:</h3>"+(content["leq"] ? Math.round(content["leq"])+" dB(A)" : "undefined")+"\
+    <h3 class='attribute_label'>First measure:</h3>"+first_measure.format('LLL')+"\
+    <h3 class='attribute_label'>Last measure:</h3>"+last_measure.format('LLL')+"\
     <h3 class='attribute_label'>Pleasantness:</h3>"+(content["mean_pleasantness"] ? Math.round(content["mean_pleasantness"]) + " %" : "NC")+"\
     <h3 class='attribute_label'>Measure length:</h3>"+(content["measure_count"] ? Math.round(content["measure_count"]) + " seconds" : "None");
     weekdonut.loadLevels();

@@ -177,29 +177,29 @@
                <h3>Time format language:</h3>
                <div class="btn-group dropdown">
                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                   <span class="lang-sm lang-lbl-full" lang="en"></span> <span class="caret"></span>
+                   <span id="time_lang" class="lang-sm lang-lbl-full" lang="en"></span> <span class="caret"></span>
                  </button>
-                 <ul class="dropdown-menu" role="menu">
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="ar"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="be"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="bg"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="cs"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="da"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="de"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="el"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="en"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="es"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="et"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="fi"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="fr"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="ga"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="hi"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1" href="#"><span class="lang-sm lang-lbl-full" lang="hr"></span></a></li>
+                 <ul id="time_lang_list" class="dropdown-menu" role="menu">
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="ar"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="be"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="bg"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="cs"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="da"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="de"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="el"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="en"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="es"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="et"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="fi"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="fr"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="ga"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="hi"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="hr"></span></a></li>
                  </ul>
                </div>
                <h3>Time format zone:</h3>
-               <label class="radio-inline"><input type="radio" name="tz-option" checked> Browser timezone</label>
-<label class="radio-inline"><input type="radio" name="tz-option"> Location timezone</label>
+               <label class="radio-inline"><input type="radio" name="tz-option"> Browser timezone</label>
+<label class="radio-inline"><input onsite type="radio" name="tz-option" checked> Measurement location timezone</label>
             </div>
          </div>
       </div>
@@ -226,7 +226,16 @@
          var osm =  L.tileLayer('http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
              attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
            });
+          // http://127.0.0.1:8085/geoserver
+          /*
+
          var onomap =  L.tileLayer.OnoMap('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_area@EPSG:900913@png/{z}/{x}/{y}.png', {
+             "attribution": "<a href='http://onomap-gs.noise-planet.org'>OnoMap server</a>",
+             tms: true,
+             minZoom: 14
+           });
+           */
+         var onomap =  L.tileLayer.OnoMap('http://127.0.0.1:8085/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_area@EPSG:900913@png/{z}/{x}/{y}.png', {
              "attribution": "<a href='http://onomap-gs.noise-planet.org'>OnoMap server</a>",
              tms: true,
              minZoom: 14

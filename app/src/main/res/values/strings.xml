@@ -134,7 +134,7 @@
     <string name="url_help">file:///android_asset/html/help.html</string>
 
     <!--  Ressources for acoustics !-->
-
+    <string name="caption_SL">Sound level</string>
     <string-array name="catNE_list_array">
         <item>Greater 75 dB(A)</item>
         <item>65-75 dB(A)</item>

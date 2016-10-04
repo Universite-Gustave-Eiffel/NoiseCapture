@@ -20,8 +20,7 @@
          <!-- Nav tabs -->
          <div class="sidebar-tabs">
             <ul role="tablist">
-               <li><a href="#home" role="tab"><i class="fa fa-home"></i></a></li>
-               <li><a href="#legend" role="tab"><i class="fa fa-bars"></i></a></li>
+               <li><a href="#home" role="tab"><i class="fa fa-home"></i></a></li>               
                <li><a href="#hexainfo" role="tab"><i class="fa fa-pie-chart"></i></a></li>
             </ul>
             <ul role="tablist">
@@ -88,11 +87,6 @@
                </div>
 			   </div>
             </div>
-                        <div class="sidebar-pane" id="legend">
-               <h1 class="sidebar-header">Legend<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
-               <p>Sound level</p>
-               <img src="http://onomap-gs.noise-planet.org/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=noisecapture:noisecapture_area&legend_options=fontName:Times%20New%20Roman;fontAntiAliasing:true;fontColor:0x000033;fontSize:14;dpi:120&TRANSPARENT=true"/>
-            </div>
             <div class="sidebar-pane" id="hexainfo">
                <h1 class="sidebar-header">Selected area<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
                <ul class="nav nav-tabs">
@@ -102,20 +96,22 @@
                </ul>
                <div class="tab-content">
                   <div id="la50" class="tab-pane fade in active">
-                     <div class="defindicator">The LA50 is the A-weighted noise level that is exceeded for 50% of the measurement period. LA50 is the quite equivalent to <span style="font-weight: bold;">median sound level</span>.</div>					
+                     <div class="defindicator">The <b>LA50</b> is the A-weighted noise level that is exceeded for 50% of the measurement period. LA50 is the quite equivalent to <span style="font-weight: bold;">median sound level</span>.</div>
+					 <hr>
+					 <img align="right" style="margin:5px 5px" src="http://onomap-gs.noise-planet.org/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=noisecapture:noisecapture_area&legend_options=fontName:Cerdana;fontAntiAliasing:true;fontColor:0x000033;fontSize:12;dpi:80&TRANSPARENT=true"/>					
 					 <div id="areainfo"></div>
 					 <hr>					 
                      <div>
                         <div class="donut_block">
-                           <h2 class='attribute_label'>Working days:</h2>
+                           <h3 class='attribute_label'>Working days</h3>
                            <div id="donut_working_day" class="sidepanel_donut"></div>
                         </div>
                         <div class="donut_block">
-                           <h2 class='attribute_label'>Saturday:</h2>
+                           <h3 class='attribute_label'>Saturday</h3>
                            <div id="donut_saturday" class="sidepanel_donut"></div>
                         </div>
                         <div class="donut_block">
-                           <h2 class='attribute_label'>Sunday:</h2>
+                           <h3 class='attribute_label'>Sunday</h3>
                            <div id="donut_sunday" class="sidepanel_donut"></div>
                         </div>
                      </div>

@@ -26,7 +26,7 @@ p {
  font-style: normal;
  }
  .donut_block {
- display:inline-block;
+ text-align: center;
  width:13em;
  }
  .logo {
@@ -47,6 +47,9 @@ p {
  .defindicator {
 	padding-top: 20px;
 	padding-bottom: 0px;
-	font-style: italic;
-	color: #A9A9A9;
+	font-style: normal;
+}
+.defindicator:before {  
+  content: "\f05a  ";
+  font-family: FontAwesome
 }

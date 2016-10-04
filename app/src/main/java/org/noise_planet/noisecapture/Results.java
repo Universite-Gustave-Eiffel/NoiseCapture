@@ -470,7 +470,7 @@ public class Results extends MainActivity {
             }
         }
 
-        PieDataSet dataSet = new PieDataSet(yVals1, "Sound level");
+        PieDataSet dataSet = new PieDataSet(yVals1,Results.this.getString(R.string.caption_SL));
         dataSet.setSliceSpace(3f);
         dataSet.setColors(NE_COLORS);
 

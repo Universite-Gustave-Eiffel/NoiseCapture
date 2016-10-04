@@ -12,5 +12,6 @@ onomap-geoserver/geoserver/gradle
 *target/
 *.apk
 *.bat
+*.bak
 onomap-geoserver/geoserver/data_dir
 gradle.properties

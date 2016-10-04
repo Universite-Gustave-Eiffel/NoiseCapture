@@ -26,6 +26,7 @@
             <ul role="tablist">
 			   <li><a href="#code" role="tab"><i class="fa fa-code"></i></a></li>
 			   <li><a href="#property" role="tab"><i class="fa fa-copyright"></i></a></li>
+			   <hr style='margin-bottom=-1em'>
 			   <li><a href="#settings" role="tab"><i class="fa fa-gear"></i></a></li>
             </ul>
          </div>
@@ -38,13 +39,16 @@
                   evaluate and represent the environmental noise following a participative
                   approach, with community contributors, using an Android application on a
                   smartphone. <span style="font-weight: bold;"></p>
-			   <p>Download the NoiseCapture
+			   <p>If you want to contribute environmental noise maps, download the NoiseCapture
                   Android App</span> and follow the instructions on the 'Help' page on
                   your smartphone.
                </p>
                <div class="centered"><a href="https://play.google.com/store/apps/details?id=org.noise_planet.noisecapture"><img
                   style="width: 164px; height: 63px;" alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"></a><br>
                </div>
+			   <hr>
+			   <h4>Using smartphone with the NoiseCapture App, users can measure their noise environment and upload noise indicators to the community. All these data are then processed using scientific methods and agregated in order to build several maps of physical noise indicators, as well as of the perceived noise.</h4>
+			   <h2>Navigate on the map, select the layers and explore your noise environment...</h2>
              </div>
             <div class="sidebar-pane" id="property">
                <h1 class="sidebar-header">Property<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
@@ -100,8 +104,9 @@
 					 <hr>
 					 <img align="right" style="margin:5px 5px" src="http://onomap-gs.noise-planet.org/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=noisecapture:noisecapture_area&legend_options=fontName:Cerdana;fontAntiAliasing:true;fontColor:0x000033;fontSize:12;dpi:80&TRANSPARENT=true"/>					
 					 <div id="areainfo"></div>
-					 <hr>					 
-                     <div>
+					 <hr style='margin-bottom=0em'>
+					 <div class="defindicator">The following 'time-donuts' show the <b>temporal evolution of the LA50</b> over the 24h of a day, for a working day, the Saturday and the Sunday. For each 1h-period (0:00-1:00, for the 1st period...), the LA50 is evaluated from the measurments and standard temporal profiles. See the help section for more information.</div>					 
+					 <div>
                         <div class="donut_block">
                            <h3 class='attribute_label'>Working days</h3>
                            <div id="donut_working_day" class="sidepanel_donut"></div>

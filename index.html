@@ -180,21 +180,31 @@
                    <span id="time_lang" class="lang-sm lang-lbl-full" lang="en"></span> <span class="caret"></span>
                  </button>
                  <ul id="time_lang_list" class="dropdown-menu" role="menu">
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="ar"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="be"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="bg"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="cs"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="da"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="de"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="el"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="en"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="es"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="et"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="fi"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="fr"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="ga"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="hi"></span></a></li>
-                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="hr"></span></a></li>
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="bg"></span></a></li> <!-- Bulgarian -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="hr"></span></a></li> <!-- Croatian -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="cs"></span></a></li> <!-- Czech -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="da"></span></a></li> <!-- Danish -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="nl"></span></a></li> <!-- Dutch -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="en"></span></a></li> <!-- English -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="el"></span></a></li> <!-- Croatian -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="et"></span></a></li> <!-- Estonian -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="fi"></span></a></li> <!-- Finish -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="fr"></span></a></li> <!-- French -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="de"></span></a></li> <!-- German -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="el"></span></a></li> <!-- Greek -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="hu"></span></a></li> <!-- Hungarian -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="ga"></span></a></li> <!-- Irish -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="it"></span></a></li> <!-- Italian -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="lv"></span></a></li> <!-- Latvian -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="lt"></span></a></li> <!-- Lithuanian -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="mt"></span></a></li> <!-- Maltese -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="pl"></span></a></li> <!-- Polish -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="pt"></span></a></li> <!-- Portuguese -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="ro"></span></a></li> <!-- Romanian -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="sk"></span></a></li> <!-- Slovak -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="sl"></span></a></li> <!-- Slovenian -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="es"></span></a></li> <!-- Spanish -->
+                   <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="sv"></span></a></li> <!-- Swedish -->
                  </ul>
                </div>
                <h3>Time format zone:</h3>
@@ -232,7 +242,7 @@
              tms: true,
              minZoom: 14
            });
-           
+
          var onomap_pt = L.tileLayer('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:raw_points@EPSG:900913@png/{z}/{x}/{y}.png', {
              "attribution": "<a href='http://onomap-gs.noise-planet.org'>OnoMap server</a>",
              tms: true,

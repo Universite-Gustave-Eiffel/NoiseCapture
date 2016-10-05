@@ -23,13 +23,13 @@
 
 .text {
   position: absolute;
-  color: grey;
+  color: white;
   left: -100%;
   width: 200%;
   height: 200%;
   font-size: 0.8em;
   text-align: center;
-  /*text-shadow: 1px 0 0 #AAA, 0 -1px 0 #AAA, 0 1px 0 #AAA, -1px 0 0 #AAA;*/
+  text-shadow: 1px 0 0 #AAA, 0 -1px 0 #AAA, 0 1px 0 #AAA, -1px 0 0 #AAA;
   transform: skewY(75deg) rotate(7.5deg);
   padding-top: 10px;
 }
@@ -132,6 +132,8 @@
 
 .slice:hover {
   text-shadow: 1px 1px 2px #000000;
+  font-weight: bold;
+  font-size: 1.6em;
 }
 
 .centercircle {
@@ -152,12 +154,13 @@
   pointer-events: none;
   width: 100%;
   height: 100%;
-  padding: 0;
+  margin-top: 12%;
   text-shadow: 1px 1px 2px rgba(0, 0, 0, 1);
   color: #E2F2BF;
   text-align: center;
-  font-size: 5em;
-  font-family: georgia, serif;
+  font-size: 3em;
+  font-family: verdana, serif;
+  font-weight: bold;
 }
 
 .centercircletextunit {
@@ -166,10 +169,10 @@
   pointer-events: none;
   width: 100%;
   height: 100%;
-  margin-top: 75%;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 1);
+  margin-top:68%;
+  /*text-shadow: 1px 1px 2px rgba(0, 0, 0, 1);*/
   color: #000000;
   text-align: center;
   font-size: 1em;
-  font-family: georgia, serif;
+  font-family: verdana, serif;
 }

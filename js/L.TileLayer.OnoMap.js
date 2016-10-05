@@ -299,11 +299,11 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
       first_measure = moment(content["first_measure"]);
       last_measure = moment(content["last_measure"]);
     }
-    infoDiv.innerHTML = "<h3 class='attribute_label'>LA50:</h3>"+(content["leq"] ? Math.round(content["leq"])+" dB(A)" : "undefined")+"\
-    <h3 class='attribute_label'>First measure:</h3>"+first_measure.format('LLL')+"\
-    <h3 class='attribute_label'>Last measure:</h3>"+last_measure.format('LLL')+"\
-    <h3 class='attribute_label'>Pleasantness:</h3>"+(content["mean_pleasantness"] ? Math.round(content["mean_pleasantness"]) + " %" : "NC")+"\
-    <h3 class='attribute_label'>Measure length:</h3>"+(content["measure_count"] ? Math.round(content["measure_count"]) + " seconds" : "None");
+    infoDiv.innerHTML = "<p class='attribute_label'>LA50 (mean value):</p><i class='fa fa-microphone' aria-hidden='true'></i> "+(content["leq"] ? Math.round(content["leq"])+" dB(A)" : "undefined")+"\
+    <p class='attribute_label'>First measure:</p><i class='fa fa-clock-o' aria-hidden='true'></i> "+first_measure.format('LLL')+"\
+    <p class='attribute_label'>Last measure:</p><i class='fa fa-clock-o' aria-hidden='true'></i> "+last_measure.format('LLL')+"\
+    <p class='attribute_label'>Pleasantness:</p><i class='fa fa-smile-o' aria-hidden='true'></i> "+(content["mean_pleasantness"] ? Math.round(content["mean_pleasantness"]) + " %" : "NC")+"\
+    <p class='attribute_label'>Measure duration:</p><i class='fa fa-hourglass' aria-hidden='true'></i> "+(content["measure_count"] ? Math.round(content["measure_count"]) + " seconds" : "None");
     weekdonut.loadLevels();
     saturdaydonut.loadLevels();
     sundaydonut.loadLevels();

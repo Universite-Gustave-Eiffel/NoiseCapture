@@ -221,6 +221,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="calibration_leq_title">Leq mesuré :</string>
     <string name="calibration_measure_title">Valeur de référence :</string>
     <string name="calibration_button_apply">Appliquer</string>
+    <string name="userinfo_tags">Sources prédominantes</string>
     <string name="calibration_button_reset">Réinitialiser</string>
     <string name="calibration_test_gain_checkbox">Test du gain</string>
     <string name="calibration_mode">Type de calibration</string>

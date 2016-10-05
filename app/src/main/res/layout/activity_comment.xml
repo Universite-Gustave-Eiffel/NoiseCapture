@@ -101,7 +101,7 @@
             android:layout_height="wrap_content"
             android:paddingLeft="5dp"
             android:paddingRight="5dp"
-            android:text="Tags"
+            android:text="@string/userinfo_tags"
             android:textSize="15sp" />
 
         <ScrollView

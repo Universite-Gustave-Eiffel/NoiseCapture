@@ -39,6 +39,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.Nullable;
 import android.text.SpannableString;
 import android.text.style.StrikethroughSpan;
 import android.util.AttributeSet;
@@ -82,6 +83,7 @@ public class CommentActivity extends MainActivity {
     private Uri photo_uri;
     private static final Logger LOGGER = LoggerFactory.getLogger(CommentActivity.class);
     private OnThumbnailImageLayoutDoneObserver thumbnailImageLayoutDoneObserver;
+    private static final int selectedColor = Color.parseColor("#80cbc4");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,8 +151,11 @@ public class CommentActivity extends MainActivity {
             if(pleasantness != null) {
                 seekBar.setProgress(pleasantness);
                 seekBar.setThumb(seekBar.getResources().getDrawable(
-                        R.drawable.seekguess_scrubber_control_selector_holo_dark));
+                        R.drawable.seekguess_scrubber_control_normal_holo));
                 userInputSeekBar.set(true);
+            } else {
+                seekBar.setThumb(seekBar.getResources().getDrawable(
+                        R.drawable.seekguess_scrubber_control_disabled_holo));
             }
             photo_uri = record.getPhotoUri();
             // User can only update not uploaded data
@@ -246,7 +251,11 @@ public class CommentActivity extends MainActivity {
         column.addView(tagButton);
         tagButton.setTextOff(tagName);
         tagButton.setTextOn(tagName);
-        tagButton.setChecked(checkedTags.contains(id));
+        boolean isChecked = checkedTags.contains(id);
+        tagButton.setChecked(isChecked);
+        if(isChecked) {
+            tagButton.setTextColor(selectedColor);
+        }
         tagButton.setOnCheckedChangeListener(new TagStateListener(id, checkedTags));
         tagButton.setMinHeight(0);
         tagButton.setMinWidth(0);
@@ -269,7 +278,7 @@ public class CommentActivity extends MainActivity {
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             if(isChecked) {
                 checkList.add(id);
-                buttonView.setTextColor(Color.GREEN);
+                buttonView.setTextColor(selectedColor);
             } else {
                 checkList.remove(id);
                 buttonView.setTextColor(Color.WHITE);
@@ -297,7 +306,7 @@ public class CommentActivity extends MainActivity {
         public void onStartTrackingTouch(SeekBar seekBar) {
             if(!userInputSeekBar.getAndSet(true)) {
                 seekBar.setThumb(seekBar.getResources().getDrawable(
-                        R.drawable.seekguess_scrubber_control_selector_holo_dark));
+                        R.drawable.seekguess_scrubber_control_normal_holo));
             }
         }
 

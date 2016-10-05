@@ -824,7 +824,7 @@ public class MeasurementActivity extends MainActivity implements
     @Override
     protected void onStop() {
         super.onStop();
-        if(!measurementService.isStoring()) {
+        if(measurementService != null && !measurementService.isStoring()) {
             // Disconnect listener from measurement
             doUnbindService();
         }

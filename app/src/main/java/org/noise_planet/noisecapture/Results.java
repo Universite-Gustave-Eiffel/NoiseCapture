@@ -576,8 +576,8 @@ public class Results extends MainActivity {
             ToolTip toolTipMinSL = new ToolTip()
                     .withText(resId)
                     .withColor(Color.DKGRAY)
-                    .withShadow()
-                    .withAnimationType(ToolTip.AnimationType.FROM_TOP);
+                    .withAnimationType(ToolTip.AnimationType.NONE)
+                    .withShadow();
             results.lastShownTooltip = results.toolTip.showToolTipForView(toolTipMinSL, v);
             return false;
         }

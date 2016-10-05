@@ -93,7 +93,6 @@
             android:progress="50"
             android:max="100"
             android:progressDrawable="@drawable/seekguess_scrubber_progress_horizontal_holo_dark"
-            android:thumb="@drawable/seekguess_scrubber_control_disabled_holo"
             />
 
 

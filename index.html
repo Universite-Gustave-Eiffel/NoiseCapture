@@ -22,9 +22,12 @@
             <ul role="tablist">
                <li><a href="#home" role="tab"><i class="fa fa-home"></i></a></li>               
                <li><a href="#hexainfo" role="tab"><i class="fa fa-pie-chart"></i></a></li>
+                <li><a href="#history" role="tab"><i class="fa fa-history"></i></a></li>
+                <li><a href="#statistics" role="tab"><i class="fa fa-line-chart"></i></a></li>
             </ul>
             <ul role="tablist">
-			   <li><a href="#code" role="tab"><i class="fa fa-code"></i></a></li>
+			   <li><a href="#help" role="tab"><i class="fa fa-question-circle"></i>
+                <li><a href="#code" role="tab"><i class="fa fa-code"></i></a></li>
 			   <li><a href="#property" role="tab"><i class="fa fa-copyright"></i></a></li>
 			   <hr style='margin-bottom=-1em'>
 			   <li><a href="#settings" role="tab"><i class="fa fa-gear"></i></a></li>
@@ -34,22 +37,32 @@
          <div class="sidebar-content">
             <div class="sidebar-pane" id="home">
                <h1 class="sidebar-header">Home<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
-               <div class="centered"><img align="left" src="img/noisecapture_logo.png" alt="logo" class="logo" width="20%" ></div>
-               <p><span style="font-weight: bold;">NoiseCapture </span>is an initiative to
-                  evaluate and represent the environmental noise following a participative
-                  approach, with community contributors, using an Android application on a
-                  smartphone. <span style="font-weight: bold;"></p>
-			   <p>If you want to contribute environmental noise maps, download the NoiseCapture
-                  Android App</span> and follow the instructions on the 'Help' page on
-                  your smartphone.
-               </p>
+               <h1>How sounds your environment?</h1>
+               <h2>What is this website?</h2>
+               <div class="text_description">According to <a href="http://www.euro.who.int/en/health-topics/environment-and-health/noise" target="_blank">World Health Organization</a>, <cite>"the excessive noise seriously harms human health and interferes with people's daily activities at school, at work, at home and during leisure time. It can disturb sleep, cause cardiovascular and psychophysiological effects, reduce performance and provoke annoyance responses and changes in social behaviour".</cite></div>
+               <br>
+                <div class="text_description_b">The aim of this website is to give to people, whether citizens or experts, the opportunity to <b>evaluate their noise environment through objective and subjective indicators.</b></div>
+               <h2>The NoiseCapture approach</h2>
+                <div class="text_description">Nowadays, especially in response to national, European and international noise maps offered by government organizations, are made on the basis of numerical simulations, with the limitations we know them, and which result in two forms: a "lack" of realism of the state of noise in the environment, as well as a lack of representation of the environment as it is perceived.</div>
+                <br>
+                <div class="centered"><img align="left" src="img/noisecapture_logo.png" alt="logo" class="logo" width="20%" ></div><div class="text_description_b">Instead of using complex numerical simulation approach, the <a href="#property" role="tab">NoiseCapture research project</a> propose to evaluate and represent the environmental noise with the help of citizens, <b>following a participative approach, using a smartphone application</b>.</div>
+                <h2>How does-it work?</h2>
+                <h3>Explore the noisemaps</h3>
+                <div class="text_description">Navigate on the map, select the layers, explore your noise environment...</div>
+                <h3>Contribute to the noisemaps</h3>
+                <div class="text_description">Download the NoiseCapture Android App, realize measurements and transfer data to the community...</div>
                <div class="centered"><a href="https://play.google.com/store/apps/details?id=org.noise_planet.noisecapture"><img
                   style="width: 164px; height: 63px;" alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"></a><br>
                </div>
-			   <hr>
-			   <h4>Using smartphone with the NoiseCapture App, users can measure their noise environment and upload noise indicators to the community. All these data are then processed using scientific methods and agregated in order to build several maps of physical noise indicators, as well as of the perceived noise.</h4>
-			   <h2>Navigate on the map, select the layers and explore your noise environment...</h2>
              </div>
+             <div class="sidebar-pane" id="history">
+                 <h1 class="sidebar-header">History<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
+                 <h3>Last measurements</h3>
+                 </div>
+             <div class="sidebar-pane" id="statistics">
+                 <h1 class="sidebar-header">Statistics<span class="sidebar-close"><i class="fa fa-line-chart"></i></span></h1>
+                 <h3>Measurement information</h3>
+                 </div>
             <div class="sidebar-pane" id="property">
                <h1 class="sidebar-header">Property<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
                <h3>Partners and support</h3>
@@ -66,7 +79,10 @@
 			   <h4>Contact us</h4>
 			   <p>For any questions involving the project and the data, please contact us
                   at <a title="mailt ot: noisecapture@noise-planet.org" href="mailto:noisecapture@noise-planet.org">noisecapture(at)noise-planet.org</a></p>
-			   <h3>Licenses</h3>
+			   <h3>Website content</h3>
+               <p>The NoiseCapture website is a publication of the Ifsttar (French Institute of Science and Technology devoted to Transport, Planning and Networks) and of the CNRS (Centre national de la recherche scientifique).
+                The website is hosted and maintained by Ifsttar and CNRS. Unless specified otherwise, the content on this website is properties of Ifsttar and CNRS.</p>
+               <h3>Licenses</h3>
 			   <h4>NoiseCapture Android App</h4>
                <p>NoiseCapture Android App is a free software; you can redistribute it and/or
                modify it under the terms of the <a title="GPLv3" href="https://www.gnu.org/licenses/gpl-3.0.en.html">GNU
@@ -100,8 +116,9 @@
                </ul>
                <div class="tab-content">
                   <div id="la50" class="tab-pane fade in active">
-                     <div class="defindicator">The <b>LA50</b> is the A-weighted noise level that is exceeded for 50% of the measurement period. LA50 is the quite equivalent to <span style="font-weight: bold;">median sound level</span>.</div>
-					 <hr>
+                      <h3>Explore the mean noise of your environment</h3>
+                      <div class="defindicator">The <b>LA50</b> is the A-weighted noise level that is exceeded for 50% of the measurement period. LA50 is the quite equivalent to <span style="font-weight: bold;">median sound level</span>.</div>
+					 <hr style='margin-bottom=0em'>
 					 <img align="right" style="margin:5px 5px" src="http://onomap-gs.noise-planet.org/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=noisecapture:noisecapture_area&legend_options=fontName:Cerdana;fontAntiAliasing:true;fontColor:0x000033;fontSize:12;dpi:80&TRANSPARENT=true"/>					
 					 <div id="areainfo"></div>
 					 <hr style='margin-bottom=0em'>
@@ -131,6 +148,9 @@
                   </div>
                </div>
             </div>
+             <div class="sidebar-pane" id="help">
+                 <h1 class="sidebar-header">Help<span class="sidebar-close"><i class="fa-question-circle"></i></span></h1>
+                 </div>
 			<div class="sidebar-pane" id="code">
                <h1 class="sidebar-header">Contributing<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
                <h3> <span style="font-weight: bold;">Code developement</span></h3>
@@ -151,7 +171,7 @@
                <h1 class="sidebar-header">Settings<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
                <!-- http://usrz.github.io/bootstrap-languages/ -->
                <!--  -->
-               <h3>Time format language:</h3>
+               <h4>Time format language:</h4>
                <div class="btn-group dropdown">
                  <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                    <span id="time_lang" class="lang-sm lang-lbl-full" lang="en"></span> <span class="caret"></span>
@@ -184,7 +204,7 @@
                    <li><a role="menuitem" tabindex="-1"><span class="lang-sm lang-lbl-full" lang="sv"></span></a></li> <!-- Swedish -->
                  </ul>
                </div>
-               <h3>Time format zone:</h3>
+               <h4>Time format zone:</h4>
                <label class="radio-inline"><input type="radio" name="tz-option"> Browser timezone</label>
 <label class="radio-inline"><input onsite type="radio" name="tz-option" checked> Measurement location timezone</label>
             </div>

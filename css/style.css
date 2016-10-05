@@ -1,3 +1,12 @@
+a:link {
+    color: #337ab7;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
 body {
 	font-family: verdana;
 	padding: 0;
@@ -21,39 +30,64 @@ p {
  height: 100%;
  font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
  }
+
  .sidepanel_donut {
  max-width: 14em;
  }
+
  .attribute_label {
  padding-top: 10px;
  margin: 0px;
  font-style: normal;
  }
+
  .donut_block {
  text-align: center;
  width:13em;
  }
+
  .logo {
    max-width: 40%;
    align-content: center;
  }
+
  .authorlogo {
    height: 3em;
    margin: 10px 10px;
  }
+
  .orglogo {
    height: 3em;
    margin: 10px 10px;
  }
+
  .centered {
    text-align: center;
  }
+
  .defindicator {
 	padding-top: 20px;
 	padding-bottom: 0px;
 	font-style: normal;
+	color: #808080;
 }
+
 .defindicator:before {  
   content: "\f05a  ";
+  font-family: FontAwesome
+}
+
+.text_description{
+    font: verdana;
+    font-style: normal;
+    color: #808080;
+}
+
+.text_description_b {
+    font: verdana;
+}
+
+.text_description_b:before {
+  content: "\f0eb  ";
   font-family: FontAwesome
 }

@@ -217,7 +217,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_status_waiting_for_start_timer">Calibration is about to start&#8230;</string>
     <string name="userinfo_button_measure">Measure</string>
     <string name="userinfo_button_results">Valid</string>
-    <string name="userinfo_tags">Predominants sources</string>
+    <string name="userinfo_tags">Predominant sources</string>
     <string name="calibration_status_on">Calibration&#8230;</string>
     <string name="calibration_linear_status_on">Calibration at %1$.0f dB</string>
     <string name="calibration_status_end">Calibration done</string>

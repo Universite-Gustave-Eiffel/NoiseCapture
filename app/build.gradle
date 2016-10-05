@@ -19,6 +19,10 @@ def getCheckedOutGitCommitHash() {
 android {
     compileSdkVersion 24
     buildToolsVersion "24.0.2"
+    def signingFilePath = System.getProperty("user.home")+ "/.idea/signing.gradle"
+    if(new File(signingFilePath).exists()) {
+        apply from: signingFilePath
+    }
     defaultConfig {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
@@ -56,11 +60,15 @@ android {
         release {
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            if(new File(signingFilePath).exists()) {
+                signingConfig signingConfigs.release
+            }
         }
         debug {
             debuggable true
-            signingConfig signingConfigs.debug
+            if(new File(signingFilePath).exists()) {
+                signingConfig signingConfigs.debug
+            }
         }
     }
 }

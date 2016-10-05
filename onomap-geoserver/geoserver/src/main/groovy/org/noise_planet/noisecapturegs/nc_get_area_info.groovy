@@ -38,6 +38,7 @@ import org.geotools.jdbc.JDBCDataStore
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Timestamp
+import java.time.format.DateTimeFormatter
 
 
 title = 'nc_get_area_info'
@@ -58,18 +59,29 @@ def getAreaInfo(Connection connection, long qIndex, long rIndex) {
     try {
         // List the area identifier using the new measures coordinates
         def sql = new Sql(connection)
-        sql.eachRow("SELECT * FROM noisecapture_area a " +
+        def row = sql.firstRow("SELECT * FROM noisecapture_area a " +
                 "WHERE CELL_Q = :qIndex and CELL_R = :rIndex",
-                [qIndex: qIndex, rIndex: rIndex]) { row ->
-            data = [ leq : row.mean_leq,
-                     mean_pleasantness : row.mean_pleasantness  instanceof Number &&
-                             !row.mean_pleasantness.isNaN() ? row.mean_pleasantness : null,
-                     first_measure : row.first_measure,
-                     last_measure : row.last_measure,
-                     measure_count : row.measure_count,
-                     time_zone : row.tzid]
+                [qIndex: qIndex, rIndex: rIndex])
+        if(row) {
+            def time_zone = TimeZone.getTimeZone(row.tzid as String).toZoneId();
+            def formater = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+            def firstMeasure = row.first_measure.toInstant().atZone(time_zone).format(formater);
+            def lastMeasure = row.last_measure.toInstant().atZone(time_zone).format(formater);
+            data = [leq              : row.mean_leq,
+                    mean_pleasantness: row.mean_pleasantness instanceof Number &&
+                            !row.mean_pleasantness.isNaN() ? row.mean_pleasantness : null,
+                    first_measure    : firstMeasure,
+                    last_measure     : lastMeasure,
+                    measure_count    : row.measure_count,
+                    time_zone        : row.tzid]
+            // Query hours profile for this area
+            def profile = [:]
+            sql.eachRow("SELECT * FROM NOISECAPTURE_AREA_PROFILE WHERE PK_AREA = :pk_area", [pk_area:row.pk_area]) {
+                hour_row ->
+                profile[hour_row.hour as Integer] = [leq : hour_row.leq as Double, uncertainty : hour_row.uncertainty as Integer]
+            }
+            data["profile"] = profile
         }
-
     } catch (SQLException ex) {
         throw ex
     }

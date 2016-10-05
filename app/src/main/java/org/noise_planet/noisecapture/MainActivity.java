@@ -214,10 +214,7 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setHomeButtonEnabled(true);
 
         } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-            e.printStackTrace();
-            e.printStackTrace();
+            MAINLOGGER.error(e.getLocalizedMessage(), e);
         }
     }
     // Drawer navigation
@@ -608,11 +605,11 @@ public class MainActivity extends AppCompatActivity {
 
         if (SL > 75.) {
             NbNEcat = 0;
-        } else if ((SL <= 75) & (SL > 65)) {
+        } else if (SL > 65) {
             NbNEcat = 1;
-        } else if ((SL <= 65) & (SL > 55)) {
+        } else if (SL > 55) {
             NbNEcat = 2;
-        } else if ((SL <= 55) & (SL > 45)) {
+        } else if (SL > 45) {
             NbNEcat = 3;
         } else {
             NbNEcat = 4;

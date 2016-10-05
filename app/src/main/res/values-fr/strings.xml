@@ -29,6 +29,7 @@
     <string name="title_activity_results">Résultats</string>
     <string name="title_activity_history">Historique</string>
     <string name="title_activity_about">À propos</string>
+    <string name="user_id_activity_about">ID utilisateur</string>
     <string name="title_activity_help">Aide</string>
     <string name="title_appversion">Version %1$s %2$s r.%3$s</string>
 
@@ -139,23 +140,15 @@
     </string-array>
     <!-- Add new tags at the end, update also this array Storage.TAGS -->
     <string-array name="tags">
-        <item>Test</item>
-        <item>Urbain</item>
-        <item>Nature</item>
-        <item>Chantier</item>
-        <item>Aérien</item>
-        <item>Foule</item>
+        <item>TEST</item>
         <item>Pluie</item>
+        <item>Vent</item>
         <item>Intérieur</item>
-        <item>Routier</item>
-        <item>2-Roues</item>
-        <item>Camion</item>
-        <item>Animé</item>
-        <item>Silencieux</item>
-        <item>Oiseaux</item>
-        <item>Bruyant</item>
-        <item>Rue large</item>
-        <item>Petite rue</item>
+        <item>Pas</item>
+        <item>Bavardage</item>
+        <item>Nature</item>
+        <item>Mécanique</item>
+        <item>Humain</item>
     </string-array>
     <string name="title_activity_main">MainActivity</string>
 
@@ -228,6 +221,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="calibration_leq_title">Leq mesuré :</string>
     <string name="calibration_measure_title">Valeur de référence :</string>
     <string name="calibration_button_apply">Appliquer</string>
+    <string name="userinfo_tags">Sources prédominantes</string>
     <string name="calibration_button_reset">Réinitialiser</string>
     <string name="calibration_test_gain_checkbox">Test du gain</string>
     <string name="calibration_mode">Type de calibration</string>

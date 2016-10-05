@@ -131,7 +131,7 @@ public class MeasurementExport {
         // GeoJSON file
 
         List<MeasurementManager.LeqBatch> records =
-                measurementManager.getRecordLocations(recordId, false);
+                measurementManager.getRecordLocations(recordId, false, 0);
         // If Memory problems switch to JSONWriter
         JSONObject main = new JSONObject();
 

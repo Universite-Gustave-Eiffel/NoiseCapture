@@ -27,6 +27,8 @@
 
 package org.noise_planet.noisecapture;
 
+import android.database.SQLException;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 
 import org.junit.Before;
@@ -34,13 +36,16 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
-import org.robolectric.RobolectricGradleTestRunner;
+import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +53,7 @@ import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
@@ -55,8 +61,8 @@ import static org.junit.Assert.assertNull;
 /**
  * Unit test of SQLLite db manager of NoiseCapture
  */
-@RunWith(RobolectricGradleTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 21)
+@RunWith(RobolectricTestRunner.class)
+@Config(constants = BuildConfig.class, sdk = 23)
 public class TestDB {
 
     @Rule
@@ -94,7 +100,7 @@ public class TestDB {
 
         // Fetch data
         List<MeasurementManager.LeqBatch> storedLeq =
-                measurementManager.getRecordLocations(recordId, true);
+                measurementManager.getRecordLocations(recordId, true, 0);
         assertEquals(2, storedLeq.size());
         MeasurementManager.LeqBatch checkLeq = storedLeq.remove(0);
         assertEquals(15, checkLeq.getLeq().getLongitude(), 0.01);
@@ -183,6 +189,40 @@ public class TestDB {
                 meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
         assertEquals((float)leqBatch.computeGlobalLeq(),
                 Float.valueOf(meta.getProperty(Storage.Record.COLUMN_LEQ_MEAN)), 0.01f);
+    }
+
+    @Test
+    public void testSubSample() throws IOException {
+        Storage storage =  new Storage(RuntimeEnvironment.application);
+        // Add dump data
+        SQLiteDatabase db = storage.getWritableDatabase();
+        // Reseting Counter
+
+        // Open the resource
+        InputStream insertsStream = TestDB.class.getResourceAsStream("dump.sql");
+        BufferedReader insertReader = new BufferedReader(new InputStreamReader(insertsStream));
+
+        // Iterate through lines
+        while (insertReader.ready()) {
+            String insertStmt = insertReader.readLine();
+
+            try {
+                db.execSQL(insertStmt);
+            } catch (SQLException ex) {
+                System.err.println("Error while running " + insertStmt);
+                throw ex;
+            }
+        }
+        insertReader.close();
+
+        MeasurementManager measurementManager =
+                new MeasurementManager(RuntimeEnvironment.application);
+
+        // Fetch data
+        List<MeasurementManager.LeqBatch> storedLeq =
+                measurementManager.getRecordLocations(29, true, 25);
+
+        assertTrue(storedLeq.size() <= 25);
     }
 
 }

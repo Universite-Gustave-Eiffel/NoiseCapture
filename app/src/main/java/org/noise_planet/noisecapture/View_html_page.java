@@ -28,10 +28,12 @@
 package org.noise_planet.noisecapture;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBar;
 import android.util.TypedValue;
 import android.view.Menu;
@@ -73,6 +75,7 @@ public class View_html_page extends MainActivity {
 
     private void runJs() {
         final WebView webView = (WebView) findViewById(R.id.webview);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         // Load extra parameters
         String versionInfo = "";
         try {
@@ -80,7 +83,8 @@ public class View_html_page extends MainActivity {
         } catch (PackageManager.NameNotFoundException ex){
             MAINLOGGER.error(ex.getLocalizedMessage(), ex);
         }
-        String content = "<h1>"+getText(R.string.app_name)+"</h1> "+versionInfo;
+        String uuid = sharedPref.getString(MeasurementExport.PROP_UUID, "");
+        String content = "<h1>"+getText(R.string.app_name)+"</h1> "+versionInfo+"<br/>"+getText(R.string.user_id_activity_about)+": "+uuid;
         String js = "document.getElementById(\"about_title\").innerHTML = \""+content+"\"";
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             webView.evaluateJavascript(js, null);

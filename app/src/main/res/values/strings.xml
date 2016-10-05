@@ -30,6 +30,7 @@
     <string name="title_activity_results">Results</string>
     <string name="title_activity_history">History</string>
     <string name="title_activity_about">About</string>
+    <string name="user_id_activity_about">User ID</string>
     <string name="title_activity_help">Help</string>
     <string name="title_appversion">Version %1$s %2$s r.%3$s</string>
 
@@ -144,23 +145,15 @@
     </string-array>
     <!-- Add new tags at the end, update also this array Storage.TAGS -->
     <string-array name="tags">
-        <item>test</item>
-        <item>urban</item>
-        <item>nature</item>
-        <item>work area</item>
-        <item>air-traffic</item>
-        <item>crowd</item>
-        <item>rain</item>
-        <item>indoor</item>
-        <item>traffic</item>
-        <item>two-wheeled</item>
-        <item>heavy vehicle</item>
-        <item>animated</item>
-        <item>silent</item>
-        <item>birds</item>
-        <item>noisy</item>
-        <item>big street</item>
-        <item>small street</item>
+        <item>TEST</item>
+        <item>Rain</item>
+        <item>Wind</item>
+        <item>Indoor</item>
+        <item>Footsteps</item>
+        <item>Chatting</item>
+        <item>Natural</item>
+        <item>Mechanical</item>
+        <item>Human</item>
     </string-array>
     <string name="title_activity_main">MainActivity</string>
 
@@ -224,6 +217,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_status_waiting_for_start_timer">Calibration is about to start&#8230;</string>
     <string name="userinfo_button_measure">Measure</string>
     <string name="userinfo_button_results">Valid</string>
+    <string name="userinfo_tags">Predominant sources</string>
     <string name="calibration_status_on">Calibration&#8230;</string>
     <string name="calibration_linear_status_on">Calibration at %1$.0f dB</string>
     <string name="calibration_status_end">Calibration done</string>

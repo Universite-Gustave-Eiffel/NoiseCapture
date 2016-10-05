@@ -84,7 +84,6 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
                 // Message for starting a record
                 Toast.makeText(getApplicationContext(), getString(R.string.no_results),
                         Toast.LENGTH_LONG).show();
-                return;
             }
         }
 
@@ -136,7 +135,9 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
         boolean onlySelected = spinner.getSelectedItemPosition() == 0;
         // Add markers and move the camera.
         List<MeasurementManager.LeqBatch> measurements = new ArrayList<MeasurementManager.LeqBatch>();
-        measurements = measurementManager.getRecordLocations(onlySelected ? record.getId() : -1, true);
+        if(record != null) {
+            measurements = measurementManager.getRecordLocations(onlySelected ? record.getId() : -1, true, 500);
+        }
         builder = new LatLngBounds.Builder();
         validBoundingBox = measurements.size() > 1;
         for(int idMarker = 0; idMarker < measurements.size(); idMarker++) {

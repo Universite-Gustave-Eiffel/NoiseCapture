@@ -27,29 +27,19 @@ android {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
         targetSdkVersion 24
-        versionCode 16
-        versionName "0.4.0 (Beta)"
+        versionCode 17
+        versionName "0.4.1 (Beta)"
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""
         // Enabling multidex support.
         multiDexEnabled false
 
-        // Gradle Plugin 1.5
-        // disable limited support for vector drawables fro Android Studio 1.4
-        generatedDensities = []
-
-        // Gradle Plugin 2.0
-        // disable limited support for vector drawables fro Android Studio 1.4
-        // vectorDrawables.useSupportLibrary = true
+        vectorDrawables.useSupportLibrary = true
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-    // Gradle Plugin 1.5
-    // disable limited support for vector drawables fro Android Studio 1.4
-    aaptOptions {
-        additionalParameters "--no-version-vectors"
-    }
+
     dexOptions {
         javaMaxHeapSize "4g"
     }

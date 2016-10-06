@@ -35,21 +35,11 @@ android {
         // Enabling multidex support.
         multiDexEnabled false
 
-        // Gradle Plugin 1.5
-        // disable limited support for vector drawables fro Android Studio 1.4
-        generatedDensities = []
-
-        // Gradle Plugin 2.0
-        // disable limited support for vector drawables fro Android Studio 1.4
-        // vectorDrawables.useSupportLibrary = true
+        vectorDrawables.useSupportLibrary = true
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
-    // Gradle Plugin 1.5
-    // disable limited support for vector drawables fro Android Studio 1.4
-    aaptOptions {
-        additionalParameters "--no-version-vectors"
-    }
+
     dexOptions {
         javaMaxHeapSize "4g"
     }

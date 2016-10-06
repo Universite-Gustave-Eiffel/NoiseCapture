@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+
+
+<html class=''>
+
+<head>
+  <meta charset='UTF-8'>
+  <meta name="robots" content="noindex">
+  <link href="css/time_donut.css" rel="stylesheet">
+  <script src="js/time_donut.js"></script>
+<style>
+.mycircle {
+  width:15em;
+}
+</style>
+</head>
+
+<body>
+  <div id="circle_week" class="mycircle"></div>
+  <input id="loadDonut" type="button" value="Load" onclick="weekdonutLoad();" />
+  <input id="unloadDonut" type="button" value="UnLoad" onclick="weekdonutUnLoad();" />
+  <script>
+    var profile = {"0":{"leq":64.86894,"uncertainty":255},"1":{"leq":60.66794,"uncertainty":255},"2":{"leq":56.705936,"uncertainty":255},"3":{"leq":54.970936,"uncertainty":255},"4":{"leq":56.355938,"uncertainty":255},"5":{"leq":62.245937,"uncertainty":255},"6":{"leq":70.03094,"uncertainty":255},"7":{"leq":73.84994,"uncertainty":255},"8":{"leq":75.283936,"uncertainty":255},"9":{"leq":75.32993,"uncertainty":255},"10":{"leq":74.55794,"uncertainty":255},"11":{"leq":74.26594,"uncertainty":255},"12":{"leq":74.118935,"uncertainty":255},"13":{"leq":74.21893,"uncertainty":255},"14":{"leq":74.30894,"uncertainty":255},"15":{"leq":74.58694,"uncertainty":255},"16":{"leq":74.61194,"uncertainty":255},"17":{"leq":76.96994,"uncertainty":255},"18":{"leq":85.008934,"uncertainty":255},"19":{"leq":76.77694,"uncertainty":255},"20":{"leq":74.04094,"uncertainty":255},"21":{"leq":71.90094,"uncertainty":255},"22":{"leq":70.37694,"uncertainty":255},"23":{"leq":68.85694,"uncertainty":255}};
+    var weekdonut = initTimeDonut("circle_week");
+    function weekdonutLoad(id) {
+      weekdonut.loadLevels(profile);
+    }
+    function weekdonutUnLoad(id) {
+      weekdonut.loadLevels();
+    }
+  </script>
+</body>
+
+</html>

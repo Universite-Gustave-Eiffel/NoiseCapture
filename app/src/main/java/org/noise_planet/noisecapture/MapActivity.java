@@ -68,7 +68,11 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_map);
+        try {
+            setContentView(R.layout.activity_map);
+        } catch (Exception e){
+            Toast.makeText(this, "Google Maps problem", Toast.LENGTH_SHORT).show();
+        }
         initDrawer();
 
         this.measurementManager = new MeasurementManager(getApplicationContext());

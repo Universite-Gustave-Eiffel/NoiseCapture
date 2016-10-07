@@ -48,6 +48,10 @@ outputs = [
         result: [name: 'result', title: 'Last measures as JSON', type: String.class]
 ]
 
+/**
+ * @param latlong WKT point
+ * @return Extracted lat long
+ */
 def decodeLatLongFromString(latlong) {
     def wktPattern = ~/^POINT\s?\((-?\d+(\.\d+)?)\s*(-?\d+(\.\d+)?)\)$/
     def wktMatch = latlong =~ wktPattern
@@ -60,12 +64,13 @@ def decodeLatLongFromString(latlong) {
 def getStats(Connection connection) {
     def data = []
     try {
-        // List the area identifier using the new measures coordinates
+        // List the 10 last measurements, with aggregation of points
         def sql = new Sql(connection)
         sql.eachRow("select t.pk_track, time_length, record_utc, st_astext(ST_Centroid(ST_EXTENT(the_geom))) env" +
                 " from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track GROUP BY" +
                 " t.pk_track order by t.record_utc DESC LIMIT 10;") {
             record_row ->
+                // Fetch the timezone of this point
                 def res = sql.firstRow("SELECT TZID FROM tz_world WHERE " +
                         "ST_GeomFromText(:geom,4326) && the_geom AND" +
                         " ST_Intersects(ST_GeomFromText(:geom,4326), the_geom) LIMIT 1", [geom: record_row.env])

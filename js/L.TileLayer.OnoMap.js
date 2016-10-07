@@ -290,18 +290,23 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
     moment.locale(lang);
     var first_measure;
     var last_measure;
-    if($('input[name=tz-option]:checked')[0].attributes.onsite) {
-      // User check to see the time on the measurement zone (not on browser timezone)
-      first_measure = moment.parseZone(content["first_measure"]);
-      last_measure = moment.parseZone(content["last_measure"]);
+    if(content["first_measure"]) {
+      if($('input[name=tz-option]:checked')[0].attributes.onsite) {
+        // User check to see the time on the measurement zone (not on browser timezone)
+        first_measure = moment.parseZone(content["first_measure"]).format('LLL');
+        last_measure = moment.parseZone(content["last_measure"]).format('LLL');
+      } else {
+        // User want to see in local time
+        first_measure = moment(content["first_measure"]).format('LLL');
+        last_measure = moment(content["last_measure"]).format('LLL');
+      }
     } else {
-      // User want to see in local time
-      first_measure = moment(content["first_measure"]);
-      last_measure = moment(content["last_measure"]);
+      first_measure = "None";
+      last_measure = "None";
     }
-    infoDiv.innerHTML = "<p class='attribute_label'>LA50 (mean value):</p><i class='fa fa-microphone' aria-hidden='true'></i> "+(content["leq"] ? Math.round(content["leq"])+" dB(A)" : "undefined")+"\
-    <p class='attribute_label'>First measure:</p><i class='fa fa-clock-o' aria-hidden='true'></i> "+first_measure.format('LLL')+"\
-    <p class='attribute_label'>Last measure:</p><i class='fa fa-clock-o' aria-hidden='true'></i> "+last_measure.format('LLL')+"\
+    infoDiv.innerHTML = "<p class='attribute_label'>LA50 (mean value):</p><i class='fa fa-microphone' aria-hidden='true'></i> "+(content["leq"] ? Math.round(content["leq"])+" dB(A)" : "None")+"\
+    <p class='attribute_label'>First measure:</p><i class='fa fa-clock-o' aria-hidden='true'></i> "+first_measure+"\
+    <p class='attribute_label'>Last measure:</p><i class='fa fa-clock-o' aria-hidden='true'></i> "+last_measure+"\
     <p class='attribute_label'>Pleasantness:</p><i class='fa fa-smile-o' aria-hidden='true'></i> "+(content["mean_pleasantness"] ? Math.round(content["mean_pleasantness"]) + " %" : "NC")+"\
     <p class='attribute_label'>Measure duration:</p><i class='fa fa-hourglass' aria-hidden='true'></i> "+(content["measure_count"] ? Math.round(content["measure_count"]) + " seconds" : "None");
     weekdonut.loadLevels();

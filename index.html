@@ -270,7 +270,7 @@
           minZoom: 14
         });
 
-      var onomap_pt = L.tileLayer('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:raw_points@EPSG:900913@png/{z}/{x}/{y}.png', {
+      var onomap_pt = L.tileLayer('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_leaflet_point@EPSG:900913@png/{z}/{x}/{y}.png', {
           "attribution": "<a href='http://onomap-gs.noise-planet.org'>OnoMap server</a>",
           tms: true,
           minZoom: 14
@@ -311,6 +311,8 @@
       var saturdaydonut = initTimeDonut("donut_saturday");
       var sundaydonut = initTimeDonut("donut_sunday");
 
+      // Load default donuts
+      onomap.showGetFeatureInfo(null, null, []);
 
     </script>
   </body>

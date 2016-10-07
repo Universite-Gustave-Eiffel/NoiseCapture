@@ -20,7 +20,7 @@
         <ul role="tablist">
           <li><a href="#home" role="tab"><i class="fa fa-home"></i></a></li>
           <li><a href="#hexainfo" role="tab"><i class="fa fa-pie-chart"></i></a></li>
-          <li class="disabled"><a href="#history" role="tab"><i class="fa fa-history"></i></a></li>
+          <li><a href="#history" role="tab"><i class="fa fa-history"></i></a></li>
           <li class="disabled"><a href="#statistics" role="tab"><i class="fa fa-line-chart"></i></a></li>
         </ul>
         <ul role="tablist">
@@ -58,7 +58,10 @@
         </div>
         <div class="sidebar-pane" id="history">
           <h1 class="sidebar-header">History<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
-          <h3>Last measurements</h3>
+          <h3>Last measurements
+          <a><i class="fa fa-refresh fa-fw margin-bottom" onclick="doHistoRefresh()"></i>
+          <span class="sr-only">Refresh</span></a></h3>
+          <div id="measures_log"></div>
         </div>
         <div class="sidebar-pane" id="statistics">
           <h1 class="sidebar-header">Statistics<span class="sidebar-close"><i class="fa fa-line-chart"></i></span></h1>
@@ -313,6 +316,10 @@
 
       // Load default donuts
       onomap.showGetFeatureInfo(null, null, []);
+
+      function doHistoRefresh() {
+        onomap.getHistory();
+      }
 
     </script>
   </body>

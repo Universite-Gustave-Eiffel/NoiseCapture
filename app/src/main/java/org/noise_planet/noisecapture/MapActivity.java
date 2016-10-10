@@ -33,6 +33,7 @@ import android.content.res.Resources;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.webkit.WebSettings;
@@ -72,6 +73,11 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
             setContentView(R.layout.activity_map);
         } catch (Exception e){
             Toast.makeText(this, "Google Maps problem", Toast.LENGTH_SHORT).show();
+            Log.e(MapActivity.class.getName(), "Crash on MapActivity.setContentView", e);
+            Intent a = new Intent(getApplicationContext(), History.class);
+            startActivity(a);
+            finish();
+            return;
         }
         initDrawer();
 

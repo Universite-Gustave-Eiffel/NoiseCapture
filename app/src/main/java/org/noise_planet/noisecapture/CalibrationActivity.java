@@ -67,9 +67,9 @@ import java.util.Locale;
 public class CalibrationActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
     private enum CALIBRATION_STEP {IDLE, WARMUP, CALIBRATION, END}
     private ProgressBar progressBar_wait_calibration_recording;
-    private Button startButton;
-    private Button applyButton;
-    private Button resetButton;
+    private TextView startButton;
+    private TextView applyButton;
+    private TextView resetButton;
     private CALIBRATION_STEP calibration_step = CALIBRATION_STEP.IDLE;
     private TextView textStatus;
     private TextView textDeviceLevel;
@@ -103,7 +103,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         defaultWarmupTime = getInteger(sharedPref,SETTINGS_CALIBRATION_WARMUP_TIME, 5);
 
         progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
-        applyButton = (Button) findViewById(R.id.btn_apply);
+        applyButton = (TextView) findViewById(R.id.btn_apply);
         applyButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -114,8 +114,8 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         textDeviceLevel = (TextView) findViewById(R.id.textView_value_SL_i);
         testGainCheckBox = (CheckBox) findViewById(R.id.checkbox_test_gain);
         spinner = (Spinner) findViewById(R.id.spinner_calibration_mode);
-        startButton = (Button) findViewById(R.id.btn_start);
-        resetButton = (Button) findViewById(R.id.btn_reset);
+        startButton = (TextView) findViewById(R.id.btn_start);
+        resetButton = (TextView) findViewById(R.id.btn_reset);
         LinearLayout layout_progress = (LinearLayout) findViewById(R.id.layout_progress);
         userInput = (EditText) findViewById(R.id.edit_text_external_measured);
         startButton.setOnClickListener(new View.OnClickListener() {

@@ -214,7 +214,7 @@ public class Results extends MainActivity {
                 finish();
             }
         });
-        Button measureButton = (Button) findViewById(R.id.measureBtn);
+        View measureButton = findViewById(R.id.measureBtn);
         measureButton.setOnClickListener(new OnGoToMeasurePage(this));
         // Action on export button
 

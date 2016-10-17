@@ -67,7 +67,7 @@ def getStats(Connection connection) {
         // List the 10 last measurements, with aggregation of points
         def sql = new Sql(connection)
         sql.eachRow("select t.pk_track, time_length, record_utc, st_astext(ST_Centroid(ST_EXTENT(the_geom))) env" +
-                " from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track and p.accuracy < 15 GROUP BY" +
+                " from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track and p.accuracy > 0 and p.accuracy < 15 GROUP BY" +
                 " t.pk_track order by t.record_utc DESC LIMIT 10;") {
             record_row ->
                 // Fetch the timezone of this point

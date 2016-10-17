@@ -51,6 +51,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.support.v7.widget.AppCompatImageButton;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -105,9 +106,9 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     private static final int DB_STEP = 3;
     private double whiteNoisedB = 0;
     private ProgressBar progressBar_wait_calibration_recording;
-    private Button startButton;
-    private Button applyButton;
-    private Button resetButton;
+    private TextView startButton;
+    private TextView applyButton;
+    private TextView resetButton;
     private CALIBRATION_STEP calibration_step = CALIBRATION_STEP.IDLE;
     private TextView textStatus;
     private TextView textDeviceLevel;
@@ -145,7 +146,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         defaultWarmupTime = getInteger(sharedPref,SETTINGS_CALIBRATION_WARMUP_TIME, 5);
 
         progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
-        applyButton = (Button) findViewById(R.id.btn_apply);
+        applyButton = (TextView) findViewById(R.id.btn_apply);
         applyButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -155,12 +156,12 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         textStatus = (TextView) findViewById(R.id.textView_recording_state);
         textDeviceLevel = (TextView) findViewById(R.id.textView_value_SL_i);
         testGainCheckBox = (CheckBox) findViewById(R.id.checkbox_test_gain);
-        startButton = (Button) findViewById(R.id.btn_start);
+        startButton = (TextView) findViewById(R.id.btn_start);
         viewPager = (ViewPager) findViewById(R.id.viewpager);
         setupViewPager(viewPager);
         tabLayout = (TabLayout) findViewById(R.id.tabs);
         tabLayout.setupWithViewPager(viewPager);
-        resetButton = (Button) findViewById(R.id.btn_reset);
+        resetButton = (TextView) findViewById(R.id.btn_reset);
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

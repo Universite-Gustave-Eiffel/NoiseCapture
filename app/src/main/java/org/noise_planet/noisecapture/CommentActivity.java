@@ -40,6 +40,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
+import android.support.v7.widget.AppCompatImageButton;
 import android.text.SpannableString;
 import android.text.style.StrikethroughSpan;
 import android.util.AttributeSet;
@@ -55,6 +56,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -114,11 +116,11 @@ public class CommentActivity extends MainActivity {
             }
         }
         if(record != null) {
-            ImageButton addPhoto = (ImageButton) findViewById(R.id.btn_add_photo);
+            View addPhoto = findViewById(R.id.btn_add_photo);
             addPhoto.setOnClickListener(new OnAddPhotoClickListener(this));
-            Button resultsBtn = (Button) findViewById(R.id.resultsBtn);
+            View resultsBtn = findViewById(R.id.resultsBtn);
             resultsBtn.setOnClickListener(new OnGoToResultPage(this));
-            Button deleteBts = (Button) findViewById(R.id.deleteBtn);
+            View deleteBts = findViewById(R.id.deleteBtn);
             deleteBts.setOnClickListener(new OnDeleteMeasurement(this));
         }
         initDrawer(record != null ? record.getId() : null);
@@ -132,7 +134,7 @@ public class CommentActivity extends MainActivity {
             tagToIndex.put(sysTag, i++);
         }
 
-        ImageView thumbnail = (ImageView) findViewById(R.id.image_thumbnail);
+        View thumbnail = findViewById(R.id.image_thumbnail);
         thumbnail.setOnClickListener(new OnImageClickListener(this));
         if(record != null) {
             // Load selected tags
@@ -144,7 +146,7 @@ public class CommentActivity extends MainActivity {
             }
             // Load description
             if (record.getDescription() != null) {
-                EditText description = (EditText) findViewById(R.id.edit_description);
+                TextView description = (TextView) findViewById(R.id.edit_description);
                 description.setText(record.getDescription());
             }
             Integer pleasantness = record.getPleasantness();
@@ -172,15 +174,15 @@ public class CommentActivity extends MainActivity {
         // Fill tags grid
         String[] tags = getResources().getStringArray(R.array.tags);
         // Append tags items
-        LinearLayout tagColumn = (LinearLayout) findViewById(R.id.tags_grid_col1);
+        ViewGroup tagColumn = (ViewGroup) findViewById(R.id.tags_grid_col1);
         for(int idTag = 0; idTag < tags.length; idTag += 3) {
             addTag(tags[idTag], idTag, tagColumn);
         }
-        tagColumn = (LinearLayout) findViewById(R.id.tags_grid_col2);
+        tagColumn = (ViewGroup) findViewById(R.id.tags_grid_col2);
         for(int idTag = 1; idTag < tags.length; idTag += 3) {
             addTag(tags[idTag], idTag, tagColumn);
         }
-        tagColumn = (LinearLayout) findViewById(R.id.tags_grid_col3);
+        tagColumn = (ViewGroup) findViewById(R.id.tags_grid_col3);
         for(int idTag = 2; idTag < tags.length; idTag += 3) {
             addTag(tags[idTag], idTag, tagColumn);
         }
@@ -234,7 +236,7 @@ public class CommentActivity extends MainActivity {
 
     private void saveChanges() {
         if(record != null) {
-            EditText description = (EditText) findViewById(R.id.edit_description);
+            TextView description = (TextView) findViewById(R.id.edit_description);
             SeekBar seekBar = (SeekBar) findViewById(R.id.pleasantness_slider);
             String[] tags = new String[checkedTags.size()];
             int tagCounter = 0;
@@ -246,7 +248,7 @@ public class CommentActivity extends MainActivity {
         }
     }
 
-    private void addTag(String tagName, int id, LinearLayout column) {
+    private void addTag(String tagName, int id, ViewGroup column) {
         ToggleButton tagButton = new ToggleButton(this);
         column.addView(tagButton);
         tagButton.setTextOff(tagName);

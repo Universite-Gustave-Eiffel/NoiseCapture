@@ -133,9 +133,10 @@ public class Results extends MainActivity {
 
         // RNE PieChart
         rneChart = (PieChart) findViewById(R.id.RNEChart);
-        if(showTooltip) {
-            rneChart.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_rne));
-        }
+        // Disable tooltip as it crash with this view
+        //if(showTooltip) {
+        //    rneChart.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_rne));
+        //}
         initRNEChart();
         setRNEData(leqOccurrences.getUserDefinedOccurrences());
         Legend lrne = rneChart.getLegend();
@@ -146,9 +147,10 @@ public class Results extends MainActivity {
 
         // NEI PieChart
         neiChart = (PieChart) findViewById(R.id.NEIChart);
-        if(showTooltip) {
-            neiChart.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_nei));
-        }
+        // Disable tooltip as it crash with this view
+        //if(showTooltip) {
+        //    neiChart.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_nei));
+        //}
         initNEIChart();
         setNEIData();
         Legend lnei = neiChart.getLegend();
@@ -573,12 +575,14 @@ public class Results extends MainActivity {
                 // Hide last shown tooltip
                 results.lastShownTooltip.remove();
             }
-            ToolTip toolTipMinSL = new ToolTip()
-                    .withText(resId)
-                    .withColor(Color.DKGRAY)
-                    .withAnimationType(ToolTip.AnimationType.NONE)
-                    .withShadow();
-            results.lastShownTooltip = results.toolTip.showToolTipForView(toolTipMinSL, v);
+            if(v != null) {
+                ToolTip toolTipMinSL = new ToolTip()
+                        .withText(resId)
+                        .withColor(Color.DKGRAY)
+                        .withAnimationType(ToolTip.AnimationType.NONE)
+                        .withShadow();
+                results.lastShownTooltip = results.toolTip.showToolTipForView(toolTipMinSL, v);
+            }
             return false;
         }
     }

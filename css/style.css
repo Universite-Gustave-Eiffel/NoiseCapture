@@ -8,76 +8,76 @@ a:hover {
 }
 
 body {
-	font-family: verdana;
-	padding: 0;
-	margin: 0;	
+    font-family: verdana;
+    padding: 0;
+    margin: 0;
 }
 
-hr{
-margin-bottom: 0em;    
+hr {
+    margin-bottom: 0em;
 }
 
-h3 {  
-  font-weight: bold;
+h3 {
+    font-weight: bold;
 }
 
 p {
-	font-style: italic;
-	color: #A9A9A9;
+    font-style: italic;
+    color: #A9A9A9;
 }
 
- html, body, #map {
- height: 100%;
- font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
- }
-
- .sidepanel_donut {
- max-width: 14em;
- }
-
- .attribute_label {
- padding-top: 10px;
- margin: 0px;
- font-style: normal;
- }
-
- .donut_block {
- text-align: center;
- width:13em;
- }
-
- .logo {
-   max-width: 40%;
-   align-content: center;
- }
-
- .authorlogo {
-   height: 3em;
-   margin: 10px 10px;
- }
-
- .orglogo {
-   height: 3em;
-   margin: 10px 10px;
- }
-
- .centered {
-   text-align: center;
- }
-
- .defindicator {
-	padding-top: 20px;
-	padding-bottom: 0px;
-	font-style: normal;
-	color: #808080;
+html, body, #map {
+    height: 100%;
+    font: 10pt "Helvetica Neue", Arial, Helvetica, sans-serif;
 }
 
-.defindicator:before {  
-  content: "\f05a  ";
-  font-family: FontAwesome
+.sidepanel_donut {
+    max-width: 14em;
 }
 
-.text_description{
+.attribute_label {
+    padding-top: 10px;
+    margin: 0px;
+    font-style: normal;
+}
+
+.donut_block {
+    text-align: center;
+    width: 13em;
+}
+
+.logo {
+    max-width: 40%;
+    align-content: center;
+}
+
+.authorlogo {
+    height: 3em;
+    margin: 10px 10px;
+}
+
+.orglogo {
+    height: 3.4em;
+    margin: 10px 10px;
+}
+
+.centered {
+    text-align: center;
+}
+
+.defindicator {
+    padding-top: 20px;
+    padding-bottom: 0px;
+    font-style: normal;
+    color: #808080;
+}
+
+.defindicator:before {
+    content: "\f05a  ";
+    font-family: FontAwesome
+}
+
+.text_description {
     font: verdana;
     font-style: normal;
     color: #808080;
@@ -88,6 +88,6 @@ p {
 }
 
 .text_description_b:before {
-  content: "\f0eb  ";
-  font-family: FontAwesome
+    content: "\f0eb  ";
+    font-family: FontAwesome
 }

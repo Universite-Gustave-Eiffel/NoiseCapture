@@ -1,0 +1,53 @@
+a:link {
+    color: #337ab7;
+    text-decoration: underline;
+}
+a:hover {
+   color: #337ab7;
+   text-decoration: none;
+}
+
+a:visited {
+    color: #337ab7;
+    text-decoration: underline;
+}
+
+
+body {
+	font-family: verdana;
+	padding: 10;
+	margin: 10;
+}
+
+hr{
+margin-bottom: 0em;
+}
+
+h1 {
+  font-weight: bold;
+  color: #337ab7;
+  font-size: 1.8em;
+}
+
+h2 {
+  color: #337ab7;
+  font-size: 1.2em;
+}
+
+h3 {
+  font-weight: normal;
+  font-size: 0.8em;
+  text-align: justify;
+}
+
+li {
+      font-size: 0.75em;
+}
+
+ul {
+      font: 1em;
+}
+
+ .centered {
+   text-align: center;
+ }

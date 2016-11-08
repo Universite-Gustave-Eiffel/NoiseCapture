@@ -413,7 +413,9 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
     if(typeof sundaydonut !== 'undefined') {
       sundaydonut.loadLevels(sundayData);
     }
-    sidebar.open('hexainfo');
+    if(alldata) {
+      sidebar.open('hexainfo');
+    }
   }
 });
 

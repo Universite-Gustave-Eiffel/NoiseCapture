@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="css/languages.min.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link href="css/leaflet-search.min.css" rel="stylesheet" />
-    <link href="css/time_donut.css" rel="stylesheet">
+    <!-- <link href="css/time_donut.css" rel="stylesheet"> -->
     <link href="http://fontawesome.io/assets/font-awesome/css/font-awesome.css" rel="stylesheet">
     <script src="js/leaflet.js"></script>
 </head>
@@ -133,6 +133,7 @@ The authors are not responsible for the direct or indirect consequences of the u
                         />
                         <div id="areainfo"></div>
                         <hr style='margin-bottom=0em'>
+                        <!--
                         <div class="defindicator">The following 'time-donuts' show the <b>temporal evolution of the LA50</b> over the 24h of a day, for a working day, the Saturday and the Sunday. For each 1h-period (0:00-1:00, for the 1st period...), the LA50 is evaluated from
                             the measurments and standard temporal profiles. See the help section for more information.</div>
                         <div>
@@ -149,6 +150,7 @@ The authors are not responsible for the direct or indirect consequences of the u
                                 <div id="donut_sunday" class="sidepanel_donut"></div>
                             </div>
                         </div>
+                      -->
                     </div>
                     <div id="lden" class="tab-pane fade">
                         <h3>Menu 1</h3>
@@ -250,7 +252,7 @@ The authors are not responsible for the direct or indirect consequences of the u
     </div>
     <div id="map" class="sidebar-map"></div>
     <!-- Javascript placed at the end of the document so the pages load faster -->
-    <script src="js/time_donut.js"></script>
+    <!-- <script src="js/time_donut.js"></script> -->
     <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
     <script src="js/proj4.js"></script>
     <script src="js/L.TileLayer.OnoMap.js"></script>
@@ -327,9 +329,9 @@ The authors are not responsible for the direct or indirect consequences of the u
 
         var hash = new L.Hash(map);
 
-        var weekdonut = initTimeDonut("donut_working_day");
-        var saturdaydonut = initTimeDonut("donut_saturday");
-        var sundaydonut = initTimeDonut("donut_sunday");
+        //var weekdonut = initTimeDonut("donut_working_day");
+        //var saturdaydonut = initTimeDonut("donut_saturday");
+        //var sundaydonut = initTimeDonut("donut_sunday");
 
         // Load default donuts
         onomap.showGetFeatureInfo(null, null, []);

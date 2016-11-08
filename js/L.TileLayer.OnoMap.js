@@ -382,9 +382,15 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
     <p class='attribute_label'>Last measure:</p><i class='fa fa-clock-o' aria-hidden='true'></i> "+last_measure+"\
     <p class='attribute_label'>Pleasantness:</p><i class='fa fa-smile-o' aria-hidden='true'></i> "+(content["mean_pleasantness"] ? Math.round(content["mean_pleasantness"]) + " %" : "NC")+"\
     <p class='attribute_label'>Measure duration:</p><i class='fa fa-hourglass' aria-hidden='true'></i> "+(content["measure_count"] ? Math.round(content["measure_count"]) + " seconds" : "None");
-    weekdonut.loadLevels();
-    saturdaydonut.loadLevels();
-    sundaydonut.loadLevels();
+    if(typeof weekdonut !== 'undefined') {
+      weekdonut.loadLevels();
+    }
+    if(typeof saturdaydonut !== 'undefined') {
+      saturdaydonut.loadLevels();
+    }
+    if(typeof sundaydonut !== 'undefined') {
+      sundaydonut.loadLevels();
+    }
     if (err) { console.log(err); return; } // do nothing if there's an error
     // Split hour levels for week, saturday and sunday
     var alldata = content["profile"];
@@ -398,9 +404,15 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
         sundayData.push(alldata[48 + i]);
       }
     }
-    weekdonut.loadLevels(weekData);
-    saturdaydonut.loadLevels(saturdayData);
-    sundaydonut.loadLevels(sundayData);
+    if(typeof weekdonut !== 'undefined') {
+      weekdonut.loadLevels(weekData);
+    }
+    if(typeof saturdaydonut !== 'undefined') {
+      saturdaydonut.loadLevels(saturdayData);
+    }
+    if(typeof sundaydonut !== 'undefined') {
+      sundaydonut.loadLevels(sundayData);
+    }
     sidebar.open('hexainfo');
   }
 });

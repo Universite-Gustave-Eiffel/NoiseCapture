@@ -135,4 +135,15 @@ class TestNoiseCaptureProcess extends GroovyTestCase {
                 0.01d)
     }
 
+    void testLA50() {
+        Record noiseRecord = new Record(1)
+        noiseRecord.addLeq(65)
+        noiseRecord.addLeq(44)
+        noiseRecord.addLeq(75)
+        noiseRecord.addLeq(66)
+        assertEquals(65.5, noiseRecord.getLA50())
+        noiseRecord.addLeq(70)
+        assertEquals(66, noiseRecord.getLA50())
+    }
+
 }

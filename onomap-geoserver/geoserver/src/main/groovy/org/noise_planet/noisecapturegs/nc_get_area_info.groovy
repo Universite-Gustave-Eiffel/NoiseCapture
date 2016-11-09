@@ -67,7 +67,9 @@ def getAreaInfo(Connection connection, long qIndex, long rIndex) {
             def formater = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
             def firstMeasure = row.first_measure.toInstant().atZone(time_zone).format(formater);
             def lastMeasure = row.last_measure.toInstant().atZone(time_zone).format(formater);
-            data = [leq              : row.mean_leq,
+            data = [laeq              : row.laeq,
+                    la50              : row.la50,
+                    lden              : row.lden,
                     mean_pleasantness: row.mean_pleasantness instanceof Number &&
                             !row.mean_pleasantness.isNaN() ? row.mean_pleasantness : null,
                     first_measure    : firstMeasure,

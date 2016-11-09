@@ -27,7 +27,12 @@
 
 package org.orbisgis.sos;
 
-import java.util.*;
+import org.apache.commons.math3.stat.descriptive.rank.Percentile;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
@@ -59,15 +64,26 @@ public class LeqStats {
         rmsSumCount++;
     }
 
+    /**
+     * Compute Leq stats using specified range.double[][] classRanges = ;
+     * @param laOccurrencesRanges Min-Max range ex: new double[][]{{Double.MIN_VALUE, 45}, {45, 55}, {55, 65}, {65, 75},{75, Double.MAX_VALUE}}
+     * @return LeqOccurrences instance
+     */
     public LeqOccurrences computeLeqOccurrences(double[][] laOccurrencesRanges) {
         // Compute invert sum of class occurrences
         List<Double> classList = new ArrayList<>(leqClass.size());
         List<Integer> classValue = new ArrayList<>(leqClass.size());
         long sum = 0;
+        double[] values = new double[rmsSumCount];
+        int valCounter = 0;
         for(Map.Entry<Integer, AtomicInteger> entry : leqClass.entrySet()) {
-            classList.add(entry.getKey() * 0.1);
+            double leq = entry.getKey() * classStep;
+            classList.add(leq);
             classValue.add(0, entry.getValue().get());
             sum += entry.getValue().get();
+            for(int classValCount = 0; classValCount < entry.getValue().get(); classValCount++) {
+                values[valCounter++] = leq;
+            }
         }
         List<Double> sumClassValuePerc = new ArrayList<>(classValue.size());
         double invSum = 0.;
@@ -75,10 +91,12 @@ public class LeqStats {
             invSum += classVal / (double)sum;
             sumClassValuePerc.add(0, invSum);
         }
+        Percentile percentile = new Percentile();
+        percentile.setData(values);
         // Fetch level at each lae
-        double la10 = fetchLaOccurrences(sumClassValuePerc,classList, 0.1);
-        double la50 = fetchLaOccurrences(sumClassValuePerc,classList, 0.5);
-        double la90 = fetchLaOccurrences(sumClassValuePerc,classList, 0.9);
+        double la10 = percentile.evaluate(100 - 10);
+        double la50 = percentile.evaluate(50);
+        double la90 = percentile.evaluate(100 - 90);
 
         // Sum percentage between provided laOccurrancesRanges
         List<Double> laOccurrencesRangesValue = new ArrayList<>();
@@ -101,17 +119,6 @@ public class LeqStats {
         }
 
         return new LeqOccurrences(la10, la50, la90, laOccurrencesRangesValue);
-    }
-
-    private static double fetchLaOccurrences(List<Double> sumClassValuePerc,List<Double> classList, double la) {
-        int lastIdClass = -1;
-        for(int idClass = 0; idClass < sumClassValuePerc.size(); idClass++) {
-            if(sumClassValuePerc.get(idClass) < la && lastIdClass != -1) {
-                return classList.get(lastIdClass);
-            }
-            lastIdClass = idClass;
-        }
-        return classList.get(lastIdClass);
     }
 
     public double getLeqMin() {

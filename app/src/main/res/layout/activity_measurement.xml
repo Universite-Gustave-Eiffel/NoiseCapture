@@ -36,16 +36,18 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
             <RelativeLayout
-                android:layout_width="match_parent"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1">
+                android:layout_weight="1"
+                android:paddingRight="15dp">
 
                 <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/SL_dBA"
-                android:textColor="#0099CC"
-                android:textSize="15sp" />
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/SL_dBA"
+                    android:textColor="#0099CC"
+                    android:textSize="15sp"
+                    android:paddingTop="45dp"  />
 
                 <TextView
                     android:id="@+id/textView_value_SL_i"
@@ -61,7 +63,8 @@
                 <LinearLayout
                     android:layout_width="150dp"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical">
+                    android:orientation="vertical"
+                    android:layout_gravity="center">
 
                     <LinearLayout
                         android:layout_width="match_parent"

@@ -56,6 +56,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.orbisgis.sos.LeqStats;
+import org.orbisgis.sos.ThirdOctaveBandsFiltering;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,11 +66,13 @@ import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.ParsePosition;
+import java.util.Arrays;
 import java.util.Locale;
 
 
 public class CalibrationActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
     private enum CALIBRATION_STEP {IDLE, WARMUP, CALIBRATION, END}
+    private static int[] freq_choice = {0, 125, 200, 315, 500, 800, 1250, 2000, 3150, 5000, 8000, 12500};
     private ProgressBar progressBar_wait_calibration_recording;
     private TextView startButton;
     private TextView applyButton;
@@ -145,7 +148,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
-        // Set default value to standard calibration mode (1000 Hz)
+        // Set default value to standard calibration mode (Global)
         spinner.setSelection(0, false);
 
 
@@ -328,7 +331,9 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             if(spinner.getSelectedItemPosition() == 0) {
                 leq = measure.getSignalLeq();
             } else {
-                leq = measure.getLeqs()[spinner.getSelectedItemPosition() - 1];
+                int selectFreq = freq_choice[spinner.getSelectedItemPosition()];
+                int index = Arrays.binarySearch(measurementService.getAudioProcess().getDelayedCenterFrequency(), selectFreq);
+                leq = measure.getLeqs()[index];
             }
             if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
                 leqStats.addLeq(leq);

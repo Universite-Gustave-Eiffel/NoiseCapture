@@ -26,7 +26,7 @@
   ~  or write to scientific.computing@ifsttar.fr
   -->
 
-<resources>
+<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string-array name="output_mode">
         <!-- DO no localize -->
         <item>STREAM_VOICE_CALL</item>

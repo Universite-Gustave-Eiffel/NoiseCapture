@@ -27,8 +27,8 @@ android {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
         targetSdkVersion 24
-        versionCode 19
-        versionName "0.4.3 (Beta)"
+        versionCode 20
+        versionName "0.4.4 (Beta)"
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""

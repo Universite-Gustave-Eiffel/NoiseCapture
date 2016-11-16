@@ -78,16 +78,22 @@ class Record{
         this.hour = hour
     }
 
-    def getLeq() {
+    def getLAeq() {
         return 10 * Math.log10(levels.sum({Math.pow(10.0, it / 10.0)}))
     }
 
     /**
      * @return Average or L50% value of the noise.
      */
-    def getL50() {
+    def getLA50() {
         if(!L50) {
-            this.L50 = levels.sum() / levels.size()
+            levels = levels.sort()
+            if(levels.size() % 2 == 1) {
+                this.L50 = levels.get((((levels.size()+1)/2)-1).intValue())
+            } else {
+                this.L50 = (levels.get((((levels.size()+1)/2)-1).intValue()) +
+                        levels.get((((levels.size()+1)/2)).intValue())) / 2.0
+            }
         }
         return L50
     }
@@ -168,7 +174,7 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
                 if(!station_error[row.id_station]) {
                     station_error[row.id_station] = 0
                 }
-                station_error[row.id_station] += Math.pow(record.getL50() - row.mu, 2)
+                station_error[row.id_station] += Math.pow(record.getLA50() - row.mu, 2)
             }
         }
     }
@@ -187,7 +193,7 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
         // Evaluate the average difference between the station and the measurements
         def sumError = 0
         records.each { record ->
-            sumError += record.getL50() - stationProfileMu.get(0, record.hour)
+            sumError += record.getLA50() - stationProfileMu.get(0, record.hour)
         }
         // Offset station by error value
         CommonOps.add(stationProfileMu.matrix, sumError / records.size())

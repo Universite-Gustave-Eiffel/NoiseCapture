@@ -88,7 +88,7 @@ public class CoreSignalProcessingTest {
         LeqStats.LeqOccurrences leqOccurrences = leqStats.computeLeqOccurrences(classRanges);
         assertEquals(66.2, leqOccurrences.getLa10(), 0.01);
         assertEquals(49.8, leqOccurrences.getLa50(), 0.01);
-        assertEquals(45.3, leqOccurrences.getLa90(), 0.01);
+        assertEquals(45.21, leqOccurrences.getLa90(), 0.01);
         List<Double> classRangesValues = leqOccurrences.getUserDefinedOccurrences();
         assertEquals(classRanges.length, classRangesValues.size());
         assertEquals(0, classRangesValues.get(0), 0.01);    // < 45

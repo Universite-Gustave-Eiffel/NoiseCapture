@@ -27,8 +27,10 @@
 
 package org.noise_planet.noisecapture;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
@@ -59,8 +61,10 @@ import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.text.DecimalFormat;
 import java.text.NumberFormat;
 import java.text.ParseException;
+import java.text.ParsePosition;
 import java.util.Locale;
 
 
@@ -142,7 +146,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
         // Set default value to standard calibration mode (1000 Hz)
-        spinner.setSelection(11, false);
+        spinner.setSelection(0, false);
 
 
         initCalibration();
@@ -184,23 +188,64 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         }
     }
 
+    private Number getCalibrationReferenceLevel() throws ParseException {
+        // Change when https://code.google.com/p/android/issues/detail?id=2626 is fixed
+        return Double.valueOf(userInput.getText().toString().trim());
+        /*
+        String refLevel = userInput.getText().toString().trim();
+        NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
+        ParsePosition position = new ParsePosition(0);
+        Number number = format.parse(refLevel, position);
+        if (position.getIndex() != refLevel.length()) {
+            // Not user lang, try US
+            return Double.valueOf(refLevel);
+        } else {
+            return number;
+        }
+        */
+    }
+
     private void onApply() {
         try {
-            NumberFormat format = NumberFormat.getInstance(Locale.FRANCE);
-            Number number = format.parse(userInput.getText().toString());
-            double gain = Math.round((number.doubleValue() - leqStats.getLeqMean()) * 100.) / 100.;
+            Number number = getCalibrationReferenceLevel();
             if(number.doubleValue() < MINIMAL_VALID_MEASURED_VALUE || number.doubleValue() > MAXIMAL_VALID_MEASURED_VALUE) {
-                Toast.makeText(CalibrationActivity.this, getString(R.string.calibration_out_bounds,
-                        MINIMAL_VALID_MEASURED_VALUE,MAXIMAL_VALID_MEASURED_VALUE),
-                        Toast.LENGTH_SHORT).show();
+                AlertDialog.Builder builder = new AlertDialog.Builder(this);
+                // Add the buttons
+                builder.setPositiveButton(R.string.calibration_save_change, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        CalibrationActivity.this.doApply();
+                    }
+                });
+                builder.setNegativeButton(R.string.calibration_cancel_change, new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int id) {
+                        CalibrationActivity.this.onReset();
+                    }
+                });
+                // Create the AlertDialog
+                AlertDialog dialog = builder.create();
+                dialog.setTitle(getString(R.string.calibration_out_bounds_title));
+                dialog.setMessage(getString(R.string.calibration_out_bounds,
+                        MINIMAL_VALID_MEASURED_VALUE,MAXIMAL_VALID_MEASURED_VALUE));
+                dialog.show();
             } else {
-                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-                SharedPreferences.Editor editor = sharedPref.edit();
-                editor.putString("settings_recording_gain", String.valueOf(gain));
-                editor.apply();
-                Toast.makeText(getApplicationContext(),
-                        getString(R.string.calibrate_done, gain), Toast.LENGTH_LONG).show();
+                doApply();
             }
+        } catch (ParseException ex) {
+            LOGGER.error(ex.getLocalizedMessage(), ex);
+            onReset();
+        }
+    }
+
+    private void doApply() {
+        try {
+            Number number = getCalibrationReferenceLevel();
+            double gain = Math.round((number.doubleValue() - leqStats.getLeqMean()) * 100.) / 100.;
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+            SharedPreferences.Editor editor = sharedPref.edit();
+            editor.putString("settings_recording_gain", String.valueOf(gain));
+            editor.apply();
+            Toast.makeText(getApplicationContext(),
+                    getString(R.string.calibrate_done, gain), Toast.LENGTH_LONG).show();
         } catch (ParseException ex) {
             LOGGER.error(ex.getLocalizedMessage(), ex);
         } finally {
@@ -385,7 +430,8 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             // Activate user input
             if(!testGainCheckBox.isChecked()) {
                 applyButton.setEnabled(true);
-                userInput.setText(String.format(Locale.getDefault(), "%.1f", DEFAULT_CALIBRATION_LEVEL));
+                // Change to default locale when fixed https://code.google.com/p/android/issues/detail?id=2626
+                userInput.setText(String.format(Locale.US, "%.1f", DEFAULT_CALIBRATION_LEVEL));
                 userInput.setEnabled(true);
             }
             resetButton.setEnabled(true);

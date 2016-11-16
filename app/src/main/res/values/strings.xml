@@ -12,7 +12,10 @@
 
     <string name="record_message">Press the record button to start</string>
     <string name="calibrate_done">Calibration done, gain is set to %1$.1f dB</string>
-    <string name="calibration_out_bounds">Calibration sound level is incompatible with hardware specification bounds, it must be between %1$f dB and %2$f dB</string>
+    <string name="calibration_out_bounds_title">Noise level too low</string>
+    <string name="calibration_out_bounds">Calibration sound level is incompatible with hardware specification bounds, it must be between %1$.0f dB and %2$.0f dB</string>
+    <string name="calibration_save_change">Ignore and apply</string>
+    <string name="calibration_cancel_change">Cancel</string>
     <string name="fail_share">Generation of the shared file failed</string>
     <string name="no_results">There is no result. Start a record before.</string>
     <string name="no_gps_results">No GPS coordinates in this record</string>

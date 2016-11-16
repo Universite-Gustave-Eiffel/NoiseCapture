@@ -12,7 +12,11 @@
 
     <string name="record_message">Appuyer sur le bouton d\'enregistrement pour commencer</string>
     <string name="calibrate_done">Calibration réalisée, le gain est fixé à %1$.1f dB</string>
-    <string name="calibration_out_bounds">La procédure de calibration est incompatible avec les spécifications (limites) matérielles. Le valeur doit être comprise en %1$f dB et %2$f dB</string>
+    <string name="calibration_out_bounds">La procédure de calibration est incompatible avec les spécifications (limites) matérielles. Le valeur doit être comprise en %1$.0f dB et %2$.0f dB</string>
+    <string name="calibration_out_bounds_title">Niveau trop bas</string>
+    <string name="calibration_save_change">Ignorer et appliquer</string>
+    <string name="calibration_cancel_change">Annuler</string>
+
     <string name="fail_share">La génération du fichier de données a échoué</string>
     <string name="no_results">Aucun résultat à afficher. Effectuer une première mesure.</string>
     <string name="no_gps_results">Cet enregistrement ne comporte pas de coordonnées GPS</string>

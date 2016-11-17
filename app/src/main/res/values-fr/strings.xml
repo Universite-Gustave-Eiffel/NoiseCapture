@@ -209,6 +209,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
 - speed: Estimation de la vitesse en m/s\\n
 - leq_frequency: Leq 1s par fréquence\\n</string>
     <string name="title_activity_comment">Description</string>
+    <string name="title_activity_menu_calibration">Méthodes de calibration</string>
     <string name="userinfo_unpleasant">Désagréable</string>
     <string name="userinfo_pleasant">Agréable</string>
     <string name="userinfo_pleasantness">Agrément sonore</string>

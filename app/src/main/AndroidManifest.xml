@@ -18,6 +18,7 @@
     <permission
         android:name="org.noise_planet.noisecapture.MAPS_RECEIVE"
         android:protectionLevel="signature" />
+
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
@@ -53,26 +54,26 @@
         <activity
             android:name=".MeasurementActivity"
             android:label="@string/title_activity_measurement"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".Results"
             android:label="@string/title_activity_results"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".MainActivity"
-            android:label="@string/title_activity_main"/>
+            android:label="@string/title_activity_main" />
         <activity
             android:name=".View_html_page"
-            android:noHistory="true"
-            android:label="@string/title_activity_view_html_page"/>
+            android:label="@string/title_activity_view_html_page"
+            android:noHistory="true" />
         <activity
             android:name=".SettingsActivity"
-            android:noHistory="true"
-            android:label="@string/title_activity_settings"/>
+            android:label="@string/title_activity_settings"
+            android:noHistory="true" />
         <activity
             android:name=".MapActivity"
             android:label="@string/title_activity_map"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".Start"
             android:label="@string/title_activity_start"
@@ -86,15 +87,15 @@
         </activity>
         <activity
             android:name=".History"
-            android:label="@string/title_activity_history"/>
+            android:label="@string/title_activity_history" />
         <activity
             android:name=".CalibrationActivity"
-            android:windowSoftInputMode="stateHidden"
-            android:label="@string/title_activity_calibration_start"/>
+            android:label="@string/title_activity_calibration_start"
+            android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".CalibrationLinearityActivity"
-            android:screenOrientation="portrait"
-            android:label="@string/title_activity_calibration_linearity"/>
+            android:label="@string/title_activity_calibration_linearity"
+            android:screenOrientation="portrait" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -103,7 +104,12 @@
         <activity
             android:name=".CommentActivity"
             android:label="@string/title_activity_comment"
-            android:windowSoftInputMode="adjustPan"/>
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".calibration_menu"
+            android:label="@string/title_activity_menu_calibration" />
+        <activity android:name=".calibration_wifi_host"
+            android:label="@string/title_activity_calibration_host" />
     </application>
 
 </manifest>

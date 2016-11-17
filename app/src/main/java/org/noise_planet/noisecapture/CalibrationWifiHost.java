@@ -31,33 +31,15 @@ import android.os.Bundle;
 
 import java.util.Random;
 
-public class calibration_wifi_host extends MainActivity {
+public class CalibrationWifiHost extends MainActivity {
+
+    private boolean mIsBound = false;
+    private CalibrationService measurementService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calibration_wifi_host);
         initDrawer();
-    }
-
-    private String generateRandomSSID(double maxSize){
-        Random random = new Random();
-        final String[] consonants = {"B", "BL", "C", "D", "F", "G", "GR", "H", "J", "K", "L", "M", "N", "P", "R", "S", "T", "V", "W", "X", "Y", "Z"};
-        final String[] vowels = {"A", "E", "I", "O", "OO", "U"};
-
-        StringBuilder randomString = new StringBuilder("CALIBRATION_");
-        boolean consonant_toggle = true;
-
-        while(randomString.length() < maxSize){
-            final String newChars = consonant_toggle ? consonants[random.nextInt(consonants.length)] :
-                    vowels[random.nextInt(vowels.length)];
-            if(randomString.length() >= maxSize) {
-                break;
-            } else if(randomString.length() + newChars.length() <= maxSize) {
-                randomString.append(newChars);
-                consonant_toggle = !consonant_toggle;
-            }
-        }
-        return randomString.toString();
     }
 }

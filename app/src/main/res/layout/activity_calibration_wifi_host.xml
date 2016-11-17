@@ -43,7 +43,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context="org.noise_planet.noisecapture.calibration_wifi_host">
+    tools:context="org.noise_planet.noisecapture.CalibrationWifiHost">
 
     <LinearLayout
         android:layout_width="fill_parent"
@@ -52,11 +52,29 @@
         android:id="@+id/mainLayout"
         android:clickable="true"
         android:focusableInTouchMode="true" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/calibration_mode_label"
+                android:text="@string/calibration_mode"
+                android:textSize="15sp" />
+            <Spinner
+                android:id="@+id/spinner_calibration_mode"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                />
+        </LinearLayout>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Wifi SSID:"
-            android:textSize="20sp" />
+            android:textSize="15sp" />
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -102,7 +120,7 @@
             android:layout_height="wrap_content"
             android:text="@string/calibration_measure_title"
             android:paddingTop="15dp"
-            android:textSize="20sp" />
+            android:textSize="15sp" />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -128,7 +146,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Peer list:"
-            android:textSize="20sp" />
+            android:textSize="15sp" />
         <ListView
             android:id="@+id/listiew_peers"
             android:layout_width="match_parent"

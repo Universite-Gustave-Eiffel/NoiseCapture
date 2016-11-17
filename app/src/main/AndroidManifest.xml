@@ -108,7 +108,7 @@
         <activity
             android:name=".calibration_menu"
             android:label="@string/title_activity_menu_calibration" />
-        <activity android:name=".calibration_wifi_host"
+        <activity android:name=".CalibrationWifiHost"
             android:label="@string/title_activity_calibration_host" />
     </application>
 

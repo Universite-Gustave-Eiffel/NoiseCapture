@@ -17,6 +17,7 @@
     <string name="calibration_save_change">Ignore and apply</string>
     <string name="calibration_cancel_change">Cancel</string>
     <string name="fail_share">Generation of the shared file failed</string>
+    <string name="measurement_already_sent">Measurement already uploaded</string>
     <string name="no_results">There is no result. Start a record before.</string>
     <string name="no_gps_results">No GPS coordinates in this record</string>
     <string name="no_gps_hint">No GPS</string>

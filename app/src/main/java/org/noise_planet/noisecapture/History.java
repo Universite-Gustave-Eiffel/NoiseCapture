@@ -226,9 +226,15 @@ public class History extends MainActivity {
         }
 
         private void launchUpload() {
-            historyActivity.progress = ProgressDialog.show(historyActivity, historyActivity.getText(R.string.upload_progress_title),
-                    historyActivity.getText(R.string.upload_progress_message), true);
-            new Thread(new SendZipToServer(historyActivity, recordId, historyActivity.progress, new RefreshListener(historyActivity.historyListAdapter))).start();
+            Storage.Record record = historyActivity.measurementManager.getRecord(recordId);
+            if(record.getUploadId().isEmpty()) {
+                historyActivity.progress = ProgressDialog.show(historyActivity, historyActivity.getText(R.string.upload_progress_title),
+                        historyActivity.getText(R.string.upload_progress_message), true);
+                new Thread(new SendZipToServer(historyActivity, recordId, historyActivity.progress, new RefreshListener(historyActivity.historyListAdapter))).start();
+            } else {
+                Toast.makeText(historyActivity,
+                        historyActivity.getString(R.string.measurement_already_sent), Toast.LENGTH_LONG).show();
+            }
         }
 
         private File getSharedFile() {

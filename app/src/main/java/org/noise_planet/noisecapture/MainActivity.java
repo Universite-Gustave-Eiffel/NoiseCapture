@@ -572,9 +572,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             MeasurementUploadWPS measurementUploadWPS = new MeasurementUploadWPS(activity);
+            MeasurementManager measurementManager = new MeasurementManager(activity);
             try {
                 for(Integer recordId : recordsId) {
-                    measurementUploadWPS.uploadRecord(recordId);
+                    Storage.Record record = measurementManager.getRecord(recordId);
+                    if(record.getUploadId().isEmpty()) {
+                        measurementUploadWPS.uploadRecord(recordId);
+                    }
                 }
                 if(listener != null) {
                     activity.runOnUiThread(new Runnable() {

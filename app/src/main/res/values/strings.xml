@@ -24,6 +24,7 @@
     <string name="gps_hint_precision">%1$d m</string>
     <string name="loc_hint">Location status hint</string>
     <string name="permission_explain_audio_record">NoiseCapture requires microphone use permission for audio measures</string>
+    <string name="permission_explain_wifi">NoiseCapture requires wifi permission in order to establish wifi peer to peer connection</string>
     <string name="permission_explain_gps">NoiseCapture requires GPS location for the localisation of noise levels on the map</string>
     <string name="permission_explain_access_wifi_state">NoiseCapture requires permission to access
         the wifi state in order to not transfer data if you are not connected using wifi</string>
@@ -223,6 +224,10 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="userinfo_pleasantness">Pleasantness</string>
     <string name="calibration_status_waiting_for_user_start">Waiting for calibration start&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">Calibration is about to start&#8230;</string>
+    <string name="calibration_status_waiting_for_peers">Awaiting peers to connect</string>
+    <string name="calibration_status_p2p_error">Peer to peer wifi feature not accessible</string>
+    <string name="calibration_status_p2p_busy">Peer to peer wifi feature busy</string>
+    <string name="calibration_status_p2p_disabled">Peer to peer wifi feature disabled by user</string>
     <string name="userinfo_button_measure">Measure</string>
     <string name="userinfo_button_results">Valid</string>
     <string name="userinfo_tags">Predominant sources</string>
@@ -266,4 +271,10 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_menu_btn_manual">Manual calibration</string>
     <string name="calibration_menu_btn_wifi_guest">WIFI calibration</string>
     <string name="calibration_menu_btn_wifi_host">Calibrate other devices</string>
+    <string name="wifi_peer_available">Available</string>
+    <string name="wifi_peer_invited">Invited</string>
+    <string name="wifi_peer_connected">Connected</string>
+    <string name="wifi_peer_failed">Failed</string>
+    <string name="wifi_peer_unavailable">Unavailable</string>
+    <string name="wifi_peer_unknown">Unknown</string>
 </resources>

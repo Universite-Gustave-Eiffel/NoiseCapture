@@ -27,10 +27,11 @@
 
 package org.noise_planet.noisecapture;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 
-public class calibration_menu  extends MainActivity {
+public class CalibrationMenu extends MainActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,11 +41,23 @@ public class calibration_menu  extends MainActivity {
     }
 
     public void onManualCalibration(View view) {
+        Intent ics = new Intent(getApplicationContext(), CalibrationActivity.class);
+        mDrawerLayout.closeDrawer(mDrawerList);
+        startActivity(ics);
+        finish();
     }
 
     public void onWifiGuestCalibration(View view) {
+        Intent ics = new Intent(getApplicationContext(), CalibrationWifiGuest.class);
+        mDrawerLayout.closeDrawer(mDrawerList);
+        startActivity(ics);
+        finish();
     }
 
     public void onWifiHostCalibration(View view) {
+        Intent ics = new Intent(getApplicationContext(), CalibrationWifiHost.class);
+        mDrawerLayout.closeDrawer(mDrawerList);
+        startActivity(ics);
+        finish();
     }
 }

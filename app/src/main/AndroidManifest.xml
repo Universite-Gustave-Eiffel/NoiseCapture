@@ -2,13 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.noise_planet.noisecapture">
 
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <!-- <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" /> -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:required="false" android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:required="false" android:name="android.permission.CHANGE_WIFI_STATE"/>
+    <uses-permission android:required="false" android:name="android.permission.INTERNET" />
+    <uses-permission android:required="false" android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:required="true" android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission  android:required="false" android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:required="true" android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <!-- Save shared file permission on privte folder -->
     <uses-permission
@@ -50,6 +50,7 @@
             android:value="@integer/google_play_services_version" />
 
         <service android:name=".MeasurementService" />
+        <service android:name=".CalibrationService" />
 
         <activity
             android:name=".MeasurementActivity"
@@ -106,10 +107,12 @@
             android:label="@string/title_activity_comment"
             android:windowSoftInputMode="adjustPan" />
         <activity
-            android:name=".calibration_menu"
+            android:name=".CalibrationMenu"
             android:label="@string/title_activity_menu_calibration" />
-        <activity android:name=".CalibrationWifiHost"
+        <activity
+            android:name=".CalibrationWifiHost"
             android:label="@string/title_activity_calibration_host" />
+        <activity android:name=".CalibrationWifiGuest"></activity>
     </application>
 
 </manifest>

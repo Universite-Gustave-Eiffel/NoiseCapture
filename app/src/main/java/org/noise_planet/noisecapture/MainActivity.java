@@ -99,6 +99,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * If necessary request user to acquire permisions for wifi p2p
+     * @return True if service can be bind immediately. Otherwise the bind should be done using the
+     * @see #onRequestPermissionsResult
+     */
+    protected boolean checkAndAskWifiP2PPermissions() {
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.CHANGE_WIFI_STATE)
+                != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_WIFI_STATE)
+                != PackageManager.PERMISSION_GRANTED) {
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    android.Manifest.permission.CHANGE_WIFI_STATE)) {
+                // After the user
+                // sees the explanation, try again to request the permission.
+                Toast.makeText(this,
+                        R.string.permission_explain_wifi, Toast.LENGTH_LONG).show();
+            }
+            // Request the permission.
+            ActivityCompat.requestPermissions(this,
+                    new String[]{android.Manifest.permission.CHANGE_WIFI_STATE,
+                            android.Manifest.permission.ACCESS_WIFI_STATE},
+                    PERMISSION_WIFI_STATE);
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * If necessary request user to acquire permisions for critical ressources (gps and microphone)
      * @return True if service can be bind immediately. Otherwise the bind should be done using the
      * @see #onRequestPermissionsResult
@@ -305,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
                     mDrawerLayout.closeDrawer(mDrawerList);
                     break;
                 case 5:
-                    Intent ics = new Intent(getApplicationContext(), CalibrationActivity.class);
+                    Intent ics = new Intent(getApplicationContext(), CalibrationMenu.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ics);
                     finish();

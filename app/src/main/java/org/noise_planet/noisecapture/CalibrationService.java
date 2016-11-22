@@ -27,26 +27,47 @@
 
 package org.noise_planet.noisecapture;
 
+import android.*;
+import android.Manifest;
 import android.app.Service;
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.net.wifi.p2p.WifiP2pDevice;
+import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.nsd.WifiP2pServiceInfo;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.widget.Toast;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeSupport;
+import java.lang.reflect.Method;
 import java.util.Random;
 
 /**
  * This service allow to be the host or the guest to an automated calibration while the android
  * phone GUI is in sleep mode.
  */
-public class CalibrationService extends Service implements PropertyChangeListener {
+public class CalibrationService extends Service implements PropertyChangeListener, WifiP2pManager.PeerListListener {
+    private static final int SSID_LENGTH = 20;
     public static final String EXTRA_HOST = "MODE_HOST";
+    public static final String PROP_CALIBRATION_STATE = "PROP_CALIBRATION_STATE";
+    public static final String PROP_PEER_LIST = "PROP_PEER_LIST";
+    public static final String PROP_P2P_DEVICE = "PROP_P2P_DEVICE";
+    private final IntentFilter intentFilter = new IntentFilter();
+    private WifiP2pDevice wifiP2pDevice;
+    private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationService.class);
+
 
     public enum CALIBRATION_STATE {
         WIFI_DISABLED,              // Wifi is not activated (user have to activate it)
@@ -62,6 +83,12 @@ public class CalibrationService extends Service implements PropertyChangeListene
     }
 
     private CALIBRATION_STATE state = CALIBRATION_STATE.WIFI_DISABLED;
+
+    @Override
+    public void onPeersAvailable(WifiP2pDeviceList peers) {
+        listeners.firePropertyChange(PROP_PEER_LIST, null, peers);
+    }
+
     /**
      * Class for clients to access.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with
@@ -76,12 +103,81 @@ public class CalibrationService extends Service implements PropertyChangeListene
     // This is the object that receives interactions from clients.  See
     // RemoteService for a more complete example.
     private final IBinder mBinder = new CalibrationService.LocalBinder();
+    private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
 
     // Other resources
     private boolean mIsBound = false;
     private boolean isHost = false;
 
     private MeasurementService measurementService;
+    private WifiP2pManager wifiP2pManager;
+    private WifiP2pManager.Channel mChannel;
+    private BroadcastReceiver receiver = null;
+
+
+    @Override
+    public void onCreate() {
+        //  Indicates a change in the Wi-Fi P2P status.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+
+        // Indicates a change in the list of available peers.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+
+        // Indicates the state of Wi-Fi P2P connectivity has changed.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+
+        // Indicates this device's details have changed.
+        intentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+        receiver = new CalibrationWifiBroadcastReceiver(this);
+        registerReceiver(receiver, intentFilter);
+
+
+        wifiP2pManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        mChannel = wifiP2pManager.initialize(this, getMainLooper(), null);
+        renameDevice();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(receiver);
+    }
+
+    private void renameDevice() {
+        // Change device name
+        try {
+            Class[] paramTypes = new Class[3];
+            paramTypes[0] = WifiP2pManager.Channel.class;
+            paramTypes[1] = String.class;
+            paramTypes[2] = WifiP2pManager.ActionListener.class;
+            Method setDeviceName = wifiP2pManager.getClass().getMethod(
+                    "setDeviceName", paramTypes);
+            setDeviceName.setAccessible(true);
+
+            Object arglist[] = new Object[3];
+            arglist[0] = mChannel;
+            arglist[1] = generateRandomSSID(SSID_LENGTH);
+            arglist[2] = new WifiP2pManager.ActionListener() {
+
+                @Override
+                public void onSuccess() {
+                    LOGGER.info("Successfully rename wifi device");
+                }
+
+                @Override
+                public void onFailure(int reason) {
+                    // Cannot specify SSID, ignore it, as it is only a convenient feature
+                    LOGGER.info("Fail to rename wifi device");
+                }
+            };
+            setDeviceName.invoke(wifiP2pManager, arglist);
+        } catch (Exception ex) {
+            // Cannot specify SSID, ignore it, as it is only a convenient feature
+            LOGGER.error("Fail to rename wifi device", ex);
+        }
+    }
+
 
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
@@ -96,6 +192,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
             if(!measurementService.isRecording()) {
                 measurementService.startRecording();
             }
+            measurementService.setdBGain(0);
             measurementService.getAudioProcess().setDoFastLeq(false);
             measurementService.getAudioProcess().setDoOneSecondLeq(true);
             measurementService.getAudioProcess().setWeightingA(false);
@@ -111,6 +208,15 @@ public class CalibrationService extends Service implements PropertyChangeListene
             measurementService = null;
         }
     };
+
+    public void setWifiP2pDevice(WifiP2pDevice wifiP2pDevice) {
+        this.wifiP2pDevice = wifiP2pDevice;
+        listeners.firePropertyChange(PROP_P2P_DEVICE, null, wifiP2pDevice);
+    }
+
+    public WifiP2pDevice getWifiP2pDevice() {
+        return wifiP2pDevice;
+    }
 
     @Nullable
     @Override
@@ -128,6 +234,15 @@ public class CalibrationService extends Service implements PropertyChangeListene
             AudioProcess.AudioMeasureResult measure =
                     (AudioProcess.AudioMeasureResult) event.getNewValue();
         }
+        listeners.firePropertyChange(event);
+    }
+
+    public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+        listeners.addPropertyChangeListener(propertyChangeListener);
+    }
+
+    public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
+        listeners.removePropertyChangeListener(propertyChangeListener);
     }
 
     void doBindService() {
@@ -144,6 +259,10 @@ public class CalibrationService extends Service implements PropertyChangeListene
         }
     }
 
+    protected void setState(CALIBRATION_STATE state) {
+        this.state = state;
+    }
+
     void doUnbindService() {
         if (mIsBound) {
             measurementService.removePropertyChangeListener(this);
@@ -155,9 +274,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
 
 
+
     private String generateRandomSSID(double maxSize){
         Random random = new Random();
-        final String[] consonants = {"B", "BL", "C", "D", "F", "G", "GR", "H", "J", "K", "L", "M", "N", "P", "R", "S", "T", "V", "W", "X", "Y", "Z"};
+        final String[] consonants = {"B", "BL", "C", "D", "F", "G", "GR", "H", "J", "K", "L", "M",
+                "N", "P", "R", "S", "T", "V", "W", "X", "Y", "Z"};
         final String[] vowels = {"A", "E", "I", "O", "OO", "U"};
 
         StringBuilder randomString = new StringBuilder("CALIBRATION_");
@@ -178,5 +299,43 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     public CALIBRATION_STATE getState() {
         return state;
+    }
+
+    private static class CalibrationWifiBroadcastReceiver extends BroadcastReceiver {
+        CalibrationService calibrationService;
+
+        public CalibrationWifiBroadcastReceiver(CalibrationService calibrationService) {
+            this.calibrationService = calibrationService;
+        }
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
+                // Determine if Wifi P2P mode is enabled or not, alert
+                // the Activity.
+                int state = intent.getIntExtra(WifiP2pManager.EXTRA_WIFI_STATE, -1);
+                if (state == WifiP2pManager.WIFI_P2P_STATE_ENABLED) {
+                    calibrationService.setState(CALIBRATION_STATE.LOOKING_FOR_PEERS);
+                    calibrationService.wifiP2pManager.requestPeers(calibrationService.mChannel, calibrationService);
+                } else {
+                    calibrationService.setState(CALIBRATION_STATE.WIFI_DISABLED);
+                }
+            } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
+
+                // The peer list has changed!  We should probably do something about
+                // that.
+
+            } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
+
+                // Connection state changed!  We should probably do something about
+                // that.
+
+            } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
+                WifiP2pDevice wifiP2pDevice = intent.getParcelableExtra(
+                        WifiP2pManager.EXTRA_WIFI_P2P_DEVICE);
+                calibrationService.setWifiP2pDevice(wifiP2pDevice);
+            }
+        }
     }
 }

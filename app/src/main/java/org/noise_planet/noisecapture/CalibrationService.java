@@ -75,8 +75,10 @@ public class CalibrationService extends Service implements PropertyChangeListene
         WIFI_DISABLED,              // Wifi is not activated (user have to activate it)
         WIFI_BUSY,                  // Wifi is in busy state (errors)
         P2P_UNSUPPORTED,            // Device is not compatible with peer to peer wifi
-        LOOKING_FOR_PEERS,          // Host is broadcasting and is awaiting for calibration start
-        PAIRED_TO_PEER,             // Connected to a network
+        LOOKING_FOR_PEERS,          // Host is broadcasting and is awaiting for pairing request
+        LOOKING_FOR_HOST,           // Peer is broadcasting and is awaiting for host discovery
+        PAIRED_TO_PEER,             // Connected to at least one peer
+        PAIRED_TO_HOST,             // Connected to reference device
         AWAITING_HOST_SELECTION,    // One or more host has been found and the system must choose one
         AWAITING_START,             // Awaiting host for calibration start
         WARMUP,                     // Warmup is launched by host, Leq are sent to host
@@ -373,7 +375,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 NetworkInfo networkInfo = intent.getParcelableExtra(WifiP2pManager.EXTRA_NETWORK_INFO);
                 if(networkInfo.isConnected()) {
                     // Connected
-                    calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_PEER);
+                    if(calibrationService.isHost) {
+                        calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_PEER);
+                    } else {
+                        calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_HOST);
+                    }
                     LOGGER.info("debug WIFI_P2P_CONNECTION_CHANGED_ACTION isConnected");
                 } else {
                     if(!networkInfo.isAvailable()) {
@@ -399,10 +405,18 @@ public class CalibrationService extends Service implements PropertyChangeListene
                         calibrationService.renameDevice();
                     } else if(calibrationService.wifiP2pManager != null) {
                         calibrationService.wifiP2pManager.discoverPeers(calibrationService.mChannel, null);
-                        calibrationService.setState(CALIBRATION_STATE.LOOKING_FOR_PEERS);
+                        if(calibrationService.isHost) {
+                            calibrationService.setState(CALIBRATION_STATE.LOOKING_FOR_PEERS);
+                        } else {
+                            calibrationService.setState(CALIBRATION_STATE.LOOKING_FOR_HOST);
+                        }
                     }
                 } else if(wifiP2pDevice.status == WifiP2pDevice.CONNECTED) {
-                    calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_PEER);
+                    if(calibrationService.isHost) {
+                        calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_PEER);
+                    } else {
+                        calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_HOST);
+                    }
                 }
             }
         }

@@ -225,7 +225,9 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_status_waiting_for_user_start">Waiting for calibration start&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">Calibration is about to start&#8230;</string>
     <string name="calibration_status_waiting_for_peers">Awaiting peers to connect</string>
-    <string name="calibration_status_paired_to_peer">Paired to peer</string>
+    <string name="calibration_status_waiting_for_host">Awaiting host broadcast</string>
+    <string name="calibration_status_paired_to_peer">Paired to peer(s)</string>
+    <string name="calibration_status_paired_to_host">Paired to host</string>
     <string name="calibration_status_p2p_error">Peer to peer wifi feature not accessible</string>
     <string name="calibration_status_p2p_busy">Peer to peer wifi feature busy</string>
     <string name="calibration_status_p2p_disabled">Peer to peer wifi feature disabled by user</string>

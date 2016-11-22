@@ -60,9 +60,9 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
     private CalibrationService calibrationService;
     private TextView textDeviceLevel;
     private TextView textDeviceName;
-    private TextView textStatus;
     private ListView peersList;
     private ImageView connectionStatusImage;
+    private TextView textStatus;
     private DeviceListAdapter deviceListAdapter;
     private static final int BLINK_DELAY = 500;
 
@@ -73,12 +73,12 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
         initDrawer();
 
         textDeviceLevel = (TextView) findViewById(R.id.spl_ref_measured);
-        textStatus = (TextView) findViewById(R.id.calibration_state);
         textDeviceName = (TextView) findViewById(R.id.calibration_host_ssid);
         peersList = (ListView) findViewById(R.id.listview_peers);
         deviceListAdapter = new DeviceListAdapter(this);
         peersList.setAdapter(deviceListAdapter);
         connectionStatusImage = (ImageView) findViewById(R.id.imageView_value_wifi_state);
+        textStatus = (TextView) findViewById(R.id.calibration_state);
 
         if(checkAndAskWifiP2PPermissions()) {
             doBindService();
@@ -100,14 +100,16 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
         // class name because we want a specific service implementation that
         // we know will be running in our own process (and thus won't be
         // supporting component replacement by other applications).
-        if(bindService(new Intent(this, CalibrationService.class), mConnection,
-                Context.BIND_AUTO_CREATE)) {
+        Intent intent = new Intent(this, CalibrationService.class);
+        intent.putExtra(CalibrationService.EXTRA_HOST, true);
+        if(bindService(intent, mConnection, Context.BIND_AUTO_CREATE)) {
             mIsBound = true;
         }
     }
 
-    private void applyStateChange(CalibrationService.CALIBRATION_STATE newState) {
+    public static void applyStateChange(CalibrationService.CALIBRATION_STATE newState, ImageView connectionStatusImage, TextView textStatus) {
         int message;
+        AlphaAnimation alphaAnimation;
         switch (newState) {
             case WIFI_DISABLED:
                 message = R.string.calibration_status_p2p_disabled;
@@ -124,15 +126,30 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
                 connectionStatusImage.setImageResource(R.drawable.no_wifi);
                 connectionStatusImage.clearAnimation();
                 break;
-            case LOOKING_FOR_PEERS:
-                message = R.string.calibration_status_waiting_for_peers;
+            case LOOKING_FOR_HOST:
+                message = R.string.calibration_status_waiting_for_host;
                 connectionStatusImage.setImageResource(R.drawable.wifi_lookup);
-                AlphaAnimation alphaAnimation = new AlphaAnimation(1,0);
+                alphaAnimation = new AlphaAnimation(1,0);
                 alphaAnimation.setDuration(BLINK_DELAY);
                 alphaAnimation.setInterpolator(new LinearInterpolator());
                 alphaAnimation.setRepeatCount(Animation.INFINITE);
                 alphaAnimation.setRepeatMode(Animation.REVERSE);
                 connectionStatusImage.startAnimation(alphaAnimation);
+                break;
+            case LOOKING_FOR_PEERS:
+                message = R.string.calibration_status_waiting_for_peers;
+                connectionStatusImage.setImageResource(R.drawable.wifi_lookup);
+                alphaAnimation = new AlphaAnimation(1,0);
+                alphaAnimation.setDuration(BLINK_DELAY);
+                alphaAnimation.setInterpolator(new LinearInterpolator());
+                alphaAnimation.setRepeatCount(Animation.INFINITE);
+                alphaAnimation.setRepeatMode(Animation.REVERSE);
+                connectionStatusImage.startAnimation(alphaAnimation);
+                break;
+            case PAIRED_TO_HOST:
+                message = R.string.calibration_status_paired_to_host;
+                connectionStatusImage.setImageResource(R.drawable.wifi_active);
+                connectionStatusImage.clearAnimation();
                 break;
             case PAIRED_TO_PEER:
                 message = R.string.calibration_status_paired_to_peer;
@@ -175,13 +192,13 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
             // Calibration service state change, inform user
             CalibrationService.CALIBRATION_STATE newState =
                     (CalibrationService.CALIBRATION_STATE)event.getNewValue();
-            applyStateChange(newState);
+            applyStateChange(newState, connectionStatusImage, textStatus);
         } else if(CalibrationService.PROP_P2P_DEVICE.equals(event.getPropertyName())) {
             WifiP2pDevice p2pDevice = calibrationService.getWifiP2pDevice();
             if(p2pDevice != null) {
                 textDeviceName.setText(p2pDevice.deviceName);
             } else {
-                textDeviceLevel.setText("");
+                textDeviceName.setText("");
             }
         } else if(CalibrationService.PROP_PEER_LIST.equals(event.getPropertyName())) {
             deviceListAdapter.onPeersAvailable((WifiP2pDeviceList)event.getNewValue());
@@ -191,7 +208,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             calibrationService = ((CalibrationService.LocalBinder)service).getService();
-            applyStateChange(calibrationService.getState());
+            applyStateChange(calibrationService.getState(), connectionStatusImage, textStatus);
             calibrationService.addPropertyChangeListener(CalibrationWifiHost.this);
             calibrationService.init();
         }

@@ -39,6 +39,7 @@ import android.os.IBinder;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
@@ -70,6 +71,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calibration_wifi_host);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         initDrawer();
 
         textDeviceLevel = (TextView) findViewById(R.id.spl_ref_measured);
@@ -101,7 +103,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
         // we know will be running in our own process (and thus won't be
         // supporting component replacement by other applications).
         Intent intent = new Intent(this, CalibrationService.class);
-        intent.putExtra(CalibrationService.EXTRA_HOST, true);
+        intent.putExtra(CalibrationService.EXTRA_HOST, 1);
         if(bindService(intent, mConnection, Context.BIND_AUTO_CREATE)) {
             mIsBound = true;
         }

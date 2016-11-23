@@ -34,6 +34,7 @@ import android.content.ServiceConnection;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -52,6 +53,7 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calibration_wifi_guest);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         initDrawer();
 
         connectionStatusImage = (ImageView) findViewById(R.id.imageView_value_wifi_state);
@@ -121,7 +123,7 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
         // we know will be running in our own process (and thus won't be
         // supporting component replacement by other applications).
         Intent intent = new Intent(this, CalibrationService.class);
-        intent.putExtra(CalibrationService.EXTRA_HOST, false);
+        intent.putExtra(CalibrationService.EXTRA_HOST, 0);
         if(bindService(intent, mConnection, Context.BIND_AUTO_CREATE)) {
             mIsBound = true;
         }

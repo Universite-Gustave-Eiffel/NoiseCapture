@@ -172,6 +172,8 @@
     <string name="title_activity_menu_calibration">Calibration methods</string>
 
     <string name="title_activity_calibration_host">Host calibration session</string>
+    <string name="title_activity_calibration_peer">Wifi calibration session</string>
+
 
     <string name="start_text_title">NoiseCapture</string>
     <string name="start_text_subtitle">Measuring your sound environment</string>

@@ -111,8 +111,11 @@
             android:label="@string/title_activity_menu_calibration" />
         <activity
             android:name=".CalibrationWifiHost"
-            android:label="@string/title_activity_calibration_host" />
-        <activity android:name=".CalibrationWifiGuest"></activity>
+            android:label="@string/title_activity_calibration_host"
+            android:keepScreenOn="true"/>
+        <activity android:name=".CalibrationWifiGuest"
+            android:label="@string/title_activity_calibration_peer"
+            android:keepScreenOn="true" />
     </application>
 
 </manifest>

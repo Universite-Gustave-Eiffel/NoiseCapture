@@ -39,8 +39,10 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
 	lastDrawnHex : {q:0, r:0},
   ows_url:'http://onomap-gs.noise-planet.org/geoserver/ows',
   //ows_url:'http://127.0.0.1:8085/geoserver/ows',
-  // Last downloaded data
+  // Last hexa donut downloaded data
   data:null,
+  // Last history data
+  data_histo:null,
 
 	/**
 	 * @param hex Hex index
@@ -206,6 +208,57 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
 	  map.off("mousemove", this.updateHexOverlay, this);
   },
 
+  showHistory: function (data) {
+    if(data instanceof Array) {
+        var histoDiv = document.getElementById('measures_log');
+        var lang = $('#time_lang')[0].attributes.lang.value;
+        moment.locale(lang);
+        var onsite = $('input[name=tz-option]:checked')[0].attributes.onsite;
+        html_cont = "<table class=\"table\"><thead><tr><th>Goto</th><th>Date</th><th>Length</th></tr></thead><tbody>";
+        for(row of data) {
+          //#15/47.6574/-2.9206
+          // time_length":1,"record_utc":"2016-09-30T11:06:22.000+0200","zoom_level":18,"lat":47.1540551,"long":-1.6454225},{"tim
+          var time_record;
+          if(onsite) {
+            // User check to see the time on the measurement zone (not on browser timezone)
+            time_record = moment.parseZone(row.record_utc).format('LLL');
+          } else {
+            // User want to see in local time
+            time_record = moment(row.record_utc).format('LLL');
+          }
+          html_cont += "<tr><td><a href=\"#"+row.zoom_level+"/"+row.lat+"/"+row.long+"\"><i class=\"fa fa-dot-circle-o\" aria-hidden=\"true\"></i></a></td><td>"+time_record+"</td><td>"+row.time_length+" s</td></tr>";
+        }
+        html_cont += "</tbody></table>";
+        histoDiv.innerHTML = html_cont;
+    }
+  },
+
+  getHistory: function() {
+    // Make an AJAX request to the server and hope for the best
+    var url = this.getFeatureInfoUrl('groovy:nc_last_measures'),
+        showResults = L.Util.bind(this.showHistory, this);
+    var _this = this;
+    var postData = this.getHistoryContent();
+    $.ajax({
+      type: 'POST',
+      crossDomain: true,
+      data: postData,
+      contentType: "text/plain",
+      dataType: "json",
+      url: url,
+      success: function (data, status, xhr) {
+        if(data instanceof Array) {
+          _this.histodata = data;
+        }
+        showResults(_this.histodata);
+      },
+      error: function (xhr, status, error) {
+        showResults(error);
+      }
+    });
+
+  },
+
   getFeatureInfo: function (evt) {
     // Make an AJAX request to the server and hope for the best
     var url = this.getFeatureInfoUrl(),
@@ -232,7 +285,7 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
     });
   },
 
-  getFeatureInfoUrl: function () {
+  getFeatureInfoUrl: function (funcIdentifier) {
     // Construct a GetFeatureInfo request URL
         size = this._map.getSize(),
         params = {
@@ -240,9 +293,29 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
           service: 'wps',
           version: '1.0.0'
         };
+        if(funcIdentifier) {
+          params['Identifier'] = funcIdentifier;
+        }
     return this.ows_url + L.Util.getParamString(params, this.ows_url, true);
   },
 
+  getHistoryContent: function() {
+    return "<?xml version=\"1.0\" encoding=\"UTF-8\"?><wps:Execute version=\"1.0.0\" \
+     service=\"WPS\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"  \
+     xmlns=\"http://www.opengis.net/wps/1.0.0\" xmlns:wfs=\"http://www.opengis.net/wfs\"  \
+     xmlns:wps=\"http://www.opengis.net/wps/1.0.0\" xmlns:ows=\"http://www.opengis.net/ows/1.1\"  \
+     xmlns:gml=\"http://www.opengis.net/gml\" xmlns:ogc=\"http://www.opengis.net/ogc\" \
+      xmlns:wcs=\"http://www.opengis.net/wcs/1.1.1\" xmlns:xlink=\"http://www.w3.org/1999/xlink\"  \
+      xsi:schemaLocation=\"http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd\"> \
+  <ows:Identifier>groovy:nc_last_measures</ows:Identifier> \
+  <wps:DataInputs/> \
+  <wps:ResponseForm> \
+    <wps:RawDataOutput> \
+      <ows:Identifier>result</ows:Identifier> \
+    </wps:RawDataOutput> \
+  </wps:ResponseForm> \
+</wps:Execute>";
+  },
   getFeatureInfoContent: function (latlng) {
     // Construct a GetFeatureInfo request content given a point
     if (latlng) {
@@ -290,38 +363,59 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
     moment.locale(lang);
     var first_measure;
     var last_measure;
-    if($('input[name=tz-option]:checked')[0].attributes.onsite) {
-      // User check to see the time on the measurement zone (not on browser timezone)
-      first_measure = moment.parseZone(content["first_measure"]);
-      last_measure = moment.parseZone(content["last_measure"]);
+    if(content["first_measure"]) {
+      if($('input[name=tz-option]:checked')[0].attributes.onsite) {
+        // User check to see the time on the measurement zone (not on browser timezone)
+        first_measure = moment.parseZone(content["first_measure"]).format('LLL');
+        last_measure = moment.parseZone(content["last_measure"]).format('LLL');
+      } else {
+        // User want to see in local time
+        first_measure = moment(content["first_measure"]).format('LLL');
+        last_measure = moment(content["last_measure"]).format('LLL');
+      }
     } else {
-      // User want to see in local time
-      first_measure = moment(content["first_measure"]);
-      last_measure = moment(content["last_measure"]);
+      first_measure = "None";
+      last_measure = "None";
     }
-    infoDiv.innerHTML = "<p class='attribute_label'>LA50 (mean value):</p><i class='fa fa-microphone' aria-hidden='true'></i> "+(content["leq"] ? Math.round(content["leq"])+" dB(A)" : "undefined")+"\
-    <p class='attribute_label'>First measure:</p><i class='fa fa-clock-o' aria-hidden='true'></i> "+first_measure.format('LLL')+"\
-    <p class='attribute_label'>Last measure:</p><i class='fa fa-clock-o' aria-hidden='true'></i> "+last_measure.format('LLL')+"\
+    infoDiv.innerHTML = "<p class='attribute_label'>LA50 (mean value):</p><i class='fa fa-microphone' aria-hidden='true'></i> "+(content["leq"] ? Math.round(content["leq"])+" dB(A)" : "None")+"\
+    <p class='attribute_label'>First measure:</p><i class='fa fa-clock-o' aria-hidden='true'></i> "+first_measure+"\
+    <p class='attribute_label'>Last measure:</p><i class='fa fa-clock-o' aria-hidden='true'></i> "+last_measure+"\
     <p class='attribute_label'>Pleasantness:</p><i class='fa fa-smile-o' aria-hidden='true'></i> "+(content["mean_pleasantness"] ? Math.round(content["mean_pleasantness"]) + " %" : "NC")+"\
     <p class='attribute_label'>Measure duration:</p><i class='fa fa-hourglass' aria-hidden='true'></i> "+(content["measure_count"] ? Math.round(content["measure_count"]) + " seconds" : "None");
-    weekdonut.loadLevels();
-    saturdaydonut.loadLevels();
-    sundaydonut.loadLevels();
+    if(typeof weekdonut !== 'undefined') {
+      weekdonut.loadLevels();
+    }
+    if(typeof saturdaydonut !== 'undefined') {
+      saturdaydonut.loadLevels();
+    }
+    if(typeof sundaydonut !== 'undefined') {
+      sundaydonut.loadLevels();
+    }
     if (err) { console.log(err); return; } // do nothing if there's an error
     // Split hour levels for week, saturday and sunday
     var alldata = content["profile"];
     var weekData = alldata;
     var saturdayData = [];
     var sundayData = [];
-    for(i=0; i<24; i++) {
-      var key = i.toString();
-      saturdayData.push(alldata[24 + i]);
-      sundayData.push(alldata[48 + i]);
+    if(alldata) {
+      for(i=0; i<24; i++) {
+        var key = i.toString();
+        saturdayData.push(alldata[24 + i]);
+        sundayData.push(alldata[48 + i]);
+      }
     }
-    weekdonut.loadLevels(weekData);
-    saturdaydonut.loadLevels(saturdayData);
-    sundaydonut.loadLevels(sundayData);
-    sidebar.open('hexainfo');
+    if(typeof weekdonut !== 'undefined') {
+      weekdonut.loadLevels(weekData);
+    }
+    if(typeof saturdaydonut !== 'undefined') {
+      saturdaydonut.loadLevels(saturdayData);
+    }
+    if(typeof sundaydonut !== 'undefined') {
+      sundaydonut.loadLevels(sundayData);
+    }
+    if(alldata) {
+      sidebar.open('hexainfo');
+    }
   }
 });
 

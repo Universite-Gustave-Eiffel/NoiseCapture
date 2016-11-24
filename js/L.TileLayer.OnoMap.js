@@ -226,7 +226,7 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
             // User want to see in local time
             time_record = moment(row.record_utc).format('LLL');
           }
-          html_cont += "<tr><td><a href=\"#"+row.zoom_level+"/"+row.lat+"/"+row.long+"\"><i class=\"fa fa-dot-circle-o\" aria-hidden=\"true\"></i></a></td><td>"+time_record+"</td><td>"+row.time_length+" s</td></tr>";
+          html_cont += "<tr><td><a href=\"#"+row.zoom_level+"/"+row.lat+"/"+row.long+"\"><i class=\"fa fa-map-marker\" aria-hidden=\"true\"></i></a></td><td>"+time_record+"</td><td>"+row.time_length+" s</td></tr>";
         }
         html_cont += "</tbody></table>";
         histoDiv.innerHTML = html_cont;

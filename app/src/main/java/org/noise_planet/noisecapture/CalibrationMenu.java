@@ -28,8 +28,10 @@
 package org.noise_planet.noisecapture;
 
 import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 
 public class CalibrationMenu extends MainActivity {
 
@@ -38,6 +40,14 @@ public class CalibrationMenu extends MainActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calibration_menu);
         initDrawer();
+
+        // Disable wifi calibration if device < API 16
+        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
+            View wifiCalibration = findViewById(R.id.BtnWifiCalibration);
+            wifiCalibration.setEnabled(false);
+            View wifiHostCalibration = findViewById(R.id.BtnHostWifiGroup);
+            wifiHostCalibration.setEnabled(false);
+        }
     }
 
     public void onManualCalibration(View view) {

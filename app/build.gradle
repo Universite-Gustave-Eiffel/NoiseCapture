@@ -23,6 +23,9 @@ android {
     if(new File(signingFilePath).exists()) {
         apply from: signingFilePath
     }
+    sourceSets {
+        main.java.srcDirs += '../WiFi-Buddy/wifibuddy/src/main/java'
+    }
     defaultConfig {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15

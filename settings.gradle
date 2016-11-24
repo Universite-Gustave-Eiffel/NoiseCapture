@@ -1,1 +1,1 @@
-include 'sosfilter', 'WiFi-Buddy/wifibuddy', 'app'
+include 'sosfilter', 'app'

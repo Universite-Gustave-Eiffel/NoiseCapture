@@ -10,7 +10,7 @@
     <uses-permission  android:required="false" android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:required="true" android:name="android.permission.ACCESS_FINE_LOCATION" />
 
-    <!-- Save shared file permission on privte folder -->
+    <!-- Save shared file permission on private folder -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="18" />
@@ -51,6 +51,7 @@
 
         <service android:name=".MeasurementService" />
         <service android:name=".CalibrationService" />
+        <service android:name="edu.rit.se.wifibuddy.WifiDirectHandler" />
 
         <activity
             android:name=".MeasurementActivity"

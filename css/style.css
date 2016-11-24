@@ -91,3 +91,7 @@ html, body, #map {
     content: "\f0eb  ";
     font-family: FontAwesome
 }
+
+table, th, td {
+    font-size: 1em;
+}

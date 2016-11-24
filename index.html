@@ -10,6 +10,7 @@
     <link rel="stylesheet" href="css/languages.min.css" />
     <link rel="stylesheet" href="css/style.css" />
     <link href="css/leaflet-search.min.css" rel="stylesheet" />
+    <link href="css/L.Control.MousePosition.css" rel="stylesheet" />
     <!-- <link href="css/time_donut.css" rel="stylesheet"> -->
     <link href="http://fontawesome.io/assets/font-awesome/css/font-awesome.css" rel="stylesheet">
     <script src="js/leaflet.js"></script>
@@ -44,12 +45,13 @@
                 <div class="text_description">According to <a href="http://www.euro.who.int/en/health-topics/environment-and-health/noise" target="_blank">World Health Organization</a>, <cite>"the excessive noise seriously harms human health and interferes with people's daily activities at school, at work, at home and during leisure time. It can disturb sleep, cause cardiovascular and psychophysiological effects, reduce performance and provoke annoyance responses and changes in social behaviour".</cite></div>
                 <br>
                 <div class="text_description_b">The aim of this website is to give to people, whether citizens or experts, the opportunity to <b>evaluate their noise environment through objective and subjective indicators.</b></div>
+                <br><a target="_blank" href="https://twitter.com/search?q=%40Noise_planet&src=typd"><img title="Follow @Noise_Planet" alt="Follow @Noise_Planet" src="https://img.shields.io/twitter/follow/Noise_Planet.svg?style=social&amp;label=Follow" /></a>
                 <h2>The NoiseCapture approach</h2>
                 <div class="text_description">Nowadays, especially in response to national, European and international rules, noise maps offered by government organizations, are made on the basis of numerical simulations, with the limitations we know them, and which result in two
                     forms: a "lack" of realism of the state of noise in the environment, as well as a lack of representation of the environment as it is perceived.</div>
                 <br>
                 <div class="centered"><img align="left" src="img/noisecapture_logo.png" alt="logo" class="logo" width="20%"></div>
-                <div class="text_description_b">Instead of using complex numerical simulation approach, the <a href="#property" role="tab">NoiseCapture research project</a> propose to evaluate and represent the environmental noise with the help of citizens, <b>following a participative approach, using a smartphone application</b>.</div>
+                <div class="text_description_b">Instead of using complex numerical simulation approach, the <b>NoiseCapture research project</b> propose to evaluate and represent the environmental noise with the help of citizens, <b>following a participative approach, using a smartphone application</b>.</div>
                 <h2>How does-it work?</h2>
                 <h3>Explore the noisemaps</h3>
                 <div class="text_description">Navigate on the map, select the layers, explore your noise environment...</div>
@@ -62,7 +64,7 @@
             <div class="sidebar-pane" id="history">
                 <h1 class="sidebar-header">History<span class="sidebar-close"><i class="fa fa-caret-left"></i></span></h1>
                 <h3>Last measurements
-          <a><i class="fa fa-refresh fa-fw margin-bottom" onclick="doHistoRefresh()"></i>
+          <a><i class="fa fa-refresh fa-spin fa-fw margin-bottom" onclick="doHistoRefresh()"></i>
           <span class="sr-only">Refresh</span></a></h3>
                 <div id="measures_log"></div>
             </div>
@@ -127,12 +129,12 @@ The authors are not responsible for the direct or indirect consequences of the u
                 <div class="tab-content">
                     <div id="la50" class="tab-pane fade in active">
                         <h3>Explore the mean noise of your environment</h3>
-                        <div class="defindicator">The <b>LA50</b> is the A-weighted noise level that is exceeded for 50% of the measurement period. LA50 is the quite equivalent to <span style="font-weight: bold;">median sound level</span>.</div>
+                        <div class="defindicator">The <b>LA50</b> is the A-weighted noise level that is exceeded for 50% of the measurement period. LA50 is the quite equivalent to <span style="font-weight: bold;">mean sound level</span>.</div>
                         <hr style='margin-bottom=0em'>
-                        <img align="right" style="margin:5px 5px" src="http://onomap-gs.noise-planet.org/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=noisecapture:noisecapture_area&legend_options=fontName:Cerdana;fontAntiAliasing:true;fontColor:0x000033;fontSize:12;dpi:80&TRANSPARENT=true"
-                        />
                         <div id="areainfo"></div>
                         <hr style='margin-bottom=0em'>
+                        <img align="left" style="margin:5px 5px" src="http://onomap-gs.noise-planet.org/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=noisecapture:noisecapture_area&legend_options=fontName:Cerdana;fontAntiAliasing:true;fontColor:0x000033;fontSize:12;dpi:80&TRANSPARENT=true"
+                        />
                         <!--
                         <div class="defindicator">The following 'time-donuts' show the <b>temporal evolution of the LA50</b> over the 24h of a day, for a working day, the Saturday and the Sunday. For each 1h-period (0:00-1:00, for the 1st period...), the LA50 is evaluated from
                             the measurments and standard temporal profiles. See the help section for more information.</div>
@@ -245,7 +247,7 @@ The authors are not responsible for the direct or indirect consequences of the u
                     </ul>
                 </div>
                 <h4>Time format zone:</h4>
-                <label class="radio-inline"><input type="radio" name="tz-option"> Browser timezone</label>
+                <label class="radio-inline"><input type="radio" name="tz-option"> Browser timezone</label><br>
                 <label class="radio-inline"><input onsite type="radio" name="tz-option" checked> Measurement location timezone</label>
             </div>
         </div>
@@ -262,7 +264,9 @@ The authors are not responsible for the direct or indirect consequences of the u
     <script src="js/leaflet-search.min.js"></script>
     <script src="js/moment-with-locales.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+    <script src="js/L.Control.MousePosition.js"></script>
     <script>
+
         var map = L.map('map').setView([47.175, 12.524], 5);
 
         var sidebar = L.control.sidebar('sidebar').addTo(map);
@@ -300,6 +304,8 @@ The authors are not responsible for the direct or indirect consequences of the u
             'metric': true,
             'imperial': false
         }).addTo(map);
+
+        L.control.mousePosition().addTo(map);
 
         new L.Control.Search({
             url: 'https://nominatim.openstreetmap.org/search?format=json&q={s}',

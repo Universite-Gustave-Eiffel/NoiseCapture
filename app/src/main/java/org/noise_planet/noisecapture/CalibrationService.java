@@ -69,6 +69,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private WifiP2pDevice wifiP2pDevice;
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationService.class);
     private static final String NOISECAPTURE_CALIBRATION_SERVICE = "NoiseCapture_Calibration";
+    // Registration service timout
+    private static final int SERVICE_TIMEOUT = 120000;
 
 
     public enum CALIBRATION_STATE {
@@ -91,22 +93,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     public void onPeersAvailable(WifiP2pDeviceList peers) {
         listeners.firePropertyChange(PROP_PEER_LIST, null, peers);
-        // Connect automatically to the first peer that contains prefix
-        /*
-        if(!isHost) {
-            for (WifiP2pDevice wifiP2pDevice : peers.getDeviceList()) {
-                if (wifiP2pDevice.deviceName.contains(SSID_PREFIX)
-                        && wifiP2pDevice.status == WifiP2pDevice.AVAILABLE) {
-                    WifiP2pConfig config = new WifiP2pConfig();
-                    config.deviceAddress = wifiP2pDevice.deviceAddress;
-                    config.wps.setup = WpsInfo.PBC;
-                    config.groupOwnerIntent = 0;
-                    wifiP2pManager.connect(mChannel, config, null);
-                    break;
-                }
-            }
-        }
-        */
     }
 
     /**
@@ -185,42 +171,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
         unregisterReceiver(receiver);
         doUnbindService();
     }
-
-    /*
-    private void renameDevice() {
-        // Change device name
-        try {
-            Class[] paramTypes = new Class[3];
-            paramTypes[0] = WifiP2pManager.Channel.class;
-            paramTypes[1] = String.class;
-            paramTypes[2] = WifiP2pManager.ActionListener.class;
-            Method setDeviceName = wifiDirectHandler.get.getClass().getMethod(
-                    "setDeviceName", paramTypes);
-            setDeviceName.setAccessible(true);
-
-            Object arglist[] = new Object[3];
-            arglist[0] = mChannel;
-            arglist[1] = generateRandomSSID(SSID_LENGTH);
-            arglist[2] = new WifiP2pManager.ActionListener() {
-
-                @Override
-                public void onSuccess() {
-                    LOGGER.info("Successfully rename wifi device");
-                }
-
-                @Override
-                public void onFailure(int reason) {
-                    // Cannot specify SSID, ignore it, as it is only a convenient feature
-                    LOGGER.info("Fail to rename wifi device");
-                }
-            };
-            setDeviceName.invoke(wifiP2pManager, arglist);
-        } catch (Exception ex) {
-            // Cannot specify SSID, ignore it, as it is only a convenient feature
-            LOGGER.error("Fail to rename wifi device", ex);
-        }
-    }
-    */
 
     private ServiceConnection wifiServiceConnection = new ServiceConnection() {
 
@@ -364,8 +314,13 @@ public class CalibrationService extends Service implements PropertyChangeListene
         }
     }
 
+    public void initiateCommunication() {
+        wifiDirectHandler.getCommunicationManager();
+    }
+
     private static class CalibrationWifiBroadcastReceiver extends BroadcastReceiver {
         CalibrationService calibrationService;
+        private long lastServiceRegistering = 0;
 
         public CalibrationWifiBroadcastReceiver(CalibrationService calibrationService) {
             this.calibrationService = calibrationService;
@@ -379,23 +334,44 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 if(calibrationService.wifiDirectHandler != null &&
                         calibrationService.wifiDirectHandler.getThisDevice() != null &&
                         calibrationService.wifiDirectHandler.getThisDevice().status == WifiP2pDevice.AVAILABLE) {
+                    calibrationService.setWifiP2pDevice(calibrationService.wifiDirectHandler.getThisDevice());
                     if(calibrationService.isHost) {
                         calibrationService.setState(CALIBRATION_STATE.LOOKING_FOR_PEERS);
                     } else {
                         calibrationService.setState(CALIBRATION_STATE.LOOKING_FOR_HOST);
                     }
-                    if(calibrationService.isHost) {
-                        calibrationService.addLocalWifiService();
-                        LOGGER.info("calibrationService.addLocalWifiService()");
-                    }
                     if(!calibrationService.wifiDirectHandler.isDiscovering()) {
                         calibrationService.wifiDirectHandler.continuouslyDiscoverServices();
                         LOGGER.info("calibrationService.wifiDirectHandler.continuouslyDiscoverServices()");
                     }
+                    if(calibrationService.isHost && System.currentTimeMillis() - lastServiceRegistering > SERVICE_TIMEOUT) {
+                        calibrationService.addLocalWifiService();
+                        lastServiceRegistering = System.currentTimeMillis();
+                        LOGGER.info("calibrationService.addLocalWifiService()");
+                    }
+                } else if(calibrationService.wifiDirectHandler != null &&
+                        calibrationService.wifiDirectHandler.getThisDevice() == null) {
+                    calibrationService.wifiDirectHandler.registerP2p();
+                    calibrationService.wifiDirectHandler.registerP2pReceiver();
                 }
             } else if(WifiDirectHandler.Action.PEERS_CHANGED.equals(action)) {
                 WifiP2pDeviceList peers = intent.getParcelableExtra("peers");
                 calibrationService.onPeersAvailable(peers);
+                if(calibrationService.isHost && System.currentTimeMillis() - lastServiceRegistering > SERVICE_TIMEOUT) {
+                    boolean peerAvailable = false;
+                    for(WifiP2pDevice device : peers.getDeviceList()) {
+                        if(device.status == WifiP2pDevice.AVAILABLE) {
+                            peerAvailable = true;
+                            break;
+                        }
+                    }
+                    if(peerAvailable) {
+                        // Renew local service if a peer is available but not connected
+                        lastServiceRegistering = System.currentTimeMillis();
+                        calibrationService.addLocalWifiService();
+                        LOGGER.info("calibrationService.addLocalWifiService()");
+                    }
+                }
             } else if(WifiDirectHandler.Action.DNS_SD_SERVICE_AVAILABLE.equals(action)) {
                 String serviceKey = intent.getStringExtra("serviceMapKey");
                 Map<String, DnsSdService> serviceMap = calibrationService.wifiDirectHandler.getDnsSdServiceMap();
@@ -404,7 +380,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
                     if(service != null && NOISECAPTURE_CALIBRATION_SERVICE.equals(service.getInstanceName())) {
                         if (service.getSrcDevice().status == WifiP2pDevice.CONNECTED) {
                             LOGGER.info("Service connected");
-                            calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_HOST);
+                            if(calibrationService.isHost) {
+                                calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_PEER);
+                            } else {
+                                calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_HOST);
+                            }
                         } else if (service.getSrcDevice().status == WifiP2pDevice.AVAILABLE) {
                             String sourceDeviceName = service.getSrcDevice().deviceName;
                             if (sourceDeviceName.equals("")) {
@@ -413,7 +393,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
                             LOGGER.info("Inviting " + sourceDeviceName + " to connect");
                             calibrationService.wifiDirectHandler.initiateConnectToService(service);
                         } else {
-                            LOGGER.info("Service not available");
+                            LOGGER.info("Service not available: " + service.getSrcDevice().status);
                         }
                     }
                 }

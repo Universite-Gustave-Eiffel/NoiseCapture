@@ -136,6 +136,18 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
     }
 
     @Override
+    protected void onResume() {
+        doBindService();
+        super.onPostResume();    }
+
+    @Override
+    protected void onPause() {
+        // Disconnect listener from measurement
+        doUnbindService();
+        super.onPause();
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         // Disconnect listener from measurement

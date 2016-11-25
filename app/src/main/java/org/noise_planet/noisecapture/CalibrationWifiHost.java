@@ -60,7 +60,6 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
     private boolean mIsBound = false;
     private CalibrationService calibrationService;
     private TextView textDeviceLevel;
-    private TextView textDeviceName;
     private ListView peersList;
     private ImageView connectionStatusImage;
     private TextView textStatus;
@@ -75,7 +74,6 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
         initDrawer();
 
         textDeviceLevel = (TextView) findViewById(R.id.spl_ref_measured);
-        textDeviceName = (TextView) findViewById(R.id.calibration_host_ssid);
         peersList = (ListView) findViewById(R.id.listview_peers);
         deviceListAdapter = new DeviceListAdapter(this);
         peersList.setAdapter(deviceListAdapter);
@@ -87,6 +85,18 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
         }
     }
 
+
+    @Override
+    protected void onResume() {
+        doBindService();
+        super.onPostResume();    }
+
+    @Override
+    protected void onPause() {
+        // Disconnect listener from measurement
+        doUnbindService();
+        super.onPause();
+    }
 
     void doUnbindService() {
         if (mIsBound) {
@@ -195,13 +205,6 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
             CalibrationService.CALIBRATION_STATE newState =
                     (CalibrationService.CALIBRATION_STATE)event.getNewValue();
             applyStateChange(newState, connectionStatusImage, textStatus);
-        } else if(CalibrationService.PROP_P2P_DEVICE.equals(event.getPropertyName())) {
-            WifiP2pDevice p2pDevice = calibrationService.getWifiP2pDevice();
-            if(p2pDevice != null) {
-                textDeviceName.setText(p2pDevice.deviceName);
-            } else {
-                textDeviceName.setText("");
-            }
         } else if(CalibrationService.PROP_PEER_LIST.equals(event.getPropertyName())) {
             deviceListAdapter.onPeersAvailable((WifiP2pDeviceList)event.getNewValue());
         }

@@ -93,11 +93,11 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     private boolean mIsBound = false;
     private MeasurementService measurementService;
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationActivity.class);
-    private static final int COUNTDOWN_STEP_MILLISECOND = 125;
+    public static final int COUNTDOWN_STEP_MILLISECOND = 125;
     private ProgressHandler progressHandler = new ProgressHandler(this);
 
-    private static final String SETTINGS_CALIBRATION_WARMUP_TIME = "settings_calibration_warmup_time";
-    private static final String SETTINGS_CALIBRATION_TIME = "settings_calibration_time";
+    public static final String SETTINGS_CALIBRATION_WARMUP_TIME = "settings_calibration_warmup_time";
+    public static final String SETTINGS_CALIBRATION_TIME = "settings_calibration_time";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -446,7 +446,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     /**
      * Manage progress timer
      */
-    private static final class ProgressHandler implements Handler.Callback {
+    public static final class ProgressHandler implements Handler.Callback {
         private CalibrationActivity activity;
         private int delay;
         private long beginTime;

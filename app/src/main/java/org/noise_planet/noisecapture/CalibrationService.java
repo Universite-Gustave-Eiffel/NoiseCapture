@@ -34,11 +34,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
+import android.os.Message;
+import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.content.LocalBroadcastManager;
 import android.widget.Toast;
@@ -51,8 +57,9 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
+import java.util.StringTokenizer;
 
+import edu.rit.se.wifibuddy.CommunicationManager;
 import edu.rit.se.wifibuddy.DnsSdService;
 import edu.rit.se.wifibuddy.WifiDirectHandler;
 
@@ -60,18 +67,28 @@ import edu.rit.se.wifibuddy.WifiDirectHandler;
  * This service allow to be the host or the guest to an automated calibration while the android
  * phone GUI is in sleep mode.
  */
-public class CalibrationService extends Service implements PropertyChangeListener {
+public class CalibrationService extends Service implements PropertyChangeListener,
+        SharedPreferences.OnSharedPreferenceChangeListener {
     public static final String EXTRA_HOST = "MODE_HOST";
+
+    // properties
     public static final String PROP_CALIBRATION_STATE = "PROP_CALIBRATION_STATE";
     public static final String PROP_PEER_LIST = "PROP_PEER_LIST";
     public static final String PROP_P2P_DEVICE = "PROP_P2P_DEVICE";
+    public static final String PROP_PEER_READY = "PROP_PEER_READY"; // Peer ready to start
+    public static final String PROP_CALIBRATION_PROGRESSION = "PROP_CALIBRATION_PROGRESSION"; // Calibration/Warmup progression 0-100
+
+
+
     private final IntentFilter intentFilter = new IntentFilter();
     private WifiP2pDevice wifiP2pDevice;
+    private int defaultWarmupTime;
+    private int defaultCalibrationTime;
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationService.class);
     private static final String NOISECAPTURE_CALIBRATION_SERVICE = "NoiseCapture_Calibration";
     // Registration service timout
     private static final int SERVICE_TIMEOUT = 120000;
-
+    private Handler timeHandler;
 
     public enum CALIBRATION_STATE {
         WIFI_DISABLED,              // Wifi is not activated (user have to activate it)
@@ -81,15 +98,41 @@ public class CalibrationService extends Service implements PropertyChangeListene
         LOOKING_FOR_HOST,           // Peer is broadcasting and is awaiting for host discovery
         PAIRED_TO_PEER,             // Connected to at least one peer
         PAIRED_TO_HOST,             // Connected to reference device
-        AWAITING_HOST_SELECTION,    // One or more host has been found and the system must choose one
         AWAITING_START,             // Awaiting host for calibration start
+        CANCELED,                   // WARMUP or CALIBRATION canceled, next state is CANCEL_IN_PROGRESS
         WARMUP,                     // Warmup is launched by host, Leq are sent to host
         CALIBRATION,                // Calibration has been started leq is stored
-        WAITING_FOR_APPLY_OR_CANCEL // Calibration is done,guest send stored leqs, waiting for the validation of gain
+        WAITING_FOR_APPLY_OR_CANCEL,// Calibration is done,guest send stored leqs, waiting for the validation of gain,
+        CANCEL_IN_PROGRESS,         // Canceled but waiting for timer to stop. Next state is AWAITING_START
     }
+
+    private static final String messageSeparator = "|";
+    private static final String messagePingArgument = "CHECK";
+
+    private static final int ID_PING = 1;                   // 1|CHECK
+    private static final int ID_PONG = 2;                   // 2|CHECK|DEVICE_ID
+    private static final int ID_START_CALIBRATION = 3;      // 3|5.0|10.0
+    private static final int ID_PEER_LEQ = 4;               // 4|74.15|DEVICE_ID
+    private static final int ID_PEER_CALIBRATION_RESULT = 5;// 5|78.00|DEVICE_ID
+    private static final int ID_HOST_APPLY = 6;             // 6|4.14
+    private static final int ID_HOST_CANCEL = 7;            // 7
 
     private CALIBRATION_STATE state = CALIBRATION_STATE.WIFI_DISABLED;
 
+    private ProgressHandler progressHandler = new ProgressHandler(this);
+
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if(isHost) {
+            if (CalibrationActivity.SETTINGS_CALIBRATION_TIME.equals(key)) {
+                defaultCalibrationTime = MainActivity.getInteger(sharedPreferences,
+                        CalibrationActivity.SETTINGS_CALIBRATION_TIME, 10);
+            } else if (CalibrationActivity.SETTINGS_CALIBRATION_WARMUP_TIME.equals(key)) {
+                defaultWarmupTime = MainActivity.getInteger(sharedPreferences,
+                        CalibrationActivity.SETTINGS_CALIBRATION_WARMUP_TIME, 5);
+            }
+        }
+    }
 
     public void onPeersAvailable(WifiP2pDeviceList peers) {
         listeners.firePropertyChange(PROP_PEER_LIST, null, peers);
@@ -133,6 +176,24 @@ public class CalibrationService extends Service implements PropertyChangeListene
         receiver = new CalibrationWifiBroadcastReceiver(this);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
         registerReceiver(receiver, intentFilter);
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPref.registerOnSharedPreferenceChangeListener(this);
+        if(isHost) {
+            defaultCalibrationTime = MainActivity.getInteger(sharedPref, CalibrationActivity.SETTINGS_CALIBRATION_TIME, 10);
+            defaultWarmupTime = MainActivity.getInteger(sharedPref, CalibrationActivity.SETTINGS_CALIBRATION_WARMUP_TIME, 5);
+        }
+    }
+
+    protected void onTimerEnd() {
+        if(state == CALIBRATION_STATE.WARMUP) {
+
+        } else if(state == CALIBRATION_STATE.CALIBRATION) {
+
+        } else {
+            // Canceled
+            setState(CALIBRATION_STATE.AWAITING_START);
+        }
     }
 
     /**
@@ -151,23 +212,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
     @Override
     public void onDestroy() {
         super.onDestroy();
-        /*
-        // Remove all associations initiated by this p2p service
-        if(wifiP2pManager != null && mChannel!=null) {
-            try {
-                wifiP2pManager.requestGroupInfo(mChannel, new WifiP2pManager.GroupInfoListener() {
-                    @Override
-                    public void onGroupInfoAvailable(WifiP2pGroup group) {
-                        if (group != null && wifiP2pManager != null && mChannel != null) {
-                            wifiP2pManager.removeGroup(mChannel, null);
-                        }
-                    }
-                });
-            } catch (Exception ex) {
-                //ignore
-            }
-        }
-        */
         unregisterReceiver(receiver);
         doUnbindService();
     }
@@ -266,8 +310,74 @@ public class CalibrationService extends Service implements PropertyChangeListene
         listeners.addPropertyChangeListener(propertyChangeListener);
     }
 
+    public void startCalibration() {
+        if(CALIBRATION_STATE.AWAITING_START.equals(state) && isHost) {
+            CommunicationManager communicationManager = wifiDirectHandler.getCommunicationManager();
+            if(communicationManager != null) {
+                communicationManager.write(buildMessage(ID_START_CALIBRATION, defaultWarmupTime,
+                        defaultCalibrationTime));
+                setState(CALIBRATION_STATE.WARMUP);
+            } else {
+                LOGGER.error("Communication manager is null");
+            }
+        }
+    }
+
+    private byte[] buildMessage(int Id, Object... arguments) {
+        StringBuilder sb = new StringBuilder(Id);
+        for(Object argument : arguments) {
+            sb.append(messageSeparator);
+            sb.append(argument);
+        }
+        return sb.toString().getBytes();
+    }
+
+    private void runWarmup() {
+        // Link measurement service with gui
+        // Application have right now all permissions
+        doBindMeasureService();
+        timeHandler = new Handler(Looper.getMainLooper(), progressHandler);
+        progressHandler.start(defaultWarmupTime * 1000);
+    }
+
     public void removePropertyChangeListener(PropertyChangeListener propertyChangeListener) {
         listeners.removePropertyChangeListener(propertyChangeListener);
+    }
+
+    private void handleMessage(String message) {
+        CommunicationManager communicationManager = wifiDirectHandler.getCommunicationManager();
+        if(communicationManager == null) {
+            LOGGER.error("Receive: "+message+", but communication manager is null");
+            return;
+        }
+        StringTokenizer stringTokenizer = new StringTokenizer(message, messageSeparator);
+        try {
+            int id = Integer.valueOf(stringTokenizer.nextToken());
+            switch (id) {
+                case ID_PING:
+                    // Peer receive ping
+                    if (messagePingArgument.equals(stringTokenizer.nextToken())) {
+                        communicationManager.write(buildMessage(ID_PONG, messagePingArgument,
+                                wifiP2pDevice.deviceAddress));
+                        setState(CALIBRATION_STATE.AWAITING_START);
+                    }
+                    break;
+                case ID_PONG:
+                    // Host receive pong
+                    if(messagePingArgument.equals(stringTokenizer.nextToken())) {
+                        setState(CALIBRATION_STATE.AWAITING_START);
+                        listeners.firePropertyChange(PROP_PEER_READY, null, stringTokenizer.nextToken());
+                    }
+                    break;
+                case ID_START_CALIBRATION:
+                    // Peer receive start order
+                    defaultWarmupTime = Integer.valueOf(stringTokenizer.nextToken());
+                    defaultCalibrationTime = Integer.valueOf(stringTokenizer.nextToken());
+                    setState(CALIBRATION_STATE.WARMUP);
+            }
+        } catch (NumberFormatException ex) {
+            LOGGER.error(ex.getLocalizedMessage(), ex);
+        }
     }
 
     void doBindMeasureService() {
@@ -314,8 +424,13 @@ public class CalibrationService extends Service implements PropertyChangeListene
         }
     }
 
-    public void initiateCommunication() {
-        wifiDirectHandler.getCommunicationManager();
+    protected void initiateCommunication() {
+        CommunicationManager communicationManager = wifiDirectHandler.getCommunicationManager();
+        if(communicationManager != null) {
+            communicationManager.write(buildMessage(ID_PING,messagePingArgument));
+        } else {
+            LOGGER.error("Communication manager is null");
+        }
     }
 
     private static class CalibrationWifiBroadcastReceiver extends BroadcastReceiver {
@@ -382,6 +497,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
                             LOGGER.info("Service connected");
                             if(calibrationService.isHost) {
                                 calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_PEER);
+                                // Send PING
+                                calibrationService.initiateCommunication();
                             } else {
                                 calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_HOST);
                             }
@@ -400,10 +517,51 @@ public class CalibrationService extends Service implements PropertyChangeListene
             } else if(WifiDirectHandler.Action.SERVICE_CONNECTED.equals(action)) {
                 if(calibrationService.isHost) {
                     calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_PEER);
+                    // Send PING
+                    calibrationService.initiateCommunication();
                 } else {
                     calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_HOST);
                 }
+            } else if(WifiDirectHandler.Action.MESSAGE_RECEIVED.equals(action)) {
+                String message = intent.getStringExtra(WifiDirectHandler.MESSAGE_KEY);
+                calibrationService.handleMessage(message);
             }
+        }
+    }
+
+
+
+    /**
+     * Manage progress timer
+     */
+    public static final class ProgressHandler implements Handler.Callback {
+        private CalibrationService service;
+        private int delay;
+        private long beginTime;
+
+        public ProgressHandler(CalibrationService service) {
+            this.service = service;
+        }
+
+        public void start(int delayMilliseconds) {
+            delay = delayMilliseconds;
+            beginTime = SystemClock.elapsedRealtime();
+            service.timeHandler.sendEmptyMessageDelayed(0, CalibrationActivity.COUNTDOWN_STEP_MILLISECOND);
+        }
+
+        @Override
+        public boolean handleMessage(Message msg) {
+            long currentTime = SystemClock.elapsedRealtime();
+            int newProg = (int)((((beginTime + delay) - currentTime) / (float)delay) *
+                    100);
+            service.listeners.firePropertyChange(PROP_CALIBRATION_PROGRESSION, 0, newProg);
+            if(currentTime < beginTime + delay &&
+                    (service.state == CALIBRATION_STATE.CALIBRATION || service.state == CALIBRATION_STATE.WARMUP)) {
+                service.timeHandler.sendEmptyMessageDelayed(0, CalibrationActivity.COUNTDOWN_STEP_MILLISECOND);
+            } else {
+                service.onTimerEnd();
+            }
+            return true;
         }
     }
 }

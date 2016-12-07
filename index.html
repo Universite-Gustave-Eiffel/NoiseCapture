@@ -129,7 +129,7 @@ The authors are not responsible for the direct or indirect consequences of the u
                 <div class="tab-content">
                     <div id="la50" class="tab-pane fade in active">
                         <h3>Explore the mean noise of your environment</h3>
-                        <div class="defindicator">The <b>LA50</b> is the A-weighted noise level that is exceeded for 50% of the measurement period. LA50 is the quite equivalent to <span style="font-weight: bold;">mean sound level</span>.</div>
+                        <div class="defindicator">The <b>LA50</b> is the A-weighted noise level that is exceeded for 50% of the measurement period. LA50 is quite equivalent to <span style="font-weight: bold;">median sound level</span>.</div>
                         <hr style='margin-bottom=0em'>
                         <div id="areainfo"></div>
                         <hr style='margin-bottom=0em'>
@@ -328,7 +328,7 @@ The authors are not responsible for the direct or indirect consequences of the u
         };
 
         L.control.layers(baseLayers, {
-            "NoiseCapture areas": onomap,
+            "Sound level (LA50)": onomap,
             "Density of measures": onomap_heat_layer,
             "Location of measures": onomap_pt
         }).addTo(map);

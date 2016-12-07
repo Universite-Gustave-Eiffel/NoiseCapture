@@ -377,7 +377,7 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
       first_measure = "None";
       last_measure = "None";
     }
-    infoDiv.innerHTML = "<p class='attribute_label'>LA50 (mean value):</p><i class='fa fa-microphone' aria-hidden='true'></i> "+(content["leq"] ? Math.round(content["leq"])+" dB(A)" : "None")+"\
+    infoDiv.innerHTML = "<p class='attribute_label'>LA50:</p><i class='fa fa-microphone' aria-hidden='true'></i> "+(content["leq"] ? Math.round(content["leq"])+" dB(A)" : "None")+"\
     <p class='attribute_label'>First measure:</p><i class='fa fa-clock-o' aria-hidden='true'></i> "+first_measure+"\
     <p class='attribute_label'>Last measure:</p><i class='fa fa-clock-o' aria-hidden='true'></i> "+last_measure+"\
     <p class='attribute_label'>Pleasantness:</p><i class='fa fa-smile-o' aria-hidden='true'></i> "+(content["mean_pleasantness"] ? Math.round(content["mean_pleasantness"]) + " %" : "NC")+"\

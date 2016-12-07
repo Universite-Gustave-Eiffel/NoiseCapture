@@ -135,7 +135,6 @@ The authors are not responsible for the direct or indirect consequences of the u
                         <hr style='margin-bottom=0em'>
                         <img align="left" style="margin:5px 5px" src="http://onomap-gs.noise-planet.org/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=noisecapture:noisecapture_area&legend_options=fontName:Cerdana;fontAntiAliasing:true;fontColor:0x000033;fontSize:12;dpi:80&TRANSPARENT=true"
                         />
-                        <!--
                         <div class="defindicator">The following 'time-donuts' show the <b>temporal evolution of the LA50</b> over the 24h of a day, for a working day, the Saturday and the Sunday. For each 1h-period (0:00-1:00, for the 1st period...), the LA50 is evaluated from
                             the measurments and standard temporal profiles. See the help section for more information.</div>
                         <div>
@@ -152,7 +151,6 @@ The authors are not responsible for the direct or indirect consequences of the u
                                 <div id="donut_sunday" class="sidepanel_donut"></div>
                             </div>
                         </div>
-                      -->
                     </div>
                     <div id="lden" class="tab-pane fade">
                         <h3>Menu 1</h3>
@@ -335,9 +333,9 @@ The authors are not responsible for the direct or indirect consequences of the u
 
         var hash = new L.Hash(map);
 
-        //var weekdonut = initTimeDonut("donut_working_day");
-        //var saturdaydonut = initTimeDonut("donut_saturday");
-        //var sundaydonut = initTimeDonut("donut_sunday");
+        var weekdonut = initTimeDonut("donut_working_day");
+        var saturdaydonut = initTimeDonut("donut_saturday");
+        var sundaydonut = initTimeDonut("donut_sunday");
 
         // Load default donuts
         onomap.showGetFeatureInfo(null, null, []);

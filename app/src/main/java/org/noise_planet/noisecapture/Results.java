@@ -318,7 +318,7 @@ public class Results extends MainActivity {
         }
 
         //@see https://dev.twitter.com/web/tweet-button/web-intent
-        String url = "http://www.twitter.com/intent/tweet?via=NoiseGIS&hashtags="+hashtags.toString() +
+        String url = "http://www.twitter.com/intent/tweet?via=Noise_Planet&hashtags="+hashtags.toString() +
                 "&text=" + Uri.encode(getString(R.string.share_message, record.getLeqMean()));
         Intent i = new Intent(Intent.ACTION_VIEW);
         i.setData(Uri.parse(url));

@@ -232,16 +232,12 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string-array name="calibrate_type_list_array">
         <item>Global</item>
         <item>125 Hz</item>
-        <item>200 Hz</item>
-        <item>315 Hz</item>
+        <item>250 Hz</item>
         <item>500 Hz</item>
-        <item>800 Hz</item>
-        <item>1.25 kHz</item>
-        <item>2 kHz</item>
-        <item>3.15 kHz</item>
-        <item>5 kHz</item>
+        <item>1 kHz</item>
+        <item>4 kHz</item>
         <item>8 kHz</item>
-        <item>12.5 kHz</item>
+        <item>16 kHz</item>
     </string-array>
     <string name="share_message">Je viens de mesurer %.01f dB(A) avec NoiseCapture App</string>
 

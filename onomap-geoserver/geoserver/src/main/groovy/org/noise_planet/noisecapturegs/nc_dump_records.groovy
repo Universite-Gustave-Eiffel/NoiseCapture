@@ -29,50 +29,52 @@ package org.noise_planet.noisecapturegs
 
 import geoserver.GeoServer
 import geoserver.catalog.Store
+import groovy.json.JsonOutput
 import groovy.sql.Sql
-import org.apache.commons.io.output.WriterOutputStream
 import org.geotools.jdbc.JDBCDataStore
 import org.springframework.security.core.context.SecurityContextHolder
-import groovy.json.*
 
 import java.sql.Connection
 import java.sql.SQLException
+import java.sql.Timestamp
 import java.util.zip.GZIPOutputStream
 
 title = 'nc_dump_records'
 description = 'Dump database data to a folder'
 
 inputs = [
-        exportTracks: [name: 'exportTracks', title: 'Export raw track boolean',
+        exportTracks  : [name: 'exportTracks', title: 'Export raw track boolean',
                          type: Boolean.class],
         exportMeasures: [name: 'exportMeasures', title: 'Export raw measures boolean',
-                 type: Boolean.class],
-        exportAreas: [name: 'exportAreas', title: 'Export post-processed values',
-                 type: Boolean.class]
-         ]
+                         type: Boolean.class],
+        exportAreas   : [name: 'exportAreas', title: 'Export post-processed values',
+                         type: Boolean.class]
+]
 
 outputs = [
         result: [name: 'result', title: 'Number of files creates', type: Integer.class]
 ]
 
-def getDump(Connection connection, File outPath, boolean exportMeasures, boolean exportAreas) {
+def getDump(Connection connection, File outPath,boolean exportTracks, boolean exportMeasures, boolean exportAreas) {
     def createdFiles = 0
 
     // Process export of raw measures
     try {
         def sql = new Sql(connection)
-            // Create a table that contains track envelopes
-            sql.execute("DROP TABLE IF EXISTS NOISECAPTURE_DUMP_TRACK_ENVELOPE")
-            sql.execute("CREATE TABLE NOISECAPTURE_DUMP_TRACK_ENVELOPE AS SELECT pk_track, " +
-                    "ST_ENVELOPE(ST_COLLECT(ST_POINT(ST_X(the_geom),ST_Y(the_geom)))) the_geom" +
-                    " from noisecapture_point where not ST_ISEMPTY(the_geom)  group by pk_track")
-            // Create a table that link
+        // Create a table that contains track envelopes
+        sql.execute("DROP TABLE IF EXISTS NOISECAPTURE_DUMP_TRACK_ENVELOPE")
+        sql.execute("CREATE TABLE NOISECAPTURE_DUMP_TRACK_ENVELOPE AS SELECT pk_track, " +
+                "ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))) the_geom,  COUNT(np.pk_point) measure_count" +
+                " from noisecapture_point np where not ST_ISEMPTY(the_geom)  group by pk_track")
+        // Create a table that link
 
-            // Loop through region level
-            // Region table has been downloaded from http://www.gadm.org/version2
+        // Loop through region level
+        // Region table has been downloaded from http://www.gadm.org/version2
+        def lastFileParams = []
+        Writer jsonWriter = null
+
+        if(exportTracks) {
             // Export track file
-            def lastFileParams = []
-            Writer jsonWriter = null
             sql.eachRow("select name_0, name_1, name_2, track_uuid, pleasantness,gain_calibration," +
                     "ST_YMIN(te.the_geom) MINLATITUDE,ST_XMIN(te.THE_GEOM) MINLONGITUDE," +
                     "ST_YMAX(te.the_geom) MAXLATITUDE,ST_XMAX(te.THE_GEOM) MAXLONGITUDE," +
@@ -82,34 +84,40 @@ def getDump(Connection connection, File outPath, boolean exportMeasures, boolean
                     " and te.pk_track = nt.pk_track order by name_0, name_1, name_2;") {
                 track_row ->
                     def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
-                    if(thisFileParams != lastFileParams) {
-                        if(jsonWriter != null) {
+                    if (thisFileParams != lastFileParams) {
+                        if (jsonWriter != null) {
                             jsonWriter.close()
                         }
                         lastFileParams = thisFileParams
                         String fileName = track_row.name_0 + "_" + track_row.name_1 + "_" + track_row.name_2 + ".tracks.geojson.gz"
                         jsonWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(new File(outPath, fileName))), "UTF-8")
-                        jsonWriter << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n    {"
+                        createdFiles += 1
+                        jsonWriter << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n"
+                    } else {
+                        jsonWriter << ",\n"
                     }
-
-                    def bbox = [[track_row.MINLONGITUDE,track_row.MINLATITUDE],
-                                [track_row.MAXLONGITUDE,track_row.MINLATITUDE],
-                                [track_row.MAXLONGITUDE,track_row.MAXLATITUDE],
-                                [track_row.MINLONGITUDE,track_row.MAXLATITUDE],
-                                [track_row.MINLONGITUDE,track_row.MINLATITUDE]]
-                    def track = [type:"Feature", geometry : [type:"Polygon", coordinates:bbox], properties : [pleasantness: track_row.pleasantness,
-                                                                                                              gain_calibration: track_row.gain_calibration,
-                                                                                                              record_utc:track_row.record_utc,
-                                                                                                              noise_level:track_row.noise_level,
-                                                                                                              time_length:track_row.time_length]]
+                    def bbox = [[track_row.MINLONGITUDE, track_row.MINLATITUDE],
+                                [track_row.MAXLONGITUDE, track_row.MINLATITUDE],
+                                [track_row.MAXLONGITUDE, track_row.MAXLATITUDE],
+                                [track_row.MINLONGITUDE, track_row.MAXLATITUDE],
+                                [track_row.MINLONGITUDE, track_row.MINLATITUDE]]
+                    def track = [type: "Feature", geometry: [type: "Polygon", coordinates: [bbox]], properties: [pleasantness    : track_row.pleasantness,
+                                                                                                               gain_calibration: track_row.gain_calibration,
+                                                                                                               time_epoch      : ((Timestamp)track_row.record_utc).toInstant().getEpochSecond(),
+                                                                                                               noise_level     : track_row.noise_level,
+                                                                                                               time_length     : track_row.time_length]]
                     jsonWriter << JsonOutput.toJson(track)
             }
-            if(jsonWriter != null) {
+            if (jsonWriter != null) {
+                jsonWriter << "]\n}\n"
+                jsonWriter.close()
             }
+        }
+        lastFileParams = []
 
-            // Export measures file
+        // Export measures file
 
-            // Export hexagons file
+        // Export hexagons file
 
     } catch (SQLException ex) {
         throw ex
@@ -119,20 +127,20 @@ def getDump(Connection connection, File outPath, boolean exportMeasures, boolean
 
 def Connection openPostgreSQLDataStoreConnection() {
     Store store = new GeoServer().catalog.getStore("postgis")
-    JDBCDataStore jdbcDataStore = (JDBCDataStore)store.getDataStoreInfo().getDataStore(null)
+    JDBCDataStore jdbcDataStore = (JDBCDataStore) store.getDataStoreInfo().getDataStore(null)
     return jdbcDataStore.getDataSource().getConnection()
 }
 
 def run(input) {
     // Sensible WPS process, add a layer of security by checking for authenticated user
     def user = SecurityContextHolder.getContext().getAuthentication();
-    if(!user.isAuthenticated()) {
+    if (!user.isAuthenticated()) {
         throw new IllegalStateException("This WPS process require authentication")
     }
     // Open PostgreSQL connection
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : doDump(connection, input["exportMeasures"],input["exportAreas"])]
+        return [result: doDump(connection, input["exportTracks"], input["exportMeasures"], input["exportAreas"])]
     } finally {
         connection.close()
     }

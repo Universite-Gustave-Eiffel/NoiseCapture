@@ -62,6 +62,9 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         st.execute(new File(TestNoiseCaptureDumpRecords.class.getResource("inith2.sql").getFile()).text)
         // Load timezone file
         st.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
+        // ut_deps has been derived from https://www.data.gouv.fr/fr/datasets/contours-des-departements-francais-issus-d-openstreetmap/ (c) osm
+        // See ut_deps.txt for more details
+        st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
         st.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
         new nc_feed_stats().processInput(connection,
                 TestNoiseCaptureProcess.getResource("gevfit_of_stations.txt").toURI(), "stations")
@@ -69,6 +72,11 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
                 TestNoiseCaptureProcess.getResource("delta_matrix_mu.txt").toURI(), "time_matrix_mu")
         new nc_feed_stats().processInput(connection,
                 TestNoiseCaptureProcess.getResource("delta_matrix_sigma.txt").toURI(), "time_matrix_sigma")
+        // Parse file to database
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
+        // convert to hexagons
+        new nc_process().process(connection, 10)
     }
 
     @After
@@ -77,59 +85,19 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         folder.delete()
     }
 
-    void testProcess1() {
-        // Parse file to database
-        new nc_parse().processFile(connection,
-                new File(TestNoiseCaptureDumpRecords.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
-        // convert to hexagons
-        new nc_process().process(connection, 10)
-        // Fetch data
-        def arrayData = new nc_get_area_info().getAreaInfo(connection, -139656, 265210)
-        assertEquals(51.6, (double)arrayData.getLAeq, 0.01)
-        assertEquals(69, (double)arrayData.mean_pleasantness, 0.01)
-        assertEquals(40, (int)arrayData.measure_count)
-        assertEquals(new Timestamp(1465474645000), arrayData.first_measure)
-        assertEquals(new Timestamp(1465474682000), arrayData.last_measure)
 
-        // Check with NaN in pleasantness
-        def sql = new Sql(connection)
-        def fields = [cell_q           : 5,
-                      cell_r           : 10,
-                      the_geom         : "POLYGON EMPTY",
-                      mean_leq         : 10,
-                      mean_pleasantness: Double.NaN,
-                      measure_count    : 1,
-                      first_measure    : new Timestamp(1465474645151),
-                      last_measure     : new Timestamp(1465474645151),
-                      tzid             : TimeZone.default.ID]
-        sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, the_geom, mean_leq, mean_pleasantness," +
-                " measure_count, first_measure, last_measure, tzid) VALUES (:cell_q, :cell_r, " +
-                "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :mean_leq," +
-                " :mean_pleasantness, :measure_count, :first_measure, :last_measure, :tzid)", fields)
-        // Fetch data
-        arrayData = new nc_get_area_info().getAreaInfo(connection, 5, 10)
-        assertNull(arrayData.mean_pleasantness)
-        JsonOutput.toJson(arrayData);
-
-    }
-
-
-    void testGetAreaProfile() {
+    void testTracksExport() {
         Sql.LOG.level = java.util.logging.Level.SEVERE
         Sql sql = new Sql(connection)
         // Insert measure data
         // insert records
-        TestNoiseCaptureProcess.addTestRecord(sql, "2016-09-07T13:43:13Z", "POINT(23.73847 37.97503)", [70, 75, 72])
-        TestNoiseCaptureProcess.addTestRecord(sql, "2016-09-04T18:43:13Z", "POINT(23.73847 37.97503)", [60, 61, 58])
-        TestNoiseCaptureProcess.addTestRecord(sql, "2016-09-03T16:43:13Z", "POINT(23.73847 37.97503)", [65, 68, 64])
-        def processed = new nc_process().process(connection, 10)
+        File tmpFolder = folder.newFolder()
+        def processed = new nc_dump_records().getDump(connection,tmpFolder, true, false, false)
         assertEquals(1, processed)
-        // Read db; check content
-        def row = sql.firstRow("SELECT cell_q, cell_r FROM  noisecapture_area")
-        def arrayData = new nc_get_area_info().getAreaInfo(connection, row.cell_q, row.cell_r)
-        assertNotNull(arrayData)
-        assertEquals(72, arrayData["profile"].size())
-        assertTrue(arrayData["profile"] instanceof Map)
-        JsonOutput.toJson(arrayData); // Check if conversion goes well
+        // Load GeoJSON file
+        Statement st = connection.createStatement()
+        //st.execute("DELETE IF EXISTS ;")
+        //st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
+
     }
 }

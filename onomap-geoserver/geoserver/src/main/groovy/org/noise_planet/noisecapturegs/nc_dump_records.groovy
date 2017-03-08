@@ -27,92 +27,94 @@
 
 package org.noise_planet.noisecapturegs
 
-import com.vividsolutions.jts.geom.Coordinate
 import geoserver.GeoServer
 import geoserver.catalog.Store
-import groovy.json.JsonOutput
 import groovy.sql.Sql
+import org.apache.commons.io.output.WriterOutputStream
 import org.geotools.jdbc.JDBCDataStore
+import org.springframework.security.core.context.SecurityContextHolder
+import groovy.json.*
 
 import java.sql.Connection
 import java.sql.SQLException
-import java.sql.Timestamp
-import java.time.format.DateTimeFormatter
-
+import java.util.zip.GZIPOutputStream
 
 title = 'nc_dump_records'
-description = 'Extract raw data from the provided bouding box'
+description = 'Dump database data to a folder'
 
 inputs = [
-        minLat: [name: 'minLat', title: 'Minimum latitude',
-                 type: Double.class],
-        maxLat: [name: 'maxLat', title: 'Maximum latitude',
-                 type: Double.class],
-        minLong: [name: 'minLong', title: 'Minimum longitude',
-                 type: Double.class],
-        maxLong: [name: 'maxLong', title: 'Maximum longitude',
-                 type: Double.class]]
+        exportTracks: [name: 'exportTracks', title: 'Export raw track boolean',
+                         type: Boolean.class],
+        exportMeasures: [name: 'exportMeasures', title: 'Export raw measures boolean',
+                 type: Boolean.class],
+        exportAreas: [name: 'exportAreas', title: 'Export post-processed values',
+                 type: Boolean.class]
+         ]
 
 outputs = [
-        result: [name: 'result', title: 'Raw records as multiple geojson in GZIP file encoded in base 64', type: String.class]
+        result: [name: 'result', title: 'Number of files creates', type: Integer.class]
 ]
 
-MAX_AREA = 50e6 // max area in m^2 of bounding box for extraction of data
+def getDump(Connection connection, File outPath, boolean exportMeasures, boolean exportAreas) {
+    def createdFiles = 0
 
-def getDump(Connection connection, double minLat, double maxLat, double minLong, double maxLong) {
-    def targetStream = new ByteArrayOutputStream()
-    def zipStream = new GZIPOutputStream(targetStream)
+    // Process export of raw measures
     try {
-        // List the area identifier using the new measures coordinates
         def sql = new Sql(connection)
+            // Create a table that contains track envelopes
+            sql.execute("DROP TABLE IF EXISTS NOISECAPTURE_DUMP_TRACK_ENVELOPE")
+            sql.execute("CREATE TABLE NOISECAPTURE_DUMP_TRACK_ENVELOPE AS SELECT pk_track, " +
+                    "ST_ENVELOPE(ST_COLLECT(ST_POINT(ST_X(the_geom),ST_Y(the_geom)))) the_geom" +
+                    " from noisecapture_point where not ST_ISEMPTY(the_geom)  group by pk_track")
+            // Create a table that link
 
-        // Compute aproximate area of the user specified zone
-        def row = sql.firstRow("SELECT ST_AREA(ST_EXTENT(ST_UNION(ST_TRANSFORM(ST_SETSRID(ST_MAKEPOINT(:minLong, :minLat),4326), 3857) ,ST_TRANSFORM(ST_SETSRID(ST_MAKEPOINT(:maxLong, :maxLat), 4326), 3857)))) area", [minLat: minLat, maxLat: maxLat,
-                                                            minLong:minLong, maxLong:maxLong])
-        if(!row) {
-            return data;
-        }
-        if(row.area > MAX_AREA) {
-            return JsonOutput.toJson([error : "Extraction maximum area is ${maxarea} m² and you request ${row.area} m²"])
-        } else {
-            last_pk_track = -1
-            last
-            sql.eachRow("SELECT np.pk_track, track_uuid, gain_calibration, pleasantness, ST_X(the_geom) long, ST_Y(the_geom) lat,accuracy, time_date FROM noisecapture_track nt, noisecapture_point np " +
-                    "WHERE nt.pk_track = np.pk_track AND ST_AREA(ST_EXTENT(ST_UNION(ST_SETSRID(ST_MAKEPOINT(:minLong, :minLat),4326) ,ST_SETSRID(ST_MAKEPOINT(:maxLong, :maxLat), 4326)))) && the_geom AND ST_INTERSECTS(the_geom,ST_AREA(ST_EXTENT(ST_UNION(ST_SETSRID(ST_MAKEPOINT(:minLong, :minLat),4326) ,ST_SETSRID(ST_MAKEPOINT(:maxLong, :maxLat), 4326)))))  ORDER BY np.pk_track ",
-                    [minLat : minLat, maxLat: maxLat,
-                     minLong: minLong, maxLong: maxLong]) {
+            // Loop through region level
+            // Region table has been downloaded from http://www.gadm.org/version2
+            // Export track file
+            def lastFileParams = []
+            Writer jsonWriter = null
+            sql.eachRow("select name_0, name_1, name_2, track_uuid, pleasantness,gain_calibration," +
+                    "ST_YMIN(te.the_geom) MINLATITUDE,ST_XMIN(te.THE_GEOM) MINLONGITUDE," +
+                    "ST_YMAX(te.the_geom) MAXLATITUDE,ST_XMAX(te.THE_GEOM) MAXLONGITUDE," +
+                    " record_utc, noise_level, time_length " +
+                    "from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_track nt  " +
+                    "where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom)" +
+                    " and te.pk_track = nt.pk_track order by name_0, name_1, name_2;") {
                 track_row ->
-                    def data = []
-                    
+                    def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
+                    if(thisFileParams != lastFileParams) {
+                        if(jsonWriter != null) {
+                            jsonWriter.close()
+                        }
+                        lastFileParams = thisFileParams
+                        String fileName = track_row.name_0 + "_" + track_row.name_1 + "_" + track_row.name_2 + ".tracks.geojson.gz"
+                        jsonWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(new File(outPath, fileName))), "UTF-8")
+                        jsonWriter << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n    {"
+                    }
+
+                    def bbox = [[track_row.MINLONGITUDE,track_row.MINLATITUDE],
+                                [track_row.MAXLONGITUDE,track_row.MINLATITUDE],
+                                [track_row.MAXLONGITUDE,track_row.MAXLATITUDE],
+                                [track_row.MINLONGITUDE,track_row.MAXLATITUDE],
+                                [track_row.MINLONGITUDE,track_row.MINLATITUDE]]
+                    def track = [type:"Feature", geometry : [type:"Polygon", coordinates:bbox], properties : [pleasantness: track_row.pleasantness,
+                                                                                                              gain_calibration: track_row.gain_calibration,
+                                                                                                              record_utc:track_row.record_utc,
+                                                                                                              noise_level:track_row.noise_level,
+                                                                                                              time_length:track_row.time_length]]
+                    jsonWriter << JsonOutput.toJson(track)
             }
-        }
-            if(row) {
-                data = [laeq              : row.laeq,
-                        la50              : row.la50,
-                        lden              : row.lden,
-                        mean_pleasantness: row.mean_pleasantness instanceof Number &&
-                                !row.mean_pleasantness.isNaN() ? row.mean_pleasantness : null,
-                        first_measure    : firstMeasure,
-                        last_measure     : lastMeasure,
-                        measure_count    : row.measure_count,
-                        time_zone        : row.tzid]
-                // Query hours profile for this area
-                def profile = [:]
-                sql.eachRow("SELECT * FROM NOISECAPTURE_AREA_PROFILE WHERE PK_AREA = :pk_area", [pk_area:row.pk_area]) {
-                    hour_row ->
-                        profile[hour_row.hour as Integer] = [leq : hour_row.leq as Double, uncertainty : hour_row.uncertainty as Integer]
-                }
-                data["profile"] = profile
+            if(jsonWriter != null) {
             }
-        }
+
+            // Export measures file
+
+            // Export hexagons file
 
     } catch (SQLException ex) {
         throw ex
     }
-    zipStream.close()
-    def zippedBytes = targetStream.toByteArray()
-    targetStream.close()
-    return zippedBytes.encodeBase64()
+    return createdFiles
 }
 
 def Connection openPostgreSQLDataStoreConnection() {
@@ -122,10 +124,15 @@ def Connection openPostgreSQLDataStoreConnection() {
 }
 
 def run(input) {
+    // Sensible WPS process, add a layer of security by checking for authenticated user
+    def user = SecurityContextHolder.getContext().getAuthentication();
+    if(!user.isAuthenticated()) {
+        throw new IllegalStateException("This WPS process require authentication")
+    }
     // Open PostgreSQL connection
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : getDump(connection, input["minLat"],input["maxLat"],input["minLong"],input["maxLong"])]
+        return [result : doDump(connection, input["exportMeasures"],input["exportAreas"])]
     } finally {
         connection.close()
     }

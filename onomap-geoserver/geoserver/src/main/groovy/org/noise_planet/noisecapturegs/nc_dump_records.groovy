@@ -93,6 +93,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                     def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                     if (thisFileParams != lastFileParams) {
                         if (jsonWriter != null) {
+                            jsonWriter << "]\n}\n"
                             jsonWriter.close()
                         }
                         lastFileParams = thisFileParams

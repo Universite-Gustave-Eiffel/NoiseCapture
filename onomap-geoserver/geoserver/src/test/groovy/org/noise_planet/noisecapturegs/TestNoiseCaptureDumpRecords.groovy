@@ -87,6 +87,7 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
                     while ((len = gzis.read(buffer)) > 0) {
                         gzipOutFile.write(buffer, 0, len);
                     }
+                    gzipOutFile.flush()
                 }
             }
         }
@@ -98,22 +99,48 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         // Parse file to database
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureDumpRecords.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_a23261b3-b569-4363-95be-e5578d694238.zip").file))
         Sql.LOG.level = java.util.logging.Level.SEVERE
         Sql sql = new Sql(connection)
         // Insert measure data
         // insert records
         File tmpFolder = folder.newFolder()
         List<String> createdFiles = new nc_dump_records().getDump(connection,tmpFolder, true, false, false)
-        assertEquals(1, createdFiles.size())
+        assertEquals(2, createdFiles.size())
+        assertEquals("France_Pays de la Loire_Loire-Atlantique.tracks.geojson.gz", new File((String)createdFiles.get(0)).getName())
+        assertEquals("France_Poitou-Charentes_Charente-Maritime.tracks.geojson.gz", new File((String)createdFiles.get(1)).getName())
+
         assertTrue(new File((String)createdFiles.get(0)).exists())
         // Load GeoJSON file
-        Statement st = connection.createStatement()
         File uncompressedFile = ungzipFile(new File(createdFiles.get(0)), "testdump.geojson")
         // Load Json
-        def result = new JsonSlurper().parse(uncompressedFile);
+        def result = new JsonSlurper().parse(uncompressedFile, "UTF-8");
+        assertNotNull(result)
+        // Check content first file
+        assertEquals(1, result.features.size())
+        assertEquals("Polygon", result.features[0].geometry.type)
+        assertEquals(5, result.features[0].geometry.coordinates[0].size())
+        assertEquals("2016-06-09T14:16:58+02:00", result.features[0].properties.time_ISO8601)
+        assertEquals(69, result.features[0].properties.pleasantness)
+        assertEquals(1465474618000, result.features[0].properties.time_epoch)
+        // Check content second file
+        assertTrue(new File((String)createdFiles.get(1)).exists())
+        // Load GeoJSON file
+        uncompressedFile = ungzipFile(new File(createdFiles.get(1)), "testdump.geojson")
+        // Load Json
+        result = new JsonSlurper().parse(uncompressedFile, "UTF-8");
         assertNotNull(result)
         // Check content
         assertEquals(1, result.features.size())
+        assertEquals("Polygon", result.features[0].geometry.type)
+        assertEquals(5, result.features[0].geometry.coordinates[0].size())
+        assertEquals("2017-01-24T17:49:11+01:00", result.features[0].properties.time_ISO8601)
+        assertNull(result.features[0].properties.pleasantness)
+        assertEquals(1485276551000, result.features[0].properties.time_epoch)
+        def coordinates = [[[-1.15651469, 46.14685535], [-1.1534035, 46.14685535], [-1.1534035, 46.1482328], [-1.15651469, 46.1482328], [-1.15651469, 46.14685535]]]
+        assertEquals(coordinates, result.features[0].geometry.coordinates)
+
     }
 
     void testHexaExport() {

@@ -92,12 +92,13 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         // Insert measure data
         // insert records
         File tmpFolder = folder.newFolder()
-        def processed = new nc_dump_records().getDump(connection,tmpFolder, true, false, false)
-        assertEquals(1, processed)
+        def createdFiles = new nc_dump_records().getDump(connection,tmpFolder, true, false, false)
+        assertEquals(1, createdFiles.size())
+        assertTrue(new File(createdFiles.get(0)).exists())
         // Load GeoJSON file
         Statement st = connection.createStatement()
-        //st.execute("DELETE IF EXISTS ;")
-        //st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
+        st.execute("DELETE IF EXISTS ;")
+        st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
 
     }
 }

@@ -37,6 +37,9 @@ import org.springframework.security.core.context.SecurityContextHolder
 import java.sql.Connection
 import java.sql.SQLException
 import java.sql.Timestamp
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.zip.GZIPOutputStream
 
 title = 'nc_dump_records'
@@ -52,11 +55,20 @@ inputs = [
 ]
 
 outputs = [
-        result: [name: 'result', title: 'Number of files creates', type: Integer.class]
+        result: [name: 'result', title: 'Created files', type: String.class]
 ]
 
-def getDump(Connection connection, File outPath,boolean exportTracks, boolean exportMeasures, boolean exportAreas) {
-    def createdFiles = 0
+/**
+ * Convert EPOCH time to ISO 8601
+ * @param epochMillisec
+ * @return
+ */
+static def epochToRFCTime(epochMillisec) {
+    return Instant.ofEpochMilli(epochMillisec).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))
+}
+
+static def getDump(Connection connection, File outPath, boolean exportTracks, boolean exportMeasures, boolean exportAreas) {
+    def createdFiles = []
 
     // Process export of raw measures
     try {
@@ -91,7 +103,7 @@ def getDump(Connection connection, File outPath,boolean exportTracks, boolean ex
                         lastFileParams = thisFileParams
                         String fileName = track_row.name_0 + "_" + track_row.name_1 + "_" + track_row.name_2 + ".tracks.geojson.gz"
                         jsonWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(new File(outPath, fileName))), "UTF-8")
-                        createdFiles += 1
+                        createdFiles.add(new File(outPath, fileName))
                         jsonWriter << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n"
                     } else {
                         jsonWriter << ",\n"
@@ -101,9 +113,11 @@ def getDump(Connection connection, File outPath,boolean exportTracks, boolean ex
                                 [track_row.MAXLONGITUDE, track_row.MAXLATITUDE],
                                 [track_row.MINLONGITUDE, track_row.MAXLATITUDE],
                                 [track_row.MINLONGITUDE, track_row.MINLATITUDE]]
-                    def track = [type: "Feature", geometry: [type: "Polygon", coordinates: [bbox]], properties: [pleasantness    : track_row.pleasantness,
+                    def time_ISO_8601 = epochToRFCTime(((Timestamp)track_row.record_utc).time)
+                    def track = [type: "Feature", geometry: [type: "Polygon", coordinates: [bbox]], properties: [pleasantness  : track_row.pleasantness,
                                                                                                                gain_calibration: track_row.gain_calibration,
-                                                                                                               time_epoch      : ((Timestamp)track_row.record_utc).toInstant().getEpochSecond(),
+                                                                                                               time_ISO8601    : time_ISO_8601,
+                                                                                                               time_epoch:  ((Timestamp)track_row.record_utc).time,
                                                                                                                noise_level     : track_row.noise_level,
                                                                                                                time_length     : track_row.time_length]]
                     jsonWriter << JsonOutput.toJson(track)
@@ -125,7 +139,7 @@ def getDump(Connection connection, File outPath,boolean exportTracks, boolean ex
     return createdFiles
 }
 
-def Connection openPostgreSQLDataStoreConnection() {
+static def Connection openPostgreSQLDataStoreConnection() {
     Store store = new GeoServer().catalog.getStore("postgis")
     JDBCDataStore jdbcDataStore = (JDBCDataStore) store.getDataStoreInfo().getDataStore(null)
     return jdbcDataStore.getDataSource().getConnection()
@@ -140,7 +154,7 @@ def run(input) {
     // Open PostgreSQL connection
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result: doDump(connection, input["exportTracks"], input["exportMeasures"], input["exportAreas"])]
+        return [result: JsonOutput.toJson(doDump(connection, input["exportTracks"], input["exportMeasures"], input["exportAreas"]))]
     } finally {
         connection.close()
     }

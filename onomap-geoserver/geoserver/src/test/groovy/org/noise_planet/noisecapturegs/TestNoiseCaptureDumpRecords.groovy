@@ -29,28 +29,31 @@
 package org.noise_planet.noisecapturegs
 
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import groovy.sql.Sql
 import org.h2.Driver
 import org.junit.After
 import org.junit.Before
+import org.junit.BeforeClass
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 
 import java.sql.Connection
 import java.sql.Statement
 import java.sql.Timestamp
+import java.util.zip.GZIPInputStream
 
 /**
  * Test parsing of zip file using H2GIS database
  */
 class TestNoiseCaptureDumpRecords extends GroovyTestCase {
-    Connection connection;
+    static Connection connection;
 
 
     @Rule
-    public TemporaryFolder folder= new TemporaryFolder(new File("build"));
+    public static TemporaryFolder folder= new TemporaryFolder(new File("build"));
 
-    @Before
+    @BeforeClass
     void setUp() {
         folder.create()
         connection = Driver.load().connect("jdbc:h2:"+new File(folder.newFolder(),"test;MODE=PostgreSQL").getAbsolutePath(), null)
@@ -62,10 +65,59 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         st.execute(new File(TestNoiseCaptureDumpRecords.class.getResource("inith2.sql").getFile()).text)
         // Load timezone file
         st.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
+        st.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
         // ut_deps has been derived from https://www.data.gouv.fr/fr/datasets/contours-des-departements-francais-issus-d-openstreetmap/ (c) osm
         // See ut_deps.txt for more details
         st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
-        st.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
+    }
+
+    @After
+    void tearDown() {
+        connection.close();
+        folder.delete()
+    }
+
+    static File ungzipFile(File file, String newFileName) {
+        byte[] buffer = new byte[1024];
+        File outFile = new File(file.getParentFile(), newFileName);
+        new FileInputStream(file).withStream { gzipFile ->
+            new GZIPInputStream(gzipFile).withStream { gzis ->
+                new FileOutputStream(outFile).withStream { gzipOutFile ->
+                    int len;
+                    while ((len = gzis.read(buffer)) > 0) {
+                        gzipOutFile.write(buffer, 0, len);
+                    }
+                }
+            }
+        }
+        return outFile;
+    }
+
+
+    void testTracksExport() {
+        // Parse file to database
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
+        Sql.LOG.level = java.util.logging.Level.SEVERE
+        Sql sql = new Sql(connection)
+        // Insert measure data
+        // insert records
+        File tmpFolder = folder.newFolder()
+        List<String> createdFiles = new nc_dump_records().getDump(connection,tmpFolder, true, false, false)
+        assertEquals(1, createdFiles.size())
+        assertTrue(new File((String)createdFiles.get(0)).exists())
+        // Load GeoJSON file
+        Statement st = connection.createStatement()
+        File uncompressedFile = ungzipFile(new File(createdFiles.get(0)), "testdump.geojson")
+        // Load Json
+        def result = new JsonSlurper().parse(uncompressedFile);
+        assertNotNull(result)
+        // Check content
+        assertEquals(1, result.features.size())
+    }
+
+    void testHexaExport() {
+
         new nc_feed_stats().processInput(connection,
                 TestNoiseCaptureProcess.getResource("gevfit_of_stations.txt").toURI(), "stations")
         new nc_feed_stats().processInput(connection,
@@ -77,28 +129,5 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
                 new File(TestNoiseCaptureDumpRecords.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
         // convert to hexagons
         new nc_process().process(connection, 10)
-    }
-
-    @After
-    void tearDown() {
-        connection.close();
-        folder.delete()
-    }
-
-
-    void testTracksExport() {
-        Sql.LOG.level = java.util.logging.Level.SEVERE
-        Sql sql = new Sql(connection)
-        // Insert measure data
-        // insert records
-        File tmpFolder = folder.newFolder()
-        def createdFiles = new nc_dump_records().getDump(connection,tmpFolder, true, false, false)
-        assertEquals(1, createdFiles.size())
-        assertTrue(new File(createdFiles.get(0)).exists())
-        // Load GeoJSON file
-        Statement st = connection.createStatement()
-        st.execute("DELETE IF EXISTS ;")
-        st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
-
     }
 }

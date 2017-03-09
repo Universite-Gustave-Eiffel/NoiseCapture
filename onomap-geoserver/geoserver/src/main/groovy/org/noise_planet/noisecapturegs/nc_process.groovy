@@ -79,14 +79,14 @@ class Record{
     }
 
     def getLAeq() {
-        return 10 * Math.log10(levels.sum({Math.pow(10.0, it / 10.0)}))
+        return 10 * Math.log10(levels.sum({Math.pow(10.0, it / 10.0)}) / levels.size() )
     }
 
     /**
      * @return Average or L50% value of the noise.
      */
     def getLA50() {
-        if(!L50) {
+        if(L50 == null) {
             levels = levels.sort()
             if(levels.size() % 2 == 1) {
                 this.L50 = levels.get((((levels.size()+1)/2)-1).intValue())
@@ -219,8 +219,13 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     }
 
     // Insert updated cell
-    def areaLeq = CommonOps.elementSum(mergedMeasurementProfile) / 72
-
+    Record weekRecord = new Record(0)
+    for(int idHour = 0; idHour<72;idHour++) {
+        weekRecord.addLeq(mergedMeasurementProfile.get(idHour))
+    }
+    double areaLaeq = weekRecord.getLAeq()
+    double areaL50 = weekRecord.getLA50()
+    double areaLden = 0 // TODO
     // Create area geometry
     def hexaGeom = new StringBuilder()
     for(int i=0; i<6 ; i++) {
@@ -246,14 +251,16 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
                   cell_r           : hex.r,
                   tzid : tz.getID() as String,
                   the_geom         : hexaGeom.toString(),
-                  mean_leq         : areaLeq,
+                  laeq         : areaLaeq,
+                  la50         : areaL50,
+                  lden         : areaLden,
                   mean_pleasantness: sumPleasantness / pleasantnessCount,
                   measure_count    : pointCount,
                   first_measure    : firstUtc,
                   last_measure     : lastUtc]
-    def pkArea = sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, tzid, the_geom, mean_leq, mean_pleasantness," +
+    def pkArea = sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, tzid, the_geom, laeq,la50,lden, mean_pleasantness," +
             " measure_count, first_measure, last_measure) VALUES (:cell_q, :cell_r, :tzid, " +
-            "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :mean_leq," +
+            "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :laeq, :la50,:lden ," +
             " :mean_pleasantness, :measure_count, :first_measure, :last_measure)", fields)[0][0] as Integer
     // Add profile
     sql.withBatch("INSERT INTO NOISECAPTURE_AREA_PROFILE(PK_AREA, HOUR, LEQ) VALUES (:pkarea, :hour, :leq)") { batch ->

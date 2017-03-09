@@ -55,7 +55,7 @@ outputs = [
 ]
 
 def getAreaInfo(Connection connection, long qIndex, long rIndex) {
-    def data = []
+    def data = [:]
     try {
         // List the area identifier using the new measures coordinates
         def sql = new Sql(connection)
@@ -64,9 +64,8 @@ def getAreaInfo(Connection connection, long qIndex, long rIndex) {
                 [qIndex: qIndex, rIndex: rIndex])
         if(row) {
             def time_zone = TimeZone.getTimeZone(row.tzid as String).toZoneId();
-            def formater = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-            def firstMeasure = row.first_measure.toInstant().atZone(time_zone).format(formater);
-            def lastMeasure = row.last_measure.toInstant().atZone(time_zone).format(formater);
+            def firstMeasure = row.first_measure.toInstant().atZone(time_zone).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+            def lastMeasure = row.last_measure.toInstant().atZone(time_zone).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
             data = [laeq              : row.laeq,
                     la50              : row.la50,
                     lden              : row.lden,

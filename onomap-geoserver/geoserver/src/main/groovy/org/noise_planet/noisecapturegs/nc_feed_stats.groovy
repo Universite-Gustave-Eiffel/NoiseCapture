@@ -32,9 +32,12 @@ import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.sql.Sql
 import org.geotools.jdbc.JDBCDataStore
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.security.core.context.SecurityContextHolder
 
 import java.sql.Connection
+import java.sql.ResultSet
 import java.sql.SQLException;
 
 
@@ -62,16 +65,15 @@ def static Connection openPostgreSQLDataStoreConnection() {
  */
 def checkTimeMatrixExists(Connection connection) {
     def sql = new Sql(connection)
-    def create = false
-    try {
-        def res = sql.firstRow("SELECT COUNT(*) cpt FROM delta_sigma_time_matrix")
-        if(res["cpt"] != 72*72) {
-            create = true
+    def create = true
+    def res = sql.firstRow("select count(*) cpt from INFORMATION_SCHEMA.TABLES WHERE LOWER(table_name) = 'delta_sigma_time_matrix'")
+    if(res["cpt"] == 1) {
+        res = sql.firstRow("SELECT COUNT(*) cpt FROM delta_sigma_time_matrix")
+        if (res["cpt"] != 72 * 72) {
             sql.execute("DROP TABLE delta_sigma_time_matrix")
+        } else {
+            create = false
         }
-    } catch (SQLException ex) {
-        // Table does not exists
-        create = true
     }
     if(create) {
         sql.execute("CREATE TABLE delta_sigma_time_matrix " +
@@ -89,6 +91,7 @@ def checkTimeMatrixExists(Connection connection) {
 }
 
 def processInput(Connection connection, URI csvPath, String dataType) {
+    Logger logger = LoggerFactory.getLogger(nc_feed_stats.class)
     def sql = new Sql(connection)
     def processed = 0
     if(dataType.startsWith("time_matrix_")) {
@@ -124,19 +127,23 @@ def processInput(Connection connection, URI csvPath, String dataType) {
                 "CONSTRAINT stations_ref_id_station_pk PRIMARY KEY (id_station, hour))");
         def refHour = 0;
         sql.withBatch("INSERT INTO stations_ref(id_station, hour, std_dev, mu,sigma) VALUES (:id_station, :hour, :std_dev, :mu, :sigma)") { batch ->
-            for(String line : lines) {
-                def cols = line.split(",")
-                def stationCount = cols.length / 3
-                for(int stationId = 0; stationId < stationCount; stationId++) {
-                    def sigma = cols[stationId * 3]
-                    def stdDev = cols[stationId * 3 + 1]
-                    def mu = cols[stationId * 3 + 2]
-                    batch.addBatch([id_station: stationId as Integer, hour: refHour as Integer, std_dev: stdDev as Double, mu: mu as Double, sigma:sigma as Double])
-                    processed++
+            try {
+                for (String line : lines) {
+                    def cols = line.split(",")
+                    def stationCount = cols.length / 3
+                    for (int stationId = 0; stationId < stationCount; stationId++) {
+                        def sigma = cols[stationId * 3]
+                        def stdDev = cols[stationId * 3 + 1]
+                        def mu = cols[stationId * 3 + 2]
+                        batch.addBatch([id_station: stationId as Integer, hour: refHour as Integer, std_dev: stdDev as Double, mu: mu as Double, sigma: sigma as Double])
+                        processed++
+                    }
+                    refHour++
                 }
-                refHour++
+                batch.executeBatch()
+            } catch (Exception ex) {
+                logger.error(ex.getLocalizedMessage(), ex)
             }
-            batch.executeBatch()
         }
     } else {
         throw new IllegalArgumentException("Expected dataType one of time_matrix or stations")

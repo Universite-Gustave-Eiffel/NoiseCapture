@@ -63,12 +63,13 @@ outputs = [
  * @param epochMillisec
  * @return
  */
-static def epochToRFCTime(epochMillisec) {
-    return Instant.ofEpochMilli(epochMillisec).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))
+static def epochToRFCTime(epochMillisec, zone) {
+    return Instant.ofEpochMilli(epochMillisec).atZone(ZoneId.of(zone)).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 }
 
-static def getDump(Connection connection, File outPath, boolean exportTracks, boolean exportMeasures, boolean exportAreas) {
-    def createdFiles = []
+static
+def getDump(Connection connection, File outPath, boolean exportTracks, boolean exportMeasures, boolean exportAreas) {
+    def createdFiles = new ArrayList<String>()
 
     // Process export of raw measures
     try {
@@ -85,15 +86,9 @@ static def getDump(Connection connection, File outPath, boolean exportTracks, bo
         def lastFileParams = []
         Writer jsonWriter = null
 
-        if(exportTracks) {
+        if (exportTracks) {
             // Export track file
-            sql.eachRow("select name_0, name_1, name_2, track_uuid, pleasantness,gain_calibration," +
-                    "ST_YMIN(te.the_geom) MINLATITUDE,ST_XMIN(te.THE_GEOM) MINLONGITUDE," +
-                    "ST_YMAX(te.the_geom) MAXLATITUDE,ST_XMAX(te.THE_GEOM) MAXLONGITUDE," +
-                    " record_utc, noise_level, time_length " +
-                    "from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_track nt  " +
-                    "where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom)" +
-                    " and te.pk_track = nt.pk_track order by name_0, name_1, name_2;") {
+            sql.eachRow("select name_0, name_1, name_2, tzid, track_uuid, pleasantness,gain_calibration,ST_YMIN(te.the_geom) MINLATITUDE,ST_XMIN(te.THE_GEOM) MINLONGITUDE,ST_YMAX(te.the_geom) MAXLATITUDE,ST_XMAX(te.THE_GEOM) MAXLONGITUDE, record_utc, noise_level, time_length from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_track nt,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = nt.pk_track order by name_0, name_1, name_2") {
                 track_row ->
                     def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                     if (thisFileParams != lastFileParams) {
@@ -103,7 +98,7 @@ static def getDump(Connection connection, File outPath, boolean exportTracks, bo
                         lastFileParams = thisFileParams
                         String fileName = track_row.name_0 + "_" + track_row.name_1 + "_" + track_row.name_2 + ".tracks.geojson.gz"
                         jsonWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(new File(outPath, fileName))), "UTF-8")
-                        createdFiles.add(new File(outPath, fileName))
+                        createdFiles.add(new File(outPath, fileName).getAbsolutePath())
                         jsonWriter << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n"
                     } else {
                         jsonWriter << ",\n"
@@ -113,13 +108,13 @@ static def getDump(Connection connection, File outPath, boolean exportTracks, bo
                                 [track_row.MAXLONGITUDE, track_row.MAXLATITUDE],
                                 [track_row.MINLONGITUDE, track_row.MAXLATITUDE],
                                 [track_row.MINLONGITUDE, track_row.MINLATITUDE]]
-                    def time_ISO_8601 = epochToRFCTime(((Timestamp)track_row.record_utc).time)
-                    def track = [type: "Feature", geometry: [type: "Polygon", coordinates: [bbox]], properties: [pleasantness  : track_row.pleasantness,
-                                                                                                               gain_calibration: track_row.gain_calibration,
-                                                                                                               time_ISO8601    : time_ISO_8601,
-                                                                                                               time_epoch:  ((Timestamp)track_row.record_utc).time,
-                                                                                                               noise_level     : track_row.noise_level,
-                                                                                                               time_length     : track_row.time_length]]
+                    def time_ISO_8601 = epochToRFCTime(((Timestamp) track_row.record_utc).time, track_row.tzid)
+                    def track = [type: "Feature", geometry: [type: "Polygon", coordinates: [bbox]], properties: [pleasantness    : track_row.pleasantness,
+                                                                                                                 gain_calibration: track_row.gain_calibration,
+                                                                                                                 time_ISO8601    : time_ISO_8601,
+                                                                                                                 time_epoch      : ((Timestamp) track_row.record_utc).time,
+                                                                                                                 noise_level     : track_row.noise_level,
+                                                                                                                 time_length     : track_row.time_length]]
                     jsonWriter << JsonOutput.toJson(track)
             }
             if (jsonWriter != null) {

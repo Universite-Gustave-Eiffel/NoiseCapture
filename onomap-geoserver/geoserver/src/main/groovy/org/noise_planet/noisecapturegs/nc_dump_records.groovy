@@ -88,7 +88,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
 
         if (exportTracks) {
             // Export track file
-            sql.eachRow("select name_0, name_1, name_2, tzid, track_uuid, pleasantness,gain_calibration,ST_YMIN(te.the_geom) MINLATITUDE,ST_XMIN(te.THE_GEOM) MINLONGITUDE,ST_YMAX(te.the_geom) MAXLATITUDE,ST_XMAX(te.THE_GEOM) MAXLONGITUDE, record_utc, noise_level, time_length from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_track nt,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = nt.pk_track order by name_0, name_1, name_2") {
+            sql.eachRow("select name_0, name_1, name_2, tzid, track_uuid, pleasantness,gain_calibration,ST_YMIN(te.the_geom) MINLATITUDE,ST_XMIN(te.THE_GEOM) MINLONGITUDE,ST_YMAX(te.the_geom) MAXLATITUDE,ST_XMAX(te.THE_GEOM) MAXLONGITUDE, record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_track nt,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = nt.pk_track order by name_0, name_1, name_2;") {
                 track_row ->
                     def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                     if (thisFileParams != lastFileParams) {
@@ -115,7 +115,8 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                                                                                                                  time_ISO8601    : time_ISO_8601,
                                                                                                                  time_epoch      : ((Timestamp) track_row.record_utc).time,
                                                                                                                  noise_level     : track_row.noise_level,
-                                                                                                                 time_length     : track_row.time_length]]
+                                                                                                                 time_length     : track_row.time_length,
+                                                                                                                 tags : track_row.tags == null ? null : track_row.tags.tokenize(',')]]
                     jsonWriter << JsonOutput.toJson(track)
             }
             if (jsonWriter != null) {
@@ -126,9 +127,15 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
         lastFileParams = []
 
         // Export measures file
+        if(exportMeasures) {
 
+
+        }
         // Export hexagons file
+        if(exportAreas) {
 
+
+        }
     } catch (SQLException ex) {
         throw ex
     }
@@ -148,9 +155,14 @@ def run(input) {
         throw new IllegalStateException("This WPS process require authentication")
     }
     // Open PostgreSQL connection
+    // Create dump folder
+    File dumpDir = new File("data_dir/onomap_public_dump");
+    if (!dumpDir.exists()) {
+        dumpDir.mkdirs()
+    }
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result: JsonOutput.toJson(doDump(connection, input["exportTracks"], input["exportMeasures"], input["exportAreas"]))]
+        return [result: JsonOutput.toJson(getDump(connection, dumpDir,input["exportTracks"], input["exportMeasures"], input["exportAreas"]))]
     } finally {
         connection.close()
     }

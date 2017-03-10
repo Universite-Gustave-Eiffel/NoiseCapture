@@ -124,6 +124,7 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         assertEquals("2016-06-09T14:16:58+02:00", result.features[0].properties.time_ISO8601)
         assertEquals(69, result.features[0].properties.pleasantness)
         assertEquals(1465474618000, result.features[0].properties.time_epoch)
+        assertEquals(["test", "indoor", "silent"], result.features[0].properties.tags)
         // Check content second file
         assertTrue(new File((String)createdFiles.get(1)).exists())
         // Load GeoJSON file
@@ -137,6 +138,7 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         assertEquals(5, result.features[0].geometry.coordinates[0].size())
         assertEquals("2017-01-24T17:49:11+01:00", result.features[0].properties.time_ISO8601)
         assertNull(result.features[0].properties.pleasantness)
+        assertEquals(["test", "chatting", "human"], result.features[0].properties.tags)
         assertEquals(1485276551000, result.features[0].properties.time_epoch)
         def coordinates = [[[-1.15651469, 46.14685535], [-1.1534035, 46.14685535], [-1.1534035, 46.1482328], [-1.15651469, 46.1482328], [-1.15651469, 46.14685535]]]
         assertEquals(coordinates, result.features[0].geometry.coordinates)

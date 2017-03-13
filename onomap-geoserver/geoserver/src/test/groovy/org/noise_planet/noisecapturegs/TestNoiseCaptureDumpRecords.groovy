@@ -42,6 +42,7 @@ import java.sql.Connection
 import java.sql.Statement
 import java.sql.Timestamp
 import java.util.zip.GZIPInputStream
+import java.util.zip.ZipInputStream
 
 /**
  * Test parsing of zip file using H2GIS database
@@ -77,23 +78,59 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         folder.delete()
     }
 
-    static File ungzipFile(File file, String newFileName) {
-        byte[] buffer = new byte[1024];
-        File outFile = new File(file.getParentFile(), newFileName);
-        new FileInputStream(file).withStream { gzipFile ->
-            new GZIPInputStream(gzipFile).withStream { gzis ->
-                new FileOutputStream(outFile).withStream { gzipOutFile ->
-                    int len;
-                    while ((len = gzis.read(buffer)) > 0) {
-                        gzipOutFile.write(buffer, 0, len);
-                    }
-                    gzipOutFile.flush()
-                }
-            }
-        }
-        return outFile;
-    }
+    // Avoid JSonSlurper to close the input stream
+    private static class UnClosableInputStream extends InputStream {
+        private InputStream decoratedInputStream;
 
+        UnClosableInputStream(InputStream decoratedInputStream) {
+            this.decoratedInputStream = decoratedInputStream
+        }
+
+        @Override
+        int read(byte[] bytes) throws IOException {
+            return decoratedInputStream.read(bytes)
+        }
+
+        @Override
+        int read(byte[] bytes, int i, int i1) throws IOException {
+            return decoratedInputStream.read(bytes, i, i1)
+        }
+
+        @Override
+        long skip(long l) throws IOException {
+            return decoratedInputStream.skip(l)
+        }
+
+        @Override
+        int available() throws IOException {
+            return decoratedInputStream.available()
+        }
+
+        @Override
+        void close() throws IOException {
+            // Ignore
+        }
+
+        @Override
+        void mark(int i) {
+            decoratedInputStream.mark(i)
+        }
+
+        @Override
+        void reset() throws IOException {
+            decoratedInputStream.reset()
+        }
+
+        @Override
+        boolean markSupported() {
+            return decoratedInputStream.markSupported()
+        }
+
+        @Override
+        int read() throws IOException {
+            return decoratedInputStream.read()
+        }
+    }
 
     void testTracksExport() {
         // Parse file to database
@@ -101,47 +138,64 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
                 new File(TestNoiseCaptureDumpRecords.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureDumpRecords.getResource("track_a23261b3-b569-4363-95be-e5578d694238.zip").file))
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_f720018a-a5db-4859-bd7d-377d29356c6f.zip").file))
         Sql.LOG.level = java.util.logging.Level.SEVERE
         // Insert measure data
         // insert records
         File tmpFolder = folder.newFolder()
         List<String> createdFiles = new nc_dump_records().getDump(connection,tmpFolder, true, false, false)
         assertEquals(2, createdFiles.size())
-        assertEquals("France_Pays de la Loire_Loire-Atlantique.tracks.geojson.gz", new File((String)createdFiles.get(0)).getName())
-        assertEquals("France_Poitou-Charentes_Charente-Maritime.tracks.geojson.gz", new File((String)createdFiles.get(1)).getName())
+        assertEquals("France.zip", new File((String)createdFiles.get(0)).getName())
+        assertEquals("Italy.zip", new File((String)createdFiles.get(1)).getName())
 
         assertTrue(new File((String)createdFiles.get(0)).exists())
-        // Load GeoJSON file
-        File uncompressedFile = ungzipFile(new File(createdFiles.get(0)), "testdump.geojson")
         // Load Json
-        def result = new JsonSlurper().parse(uncompressedFile, "UTF-8");
-        assertNotNull(result)
-        // Check content first file
-        assertEquals(1, result.features.size())
-        assertEquals("Polygon", result.features[0].geometry.type)
-        assertEquals(5, result.features[0].geometry.coordinates[0].size())
-        assertEquals("2016-06-09T14:16:58+02:00", result.features[0].properties.time_ISO8601)
-        assertEquals(69, result.features[0].properties.pleasantness)
-        assertEquals(1465474618000, result.features[0].properties.time_epoch)
-        assertEquals(["test", "indoor", "silent"], result.features[0].properties.tags)
-        // Check content second file
-        assertTrue(new File((String)createdFiles.get(1)).exists())
-        // Load GeoJSON file
-        uncompressedFile = ungzipFile(new File(createdFiles.get(1)), "testdump.geojson")
-        // Load Json
-        result = new JsonSlurper().parse(uncompressedFile, "UTF-8");
-        assertNotNull(result)
-        // Check content
-        assertEquals(1, result.features.size())
-        assertEquals("Polygon", result.features[0].geometry.type)
-        assertEquals(5, result.features[0].geometry.coordinates[0].size())
-        assertEquals("2017-01-24T17:49:11+01:00", result.features[0].properties.time_ISO8601)
-        assertNull(result.features[0].properties.pleasantness)
-        assertEquals(["test", "chatting", "human"], result.features[0].properties.tags)
-        assertEquals(1485276551000, result.features[0].properties.time_epoch)
-        def coordinates = [[[-1.15651469, 46.14685535], [-1.1534035, 46.14685535], [-1.1534035, 46.1482328], [-1.15651469, 46.1482328], [-1.15651469, 46.14685535]]]
-        assertEquals(coordinates, result.features[0].geometry.coordinates)
+        new ZipInputStream(new FileInputStream(createdFiles.get(0))).withStream { zipInputStream ->
 
+            assertEquals("France_Pays de la Loire_Loire-Atlantique.tracks.geojson",zipInputStream.getNextEntry().getName())
+            def result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8");
+            assertNotNull(result)
+            // Check content first file
+            assertEquals(1, result.features.size())
+            assertEquals("Polygon", result.features[0].geometry.type)
+            assertEquals(5, result.features[0].geometry.coordinates[0].size())
+            assertEquals("2016-06-09T14:16:58+02:00", result.features[0].properties.time_ISO8601)
+            assertEquals(69, result.features[0].properties.pleasantness)
+            assertEquals(1465474618000, result.features[0].properties.time_epoch)
+            assertEquals(["test", "indoor", "silent"], result.features[0].properties.tags)
+            // Check content second file in the zip file
+            assertEquals("France_Poitou-Charentes_Charente-Maritime.tracks.geojson",zipInputStream.getNextEntry().getName())
+            result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8");
+            assertNotNull(result)
+            // Check content
+            assertEquals(1, result.features.size())
+            assertEquals("Polygon", result.features[0].geometry.type)
+            assertEquals(5, result.features[0].geometry.coordinates[0].size())
+            assertEquals("2017-01-24T17:49:11+01:00", result.features[0].properties.time_ISO8601)
+            assertNull(result.features[0].properties.pleasantness)
+            assertEquals(["test", "chatting", "human"], result.features[0].properties.tags)
+            assertEquals(1485276551000, result.features[0].properties.time_epoch)
+            def coordinates = [[[-1.15651469, 46.14685535], [-1.1534035, 46.14685535], [-1.1534035, 46.1482328], [-1.15651469, 46.1482328], [-1.15651469, 46.14685535]]]
+            assertEquals(coordinates, result.features[0].geometry.coordinates)
+
+            // Check content of second file
+
+        }
+
+        new ZipInputStream(new FileInputStream(createdFiles.get(1))).withStream { zipInputStream ->
+            assertEquals("Italy_Umbria_Perugia.tracks.geojson", zipInputStream.getNextEntry().getName())
+            def result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8");
+            assertNotNull(result)
+            // Check content first file
+            assertEquals(1, result.features.size())
+            assertEquals("Polygon", result.features[0].geometry.type)
+            assertEquals(5, result.features[0].geometry.coordinates[0].size())
+            assertEquals("2016-10-12T08:33:49+02:00", result.features[0].properties.time_ISO8601)
+            assertNull(result.features[0].properties.pleasantness)
+            assertEquals(1476254029000, result.features[0].properties.time_epoch)
+            assertEquals(["test", "footsteps", "human"], result.features[0].properties.tags)
+        }
     }
 
     void testMeasurementExport() {

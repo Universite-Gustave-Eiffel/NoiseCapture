@@ -102,7 +102,6 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureDumpRecords.getResource("track_a23261b3-b569-4363-95be-e5578d694238.zip").file))
         Sql.LOG.level = java.util.logging.Level.SEVERE
-        Sql sql = new Sql(connection)
         // Insert measure data
         // insert records
         File tmpFolder = folder.newFolder()
@@ -143,6 +142,29 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         def coordinates = [[[-1.15651469, 46.14685535], [-1.1534035, 46.14685535], [-1.1534035, 46.1482328], [-1.15651469, 46.1482328], [-1.15651469, 46.14685535]]]
         assertEquals(coordinates, result.features[0].geometry.coordinates)
 
+    }
+
+    void testMeasurementExport() {
+        // Parse file to database
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_a23261b3-b569-4363-95be-e5578d694238.zip").file))
+        Sql.LOG.level = java.util.logging.Level.SEVERE
+
+        File tmpFolder = folder.newFolder()
+        List<String> createdFiles = new nc_dump_records().getDump(connection,tmpFolder, false, true, false)
+        assertEquals(2, createdFiles.size())
+        assertEquals("France_Pays de la Loire_Loire-Atlantique.points.geojson.gz", new File((String)createdFiles.get(0)).getName())
+        assertEquals("France_Poitou-Charentes_Charente-Maritime.points.geojson.gz", new File((String)createdFiles.get(1)).getName())
+
+        assertTrue(new File((String)createdFiles.get(0)).exists())
+        // Load GeoJSON file
+        File uncompressedFile = ungzipFile(new File(createdFiles.get(0)), "testdump.geojson")
+        // Load Json
+        def result = new JsonSlurper().parse(uncompressedFile, "UTF-8");
+        assertNotNull(result)
+        // Check content first file
     }
 
     void testHexaExport() {

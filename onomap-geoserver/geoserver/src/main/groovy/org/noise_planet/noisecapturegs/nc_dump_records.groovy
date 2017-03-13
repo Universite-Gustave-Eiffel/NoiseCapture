@@ -88,7 +88,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
 
         if (exportTracks) {
             // Export track file
-            sql.eachRow("select name_0, name_1, name_2, tzid, track_uuid, pleasantness,gain_calibration,ST_YMIN(te.the_geom) MINLATITUDE,ST_XMIN(te.THE_GEOM) MINLONGITUDE,ST_YMAX(te.the_geom) MAXLATITUDE,ST_XMAX(te.THE_GEOM) MAXLONGITUDE, record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_track nt,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = nt.pk_track order by name_0, name_1, name_2;") {
+            sql.eachRow("select name_0, name_1, name_2, tzid, nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_YMIN(te.the_geom) MINLATITUDE,ST_XMIN(te.THE_GEOM) MINLONGITUDE,ST_YMAX(te.the_geom) MAXLATITUDE,ST_XMAX(te.THE_GEOM) MAXLONGITUDE, record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_track nt,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = nt.pk_track order by name_0, name_1, name_2;") {
                 track_row ->
                     def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                     if (thisFileParams != lastFileParams) {
@@ -98,8 +98,17 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                         }
                         lastFileParams = thisFileParams
                         String fileName = track_row.name_0 + "_" + track_row.name_1 + "_" + track_row.name_2 + ".tracks.geojson.gz"
-                        jsonWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(new File(outPath, fileName))), "UTF-8")
-                        createdFiles.add(new File(outPath, fileName).getAbsolutePath())
+                        File name0_path = new File(outPath, track_row.name_0)
+                        if(!name0_path.exists()) {
+                            name0_path.mkdir()
+                        }
+                        File name1_path = new File(name0_path, track_row.name_1)
+                        if(!name1_path.exists()) {
+                            name1_path.mkdir()
+                        }
+                        File finalFile = new File(name1_path, fileName)
+                        jsonWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(finalFile)), "UTF-8")
+                        createdFiles.add(finalFile.getAbsolutePath())
                         jsonWriter << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n"
                     } else {
                         jsonWriter << ",\n"
@@ -111,6 +120,8 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                                 [track_row.MINLONGITUDE, track_row.MINLATITUDE]]
                     def time_ISO_8601 = epochToRFCTime(((Timestamp) track_row.record_utc).time, track_row.tzid)
                     def track = [type: "Feature", geometry: [type: "Polygon", coordinates: [bbox]], properties: [pleasantness    : track_row.pleasantness,
+                                                                                                                 pk_track : track_row.pk_track,
+                                                                                                                 track_uuid : track_row.track_uuid,
                                                                                                                  gain_calibration: track_row.gain_calibration,
                                                                                                                  time_ISO8601    : time_ISO_8601,
                                                                                                                  time_epoch      : ((Timestamp) track_row.record_utc).time,
@@ -128,8 +139,52 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
 
         // Export measures file
         if(exportMeasures) {
+            //
 
-
+            sql.eachRow("select name_0, name_1, name_2, tzid, np.pk_track, ST_Y(np.the_geom) LATITUDE,ST_X(np.THE_GEOM) LONGITUDE, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_point np,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = np.pk_track and not ST_ISEMPTY(np.the_geom) order by name_0, name_1, name_2") {
+                track_row ->
+                    def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
+                    if (thisFileParams != lastFileParams) {
+                        if (jsonWriter != null) {
+                            jsonWriter << "]\n}\n"
+                            jsonWriter.close()
+                        }
+                        lastFileParams = thisFileParams
+                        String fileName = track_row.name_0 + "_" + track_row.name_1 + "_" + track_row.name_2 + ".points.geojson.gz"
+                        File name0_path = new File(outPath, track_row.name_0)
+                        if(!name0_path.exists()) {
+                            name0_path.mkdir()
+                        }
+                        File name1_path = new File(name0_path, track_row.name_1)
+                        if(!name1_path.exists()) {
+                            name1_path.mkdir()
+                        }
+                        File finalFile = new File(name1_path, fileName)
+                        jsonWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(finalFile)), "UTF-8")
+                        createdFiles.add(finalFile.getAbsolutePath())
+                        jsonWriter << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n"
+                    } else {
+                        jsonWriter << ",\n"
+                    }
+                    def pt = [track_row.LONGITUDE, track_row.LATITUDE]
+                    def time_ISO_8601 = epochToRFCTime(((Timestamp) track_row.time_date).time, track_row.tzid)
+                    def time_gps_ISO_8601 = epochToRFCTime(((Timestamp) track_row.time_location).time, track_row.tzid)
+                    def track = [type: "Feature", geometry: [type: "Point", coordinates: pt], properties: [pk_track : track_row.pk_track,
+                                                                                                                 time_ISO8601    : time_ISO_8601,
+                                                                                                                 time_epoch      : ((Timestamp) track_row.time_date).time,
+                                                                                                                 time_gps_ISO8601    : time_gps_ISO_8601,
+                                                                                                                 time_gps_epoch      : ((Timestamp) track_row.time_location).time,
+                                                                                                                 noise_level     : track_row.noise_level,
+                                                                                                                 speed           : track_row.speed,
+                                                                                                                 orientation : track_row.orientation,
+                                                                                                                 accuracy : track_row.accuracy
+                                                                                                                    ]]
+                    jsonWriter << JsonOutput.toJson(track)
+            }
+            if (jsonWriter != null) {
+                jsonWriter << "]\n}\n"
+                jsonWriter.close()
+            }
         }
         // Export hexagons file
         if(exportAreas) {

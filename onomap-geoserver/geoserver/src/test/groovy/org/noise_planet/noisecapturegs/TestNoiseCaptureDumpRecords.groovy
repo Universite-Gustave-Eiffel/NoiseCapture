@@ -225,25 +225,18 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             // Check content first file
             assertEquals(66, result.features.size())
             assertEquals("Point", result.features[0].geometry.type)
-            assertEquals(1, result.features[0].geometry.coordinates[0].size())
-            assertEquals("2016-06-09T14:16:58+02:00", result.features[0].properties.time_ISO8601)
-            assertEquals(69, result.features[0].properties.pleasantness)
-            assertEquals(1465474618000, result.features[0].properties.time_epoch)
-            assertEquals(["test", "indoor", "silent"], result.features[0].properties.tags)
+            assertEquals(2, result.features[0].geometry.coordinates.size())
+            assertEquals(14.19, (Double)result.features[0].properties.accuracy, 0.01)
+            assertEquals(0.14, (Double)result.features[0].properties.orientation, 0.01)
+            assertEquals(0.0, (Double)result.features[0].properties.speed, 0.01)
+            assertEquals(1, (Double)result.features[0].properties.pk_track)
+            assertEquals("2016-06-09T14:17:19+02:00", result.features[0].properties.time_ISO8601)
+            assertEquals(1465474639000, result.features[0].properties.time_epoch)
+            assertEquals("2016-06-09T14:17:21+02:00", result.features[0].properties.time_gps_ISO8601)
+            assertEquals(1465474641000, result.features[0].properties.time_gps_epoch)
             // Check content second file in the zip file
             assertEquals("France_Poitou-Charentes_Charente-Maritime.points.geojson",zipInputStream.getNextEntry().getName())
         }
-
-        assertEquals("France_Pays de la Loire_Loire-Atlantique.points.geojson.gz", new File((String)createdFiles.get(0)).getName())
-        assertEquals("France_Poitou-Charentes_Charente-Maritime.points.geojson.gz", new File((String)createdFiles.get(1)).getName())
-
-        assertTrue(new File((String)createdFiles.get(0)).exists())
-        // Load GeoJSON file
-        File uncompressedFile = ungzipFile(new File(createdFiles.get(0)), "testdump.geojson")
-        // Load Json
-        def result = new JsonSlurper().parse(uncompressedFile, "UTF-8");
-        assertNotNull(result)
-        // Check content first file
     }
 
     void testHexaExport() {

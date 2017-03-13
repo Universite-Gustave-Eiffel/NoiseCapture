@@ -204,11 +204,36 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
                 new File(TestNoiseCaptureDumpRecords.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureDumpRecords.getResource("track_a23261b3-b569-4363-95be-e5578d694238.zip").file))
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_f720018a-a5db-4859-bd7d-377d29356c6f.zip").file))
         Sql.LOG.level = java.util.logging.Level.SEVERE
 
         File tmpFolder = folder.newFolder()
         List<String> createdFiles = new nc_dump_records().getDump(connection,tmpFolder, false, true, false)
         assertEquals(2, createdFiles.size())
+
+
+
+
+        assertTrue(new File((String)createdFiles.get(0)).exists())
+        // Load Json
+        new ZipInputStream(new FileInputStream(createdFiles.get(0))).withStream { zipInputStream ->
+
+            assertEquals("France_Pays de la Loire_Loire-Atlantique.points.geojson", zipInputStream.getNextEntry().getName())
+            def result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8");
+            assertNotNull(result)
+            // Check content first file
+            assertEquals(66, result.features.size())
+            assertEquals("Point", result.features[0].geometry.type)
+            assertEquals(1, result.features[0].geometry.coordinates[0].size())
+            assertEquals("2016-06-09T14:16:58+02:00", result.features[0].properties.time_ISO8601)
+            assertEquals(69, result.features[0].properties.pleasantness)
+            assertEquals(1465474618000, result.features[0].properties.time_epoch)
+            assertEquals(["test", "indoor", "silent"], result.features[0].properties.tags)
+            // Check content second file in the zip file
+            assertEquals("France_Poitou-Charentes_Charente-Maritime.points.geojson",zipInputStream.getNextEntry().getName())
+        }
+
         assertEquals("France_Pays de la Loire_Loire-Atlantique.points.geojson.gz", new File((String)createdFiles.get(0)).getName())
         assertEquals("France_Poitou-Charentes_Charente-Maritime.points.geojson.gz", new File((String)createdFiles.get(1)).getName())
 

@@ -108,7 +108,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                         String fileName = track_row.name_0 + "_" + track_row.name_1 + "_" + track_row.name_2 + ".tracks.geojson"
                         // Fetch ZipOutputStream for this new country
                         if(countryZipOutputStream.containsKey(track_row.name_0)) {
-                            lastFileZipOutputStream = countryZipOutputStream.get(track_row.name_0)
+                            lastFileZipOutputStream = (ZipOutputStream)countryZipOutputStream.get(track_row.name_0)
                         } else {
                             // Create new file or overwrite it
                             def zipFileName = new File(outPath, track_row.name_0 + ".zip")
@@ -149,52 +149,53 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
 
         // Export measures file
         if(exportMeasures) {
-            //
-//
-//            sql.eachRow("select name_0, name_1, name_2, tzid, np.pk_track, ST_Y(np.the_geom) LATITUDE,ST_X(np.THE_GEOM) LONGITUDE, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_point np,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = np.pk_track and not ST_ISEMPTY(np.the_geom) order by name_0, name_1, name_2") {
-//                track_row ->
-//                    def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
-//                    if (thisFileParams != lastFileParams) {
-//                        if (lastFileJsonWriter != null) {
-//                            lastFileJsonWriter << "]\n}\n"
-//                            lastFileJsonWriter.close()
-//                        }
-//                        lastFileParams = thisFileParams
-//                        String fileName = track_row.name_0 + "_" + track_row.name_1 + "_" + track_row.name_2 + ".points.geojson.gz"
-//                        File name0_path = new File(outPath, track_row.name_0)
-//                        if(!name0_path.exists()) {
-//                            name0_path.mkdir()
-//                        }
-//                        File name1_path = new File(name0_path, track_row.name_1)
-//                        if(!name1_path.exists()) {
-//                            name1_path.mkdir()
-//                        }
-//                        File finalFile = new File(name1_path, fileName)
-//                        lastFileJsonWriter = new OutputStreamWriter(new GZIPOutputStream(new FileOutputStream(finalFile)), "UTF-8")
-//                        createdFiles.add(finalFile.getAbsolutePath())
-//                        lastFileJsonWriter << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n"
-//                    } else {
-//                        lastFileJsonWriter << ",\n"
-//                    }
-//                    def pt = [track_row.LONGITUDE, track_row.LATITUDE]
-//                    def time_ISO_8601 = epochToRFCTime(((Timestamp) track_row.time_date).time, track_row.tzid)
-//                    def time_gps_ISO_8601 = epochToRFCTime(((Timestamp) track_row.time_location).time, track_row.tzid)
-//                    def track = [type: "Feature", geometry: [type: "Point", coordinates: pt], properties: [pk_track : track_row.pk_track,
-//                                                                                                                 time_ISO8601    : time_ISO_8601,
-//                                                                                                                 time_epoch      : ((Timestamp) track_row.time_date).time,
-//                                                                                                                 time_gps_ISO8601    : time_gps_ISO_8601,
-//                                                                                                                 time_gps_epoch      : ((Timestamp) track_row.time_location).time,
-//                                                                                                                 noise_level     : track_row.noise_level,
-//                                                                                                                 speed           : track_row.speed,
-//                                                                                                                 orientation : track_row.orientation,
-//                                                                                                                 accuracy : track_row.accuracy
-//                                                                                                                    ]]
-//                    lastFileJsonWriter << JsonOutput.toJson(track)
-//            }
-//            if (lastFileJsonWriter != null) {
-//                lastFileJsonWriter << "]\n}\n"
-//                lastFileJsonWriter.close()
-//            }
+            sql.eachRow("select name_0, name_1, name_2, tzid, np.pk_track, ST_Y(np.the_geom) LATITUDE,ST_X(np.THE_GEOM) LONGITUDE, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_point np,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = np.pk_track and not ST_ISEMPTY(np.the_geom) order by name_0, name_1, name_2") {
+                track_row ->
+                    def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
+                    if (thisFileParams != lastFileParams) {
+                        if (lastFileJsonWriter != null) {
+                            lastFileJsonWriter << "]\n}\n"
+                            lastFileJsonWriter.flush()
+                            lastFileZipOutputStream.closeEntry()
+                        }
+                        lastFileParams = thisFileParams
+                        String fileName = track_row.name_0 + "_" + track_row.name_1 + "_" + track_row.name_2 + ".points.geojson"
+                        // Fetch ZipOutputStream for this new country
+                        if(countryZipOutputStream.containsKey(track_row.name_0)) {
+                            lastFileZipOutputStream = (ZipOutputStream)countryZipOutputStream.get(track_row.name_0)
+                        } else {
+                            // Create new file or overwrite it
+                            def zipFileName = new File(outPath, track_row.name_0 + ".zip")
+                            lastFileZipOutputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
+                            countryZipOutputStream.put(track_row.name_0, lastFileZipOutputStream)
+                            createdFiles.add(zipFileName.getAbsolutePath())
+                        }
+                        lastFileZipOutputStream.putNextEntry(new ZipEntry(fileName))
+                        lastFileJsonWriter = new OutputStreamWriter(lastFileZipOutputStream, "UTF-8")
+                        lastFileJsonWriter << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n"
+                    } else {
+                        lastFileJsonWriter << ",\n"
+                    }
+                    def pt = [track_row.LONGITUDE, track_row.LATITUDE]
+                    def time_ISO_8601 = epochToRFCTime(((Timestamp) track_row.time_date).time, track_row.tzid)
+                    def time_gps_ISO_8601 = epochToRFCTime(((Timestamp) track_row.time_location).time, track_row.tzid)
+                    def track = [type: "Feature", geometry: [type: "Point", coordinates: pt], properties: [pk_track : track_row.pk_track,
+                                                                                                                 time_ISO8601    : time_ISO_8601,
+                                                                                                                 time_epoch      : ((Timestamp) track_row.time_date).time,
+                                                                                                                 time_gps_ISO8601    : time_gps_ISO_8601,
+                                                                                                                 time_gps_epoch      : ((Timestamp) track_row.time_location).time,
+                                                                                                                 noise_level     : track_row.noise_level,
+                                                                                                                 speed           : track_row.speed,
+                                                                                                                 orientation : track_row.orientation,
+                                                                                                                 accuracy : track_row.accuracy
+                                                                                                                    ]]
+                    lastFileJsonWriter << JsonOutput.toJson(track)
+            }
+            if (lastFileJsonWriter != null) {
+                lastFileJsonWriter << "]\n}\n"
+                lastFileJsonWriter.flush()
+                lastFileZipOutputStream.closeEntry()
+            }
         }
         // Export hexagons file
         if(exportAreas) {

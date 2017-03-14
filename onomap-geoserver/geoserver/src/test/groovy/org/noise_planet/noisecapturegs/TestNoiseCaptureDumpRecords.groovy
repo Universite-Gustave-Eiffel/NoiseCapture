@@ -218,7 +218,6 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         assertTrue(new File((String)createdFiles.get(0)).exists())
         // Load Json
         new ZipInputStream(new FileInputStream(createdFiles.get(0))).withStream { zipInputStream ->
-
             assertEquals("France_Pays de la Loire_Loire-Atlantique.points.geojson", zipInputStream.getNextEntry().getName())
             def result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8");
             assertNotNull(result)
@@ -236,6 +235,38 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             assertEquals(1465474641000, result.features[0].properties.time_gps_epoch)
             // Check content second file in the zip file
             assertEquals("France_Poitou-Charentes_Charente-Maritime.points.geojson",zipInputStream.getNextEntry().getName())
+            result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8");
+            assertNotNull(result)
+            // Check content second file
+            assertEquals(218, result.features.size())
+            assertEquals("Point", result.features[0].geometry.type)
+            assertEquals(2, result.features[0].geometry.coordinates.size())
+            assertEquals(4.0, (Double)result.features[0].properties.accuracy, 0.01)
+            assertEquals(1.102, (Double)result.features[0].properties.orientation, 0.01)
+            assertEquals(79.2, (Double)result.features[0].properties.speed, 0.01)
+            assertEquals(2, (Double)result.features[0].properties.pk_track)
+            assertEquals("2017-01-24T17:49:11+01:00", result.features[0].properties.time_ISO8601)
+            assertEquals(1485276551000, result.features[0].properties.time_epoch)
+            assertEquals("2017-01-24T17:49:08+01:00", result.features[0].properties.time_gps_ISO8601)
+            assertEquals(1485276548000, result.features[0].properties.time_gps_epoch)
+        }
+
+        new ZipInputStream(new FileInputStream(createdFiles.get(1))).withStream { zipInputStream ->
+            assertEquals("Italy_Umbria_Perugia.points.geojson", zipInputStream.getNextEntry().getName())
+            def result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8");
+            assertNotNull(result)
+            // Check content first file
+            assertEquals(432, result.features.size())
+            assertEquals("Point", result.features[0].geometry.type)
+            assertEquals(2, result.features[0].geometry.coordinates.size())
+            assertEquals(11.582, (Double)result.features[0].properties.accuracy, 0.01)
+            assertEquals(1.19, (Double)result.features[0].properties.orientation, 0.01)
+            assertEquals(0.0, (Double)result.features[0].properties.speed, 0.01)
+            assertEquals(3, (Double)result.features[0].properties.pk_track)
+            assertEquals("2016-10-12T08:33:56+02:00", result.features[0].properties.time_ISO8601)
+            assertEquals(1476254036000, result.features[0].properties.time_epoch)
+            assertEquals("2016-10-12T08:33:56+02:00", result.features[0].properties.time_gps_ISO8601)
+            assertEquals(1476254036000, result.features[0].properties.time_gps_epoch)
         }
     }
 

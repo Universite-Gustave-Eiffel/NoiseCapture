@@ -30,6 +30,7 @@ package org.noise_planet.noisecapturegs
 import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import groovy.sql.Sql
 import org.geotools.jdbc.JDBCDataStore
 import org.springframework.security.core.context.SecurityContextHolder
@@ -95,7 +96,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
 
         if (exportTracks) {
             // Export track file
-            sql.eachRow("select name_0, name_1, name_2, tzid, nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_YMIN(te.the_geom) MINLATITUDE,ST_XMIN(te.THE_GEOM) MINLONGITUDE,ST_YMAX(te.the_geom) MAXLATITUDE,ST_XMAX(te.THE_GEOM) MAXLONGITUDE, record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_track nt,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = nt.pk_track order by name_0, name_1, name_2;") {
+            sql.eachRow("select name_0, name_1, name_2, tzid, nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_AsGeoJson(te.the_geom) the_geom, record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_track nt,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = nt.pk_track order by name_0, name_1, name_2;") {
                 track_row ->
                     def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                     if (thisFileParams != lastFileParams) {
@@ -122,13 +123,9 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                     } else {
                         lastFileJsonWriter << ",\n"
                     }
-                    def bbox = [[track_row.MINLONGITUDE, track_row.MINLATITUDE],
-                                [track_row.MAXLONGITUDE, track_row.MINLATITUDE],
-                                [track_row.MAXLONGITUDE, track_row.MAXLATITUDE],
-                                [track_row.MINLONGITUDE, track_row.MAXLATITUDE],
-                                [track_row.MINLONGITUDE, track_row.MINLATITUDE]]
+                    def the_geom = new JsonSlurper().parseText(track_row.the_geom)
                     def time_ISO_8601 = epochToRFCTime(((Timestamp) track_row.record_utc).time, track_row.tzid)
-                    def track = [type: "Feature", geometry: [type: "Polygon", coordinates: [bbox]], properties: [pleasantness    : track_row.pleasantness,
+                    def track = [type: "Feature", geometry: [type: "Polygon", coordinates: the_geom.coordinates], properties: [pleasantness    : Double.isNaN(track_row.pleasantness) ? null : track_row.pleasantness,
                                                                                                                  pk_track : track_row.pk_track,
                                                                                                                  track_uuid : track_row.track_uuid,
                                                                                                                  gain_calibration: track_row.gain_calibration,
@@ -199,8 +196,57 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
         }
         // Export hexagons file
         if(exportAreas) {
+            // Export track file
+            sql.eachRow("SELECT name_0, name_1, name_2,ST_AsGeoJson(na.the_geom) the_geom, cell_q, cell_r, tzid, la50, laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure, string_agg(to_char(leq, 'FM999'), '_') leq_profile FROM noisecapture_area na, gadm28 ga, (select pk_area, leq from noisecapture_area_profile nap  order by hour) nap  where ST_Centroid(na.the_geom) && ga.the_geom and st_contains(ga.the_geom, ST_centroid(na.the_geom)) and nap.pk_area = na.pk_area group by name_0, name_1, name_2,na.the_geom, cell_q, cell_r, tzid, la50, laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure order by name_0, name_1, name_2;") {
+                track_row ->
+                    def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
+                    if (thisFileParams != lastFileParams) {
+                        if (lastFileJsonWriter != null) {
+                            lastFileJsonWriter << "]\n}\n"
+                            lastFileJsonWriter.flush()
+                            lastFileZipOutputStream.closeEntry()
+                        }
+                        lastFileParams = thisFileParams
+                        String fileName = track_row.name_0 + "_" + track_row.name_1 + "_" + track_row.name_2 + ".areas.geojson"
+                        // Fetch ZipOutputStream for this new country
+                        if(countryZipOutputStream.containsKey(track_row.name_0)) {
+                            lastFileZipOutputStream = (ZipOutputStream)countryZipOutputStream.get(track_row.name_0)
+                        } else {
+                            // Create new file or overwrite it
+                            def zipFileName = new File(outPath, track_row.name_0 + ".zip")
+                            lastFileZipOutputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
+                            countryZipOutputStream.put(track_row.name_0, lastFileZipOutputStream)
+                            createdFiles.add(zipFileName.getAbsolutePath())
+                        }
+                        lastFileZipOutputStream.putNextEntry(new ZipEntry(fileName))
+                        lastFileJsonWriter = new OutputStreamWriter(lastFileZipOutputStream, "UTF-8")
+                        lastFileJsonWriter << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n"
+                    } else {
+                        lastFileJsonWriter << ",\n"
+                    }
+                    def first_measure_ISO_8601 = epochToRFCTime(((Timestamp) track_row.first_measure).time, track_row.tzid)
+                    def last_measure_ISO_8601 = epochToRFCTime(((Timestamp) track_row.last_measure).time, track_row.tzid)
 
-
+                    def the_geom = new JsonSlurper().parseText(track_row.the_geom)
+                    def track = [type: "Feature", geometry: [type: "Polygon", coordinates: the_geom.coordinates, properties: [cell_q          : track_row.cell_q,
+                                                                                                                              cell_r          : track_row.cell_r,
+                                                                                                                              la50      : track_row.la50,
+                                                                                                                              laeq: track_row.laeq,
+                                                                                                                              lden : track_row.lden,
+                                                                                                                              mean_pleasantness : Double.isNaN(track_row.mean_pleasantness) ? null : track_row.mean_pleasantness ,
+                                                                                                                              measure_count : track_row.measure_count,
+                                                                                                                              first_measure_ISO_8601    : first_measure_ISO_8601,
+                                                                                                                              first_measure_epoch      : ((Timestamp) track_row.first_measure).time,
+                                                                                                                              last_measure_ISO_8601    : last_measure_ISO_8601,
+                                                                                                                              last_measure_epoch      : ((Timestamp) track_row.last_measure).time,
+                                                                                                                              leq_profile     : track_row.leq_profile.tokenize('_')*.toInteger()]]]
+                     lastFileJsonWriter << JsonOutput.toJson(track)
+            }
+            if (lastFileJsonWriter != null) {
+                lastFileJsonWriter << "]\n}\n"
+                lastFileJsonWriter.flush()
+                lastFileZipOutputStream.closeEntry()
+            }
         }
 
         // Close opened files

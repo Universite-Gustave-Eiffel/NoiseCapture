@@ -57,7 +57,7 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
     @BeforeClass
     void setUp() {
         folder.create()
-        connection = Driver.load().connect("jdbc:h2:"+new File(folder.newFolder(),"test;MODE=PostgreSQL").getAbsolutePath(), null)
+        connection = Driver.load().connect("jdbc:h2:"+new File(folder.newFolder(),"test;USER=sa;MODE=PostgreSQL").getAbsolutePath(), null)
         Statement st = connection.createStatement()
         // Init spatial
         st.execute("CREATE ALIAS IF NOT EXISTS H2GIS_EXTENSION FOR \"org.h2gis.ext.H2GISExtension.load\";\n" +
@@ -176,7 +176,7 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             assertNull(result.features[0].properties.pleasantness)
             assertEquals(["test", "chatting", "human"], result.features[0].properties.tags)
             assertEquals(1485276551000, result.features[0].properties.time_epoch)
-            def coordinates = [[[-1.15651469, 46.14685535], [-1.1534035, 46.14685535], [-1.1534035, 46.1482328], [-1.15651469, 46.1482328], [-1.15651469, 46.14685535]]]
+            def coordinates = [[[-1.15651469, 46.14685535], [-1.15651469, 46.1482328], [-1.1534035, 46.1482328], [-1.1534035, 46.14685535], [-1.15651469, 46.14685535]]]
             assertEquals(coordinates, result.features[0].geometry.coordinates)
 
             // Check content of second file
@@ -271,7 +271,8 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
     }
 
     void testHexaExport() {
-
+        Sql.LOG.level = java.util.logging.Level.SEVERE
+        // Feed reference levels
         new nc_feed_stats().processInput(connection,
                 TestNoiseCaptureProcess.getResource("gevfit_of_stations.txt").toURI(), "stations")
         new nc_feed_stats().processInput(connection,
@@ -281,7 +282,23 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         // Parse file to database
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureDumpRecords.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_a23261b3-b569-4363-95be-e5578d694238.zip").file))
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_f720018a-a5db-4859-bd7d-377d29356c6f.zip").file))
         // convert to hexagons
         new nc_process().process(connection, 10)
+        File tmpFolder = folder.newFolder()
+        List<String> createdFiles = new nc_dump_records().getDump(connection,tmpFolder, false, false, true)
+        assertEquals(2, createdFiles.size())
+
+        assertTrue(new File((String)createdFiles.get(0)).exists())
+        // Load Json
+        new ZipInputStream(new FileInputStream(createdFiles.get(0))).withStream { zipInputStream ->
+            assertEquals("France_Pays de la Loire_Loire-Atlantique.areas.geojson", zipInputStream.getNextEntry().getName())
+            def result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8");
+            assertNotNull(result)
+            // Check content first file
+        }
     }
 }

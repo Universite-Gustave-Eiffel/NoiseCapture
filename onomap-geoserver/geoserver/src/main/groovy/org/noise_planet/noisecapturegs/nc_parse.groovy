@@ -72,7 +72,7 @@ class ZipFileFilter implements FilenameFilter {
  * @param epochMillisec
  * @return
  */
-def epochToRFCTime(epochMillisec) {
+static def epochToRFCTime(epochMillisec) {
     return Instant.ofEpochMilli(epochMillisec).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))
 }
 

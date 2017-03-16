@@ -129,6 +129,11 @@ COMMENT ON COLUMN NOISECAPTURE_AREA_PROFILE.LEQ IS 'Estimated value';
 COMMENT ON COLUMN NOISECAPTURE_AREA_PROFILE.UNCERTAINTY IS 'Uncertainty 0-1';
 COMMENT ON COLUMN NOISECAPTURE_AREA_PROFILE.VARIABILITY IS 'Variability in dB(A)';
 
+CREATE TABLE NOISECAPTURE_DUMP_TRACK_ENVELOPE(
+    PK_TRACK int NOT NULL REFERENCES NOISECAPTURE_TRACK (PK_TRACK) ON DELETE CASCADE ON UPDATE CASCADE,
+    THE_GEOM geometry,
+    measure_count bigint);
+
 --- Add index
 
 CREATE INDEX ki_noisecapture_area_cellq
@@ -153,7 +158,13 @@ CREATE INDEX fki_noisecapture_freq_pk_point_fk
    CREATE SPATIAL INDEX ON NOISECAPTURE_POINT(THE_GEOM);
    CREATE SPATIAL INDEX ON NOISECAPTURE_AREA(THE_GEOM);
 
- -- PostGIS only query
+ ---- PostGIS only query
 
  -- CREATE INDEX ON NOISECAPTURE_POINT USING GIST(THE_GEOM);
  -- CREATE INDEX ON NOISECAPTURE_AREA USING GIST(THE_GEOM);
+
+ ---- Force SRID
+
+-- SELECT UpdateGeometrySRID('noisecapture_dump_track_envelope','the_geom',4326);
+-- SELECT UpdateGeometrySRID('noisecapture_area','the_geom',4326);
+-- SELECT UpdateGeometrySRID('noisecapture_point','the_geom',4326);

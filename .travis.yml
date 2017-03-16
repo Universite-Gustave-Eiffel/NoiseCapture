@@ -11,12 +11,11 @@ android:
   - extra-google-m2repository
   - extra-google-google_play_services
 
-script: ./gradlew -PdisablePreDex check
-
-after_script:
+script:
+  - ./gradlew -PdisablePreDex check
   - cd onomap-geoserver/geoserver
   - pwd
-  - ./gradlew test --stacktrace
+  - ./gradlew test --info --stacktrace
 
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock

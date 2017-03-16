@@ -98,7 +98,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
 
             if (exportTracks) {
                 // Export track file
-                sql.eachRow("select name_0, name_1, name_2, tzid, nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_AsGeoJson(te.the_geom) the_geom, record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_track nt,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = nt.pk_track order by name_0, name_1, name_2;") {
+                sql.eachRow("select name_0, name_1, name_2, tzid, nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_AsGeoJson(te.the_geom) the_geom, record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_track nt,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = nt.pk_track order by name_0, name_1, name_2, record_utc;") {
                     track_row ->
                         def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                         if (thisFileParams != lastFileParams) {
@@ -150,7 +150,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
 
             // Export measures file
             if (exportMeasures) {
-                sql.eachRow("select name_0, name_1, name_2, tzid, np.pk_track, ST_Y(np.the_geom) LATITUDE,ST_X(np.THE_GEOM) LONGITUDE, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_point np,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = np.pk_track and not ST_ISEMPTY(np.the_geom) order by name_0, name_1, name_2") {
+                sql.eachRow("select name_0, name_1, name_2, tzid, np.pk_track, ST_Y(np.the_geom) LATITUDE,ST_X(np.THE_GEOM) LONGITUDE, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_point np,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = np.pk_track and not ST_ISEMPTY(np.the_geom) order by name_0, name_1, name_2, np.time_date") {
                     track_row ->
                         def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                         if (thisFileParams != lastFileParams) {
@@ -204,7 +204,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
             lastFileJsonWriter = null
             if (exportAreas) {
                 // Export track file
-                sql.eachRow("SELECT name_0, name_1, name_2,ST_AsGeoJson(na.the_geom) the_geom, cell_q, cell_r, tzid, la50, laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure, string_agg(to_char(leq, 'FM999'), '_') leq_profile FROM noisecapture_area na, gadm28 ga, (select pk_area, leq from noisecapture_area_profile nap  order by hour) nap  where ST_Centroid(na.the_geom) && ga.the_geom and st_contains(ga.the_geom, ST_centroid(na.the_geom)) and nap.pk_area = na.pk_area group by name_0, name_1, name_2,na.the_geom, cell_q, cell_r, tzid, la50, laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure order by name_0, name_1, name_2;") {
+                sql.eachRow("SELECT name_0, name_1, name_2,ST_AsGeoJson(na.the_geom) the_geom, cell_q, cell_r, tzid, la50, laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure, string_agg(to_char(leq, 'FM999'), '_') leq_profile FROM noisecapture_area na, gadm28 ga, (select pk_area, leq from noisecapture_area_profile nap  order by hour) nap  where ST_Centroid(na.the_geom) && ga.the_geom and st_contains(ga.the_geom, ST_centroid(na.the_geom)) and nap.pk_area = na.pk_area group by name_0, name_1, name_2,na.the_geom, cell_q, cell_r, tzid, la50, laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure order by name_0, name_1, name_2, cell_q, cell_r;") {
                     track_row ->
                         def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                         if (thisFileParams != lastFileParams) {

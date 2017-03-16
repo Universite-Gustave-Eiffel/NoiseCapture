@@ -291,7 +291,7 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         File tmpFolder = folder.newFolder()
         List<String> createdFiles = new nc_dump_records().getDump(connection,tmpFolder, false, false, true)
         assertEquals(2, createdFiles.size())
-
+        createdFiles.sort()
         assertTrue(new File((String)createdFiles.get(0)).exists())
         // Load Json
         new ZipInputStream(new FileInputStream(createdFiles.get(0))).withStream { zipInputStream ->
@@ -300,6 +300,7 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             assertNotNull(result)
             // Check content first file
             assertEquals(6, result.features.size())
+            // Search for a specific hexagon
             assertEquals("Polygon", result.features[0].geometry.type)
             assertEquals(7, result.features[0].geometry.coordinates[0].size())
             assertEquals(-139656, result.features[0].properties.cell_q);
@@ -322,17 +323,17 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             assertEquals(22, result.features.size())
             assertEquals("Polygon", result.features[0].geometry.type)
             assertEquals(7, result.features[0].geometry.coordinates[0].size())
-            assertEquals(-65333, result.features[0].properties.cell_q);
-            assertEquals(236827, result.features[0].properties.cell_r);
-            assertEquals("2016-10-12T08:39:33+02:00", result.features[0].properties.first_measure_ISO_8601);
-            assertEquals(1476254373000, result.features[0].properties.first_measure_epoch);
-            assertEquals(64.92, (Double)result.features[0].properties.la50, 0.01);
-            assertEquals(64.79, (Double)result.features[0].properties.laeq, 0.01);
-            assertEquals("2016-10-12T08:40:14+02:00", result.features[0].properties.last_measure_ISO_8601);
-            assertEquals(1476254414000, result.features[0].properties.last_measure_epoch);
+            assertEquals(-65335, result.features[0].properties.cell_q);
+            assertEquals(236823, result.features[0].properties.cell_r);
+            assertEquals("2016-10-12T08:38:58+02:00", result.features[0].properties.first_measure_ISO_8601);
+            assertEquals(1476254338000, result.features[0].properties.first_measure_epoch);
+            assertEquals(62.56, (Double)result.features[0].properties.la50, 0.01);
+            assertEquals(62.43, (Double)result.features[0].properties.laeq, 0.01);
+            assertEquals("2016-10-12T08:39:04+02:00", result.features[0].properties.last_measure_ISO_8601);
+            assertEquals(1476254344000, result.features[0].properties.last_measure_epoch);
             assertEquals(72, result.features[0].properties.leq_profile.size());
             assertNull(result.features[0].properties.mean_pleasantness);
-            assertEquals(42, result.features[0].properties.measure_count);
+            assertEquals(7, result.features[0].properties.measure_count);
         }
     }
 }

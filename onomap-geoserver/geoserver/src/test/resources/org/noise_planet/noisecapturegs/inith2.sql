@@ -168,3 +168,20 @@ CREATE INDEX fki_noisecapture_freq_pk_point_fk
 -- SELECT UpdateGeometrySRID('noisecapture_dump_track_envelope','the_geom',4326);
 -- SELECT UpdateGeometrySRID('noisecapture_area','the_geom',4326);
 -- SELECT UpdateGeometrySRID('noisecapture_point','the_geom',4326);
+
+---- Special view for postgis
+
+
+-- create view point_heatmap_density as SELECT 1 AS weight, noisecapture_point.the_geom, noisecapture_point.accuracy FROM noisecapture_point WHERE noisecapture_point.noise_level > 0::double precision AND noisecapture_point.noise_level <= 110::double precision AND st_isempty(noisecapture_point.the_geom) = false AND noisecapture_point.accuracy <= 15::double precision;
+
+-- create view todaypoints as SELECT noisecapture_point.pk_point,
+--                                   noisecapture_point.the_geom,
+--                                   noisecapture_point.pk_track,
+--                                   noisecapture_point.noise_level,
+--                                   noisecapture_point.speed,
+--                                   noisecapture_point.accuracy,
+--                                   noisecapture_point.orientation,
+--                                   noisecapture_point.time_date,
+--                                   noisecapture_point.time_location
+--                                  FROM noisecapture_point
+--                                 WHERE (now() - noisecapture_point.time_date::timestamp with time zone) < '24:00:00'::interval;

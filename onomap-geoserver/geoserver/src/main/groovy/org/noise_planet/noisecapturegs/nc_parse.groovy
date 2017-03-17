@@ -194,7 +194,8 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
             if (z != null) {
                 theGeom = "POINT($x $y $z)" as String
             } else {
-                theGeom = "POINT($x $y)" as String
+                // The_geom column are 3d forced, so, must set a Z value
+                theGeom = "POINT($x $y 0)" as String
             }
         }
         def p = feature.properties

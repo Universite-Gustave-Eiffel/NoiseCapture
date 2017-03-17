@@ -1,193 +1,303 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<StyledLayerDescriptor version="1.0.0" 
- xsi:schemaLocation="http://www.opengis.net/sld StyledLayerDescriptor.xsd" 
- xmlns="http://www.opengis.net/sld" 
- xmlns:ogc="http://www.opengis.net/ogc" 
- xmlns:xlink="http://www.w3.org/1999/xlink" 
- xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-  <NamedLayer>
-    <Name>noise-levels</Name>
-    <UserStyle>
-      <Title>Noise classification by levels</Title>
-      <Abstract>To be complete</Abstract>
-      <FeatureTypeStyle>
-        <Rule>
-          <Name>rule01</Name>
-                    <Title>0..45</Title>
-                    <Filter>
-                        <And>
-                            <PropertyIsGreaterThanOrEqualTo>
-                                <PropertyName>mean_leq</PropertyName>
-                                <ogc:Literal>0</ogc:Literal>
-                            </PropertyIsGreaterThanOrEqualTo>
-                            <PropertyIsLessThan>
-                                <PropertyName>mean_leq</PropertyName>
-                                <Literal>45</Literal>
-                            </PropertyIsLessThan>
-                        </And>
-                    </Filter>
-            <PolygonSymbolizer>
-                  <Fill>
-                    <CssParameter name="fill">#4CC800</CssParameter>
-					<CssParameter name="fill-opacity">0.5</CssParameter>
-                  </Fill>
-          </PolygonSymbolizer>
-        </Rule>
-<Rule>
-          <Name>rule02</Name>
-                    <Title>45..50</Title>
-                    <Filter>
-                        <And>
-                            <PropertyIsGreaterThanOrEqualTo>
-                                <PropertyName>mean_leq</PropertyName>
-                                <ogc:Literal>45</ogc:Literal>
-                            </PropertyIsGreaterThanOrEqualTo>
-                            <PropertyIsLessThan>
-                                <PropertyName>mean_leq</PropertyName>
-                                <Literal>50</Literal>
-                            </PropertyIsLessThan>
-                        </And>
-                    </Filter>
-            <PolygonSymbolizer>
-                  <Fill>
-                    <CssParameter name="fill">#55FF00</CssParameter>
-					<CssParameter name="fill-opacity">0.5</CssParameter>
-                  </Fill>
-          </PolygonSymbolizer>
-        </Rule>
-<Rule>
-          <Name>rule03</Name>
-                    <Title>50..55</Title>
-                    <Filter>
-                        <And>
-                            <PropertyIsGreaterThanOrEqualTo>
-                                <PropertyName>mean_leq</PropertyName>
-                                <ogc:Literal>50</ogc:Literal>
-                            </PropertyIsGreaterThanOrEqualTo>
-                            <PropertyIsLessThan>
-                                <PropertyName>mean_leq</PropertyName>
-                                <Literal>55</Literal>
-                            </PropertyIsLessThan>
-                        </And>
-                    </Filter>
-            <PolygonSymbolizer>
-                  <Fill>
-                    <CssParameter name="fill">#B9FF73</CssParameter>
-					<CssParameter name="fill-opacity">0.5</CssParameter>
-                  </Fill>
-          </PolygonSymbolizer>
-        </Rule>
-<Rule>
-          <Name>rule04</Name>
-                    <Title>55..60</Title>
-                    <Filter>
-                        <And>
-                            <PropertyIsGreaterThanOrEqualTo>
-                                <PropertyName>mean_leq</PropertyName>
-                                <ogc:Literal>55</ogc:Literal>
-                            </PropertyIsGreaterThanOrEqualTo>
-                            <PropertyIsLessThan>
-                                <PropertyName>mean_leq</PropertyName>
-                                <Literal>60</Literal>
-                            </PropertyIsLessThan>
-                        </And>
-                    </Filter>
-            <PolygonSymbolizer>
-                  <Fill>
-                    <CssParameter name="fill">#FFFF00</CssParameter>
-					<CssParameter name="fill-opacity">0.5</CssParameter>
-                  </Fill>
-          </PolygonSymbolizer>
-        </Rule>
-<Rule>
-          <Name>rule05</Name>
-                    <Title>60..65</Title>
-                    <Filter>
-                        <And>
-                            <PropertyIsGreaterThanOrEqualTo>
-                                <PropertyName>mean_leq</PropertyName>
-                                <ogc:Literal>60</ogc:Literal>
-                            </PropertyIsGreaterThanOrEqualTo>
-                            <PropertyIsLessThan>
-                                <PropertyName>mean_leq</PropertyName>
-                                <Literal>65</Literal>
-                            </PropertyIsLessThan>
-                        </And>
-                    </Filter>
-            <PolygonSymbolizer>
-                  <Fill>
-                    <CssParameter name="fill">#FFAA00</CssParameter>
-					<CssParameter name="fill-opacity">0.5</CssParameter>
-                  </Fill>
-          </PolygonSymbolizer>
-        </Rule>
-<Rule>
-          <Name>rule06</Name>
-                    <Title>65..70</Title>
-                    <Filter>
-                        <And>
-                            <PropertyIsGreaterThanOrEqualTo>
-                                <PropertyName>mean_leq</PropertyName>
-                                <ogc:Literal>65</ogc:Literal>
-                            </PropertyIsGreaterThanOrEqualTo>
-                            <PropertyIsLessThan>
-                                <PropertyName>mean_leq</PropertyName>
-                                <Literal>70</Literal>
-                            </PropertyIsLessThan>
-                        </And>
-                    </Filter>
-            <PolygonSymbolizer>
-                  <Fill>
-                    <CssParameter name="fill">#FF0000</CssParameter>
-					<CssParameter name="fill-opacity">0.5</CssParameter>
-                  </Fill>
-          </PolygonSymbolizer>
-        </Rule>
-<Rule>
-          <Name>rule07</Name>
-                    <Title>70..75</Title>
-                    <Filter>
-                        <And>
-                            <PropertyIsGreaterThanOrEqualTo>
-                                <PropertyName>mean_leq</PropertyName>
-                                <ogc:Literal>70</ogc:Literal>
-                            </PropertyIsGreaterThanOrEqualTo>
-                            <PropertyIsLessThan>
-                                <PropertyName>mean_leq</PropertyName>
-                                <Literal>75</Literal>
-                            </PropertyIsLessThan>
-                        </And>
-                    </Filter>
-            <PolygonSymbolizer>
-                  <Fill>
-                    <CssParameter name="fill">#D500FF</CssParameter>
-					<CssParameter name="fill-opacity">0.5</CssParameter>
-                  </Fill>
-          </PolygonSymbolizer>
-        </Rule>
-<Rule>
-          <Name>rule08</Name>
-                    <Title>> 75</Title>
-                    <Filter>
-                        <And>
-                            <PropertyIsGreaterThanOrEqualTo>
-                                <PropertyName>mean_leq</PropertyName>
-                                <ogc:Literal>75</ogc:Literal>
-                            </PropertyIsGreaterThanOrEqualTo>
-                            <PropertyIsLessThan>
-                                <PropertyName>mean_leq</PropertyName>
-                                <Literal>150</Literal>
-                            </PropertyIsLessThan>
-                        </And>
-                    </Filter>
-            <PolygonSymbolizer>
-                  <Fill>
-                    <CssParameter name="fill">#960064</CssParameter>
-					<CssParameter name="fill-opacity">0.5</CssParameter>
-                  </Fill>
-          </PolygonSymbolizer>
-        </Rule>
-      </FeatureTypeStyle>
-    </UserStyle>
-  </NamedLayer>
-</StyledLayerDescriptor>
+<sld:StyledLayerDescriptor version="1.0.0"
+xmlns:sld="http://www.opengis.net/sld"
+xmlns:ogc="http://www.opengis.net/ogc"
+xmlns:gml="http://www.opengis.net/gml"
+xmlns:xlink="http://www.w3.org/1999/xlink"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd">
+	<sld:NamedLayer>
+		<sld:Name>noisecapture_area</sld:Name>
+		<sld:UserStyle>
+			<sld:Title>Noise classification by levels</sld:Title>
+			<Abstract>To be complete</Abstract>
+			<sld:FeatureTypeStyle>
+								<sld:Rule>
+					<sld:Name>30 - 35 dB(A)</sld:Name>
+					<sld:Description>
+						<sld:Title>30 - 35 dB(A)</sld:Title>
+					</sld:Description>
+					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+						<ogc:And>
+							<ogc:PropertyIsGreaterThanOrEqualTo>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>30</ogc:Literal>
+							</ogc:PropertyIsGreaterThanOrEqualTo>
+							<ogc:PropertyIsLessThanOrEqualTo>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>35</ogc:Literal>
+							</ogc:PropertyIsLessThanOrEqualTo>
+						</ogc:And>
+					</ogc:Filter>
+					<sld:MaxScaleDenominator>36000</sld:MaxScaleDenominator>
+					<sld:PolygonSymbolizer>
+						<sld:Fill>
+							<CssParameter name="fill-opacity">0.7</CssParameter>
+							<sld:CssParameter name="fill">#82a6ad</sld:CssParameter>
+						</sld:Fill>
+					</sld:PolygonSymbolizer>
+				</sld:Rule>
+				<sld:Rule>
+					<sld:Name>35 - 40 dB(A)</sld:Name>
+					<sld:Description>
+						<sld:Title>35 - 40 dB(A)</sld:Title>
+					</sld:Description>
+					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+						<ogc:And>
+							<ogc:PropertyIsGreaterThan>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>35</ogc:Literal>
+							</ogc:PropertyIsGreaterThan>
+							<ogc:PropertyIsLessThanOrEqualTo>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>40</ogc:Literal>
+							</ogc:PropertyIsLessThanOrEqualTo>
+						</ogc:And>
+					</ogc:Filter>
+
+					<sld:MaxScaleDenominator>36000</sld:MaxScaleDenominator>
+					<sld:PolygonSymbolizer>
+						<sld:Fill>
+							<CssParameter name="fill-opacity">0.7</CssParameter>
+							<sld:CssParameter name="fill">#a0babf</sld:CssParameter>
+						</sld:Fill>
+					</sld:PolygonSymbolizer>
+				</sld:Rule>
+				<sld:Rule>
+					<sld:Name>40 - 45  dB(A)</sld:Name>
+					<sld:Description>
+						<sld:Title>40 - 45  dB(A)</sld:Title>
+					</sld:Description>
+					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+						<ogc:And>
+							<ogc:PropertyIsGreaterThan>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>40</ogc:Literal>
+							</ogc:PropertyIsGreaterThan>
+							<ogc:PropertyIsLessThanOrEqualTo>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>45</ogc:Literal>
+							</ogc:PropertyIsLessThanOrEqualTo>
+						</ogc:And>
+					</ogc:Filter>
+
+					<sld:MaxScaleDenominator>36000</sld:MaxScaleDenominator>
+					<sld:PolygonSymbolizer>
+						<sld:Fill>
+							<CssParameter name="fill-opacity">0.7</CssParameter>
+							<sld:CssParameter name="fill">#b8d6d1</sld:CssParameter>
+						</sld:Fill>
+					</sld:PolygonSymbolizer>
+				</sld:Rule>
+				<sld:Rule>
+					<sld:Name>45 - 50 dB(A)</sld:Name>
+					<sld:Description>
+						<sld:Title>45 - 50 dB(A)</sld:Title>
+					</sld:Description>
+					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+						<ogc:And>
+							<ogc:PropertyIsGreaterThan>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>45</ogc:Literal>
+							</ogc:PropertyIsGreaterThan>
+							<ogc:PropertyIsLessThanOrEqualTo>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>50</ogc:Literal>
+							</ogc:PropertyIsLessThanOrEqualTo>
+						</ogc:And>
+					</ogc:Filter>
+
+					<sld:MaxScaleDenominator>36000</sld:MaxScaleDenominator>
+					<sld:PolygonSymbolizer>
+						<sld:Fill>
+							<CssParameter name="fill-opacity">0.7</CssParameter>
+							<sld:CssParameter name="fill">#cee4cc</sld:CssParameter>
+						</sld:Fill>
+					</sld:PolygonSymbolizer>
+				</sld:Rule>
+				<sld:Rule>
+					<sld:Name>50 - 55 dB(A)</sld:Name>
+					<sld:Description>
+						<sld:Title>50 - 55 dB(A)</sld:Title>
+					</sld:Description>
+					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+						<ogc:And>
+							<ogc:PropertyIsGreaterThan>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>50</ogc:Literal>
+							</ogc:PropertyIsGreaterThan>
+							<ogc:PropertyIsLessThanOrEqualTo>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>55</ogc:Literal>
+							</ogc:PropertyIsLessThanOrEqualTo>
+						</ogc:And>
+					</ogc:Filter>
+
+					<sld:MaxScaleDenominator>36000</sld:MaxScaleDenominator>
+					<sld:PolygonSymbolizer>
+						<sld:Fill>
+							<CssParameter name="fill-opacity">0.7</CssParameter>
+							<sld:CssParameter name="fill">#e2f2bf</sld:CssParameter>
+						</sld:Fill>
+					</sld:PolygonSymbolizer>
+				</sld:Rule>
+				<sld:Rule>
+					<sld:Name>55 - 60 dB(A)</sld:Name>
+					<sld:Description>
+						<sld:Title>55 - 60 dB(A)</sld:Title>
+					</sld:Description>
+					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+						<ogc:And>
+							<ogc:PropertyIsGreaterThan>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>55</ogc:Literal>
+							</ogc:PropertyIsGreaterThan>
+							<ogc:PropertyIsLessThanOrEqualTo>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>60</ogc:Literal>
+							</ogc:PropertyIsLessThanOrEqualTo>
+						</ogc:And>
+					</ogc:Filter>
+
+					<sld:MaxScaleDenominator>36000</sld:MaxScaleDenominator>
+					<sld:PolygonSymbolizer>
+						<sld:Fill>
+							<CssParameter name="fill-opacity">0.7</CssParameter>
+							<sld:CssParameter name="fill">#f3c683</sld:CssParameter>
+						</sld:Fill>
+					</sld:PolygonSymbolizer>
+				</sld:Rule>
+				<sld:Rule>
+					<sld:Name>60 - 65 dB(A)</sld:Name>
+					<sld:Description>
+						<sld:Title>60 - 65 dB(A)</sld:Title>
+					</sld:Description>
+					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+						<ogc:And>
+							<ogc:PropertyIsGreaterThan>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>60</ogc:Literal>
+							</ogc:PropertyIsGreaterThan>
+							<ogc:PropertyIsLessThanOrEqualTo>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>65</ogc:Literal>
+							</ogc:PropertyIsLessThanOrEqualTo>
+						</ogc:And>
+					</ogc:Filter>
+
+					<sld:MaxScaleDenominator>36000</sld:MaxScaleDenominator>
+					<sld:PolygonSymbolizer>
+						<sld:Fill>
+							<CssParameter name="fill-opacity">0.7</CssParameter>
+							<sld:CssParameter name="fill">#e87e4d</sld:CssParameter>
+						</sld:Fill>
+					</sld:PolygonSymbolizer>
+				</sld:Rule>
+				<sld:Rule>
+					<sld:Name>65 - 70 dB(A)</sld:Name>
+					<sld:Description>
+						<sld:Title>65 - 70 dB(A)</sld:Title>
+					</sld:Description>
+					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+						<ogc:And>
+							<ogc:PropertyIsGreaterThan>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>65</ogc:Literal>
+							</ogc:PropertyIsGreaterThan>
+							<ogc:PropertyIsLessThanOrEqualTo>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>70</ogc:Literal>
+							</ogc:PropertyIsLessThanOrEqualTo>
+						</ogc:And>
+					</ogc:Filter>
+
+					<sld:MaxScaleDenominator>36000</sld:MaxScaleDenominator>
+					<sld:PolygonSymbolizer>
+						<sld:Fill>
+							<CssParameter name="fill-opacity">0.7</CssParameter>
+							<sld:CssParameter name="fill">#cd463e</sld:CssParameter>
+						</sld:Fill>
+					</sld:PolygonSymbolizer>
+				</sld:Rule>
+				<sld:Rule>
+					<sld:Name>70 - 75 dB(A)</sld:Name>
+					<sld:Description>
+						<sld:Title>70 - 75 dB(A)</sld:Title>
+					</sld:Description>
+					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+						<ogc:And>
+							<ogc:PropertyIsGreaterThan>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>70</ogc:Literal>
+							</ogc:PropertyIsGreaterThan>
+							<ogc:PropertyIsLessThanOrEqualTo>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>75</ogc:Literal>
+							</ogc:PropertyIsLessThanOrEqualTo>
+						</ogc:And>
+					</ogc:Filter>
+
+					<sld:MaxScaleDenominator>36000</sld:MaxScaleDenominator>
+					<sld:PolygonSymbolizer>
+						<sld:Fill>
+							<CssParameter name="fill-opacity">0.7</CssParameter>
+							<sld:CssParameter name="fill">#a11a4d</sld:CssParameter>
+						</sld:Fill>
+					</sld:PolygonSymbolizer>
+				</sld:Rule>
+				<sld:Rule>
+					<sld:Name>75 - 80 dB(A)</sld:Name>
+					<sld:Description>
+						<sld:Title>75 - 80 dB(A)</sld:Title>
+					</sld:Description>
+					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+						<ogc:And>
+							<ogc:PropertyIsGreaterThan>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>75</ogc:Literal>
+							</ogc:PropertyIsGreaterThan>
+							<ogc:PropertyIsLessThanOrEqualTo>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>80</ogc:Literal>
+							</ogc:PropertyIsLessThanOrEqualTo>
+						</ogc:And>
+					</ogc:Filter>
+
+					<sld:MaxScaleDenominator>36000</sld:MaxScaleDenominator>
+					<sld:PolygonSymbolizer>
+						<sld:Fill>
+							<CssParameter name="fill-opacity">0.7</CssParameter>
+							<sld:CssParameter name="fill">#75085c</sld:CssParameter>
+						</sld:Fill>
+					</sld:PolygonSymbolizer>
+				</sld:Rule>
+				<sld:Rule>
+					<sld:Name>> 80 dB(A)</sld:Name>
+					<sld:Description>
+						<sld:Title>> 80 dB(A)</sld:Title>
+					</sld:Description>
+					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
+						<ogc:And>
+							<ogc:PropertyIsGreaterThan>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>80</ogc:Literal>
+							</ogc:PropertyIsGreaterThan>
+							<ogc:PropertyIsLessThanOrEqualTo>
+								<ogc:PropertyName>la50</ogc:PropertyName>
+								<ogc:Literal>120</ogc:Literal>
+							</ogc:PropertyIsLessThanOrEqualTo>
+						</ogc:And>
+					</ogc:Filter>
+
+					<sld:MaxScaleDenominator>36000</sld:MaxScaleDenominator>
+					<sld:PolygonSymbolizer>
+						<sld:Fill>
+							<CssParameter name="fill-opacity">0.7</CssParameter>
+							<sld:CssParameter name="fill">#430a4a</sld:CssParameter>
+						</sld:Fill>
+					</sld:PolygonSymbolizer>
+				</sld:Rule>
+			</sld:FeatureTypeStyle>
+		</sld:UserStyle>
+	</sld:NamedLayer>
+</sld:StyledLayerDescriptor>

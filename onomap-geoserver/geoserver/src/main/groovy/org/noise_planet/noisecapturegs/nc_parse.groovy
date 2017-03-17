@@ -195,7 +195,7 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
                 theGeom = "POINT($x $y $z)" as String
             } else {
                 // The_geom column are 3d forced, so, must set a Z value
-                theGeom = "POINT($x $y 0)" as String
+                theGeom = "POINT($x $y)" as String
             }
         }
         def p = feature.properties
@@ -208,7 +208,7 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
                       time_date    : epochToRFCTime(p.leq_utc as Long),
                       time_location: epochToRFCTime(p.location_utc as Long)]
         def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
-                " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
+                " accuracy, orientation, time_date, time_location) VALUES (ST_Force3D(ST_GEOMFROMTEXT(:the_geom, 4326))," +
                 " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date::timestamptz, :time_location::timestamptz)", fields)[0][0] as Integer
         if(storeFrequencyLevels) {
             // Insert frequency

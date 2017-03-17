@@ -41,6 +41,7 @@ import java.sql.Timestamp
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -74,6 +75,10 @@ static def epochToRFCTime(epochMillisec, zone) {
 
 static
 def getDump(Connection connection, File outPath, boolean exportTracks, boolean exportMeasures, boolean exportAreas) {
+    // gzip then base64 the content (http://www.txtwizard.net/compression)
+    final String README_CONTENT = "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"
+
+
     def createdFiles = new ArrayList<String>()
 
     // Process export of raw measures
@@ -260,6 +265,17 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
             countryZipOutputStream.each {
                 k, v ->
                     v.closeEntry()
+                    // Write readme file
+                    v.putNextEntry(new ZipEntry("README.html"))
+                    new ByteArrayInputStream(Base64.decoder.decode(README_CONTENT)).withStream {
+                        bais ->
+                            new GZIPInputStream(bais).withStream {
+                                html ->
+                                    v <<  html;
+                            }
+                    }
+                    v.closeEntry()
+                    // Close zip file stream
                     v.close()
             }
         }

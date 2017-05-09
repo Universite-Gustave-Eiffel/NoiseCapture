@@ -74,7 +74,7 @@ per evitare di trasmettere dati se non sei connesso</string>
     <string name="title_settings_recording_gain">Guadagno di segnale</string>
     <string name="summary_settings_recording_gain">Indica il guadagno del segnale di calibrazione in dB</string>
 
-    <string name="title_settings_spectrogram_logscalemode">Frequenza dello spettrogramma in scala logaritmica</string>
+    <string name="title_settings_spectrogram_logscalemode">Visualizzazione dello spettrogramma</string>
     <string name="title_settings_delete_leq_on_pause">Cancella Leq se in pausa</string>
     <string name="title_settings_delete_leq_on_pause_description">In pausa, cancella gli ultimi secondi registrati</string>
     <string name="summary_settings_spectrogram_logscalemode">Seleziona per frequenza in scala logaritmica, deseleziona per scala lineare</string>

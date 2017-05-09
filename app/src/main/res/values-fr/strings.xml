@@ -74,7 +74,7 @@
     <string name="title_settings_recording_gain">Gain du signal</string>
     <string name="summary_settings_recording_gain">Fixe le gain du signal après calibration (en dB)</string>
 
-    <string name="title_settings_spectrogram_logscalemode">Echelle du spectrogramme</string>
+    <string name="title_settings_spectrogram_logscalemode">Affichage du spectrogramme</string>
     <string name="title_settings_delete_leq_on_pause">Mode Pause</string>
     <string name="title_settings_delete_leq_on_pause_description">Effacement des derniers Leq durant une pause</string>
     <string name="summary_settings_spectrogram_logscalemode">Sélectionner cette option pour un affichage en échelle logarithmique à défaut d\'une échelle linéaire</string>

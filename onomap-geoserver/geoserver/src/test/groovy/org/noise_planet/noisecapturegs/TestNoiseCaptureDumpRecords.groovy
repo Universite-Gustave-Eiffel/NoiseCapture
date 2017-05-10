@@ -224,7 +224,7 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             // Check content first file
             assertEquals(66, result.features.size())
             assertEquals("Point", result.features[0].geometry.type)
-            assertEquals(2, result.features[0].geometry.coordinates.size())
+            assertEquals(3, result.features[0].geometry.coordinates.size())
             assertEquals(14.19, (Double)result.features[0].properties.accuracy, 0.01)
             assertEquals(0.14, (Double)result.features[0].properties.orientation, 0.01)
             assertEquals(0.0, (Double)result.features[0].properties.speed, 0.01)
@@ -240,7 +240,7 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             // Check content second file
             assertEquals(218, result.features.size())
             assertEquals("Point", result.features[0].geometry.type)
-            assertEquals(2, result.features[0].geometry.coordinates.size())
+            assertEquals(3, result.features[0].geometry.coordinates.size())
             assertEquals(4.0, (Double)result.features[0].properties.accuracy, 0.01)
             assertEquals(1.102, (Double)result.features[0].properties.orientation, 0.01)
             assertEquals(79.2, (Double)result.features[0].properties.speed, 0.01)
@@ -258,7 +258,10 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             // Check content first file
             assertEquals(432, result.features.size())
             assertEquals("Point", result.features[0].geometry.type)
-            assertEquals(2, result.features[0].geometry.coordinates.size())
+            assertEquals(12.38, (double)result.features[0].geometry.coordinates[0], 0.01)
+            assertEquals(43.10, (double)result.features[0].geometry.coordinates[1], 0.01)
+            assertEquals(490.16, (double)result.features[0].geometry.coordinates[2], 0.01)
+            assertEquals(3, result.features[0].geometry.coordinates.size())
             assertEquals(11.582, (Double)result.features[0].properties.accuracy, 0.01)
             assertEquals(1.19, (Double)result.features[0].properties.orientation, 0.01)
             assertEquals(0.0, (Double)result.features[0].properties.speed, 0.01)

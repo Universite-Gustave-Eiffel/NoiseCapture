@@ -155,7 +155,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
 
             // Export measures file
             if (exportMeasures) {
-                sql.eachRow("select name_0, name_1, name_2, tzid, np.pk_track, ST_Y(np.the_geom) LATITUDE,ST_X(np.THE_GEOM) LONGITUDE, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_point np,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = np.pk_track and not ST_ISEMPTY(np.the_geom) order by name_0, name_1, name_2, np.time_date") {
+                sql.eachRow("select name_0, name_1, name_2, tzid, np.pk_track, ST_Y(np.the_geom) LATITUDE,ST_X(np.THE_GEOM) LONGITUDE, ST_Z(np.THE_GEOM) HEIGHT, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_point np,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = np.pk_track and not ST_ISEMPTY(np.the_geom) order by name_0, name_1, name_2, np.time_date") {
                     track_row ->
                         def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                         if (thisFileParams != lastFileParams) {
@@ -183,6 +183,9 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                             lastFileJsonWriter << ",\n"
                         }
                         def pt = [track_row.LONGITUDE, track_row.LATITUDE]
+                        if(track_row.HEIGHT != null) {
+                            pt.add(track_row.HEIGHT)
+                        }
                         def time_ISO_8601 = epochToRFCTime(((Timestamp) track_row.time_date).time, track_row.tzid)
                         def time_gps_ISO_8601 = epochToRFCTime(((Timestamp) track_row.time_location).time, track_row.tzid)
                         def track = [type: "Feature", geometry: [type: "Point", coordinates: pt], properties: [pk_track        : track_row.pk_track,

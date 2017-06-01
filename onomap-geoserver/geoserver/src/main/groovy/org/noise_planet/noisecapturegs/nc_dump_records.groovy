@@ -36,6 +36,7 @@ import org.geotools.jdbc.JDBCDataStore
 import org.springframework.security.core.context.SecurityContextHolder
 
 import java.sql.Connection
+import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Timestamp
 import java.time.Instant
@@ -83,7 +84,12 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
 
     // Process export of raw measures
     try {
+        connection.setAutoCommit(false);
         def sql = new Sql(connection)
+        // Change result set type, this way the PostGIS driver use the db cursor with minimal memory usage
+        sql.setResultSetType(ResultSet.TYPE_FORWARD_ONLY)
+        sql.setResultSetConcurrency(ResultSet.CONCUR_READ_ONLY)
+        sql.withStatement{ stmt -> stmt.fetchSize = 50 }
         // This variable host the opened connection to all files
         def countryZipOutputStream = [:]
         // Create a table that contains track envelopes

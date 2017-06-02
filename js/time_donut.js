@@ -85,7 +85,7 @@ TimeDonut.prototype.loadLevels = function(levels) {
      var el = circleWeek.children[child];
      if(el && el.className == "slice") {
        var hour = parseInt(el.children[0].textContent);
-       if(typeof this.levels !== 'undefined') {
+       if(typeof this.levels !== 'undefined' && this.levels[hour - 1] != null) {
          var value = levels[hour - 1].leq;
          el.style.backgroundColor = this.getcolor(value);
        } else {

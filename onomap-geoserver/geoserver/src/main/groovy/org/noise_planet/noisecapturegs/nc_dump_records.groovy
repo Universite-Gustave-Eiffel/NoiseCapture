@@ -215,7 +215,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
             lastFileJsonWriter = null
             if (exportAreas) {
                 // Export track file
-                sql.eachRow("SELECT name_0, name_1, name_2,ST_AsGeoJson(na.the_geom) the_geom, cell_q, cell_r, tzid, la50, laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure, string_agg(to_char(leq, 'FM999'), '_') leq_profile FROM noisecapture_area na, gadm28 ga, (select pk_area, leq from noisecapture_area_profile nap  order by hour) nap  where ST_Centroid(na.the_geom) && ga.the_geom and st_contains(ga.the_geom, ST_centroid(na.the_geom)) and nap.pk_area = na.pk_area group by name_0, name_1, name_2,na.the_geom, cell_q, cell_r, tzid, la50, laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure order by name_0, name_1, name_2, cell_q, cell_r;") {
+                sql.eachRow("SELECT name_0, name_1, name_2,ST_AsGeoJson(na.the_geom) the_geom, cell_q, cell_r, tzid, la50, laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure, string_agg(to_char(leq, 'FM999'), '_') leq_profile, string_agg(to_char(hour, '999'), '_') hour_profile FROM noisecapture_area na, gadm28 ga, (select pk_area, leq, hour from noisecapture_area_profile nap  order by hour) nap  where ST_Centroid(na.the_geom) && ga.the_geom and st_contains(ga.the_geom, ST_centroid(na.the_geom)) and nap.pk_area = na.pk_area group by name_0, name_1, name_2,na.the_geom, cell_q, cell_r, tzid, la50, laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure order by name_0, name_1, name_2, cell_q, cell_r;") {
                     track_row ->
                         def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                         if (thisFileParams != lastFileParams) {
@@ -246,6 +246,11 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                         def last_measure_ISO_8601 = epochToRFCTime(((Timestamp) track_row.last_measure).time, track_row.tzid)
 
                         def the_geom = new JsonSlurper().parseText(track_row.the_geom)
+
+                        def leq_keys= track_row.hour_profile.tokenize('_')*.toInteger()
+                        def leq_values= track_row.leq_profile.tokenize('_')*.toInteger()
+                        def leq_array = new Object[72]
+                        [leq_keys, leq_values].transpose().each {leq_array[it[0]] = it[1]}
                         def track = [type: "Feature", geometry: [type: "Polygon", coordinates: the_geom.coordinates], properties: [cell_q                : track_row.cell_q,
                                                                                                                                   cell_r                : track_row.cell_r,
                                                                                                                                   la50                  : track_row.la50,
@@ -257,7 +262,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                                                                                                                                   first_measure_epoch   : ((Timestamp) track_row.first_measure).time,
                                                                                                                                   last_measure_ISO_8601 : last_measure_ISO_8601,
                                                                                                                                   last_measure_epoch    : ((Timestamp) track_row.last_measure).time,
-                                                                                                                                  leq_profile           : track_row.leq_profile.tokenize('_')*.toInteger()]]
+                                                                                                                                  leq_profile           : leq_array]]
                         lastFileJsonWriter << JsonOutput.toJson(track)
                 }
                 if (lastFileJsonWriter != null) {

@@ -86,7 +86,7 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         // Fetch data
         def arrayData = new nc_get_area_info().getAreaInfo(connection, -139656, 265210)
         assertFalse(arrayData.isEmpty())
-        assertEquals(52.6, (double)(arrayData.la50), 0.1)
+        assertEquals(55.96, (double)(arrayData.la50), 0.1)
         assertEquals(69, (double)(arrayData.mean_pleasantness), 0.01)
         assertEquals(40, (int)(arrayData.measure_count))
         assertEquals("2016-06-09T14:17:25+02:00", arrayData.first_measure)
@@ -132,7 +132,10 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         def arrayData = new nc_get_area_info().getAreaInfo(connection, row.cell_q, row.cell_r)
         assertNotNull(arrayData)
         assertEquals(72, arrayData["profile"].size())
-        assertTrue(arrayData["profile"] instanceof Map)
+        assertNull(arrayData["profile"][0])
+        assertEquals(72.82d, (Double)arrayData["profile"][16]["leq"], 0.01d)
+        assertEquals(66.01d, (Double)arrayData["profile"][43]["leq"], 0.01d)
+        assertEquals(59.83d, (Double)arrayData["profile"][69]["leq"], 0.01d)
         JsonOutput.toJson(arrayData); // Check if conversion goes well
     }
 }

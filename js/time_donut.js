@@ -62,7 +62,7 @@ TimeDonut.prototype.getcolor = function(level) {
 TimeDonut.prototype.hover = function(element) {
   if(typeof this.levels !== 'undefined') {
     var hour = parseInt(element.textContent);
-    var value = this.levels[hour - 1].leq;
+    var value = this.levels[hour].la50;
     var centercircle = document.getElementById(this.id+"_centercircletext");
     var centercircletextunit = document.getElementById(this.id+"_centercircletextunit");
     centercircle.innerHTML = Math.round(value);
@@ -86,7 +86,7 @@ TimeDonut.prototype.loadLevels = function(levels) {
      if(el && el.className == "slice") {
        var hour = parseInt(el.children[0].textContent);
        if(typeof this.levels !== 'undefined' && this.levels[hour] != null) {
-         var value = levels[hour].leq;
+         var value = levels[hour].la50;
          el.style.backgroundColor = this.getcolor(value);
        } else {
          el.style.backgroundColor = 'white';
@@ -107,7 +107,7 @@ function initTimeDonut(id, levels) {
     li.onmouseenter = function(element) { newDonut.hover(element.target);};
     li.onmouseleave = function(element) { newDonut.hoverOff(element.target);};
     if(typeof levels !== 'undefined') {
-      li.style.backgroundColor = newDonut.getcolor(levels[sliceId].leq);
+      li.style.backgroundColor = newDonut.getcolor(levels[sliceId].la50);
     }
     li.setAttribute('class', 'slice');
     var div = document.createElement('div');

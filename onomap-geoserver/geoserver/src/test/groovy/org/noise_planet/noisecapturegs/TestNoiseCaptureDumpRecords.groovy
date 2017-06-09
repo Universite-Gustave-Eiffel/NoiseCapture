@@ -310,8 +310,8 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             assertEquals(265210, result.features[0].properties.cell_r);
             assertEquals("2016-06-09T14:17:25+02:00", result.features[0].properties.first_measure_ISO_8601);
             assertEquals(1465474645000, result.features[0].properties.first_measure_epoch);
-            assertEquals(52.69, (Double)result.features[0].properties.la50, 0.01);
-            assertEquals(53.68, (Double)result.features[0].properties.laeq, 0.01);
+            assertEquals(55.96, (Double)result.features[0].properties.la50, 0.01);
+            assertEquals(68.54, (Double)result.features[0].properties.laeq, 0.01);
             assertEquals("2016-06-09T14:18:02+02:00", result.features[0].properties.last_measure_ISO_8601);
             assertEquals(1465474682000, result.features[0].properties.last_measure_epoch);
             assertEquals(72, result.features[0].properties.leq_profile.size());
@@ -330,8 +330,8 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             assertEquals(236823, result.features[0].properties.cell_r);
             assertEquals("2016-10-12T08:38:58+02:00", result.features[0].properties.first_measure_ISO_8601);
             assertEquals(1476254338000, result.features[0].properties.first_measure_epoch);
-            assertEquals(62.56, (Double)result.features[0].properties.la50, 0.01);
-            assertEquals(62.43, (Double)result.features[0].properties.laeq, 0.01);
+            assertEquals(65.80, (Double)result.features[0].properties.la50, 0.01);
+            assertEquals(66.43, (Double)result.features[0].properties.laeq, 0.01);
             assertEquals("2016-10-12T08:39:04+02:00", result.features[0].properties.last_measure_ISO_8601);
             assertEquals(1476254344000, result.features[0].properties.last_measure_epoch);
             assertEquals(72, result.features[0].properties.leq_profile.size());

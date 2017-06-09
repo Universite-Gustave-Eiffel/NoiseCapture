@@ -28,6 +28,7 @@
 
 var TimeDonut = function(id, levels) {
   this.id = id;
+  this.DONUT_LEVELS = [["_la50", "la50"], ["_laeq", "laeq"]];
   this.COLOR_RAMP = {
     0: "#FFFFFF",
     30: "#82A6AD",
@@ -59,73 +60,109 @@ TimeDonut.prototype.getcolor = function(level) {
   return this.COLOR_RAMP[levels[levels.length - 1]];
 }
 
+TimeDonut.prototype.getDonutFromSliceElement = function(sliceElement) {
+    // Find if the element is referencing laeq or la50
+    var parentElementId = sliceElement.parentElement.id;
+    var id_cat = null;
+    var full_id = null;
+    for(let id_pair of this.DONUT_LEVELS) {
+      var id_ext = id_pair[0];
+      var pair_id_cat = id_pair[1];
+      var pair_full_id = this.id+id_ext;
+      if(parentElementId.startsWith(pair_full_id)) {
+        return [pair_id_cat, pair_full_id];
+      }
+    }
+    return [];
+}
+
 TimeDonut.prototype.hover = function(element) {
   if(typeof this.levels !== 'undefined') {
+    var retVal = this.getDonutFromSliceElement(element);
+    var id_cat = retVal[0];
+    var full_id = retVal[1];
     var hour = parseInt(element.textContent);
-    var value = this.levels[hour - 1].leq;
-    var centercircle = document.getElementById(this.id+"_centercircletext");
-    var centercircletextunit = document.getElementById(this.id+"_centercircletextunit");
-    centercircle.innerHTML = Math.round(value);
-    centercircle.style.color = this.getcolor(value);
-    centercircletextunit.innerHTML = "dB(A)";
+    if(this.levels[hour] != null) {
+      var value = this.levels[hour][id_cat];
+      var centercircle = document.getElementById(full_id+"_centercircletext");
+      var centercircletextunit = document.getElementById(full_id+"_centercircletextunit");
+      centercircle.innerHTML = Math.round(value);
+      centercircle.style.color = this.getcolor(value);
+      centercircletextunit.innerHTML = "dB(A)";
+    }
   }
 }
 
 TimeDonut.prototype.hoverOff = function(element) {
-var centercircle = document.getElementById(this.id+"_centercircletext");
-var centercircletextunit = document.getElementById(this.id+"_centercircletextunit");
+  var retVal = this.getDonutFromSliceElement(element);
+  var id_cat = retVal[0];
+  var full_id = retVal[1];
+  var centercircle = document.getElementById(full_id+"_centercircletext");
+  var centercircletextunit = document.getElementById(full_id+"_centercircletextunit");
   centercircle.innerHTML = "";
   centercircletextunit.innerHTML = "";
 }
 
 TimeDonut.prototype.loadLevels = function(levels) {
    this.levels = levels;
-   var circleWeek = document.getElementById(this.id+"_ulcircle");
-   for(child in circleWeek.children) {
-     var el = circleWeek.children[child];
-     if(el && el.className == "slice") {
-       var hour = parseInt(el.children[0].textContent);
-       if(typeof this.levels !== 'undefined' && this.levels[hour] != null) {
-         var value = levels[hour].leq;
-         el.style.backgroundColor = this.getcolor(value);
-       } else {
-         el.style.backgroundColor = 'white';
+   for(let id_pair of this.DONUT_LEVELS) {
+     var id_ext = id_pair[0];
+     var id_cat = id_pair[1];
+     var full_id = this.id+id_ext;
+     var circleWeek = document.getElementById(full_id+"_ulcircle");
+     for(child in circleWeek.children) {
+       var el = circleWeek.children[child];
+       if(el && el.className == "slice") {
+         var hour = parseInt(el.children[0].textContent);
+         if(typeof this.levels !== 'undefined' && this.levels[hour] != null) {
+           var value = levels[hour][id_cat];
+           el.style.backgroundColor = this.getcolor(value);
+         } else {
+           el.style.backgroundColor = 'white';
+         }
        }
      }
    }
 }
 
 function initTimeDonut(id, levels) {
-  var div_centercircletextunit = document.createElement('div');
-  var div_centercircletext = document.createElement('div');
   var newDonut = new TimeDonut(id, levels);
-  var ul = document.createElement('ul');
-  ul.setAttribute('id', id+'_ulcircle');
-  ul.setAttribute('class', 'circle');
-  for (sliceId = 0; sliceId < 24; sliceId++) {
-    var li = document.createElement('li');
-    li.onmouseenter = function(element) { newDonut.hover(element.target);};
-    li.onmouseleave = function(element) { newDonut.hoverOff(element.target);};
-    if(typeof levels !== 'undefined') {
-      li.style.backgroundColor = newDonut.getcolor(levels[sliceId].leq);
+  // id is the time period (week, saturday and sunday)
+  // For each time period there is a specific level
+  for(let id_pair of newDonut.DONUT_LEVELS) {
+    var id_ext = id_pair[0];
+    var id_cat = id_pair[1];
+    var full_id = id+id_ext;
+    var div_centercircletextunit = document.createElement('div');
+    var div_centercircletext = document.createElement('div');
+    var ul = document.createElement('ul');
+    ul.setAttribute('id', full_id+'_ulcircle');
+    ul.setAttribute('class', 'circle');
+    for (sliceId = 0; sliceId < 24; sliceId++) {
+      var li = document.createElement('li');
+      li.onmouseenter = function(element) { newDonut.hover(element.target);};
+      li.onmouseleave = function(element) { newDonut.hoverOff(element.target);};
+      if(typeof levels !== 'undefined') {
+        li.style.backgroundColor = newDonut.getcolor(levels[sliceId][id_cat]);
+      }
+      li.setAttribute('class', 'slice');
+      var div = document.createElement('div');
+      div.setAttribute('class', 'text');
+      div.innerHTML = sliceId;
+      li.appendChild(div);
+      ul.appendChild(li);
     }
-    li.setAttribute('class', 'slice');
-    var div = document.createElement('div');
-    div.setAttribute('class', 'text');
-    div.innerHTML = sliceId;
-    li.appendChild(div);
-    ul.appendChild(li);
+    var div_centercircle = document.createElement('div');
+    div_centercircle.setAttribute('class', 'centercircle');
+    div_centercircletext.setAttribute('class', 'centercircletext');
+    div_centercircletext.setAttribute('id', full_id+'_centercircletext');
+    div_centercircletextunit.setAttribute('class', 'centercircletextunit');
+    div_centercircletextunit.setAttribute('id', full_id+'_centercircletextunit');
+    var maindiv = document.getElementById(full_id);
+    ul.appendChild(div_centercircle);
+    div_centercircle.appendChild(div_centercircletext);
+    div_centercircle.appendChild(div_centercircletextunit);
+    maindiv.appendChild(ul);
   }
-  var div_centercircle = document.createElement('div');
-  div_centercircle.setAttribute('class', 'centercircle');
-  div_centercircletext.setAttribute('class', 'centercircletext');
-  div_centercircletext.setAttribute('id', id+'_centercircletext');
-  div_centercircletextunit.setAttribute('class', 'centercircletextunit');
-  div_centercircletextunit.setAttribute('id', id+'_centercircletextunit');
-  var maindiv = document.getElementById(id);
-  ul.appendChild(div_centercircle);
-  div_centercircle.appendChild(div_centercircletext);
-  div_centercircle.appendChild(div_centercircletextunit);
-  maindiv.appendChild(ul);
   return newDonut;
 }

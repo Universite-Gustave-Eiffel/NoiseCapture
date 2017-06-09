@@ -124,7 +124,7 @@ The authors are not responsible for the direct or indirect consequences of the u
                 <ul class="nav nav-tabs">
                     <li class="active"><a data-toggle="tab" href="#la50">LA50</a></li>
                     <!--<li><a data-toggle="tab" href="#lden">Lden</a></li>-->
-                    <!--<li><a data-toggle="tab" href="#leq">Leq</a></li>-->
+                    <li><a data-toggle="tab" href="#laeq">LAeq</a></li>
                 </ul>
                 <div class="tab-content">
                     <div id="la50" class="tab-pane fade in active">
@@ -134,23 +134,49 @@ The authors are not responsible for the direct or indirect consequences of the u
                         />
                         <div id="areainfo"></div>
                         <hr style='margin-bottom=0em'>
-                        
+
                         <div class="defindicator">The following 'time-donuts' show the <b>temporal evolution of the LA50</b> over the 24h of a day, for a working day, the Saturday and the Sunday. For each 1h-period (0:00-1:00, for the 1st period...), the LA50 is evaluated from
-                            the measurments and standard temporal profiles. See the help section for more information.</div>
+                            the measurments. See the help section for more information.</div>
                         <div>
                             <div class="donut_block">
                                 <h3 class='attribute_label'>Working days</h3>
-                                <div id="donut_working_day" class="sidepanel_donut"></div>
+                                <div id="donut_working_day_la50" class="sidepanel_donut"></div>
                             </div>
                             <div class="donut_block">
                                 <h3 class='attribute_label'>Saturday</h3>
-                                <div id="donut_saturday" class="sidepanel_donut"></div>
+                                <div id="donut_saturday_la50" class="sidepanel_donut"></div>
                             </div>
                             <div class="donut_block">
                                 <h3 class='attribute_label'>Sunday</h3>
-                                <div id="donut_sunday" class="sidepanel_donut"></div>
+                                <div id="donut_sunday_la50" class="sidepanel_donut"></div>
                             </div>
                         </div>
+            </div>
+
+                            <div id="laeq" class="tab-pane fade in active">
+                                <h3>Explore the mean noise of your environment</h3>
+                                <div class="defindicator">The <b>LAeq</b> is the A-weighted noise level. It is a standard descriptor of the perceived sound level in the environment.</div>
+                                <hr style='margin-bottom=0em'><img align="right" style="margin:5px 5px" src="http://onomap-gs.noise-planet.org/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=noisecapture:noisecapture_area&legend_options=fontName:Cerdana;fontAntiAliasing:true;fontColor:0x000033;fontSize:12;dpi:80&TRANSPARENT=true"
+                                />
+                                <div id="areainfo"></div>
+                                <hr style='margin-bottom=0em'>
+
+                                <div class="defindicator">The following 'time-donuts' show the <b>temporal evolution of the LAeq</b> over the 24h of a day, for a working day, the Saturday and the Sunday. For each 1h-period (0:00-1:00, for the 1st period...), the LAeq is evaluated from
+                                    the measurments. See the help section for more information.</div>
+                                <div>
+                                    <div class="donut_block">
+                                        <h3 class='attribute_label'>Working days</h3>
+                                        <div id="donut_working_day_laeq" class="sidepanel_donut"></div>
+                                    </div>
+                                    <div class="donut_block">
+                                        <h3 class='attribute_label'>Saturday</h3>
+                                        <div id="donut_saturday_laeq" class="sidepanel_donut"></div>
+                                    </div>
+                                    <div class="donut_block">
+                                        <h3 class='attribute_label'>Sunday</h3>
+                                        <div id="donut_sunday_laeq" class="sidepanel_donut"></div>
+                                    </div>
+                                </div>
                     </div>
                     <div id="lden" class="tab-pane fade">
                         <h3>Menu 1</h3>

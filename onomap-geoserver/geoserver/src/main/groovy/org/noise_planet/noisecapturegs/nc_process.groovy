@@ -197,9 +197,9 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
             "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :laeq, :la50,:lden ," +
             " :mean_pleasantness, :measure_count, :first_measure, :last_measure)", fields)[0][0] as Integer
     // Add profile
-    sql.withBatch("INSERT INTO NOISECAPTURE_AREA_PROFILE(PK_AREA, HOUR, LEQ, LA50) VALUES (:pkarea, :hour, :leq, :la50)") { batch ->
+    sql.withBatch("INSERT INTO NOISECAPTURE_AREA_PROFILE(PK_AREA, HOUR, LAEQ, LA50) VALUES (:pkarea, :hour, :laeq, :la50)") { batch ->
         records.each{ k, v ->
-            batch.addBatch([pkarea: pkArea, hour: k, leq: v.getLAeq(), la50: v.getLA50()])
+            batch.addBatch([pkarea: pkArea, hour: k, laeq: v.getLAeq(), la50: v.getLA50()])
         }
         batch.executeBatch()
     }

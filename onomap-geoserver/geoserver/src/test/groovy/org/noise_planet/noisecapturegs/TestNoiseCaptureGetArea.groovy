@@ -133,9 +133,12 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         assertNotNull(arrayData)
         assertEquals(72, arrayData["profile"].size())
         assertNull(arrayData["profile"][0])
-        assertEquals(72.82d, (Double)arrayData["profile"][16]["leq"], 0.01d)
-        assertEquals(66.01d, (Double)arrayData["profile"][43]["leq"], 0.01d)
-        assertEquals(59.83d, (Double)arrayData["profile"][69]["leq"], 0.01d)
+        assertEquals(72.82d, (Double)arrayData["profile"][16]["laeq"], 0.01d)
+        assertEquals(66.01d, (Double)arrayData["profile"][43]["laeq"], 0.01d)
+        assertEquals(59.83d, (Double)arrayData["profile"][69]["laeq"], 0.01d)
+        assertEquals(72.0d, (Double)arrayData["profile"][16]["la50"], 0.01d)
+        assertEquals(65.0d, (Double)arrayData["profile"][43]["la50"], 0.01d)
+        assertEquals(60.0d, (Double)arrayData["profile"][69]["la50"], 0.01d)
         JsonOutput.toJson(arrayData); // Check if conversion goes well
     }
 }

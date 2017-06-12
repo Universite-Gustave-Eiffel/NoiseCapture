@@ -72,7 +72,7 @@ import java.util.Locale;
 
 public class CalibrationActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
     private enum CALIBRATION_STEP {IDLE, WARMUP, CALIBRATION, END}
-    private static int[] freq_choice = {0, 125, 200, 315, 500, 800, 1250, 2000, 3150, 5000, 8000, 12500};
+    private static int[] freq_choice = {0, 125, 250, 500, 1000, 2000, 4000, 8000, 16000};
     private ProgressBar progressBar_wait_calibration_recording;
     private TextView startButton;
     private TextView applyButton;
@@ -333,6 +333,9 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             } else {
                 int selectFreq = freq_choice[spinner.getSelectedItemPosition()];
                 int index = Arrays.binarySearch(measurementService.getAudioProcess().getDelayedCenterFrequency(), selectFreq);
+                if(index < 0) {
+                    index = Math.min(measure.getLeqs().length -1,  Math.max(0, -index - 1));
+                }
                 leq = measure.getLeqs()[index];
             }
             if(calibration_step == CALIBRATION_STEP.CALIBRATION) {

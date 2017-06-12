@@ -85,26 +85,29 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         new nc_process().process(connection, 10)
         // Fetch data
         def arrayData = new nc_get_area_info().getAreaInfo(connection, -139656, 265210)
-        assertEquals(51.6, (double)arrayData.getLAeq, 0.01)
-        assertEquals(69, (double)arrayData.mean_pleasantness, 0.01)
-        assertEquals(40, (int)arrayData.measure_count)
-        assertEquals(new Timestamp(1465474645000), arrayData.first_measure)
-        assertEquals(new Timestamp(1465474682000), arrayData.last_measure)
+        assertFalse(arrayData.isEmpty())
+        assertEquals(55.96, (double)(arrayData.la50), 0.1)
+        assertEquals(69, (double)(arrayData.mean_pleasantness), 0.01)
+        assertEquals(40, (int)(arrayData.measure_count))
+        assertEquals("2016-06-09T14:17:25+02:00", arrayData.first_measure)
+        assertEquals("2016-06-09T14:18:02+02:00", arrayData.last_measure)
 
         // Check with NaN in pleasantness
         def sql = new Sql(connection)
         def fields = [cell_q           : 5,
                       cell_r           : 10,
                       the_geom         : "POLYGON EMPTY",
-                      mean_leq         : 10,
+                      laeq         : 80,
+                      la50         : 75,
+                      lden         : 77,
                       mean_pleasantness: Double.NaN,
                       measure_count    : 1,
                       first_measure    : new Timestamp(1465474645151),
                       last_measure     : new Timestamp(1465474645151),
                       tzid             : TimeZone.default.ID]
-        sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, the_geom, mean_leq, mean_pleasantness," +
+        sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, the_geom, laeq,la50,lden, mean_pleasantness," +
                 " measure_count, first_measure, last_measure, tzid) VALUES (:cell_q, :cell_r, " +
-                "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :mean_leq," +
+                "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :laeq, :la50,:lden," +
                 " :mean_pleasantness, :measure_count, :first_measure, :last_measure, :tzid)", fields)
         // Fetch data
         arrayData = new nc_get_area_info().getAreaInfo(connection, 5, 10)
@@ -129,7 +132,13 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         def arrayData = new nc_get_area_info().getAreaInfo(connection, row.cell_q, row.cell_r)
         assertNotNull(arrayData)
         assertEquals(72, arrayData["profile"].size())
-        assertTrue(arrayData["profile"] instanceof Map)
+        assertNull(arrayData["profile"][0])
+        assertEquals(72.82d, (Double)arrayData["profile"][16]["laeq"], 0.01d)
+        assertEquals(66.01d, (Double)arrayData["profile"][43]["laeq"], 0.01d)
+        assertEquals(59.83d, (Double)arrayData["profile"][69]["laeq"], 0.01d)
+        assertEquals(72.0d, (Double)arrayData["profile"][16]["la50"], 0.01d)
+        assertEquals(65.0d, (Double)arrayData["profile"][43]["la50"], 0.01d)
+        assertEquals(60.0d, (Double)arrayData["profile"][69]["la50"], 0.01d)
         JsonOutput.toJson(arrayData); // Check if conversion goes well
     }
 }

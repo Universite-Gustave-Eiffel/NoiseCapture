@@ -131,17 +131,19 @@ class TestNoiseCaptureProcess extends GroovyTestCase {
         assertEquals(1, processed)
         // Read db; check content
         assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area").get("cpt"))
-        assertEquals(66.848d, (Double)sql.firstRow("SELECT LEQ FROM NOISECAPTURE_AREA_PROFILE WHERE HOUR = 15").get("LEQ"),
+        assertEquals(72.82d, (Double)sql.firstRow("SELECT LAEQ FROM NOISECAPTURE_AREA_PROFILE WHERE HOUR = 16").get("LAEQ"),
+                0.01d)
+        assertEquals(72.0d, (Double)sql.firstRow("SELECT LA50 FROM NOISECAPTURE_AREA_PROFILE WHERE HOUR = 16").get("LA50"),
                 0.01d)
     }
 
     void testLA50() {
-        Record noiseRecord = new Record(1)
+        Record noiseRecord = new Record()
         noiseRecord.addLeq(65)
         noiseRecord.addLeq(44)
         noiseRecord.addLeq(75)
         noiseRecord.addLeq(66)
-        assertEquals(65.5, noiseRecord.getLA50())
+        assertEquals(65.52, noiseRecord.getLA50(),0.1)
         noiseRecord.addLeq(70)
         assertEquals(66, noiseRecord.getLA50())
     }

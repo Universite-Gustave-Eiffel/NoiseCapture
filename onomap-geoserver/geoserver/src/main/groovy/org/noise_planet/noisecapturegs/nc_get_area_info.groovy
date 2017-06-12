@@ -55,7 +55,7 @@ outputs = [
 ]
 
 def getAreaInfo(Connection connection, long qIndex, long rIndex) {
-    def data = []
+    def data = [:]
     try {
         // List the area identifier using the new measures coordinates
         def sql = new Sql(connection)
@@ -64,9 +64,8 @@ def getAreaInfo(Connection connection, long qIndex, long rIndex) {
                 [qIndex: qIndex, rIndex: rIndex])
         if(row) {
             def time_zone = TimeZone.getTimeZone(row.tzid as String).toZoneId();
-            def formater = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-            def firstMeasure = row.first_measure.toInstant().atZone(time_zone).format(formater);
-            def lastMeasure = row.last_measure.toInstant().atZone(time_zone).format(formater);
+            def firstMeasure = row.first_measure.toInstant().atZone(time_zone).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+            def lastMeasure = row.last_measure.toInstant().atZone(time_zone).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
             data = [laeq              : row.laeq,
                     la50              : row.la50,
                     lden              : row.lden,
@@ -77,10 +76,10 @@ def getAreaInfo(Connection connection, long qIndex, long rIndex) {
                     measure_count    : row.measure_count,
                     time_zone        : row.tzid]
             // Query hours profile for this area
-            def profile = [:]
+            def profile = new Object[72]
             sql.eachRow("SELECT * FROM NOISECAPTURE_AREA_PROFILE WHERE PK_AREA = :pk_area", [pk_area:row.pk_area]) {
                 hour_row ->
-                profile[hour_row.hour as Integer] = [leq : hour_row.leq as Double, uncertainty : hour_row.uncertainty as Integer]
+                profile[hour_row.hour as Integer] = [laeq : hour_row.laeq as Double, la50 : hour_row.la50 as Double, uncertainty : hour_row.uncertainty as Integer]
             }
             data["profile"] = profile
         }

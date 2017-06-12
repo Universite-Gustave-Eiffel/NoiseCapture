@@ -35,7 +35,7 @@ CREATE TABLE NOISECAPTURE_TRACK (
 
 COMMENT ON COLUMN NOISECAPTURE_TRACK.NOISE_LEVEL IS 'Sound level in dB(A)';
 COMMENT ON COLUMN NOISECAPTURE_TRACK.VERSION_NUMBER IS 'Application version identifier';
-COMMENT ON COLUMN NOISECAPTURE_TRACK.PLEASANTNESS IS 'PLEASANTNESS ratio, from -1 unpleasant to 1 pleasant';
+COMMENT ON COLUMN NOISECAPTURE_TRACK.PLEASANTNESS IS 'PLEASANTNESS ratio, from 0 to 100';
 COMMENT ON COLUMN NOISECAPTURE_TRACK.GAIN_CALIBRATION IS 'Signal gain in dB, provided from user using phone calibration';
 
 -- Table: NOISECAPTURE_POINT
@@ -117,7 +117,8 @@ COMMENT ON COLUMN NOISECAPTURE_AREA.MEASURE_COUNT IS 'noisecapture_point entitie
 CREATE TABLE NOISECAPTURE_AREA_PROFILE (
     PK_AREA int  NOT NULL,
     HOUR smallint NOT NULL,
-    LEQ real NOT NULL,
+    LAEQ real NOT NULL,
+    LA50 float NOT NULL,
     UNCERTAINTY smallint DEFAULT 255,
     VARIABILITY real DEFAULT 0,
     CONSTRAINT NOISECAPTURE_AREA_PROFILE_PK PRIMARY KEY (PK_AREA, HOUR),
@@ -125,9 +126,15 @@ CREATE TABLE NOISECAPTURE_AREA_PROFILE (
 );
 
 COMMENT ON COLUMN NOISECAPTURE_AREA_PROFILE.HOUR IS 'Hour of estimated value';
-COMMENT ON COLUMN NOISECAPTURE_AREA_PROFILE.LEQ IS 'Estimated value';
-COMMENT ON COLUMN NOISECAPTURE_AREA_PROFILE.UNCERTAINTY IS 'Uncertainty 0-1';
+COMMENT ON COLUMN NOISECAPTURE_AREA_PROFILE.LAEQ IS 'Laeq on this hour';
+COMMENT ON COLUMN NOISECAPTURE_AREA_PROFILE.LA50 IS 'LA50 on this hour';
+COMMENT ON COLUMN NOISECAPTURE_AREA_PROFILE.UNCERTAINTY IS 'Uncertainty 0-255';
 COMMENT ON COLUMN NOISECAPTURE_AREA_PROFILE.VARIABILITY IS 'Variability in dB(A)';
+
+CREATE TABLE NOISECAPTURE_DUMP_TRACK_ENVELOPE(
+    PK_TRACK int NOT NULL REFERENCES NOISECAPTURE_TRACK (PK_TRACK) ON DELETE CASCADE ON UPDATE CASCADE,
+    THE_GEOM geometry,
+    measure_count bigint);
 
 --- Add index
 
@@ -153,7 +160,30 @@ CREATE INDEX fki_noisecapture_freq_pk_point_fk
    CREATE SPATIAL INDEX ON NOISECAPTURE_POINT(THE_GEOM);
    CREATE SPATIAL INDEX ON NOISECAPTURE_AREA(THE_GEOM);
 
- -- PostGIS only query
+ ---- PostGIS only query
 
  -- CREATE INDEX ON NOISECAPTURE_POINT USING GIST(THE_GEOM);
  -- CREATE INDEX ON NOISECAPTURE_AREA USING GIST(THE_GEOM);
+
+ ---- Force SRID
+
+-- SELECT UpdateGeometrySRID('noisecapture_dump_track_envelope','the_geom',4326);
+-- SELECT UpdateGeometrySRID('noisecapture_area','the_geom',4326);
+-- SELECT UpdateGeometrySRID('noisecapture_point','the_geom',4326);
+
+---- Special view for postgis
+
+
+-- create view point_heatmap_density as SELECT 1 AS weight, noisecapture_point.the_geom, noisecapture_point.accuracy FROM noisecapture_point WHERE noisecapture_point.noise_level > 0::double precision AND noisecapture_point.noise_level <= 110::double precision AND st_isempty(noisecapture_point.the_geom) = false AND noisecapture_point.accuracy <= 15::double precision;
+
+-- create view todaypoints as SELECT noisecapture_point.pk_point,
+--                                   noisecapture_point.the_geom,
+--                                   noisecapture_point.pk_track,
+--                                   noisecapture_point.noise_level,
+--                                   noisecapture_point.speed,
+--                                   noisecapture_point.accuracy,
+--                                   noisecapture_point.orientation,
+--                                   noisecapture_point.time_date,
+--                                   noisecapture_point.time_location
+--                                  FROM noisecapture_point
+--                                 WHERE (now() - noisecapture_point.time_date::timestamp with time zone) < '24:00:00'::interval;

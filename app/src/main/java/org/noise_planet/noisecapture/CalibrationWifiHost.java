@@ -207,6 +207,8 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
             applyStateChange(newState, connectionStatusImage, textStatus);
         } else if(CalibrationService.PROP_PEER_LIST.equals(event.getPropertyName())) {
             deviceListAdapter.onPeersAvailable((WifiP2pDeviceList)event.getNewValue());
+        } else if(CalibrationService.PROP_PEER_READY.equals(event.getPropertyName())) {
+            MAINLOGGER.info("Peer ready to start calibration " + event.getNewValue());
         }
     }
 

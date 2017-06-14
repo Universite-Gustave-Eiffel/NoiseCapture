@@ -39,6 +39,7 @@ import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -55,9 +56,11 @@ import org.slf4j.LoggerFactory;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import edu.rit.se.wifibuddy.CommunicationManager;
 import edu.rit.se.wifibuddy.DnsSdService;
@@ -70,6 +73,7 @@ import edu.rit.se.wifibuddy.WifiDirectHandler;
 public class CalibrationService extends Service implements PropertyChangeListener,
         SharedPreferences.OnSharedPreferenceChangeListener {
     public static final String EXTRA_HOST = "MODE_HOST";
+    public final AtomicBoolean queryRegisterWifiP2PService = new AtomicBoolean(false);
 
     // properties
     public static final String PROP_CALIBRATION_STATE = "PROP_CALIBRATION_STATE";
@@ -324,7 +328,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     }
 
     private byte[] buildMessage(int Id, Object... arguments) {
-        StringBuilder sb = new StringBuilder(Id);
+        StringBuilder sb = new StringBuilder(String.valueOf(Id));
         for(Object argument : arguments) {
             sb.append(messageSeparator);
             sb.append(argument);
@@ -350,6 +354,12 @@ public class CalibrationService extends Service implements PropertyChangeListene
             LOGGER.error("Receive: "+message+", but communication manager is null");
             return;
         }
+        if(message == null) {
+            LOGGER.error("Receive null message");
+            return;
+        }
+        // Check message
+
         StringTokenizer stringTokenizer = new StringTokenizer(message, messageSeparator);
         try {
             int id = Integer.valueOf(stringTokenizer.nextToken());
@@ -416,7 +426,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     }
 
     private void addLocalWifiService() {
-        if(wifiDirectHandler != null) {
+        if(wifiDirectHandler != null && wifiDirectHandler.getThisDevice() != null) {
             HashMap<String, String> record = new HashMap<>();
             record.put("Name", wifiDirectHandler.getThisDevice().deviceName);
             record.put("Address", wifiDirectHandler.getThisDevice().deviceAddress);
@@ -466,8 +476,10 @@ public class CalibrationService extends Service implements PropertyChangeListene
                     }
                 } else if(calibrationService.wifiDirectHandler != null &&
                         calibrationService.wifiDirectHandler.getThisDevice() == null) {
-                    calibrationService.wifiDirectHandler.registerP2p();
-                    calibrationService.wifiDirectHandler.registerP2pReceiver();
+                    //calibrationService.wifiDirectHandler.unregisterP2p();
+                    //calibrationService.wifiDirectHandler.unregisterP2pReceiver();
+                    //calibrationService.wifiDirectHandler.registerP2p();
+                    //calibrationService.wifiDirectHandler.registerP2pReceiver();
                 }
             } else if(WifiDirectHandler.Action.PEERS_CHANGED.equals(action)) {
                 WifiP2pDeviceList peers = intent.getParcelableExtra("peers");
@@ -508,6 +520,10 @@ public class CalibrationService extends Service implements PropertyChangeListene
                                 sourceDeviceName = "other device";
                             }
                             LOGGER.info("Inviting " + sourceDeviceName + " to connect");
+                            if(calibrationService.wifiDirectHandler.getThisDevice() == null) {
+                                calibrationService.wifiDirectHandler.unregisterP2p();
+                                calibrationService.wifiDirectHandler.registerP2p();
+                            }
                             calibrationService.wifiDirectHandler.initiateConnectToService(service);
                         } else {
                             LOGGER.info("Service not available: " + service.getSrcDevice().status);
@@ -523,8 +539,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
                     calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_HOST);
                 }
             } else if(WifiDirectHandler.Action.MESSAGE_RECEIVED.equals(action)) {
-                String message = intent.getStringExtra(WifiDirectHandler.MESSAGE_KEY);
-                calibrationService.handleMessage(message);
+                if(intent.hasExtra(WifiDirectHandler.MESSAGE_KEY)) {
+                    String message = new String(intent.getByteArrayExtra(WifiDirectHandler.MESSAGE_KEY),
+                            Charset.defaultCharset());
+                    calibrationService.handleMessage(message);
+                }
             }
         }
     }

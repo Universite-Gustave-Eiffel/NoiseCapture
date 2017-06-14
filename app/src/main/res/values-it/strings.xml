@@ -10,14 +10,14 @@
     <string name="comment_title_delete">Elimina la misurazione?</string>
     <string name="history_title_delete">Elimina le misurazioni selezionate?</string>
 
-    <string name="record_message">Tocca il microfono per iniziare</string>
+    <string name="record_message">Inizia toccando l\'icona del microfono</string>
     <string name="calibrate_done">Calibrazione effettuata, guadagno fissato a %1$.1f dB</string>
     <string name="calibration_out_bounds_title">Livello di rumore troppo basso</string>
     <string name="calibration_out_bounds">Il livello sonoro di calibrazione è incompatibile con le specifiche hardware, deve essere tra %1$.0f dB e %2$.0f dB</string>
     <string name="calibration_save_change">Ignora e applica</string>
     <string name="calibration_cancel_change">Annulla</string>
     <string name="fail_share">Condivisione del file fallita</string>
-    <string name="no_results">Nessun risultato. Prima inizia a misurare</string>
+    <string name="no_results">Nessun risultato. Prima, inizia a misurare</string>
     <string name="no_gps_results">Coordinate GPS assenti nella misurazione</string>
     <string name="no_gps_hint">GPS assente</string>
     <string name="gps_hint_precision">%1$d m</string>
@@ -91,14 +91,14 @@ per evitare di trasmettere dati se non sei connesso</string>
     <string-array name="choice_user_map">
         <item>Misurazione selezionata</item>
         <item>Tutte le misurazioni</item>
-        <item>Mappa del rumore della community</item>
+        <item>Mappa del rumore comunitaria</item>
     </string-array>
 
     <!--  Ressources for the spinner map !-->
 
     <!--  Ressources for the spinner history !-->
     <string-array name="choice_user_history">
-        <item>Carica sulla community</item>
+        <item>Trasferimento alla comunità degli utenti</item>
         <item>Esporta risultato</item>
         <item>Modifica descrizione</item>
         <item>Mostra risultato</item>
@@ -132,7 +132,7 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
     <string name="drawer_open">Apri il cassetto di navigazione</string>
     <string name="drawer_close">Chiudi il cassetto di navigazione</string>
     <string name="url_about">file:///android_asset/html/about.html</string>
-    <string name="url_help">file:///android_asset/html/help.html</string>
+    <string name="url_help">file:///android_asset/html/help_IT.html</string>
 
     <!--  Ressources for acoustics !-->
     <string name="caption_SL">Livello sonoro</string>
@@ -148,11 +148,11 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
         <item>TEST</item>
         <item>Pioggia</item>
         <item>Vento</item>
-        <item>Al chiuso</item>
+        <item>All\'interno</item>
         <item>Passi</item>
         <item>Chiacchiericcio</item>
         <item>Natura</item>
-        <item>Macchinari</item>
+        <item>Meccanico</item>
         <item>Umano</item>
     </string-array>
     <string name="title_activity_main">MainActivity</string>
@@ -176,7 +176,7 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Carica</string>
     <string name="map_marker_label">%1$.01f dB(A) Precisione: %2$s m</string>
-    <string name="history_uploadeddescr">Questo risultato è stato caricato sul server della mappa della community</string>
+    <string name="history_uploadeddescr">Questo risultato è stato caricato sul server di mappa della comunità degli utenti ?</string>
 
     <string name="measurement_processlastsamples">Elaborazione dei %d campioni rimanenti&#8230;</string>
     <string name="history_item_choice_title">Misurazione %s</string>
@@ -186,7 +186,7 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
     <string name="measurement_pause">Misurazione in pausa</string>
     <string name="delete">Cancella</string>
     <string name="hint_userinput">Tocca qui per aggiungere una descrizione</string>
-    <string name="no_data_text_description">Inizia toccando il microfono</string>
+    <string name="no_data_text_description">Inizia toccando l\'icona del microfono</string>
     <string name="export_zip_info">Esporta la descrizione dell\'archivio\n\n
 i file meta.properties contengono informazioni generali sul dispositivo:\n
 - version_name Versione (Major, minor e revision)\n

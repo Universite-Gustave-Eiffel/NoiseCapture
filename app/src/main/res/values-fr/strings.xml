@@ -12,11 +12,10 @@
 
     <string name="record_message">Appuyer sur le bouton d\'enregistrement pour commencer</string>
     <string name="calibrate_done">Calibration réalisée, le gain est fixé à %1$.1f dB</string>
-    <string name="calibration_out_bounds">La procédure de calibration est incompatible avec les spécifications (limites) matérielles. Le valeur doit être comprise en %1$.0f dB et %2$.0f dB</string>
-    <string name="calibration_out_bounds_title">Niveau trop bas</string>
+    <string name="calibration_out_bounds_title">Niveau sonore trop faible</string>
+    <string name="calibration_out_bounds">Le niveau sonore de calibration n\'est pas compatible avec les specifications matérielles. Il doit être compris entre %1$.0f dB et %2$.0f dB</string>
     <string name="calibration_save_change">Ignorer et appliquer</string>
     <string name="calibration_cancel_change">Annuler</string>
-
     <string name="fail_share">La génération du fichier de données a échoué</string>
     <string name="no_results">Aucun résultat à afficher. Effectuer une première mesure.</string>
     <string name="no_gps_results">Cet enregistrement ne comporte pas de coordonnées GPS</string>
@@ -33,7 +32,7 @@
     <string name="title_activity_results">Résultats</string>
     <string name="title_activity_history">Historique</string>
     <string name="title_activity_about">À propos</string>
-    <string name="user_id_activity_about">ID utilisateur</string>
+    <string name="user_id_activity_about">Votre ID</string>
     <string name="title_activity_help">Aide</string>
     <string name="title_appversion">Version %1$s %2$s r.%3$s</string>
 
@@ -118,8 +117,8 @@
         <item>À propos</item>
     </string-array>
     <string name="result_share">Partager ce résultat</string>
-    <string name="result_button_map">Afficher la carte</string>
-    <string name="result_button_upload">Transfert</string>
+    <string name="result_button_map">Carte</string>
+    <string name="result_button_upload">Envoyer</string>
     <string name="result_button_user_feedback">Description</string>
     <string name="result_tooltip_nei">Niveau sonore équivalent en dB(A), sur la durée totale de la mesure [au centre du cercle coloré]</string>
     <string name="result_tooltip_rne">Cet indicateur représente la distribution temporelle de votre exposition au bruit. Chacune des couleurs correspond à un intervalle de niveau sonore.</string>
@@ -147,10 +146,10 @@
         <item>TEST</item>
         <item>Pluie</item>
         <item>Vent</item>
-        <item>Intérieur</item>
+        <item>Interieur</item>
         <item>Pas</item>
         <item>Bavardage</item>
-        <item>Nature</item>
+        <item>Naturel</item>
         <item>Mécanique</item>
         <item>Humain</item>
     </string-array>
@@ -177,7 +176,7 @@
     <string name="map_marker_label">%1$.01f dB(A) Précision : %2$s m</string>
     <string name="history_uploadeddescr">Ce résultat a t\'il été transféré vers la communauté?</string>
 
-    <string name="measurement_processlastsamples">%d échantillons restant à traite&#8230;</string>
+    <string name="measurement_processlastsamples">Traitement des %d derniers échantillons&#8230;</string>
     <string name="history_item_choice_title">Mesure %s</string>
     <string name="calibration_select_frequency">Choisir la fréquence à afficher</string>
     <string name="local_service_started">Service de localisation démarré</string>
@@ -216,6 +215,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="calibration_status_waiting_for_start_timer">La calibration est sur le point de commencer&#8230;</string>
     <string name="userinfo_button_measure">Mesure</string>
     <string name="userinfo_button_results">Valider</string>
+    <string name="userinfo_tags">Sources prédominantes</string>
     <string name="calibration_status_on">Calibration&#8230;</string>
     <string name="calibration_linear_status_on">Calibration à %1$.0f dB</string>
     <string name="calibration_status_end">Calibration terminée</string>
@@ -225,7 +225,6 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="calibration_leq_title">Leq mesuré :</string>
     <string name="calibration_measure_title">Valeur de référence :</string>
     <string name="calibration_button_apply">Appliquer</string>
-    <string name="userinfo_tags">Sources prédominantes</string>
     <string name="calibration_button_reset">Réinitialiser</string>
     <string name="calibration_test_gain_checkbox">Test du gain</string>
     <string name="calibration_mode">Type de calibration</string>
@@ -239,7 +238,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
         <item>8 kHz</item>
         <item>16 kHz</item>
     </string-array>
-    <string name="share_message">Je viens de mesurer %.01f dB(A) avec NoiseCapture App</string>
+    <string name="share_message">J\'ai mesuré %.01f dB(A) avec #NoiseCapture @Noise_Planet</string>
 
     <string-array name="output_mode_labels">
         <item>Appel téléphonique</item>

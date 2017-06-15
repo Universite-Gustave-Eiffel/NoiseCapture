@@ -45,7 +45,7 @@ import java.util.Date;
 public class Storage extends SQLiteOpenHelper {
     // Untranslated Tags in the same order as string.xml used when exporting to zip file
     public static final String[] TAGS = {"test", "rain", "wind", "indoor",
-            "footsteps", "chatting", "natural", "mechanical", "human"};
+            "footsteps", "chatting", "natural", "mechanical", "human", "works", "air_traffic", "entertainment"};
     // If you change the database schema, you must increment the database version.
     public static final int DATABASE_VERSION = 7;
     public static final String DATABASE_NAME = "Storage.db";

@@ -152,6 +152,9 @@
         <item>Naturel</item>
         <item>Mécanique</item>
         <item>Humain</item>
+        <item>Travaux</item>
+        <item>Trafic aérien</item>
+        <item>Loisirs</item>
     </string-array>
     <string name="title_activity_main">MainActivity</string>
 

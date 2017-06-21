@@ -439,7 +439,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             if(!testGainCheckBox.isChecked()) {
                 applyButton.setEnabled(true);
                 // Change to default locale when fixed https://code.google.com/p/android/issues/detail?id=2626
-                userInput.setText(String.format(Locale.US, "%.1f", DEFAULT_CALIBRATION_LEVEL));
+                userInput.setText(String.format(Locale.US, "%.1f", leqStats.getLeqMean()));
                 userInput.setEnabled(true);
             }
             resetButton.setEnabled(true);

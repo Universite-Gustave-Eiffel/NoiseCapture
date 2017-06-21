@@ -154,6 +154,9 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
         <item>Natura</item>
         <item>Meccanico</item>
         <item>Umano</item>
+        <item>Lavori</item>
+        <item>Traffico aereo</item>
+        <item>Intrattenimenti</item>
     </string-array>
     <string name="title_activity_main">MainActivity</string>
 

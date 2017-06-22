@@ -158,7 +158,7 @@ public class FFTSignalProcessing {
         // Limit spectrum output by specified frequencies and convert to dBspl
         float[] spectrumSplLevels = null;
         if(outputThinFrequency) {
-            spectrumSplLevels = new float[(int) (standardFrequencies[standardFrequencies.length - 1] /
+            spectrumSplLevels = new float[(int) (Math.min(samplingRate / 2, standardFrequencies[standardFrequencies.length - 1]) /
                     freqByCell)];
             for (int i = 0; i < spectrumSplLevels.length; i++) {
                 spectrumSplLevels[i] = (float) todBspl(squareAbsoluteFFTToRMS(squareAbsoluteFFT[i

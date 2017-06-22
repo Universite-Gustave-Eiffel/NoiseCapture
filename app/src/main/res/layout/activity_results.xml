@@ -33,7 +33,7 @@
             android:gravity="center_horizontal" >
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="@string/measurement_dba_min"
                 android:gravity="center_horizontal"
@@ -42,7 +42,7 @@
                 android:textSize="15sp" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="@string/measurement_dba_la90"
                 android:gravity="center_horizontal"
@@ -51,7 +51,7 @@
                 android:textSize="15sp" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="@string/measurement_dba_la50"
                 android:gravity="center_horizontal"
@@ -60,7 +60,7 @@
                 android:textSize="15sp" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="@string/measurement_dba_la10"
                 android:gravity="center_horizontal"
@@ -69,7 +69,7 @@
                 android:textSize="15sp" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="@string/measurement_dba_max"
                 android:gravity="center_horizontal"
@@ -85,7 +85,7 @@
             android:gravity="center_horizontal" >
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="4dp"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:id="@+id/textView_color_Min_SL"
@@ -96,7 +96,7 @@
                 android:background="@color/R5_SL_level"/>
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="4dp"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:id="@+id/textView_color_LA90"
@@ -107,7 +107,7 @@
                 android:background="@color/R4_SL_level" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="4dp"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:id="@+id/textView_color_LA50"
@@ -118,7 +118,7 @@
                 android:background="@color/R3_SL_level" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="4dp"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:id="@+id/textView_color_LA10"
@@ -129,7 +129,7 @@
                 android:background="@color/R2_SL_level"/>
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="4dp"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:id="@+id/textView_color_Max_SL"
@@ -147,7 +147,7 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_Min_SL"
@@ -158,7 +158,7 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_LA90"
@@ -169,7 +169,7 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_LA50"
@@ -180,7 +180,7 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_LA10"
@@ -191,7 +191,7 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="60dp"
                 android:layout_height="wrap_content"
                 android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_Max_SL"

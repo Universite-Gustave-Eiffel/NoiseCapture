@@ -48,7 +48,7 @@ public class TestJTransforms {
     public void testProcessingWhiteNoise() throws IOException {
         final int sampleRate = 44100;
         final double length = 0.5;
-        InputStream inputStream = CoreSignalProcessingTest.class.getResourceAsStream("whitenoise_44100Hz_16bitPCM_10s.raw");
+        InputStream inputStream = TestJTransforms.class.getResourceAsStream("whitenoise_44100Hz_16bitPCM_10s.raw");
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, STANDARD_FREQUENCIES_UNITTEST, (int) (sampleRate * length));
         // Read input signal up to buffer.length
@@ -56,8 +56,10 @@ public class TestJTransforms {
         inputStream.close();
         fftSignalProcessing.addSample(signal);
         FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false, false);
-        System.out.println("RMS : " + fftSignalProcessing.computeRms() + "\ndbRMS " +
-                fftSignalProcessing.computeGlobalLeq() + "\nThird octave spl :" + processingResult.getGlobaldBaValue());
+        assertEquals(1251.7, fftSignalProcessing.computeRms() ,0.1);
+        // Check third-octave recomposition. 1 dB because the global dba value filter frequencies outside bounds 100-16000
+        assertEquals(83, fftSignalProcessing.computeGlobalLeq(),1.0);
+        assertEquals(83, processingResult.getGlobaldBaValue(),1.0);
     }
 
     /**

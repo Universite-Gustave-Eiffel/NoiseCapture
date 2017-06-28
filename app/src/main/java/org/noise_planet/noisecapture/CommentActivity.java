@@ -38,6 +38,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.Dimension;
 import android.support.v4.content.FileProvider;
 import android.view.MotionEvent;
 import android.view.View;
@@ -254,6 +255,9 @@ public class CommentActivity extends MainActivity {
         tagButton.setOnCheckedChangeListener(new TagStateListener(id, checkedTags));
         tagButton.setMinHeight(0);
         tagButton.setMinWidth(0);
+        tagButton.setMinimumHeight(0);
+        tagButton.setMinimumWidth(0);
+        tagButton.setTextSize(Dimension.SP, 12);
         tagButton.setEnabled(record == null || record.getUploadId().isEmpty());
         tagButton.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));

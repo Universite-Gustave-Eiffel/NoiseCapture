@@ -211,6 +211,7 @@ public class FFTSignalProcessing {
         float[] fftResult;
         float[] dBaLevels;
         float globaldBaValue;
+        long id;
 
         public ProcessingResult(float[] fftResult, float[] dBaLevels, float globaldBaValue) {
             this.fftResult = fftResult;
@@ -218,12 +219,21 @@ public class FFTSignalProcessing {
             this.globaldBaValue = globaldBaValue;
         }
 
+        public long getId() {
+            return id;
+        }
+
+        public void setId(long id) {
+            this.id = id;
+        }
+
         /**
-         * Energetic sums of provided results. Used when using window functions
+         * Energetic avg of provided results.
          * @param toMerge
          */
-        public ProcessingResult(ProcessingResult... toMerge) {
+        public ProcessingResult(boolean average, ProcessingResult... toMerge) {
             if(toMerge.length > 0) {
+                int avgDiv = average ? toMerge.length : 1;
                 if(toMerge[0].fftResult != null) {
                     this.fftResult = new float[toMerge[0].fftResult.length];
                     for(ProcessingResult merge : toMerge) {
@@ -232,7 +242,7 @@ public class FFTSignalProcessing {
                         }
                     }
                     for(int i = 0; i < fftResult.length; i++) {
-                        fftResult[i] = (float)(10. * Math.log10(fftResult[i]));
+                        fftResult[i] = (float)(10. * Math.log10(fftResult[i] / avgDiv));
                     }
                 }
                 this.dBaLevels = new float[toMerge[0].dBaLevels.length];
@@ -242,13 +252,13 @@ public class FFTSignalProcessing {
                     }
                 }
                 for(int i = 0; i < dBaLevels.length; i++) {
-                    dBaLevels[i] = (float)(10. * Math.log10(dBaLevels[i]));
+                    dBaLevels[i] = (float)(10. * Math.log10(dBaLevels[i] / avgDiv));
                 }
                 double sum = 0;
                 for(ProcessingResult merge : toMerge) {
                     sum += Math.pow(10, merge.getGlobaldBaValue() / 10.);
                 }
-                this.globaldBaValue = (float)(10. * Math.log10(sum));
+                this.globaldBaValue = (float)(10. * Math.log10(sum / avgDiv));
             }
         }
 

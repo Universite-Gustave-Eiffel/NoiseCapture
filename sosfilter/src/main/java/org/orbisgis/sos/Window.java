@@ -88,7 +88,7 @@ public class Window {
                     Math.min(sampleBuffer.length, start + step)));
             results[2] = signalProcessing.processSample(true,
                     aWeighting, true);
-            return new FFTSignalProcessing.ProcessingResult(true, results);
+            return new FFTSignalProcessing.ProcessingResult(false, results);
         } else {
             //window == WINDOW_TYPE.RECTANGULAR
             signalProcessing.addSample(sampleBuffer);

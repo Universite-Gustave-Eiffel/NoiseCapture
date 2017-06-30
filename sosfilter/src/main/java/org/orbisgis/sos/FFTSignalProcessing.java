@@ -134,7 +134,7 @@ public class FFTSignalProcessing {
         }
         if(hanningWindow) {
             // Apply Hanning window
-            AcousticIndicators.hanningWindow(signal);
+            AcousticIndicators.hannWindow(signal);
         }
         if(aWeighting) {
             signal = AWeighting.aWeightingSignal(signal);

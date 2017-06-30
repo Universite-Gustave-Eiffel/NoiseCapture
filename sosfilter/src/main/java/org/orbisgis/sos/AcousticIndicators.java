@@ -78,11 +78,11 @@ public class AcousticIndicators {
     }
 
     /**
-     * Apply a Hanning window to a signal
+     * Apply a Hann window to a signal
      * @param signal time signal
      * @return the windowed signal
      */
-    public static double[] hanningWindow(double[] signal) {
+    public static double[] hannWindow(double[] signal) {
 
         // Iterate until the last line of the data buffer
         for (int n = 1; n < signal.length; n++) {
@@ -98,7 +98,7 @@ public class AcousticIndicators {
      * @param signal time signal
      * @return the windowed signal
      */
-    public static float[] hanningWindow(float[] signal) {
+    public static float[] hannWindow(float[] signal) {
 
         // Iterate until the last line of the data buffer
         for (int n = 1; n < signal.length; n++) {

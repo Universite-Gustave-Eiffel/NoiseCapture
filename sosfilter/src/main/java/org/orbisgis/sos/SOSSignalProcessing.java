@@ -127,14 +127,7 @@ public class SOSSignalProcessing {
         return thirdOctaveBandsFiltering.thirdOctaveFiltering(signal);
     }
 
-    /**
-     *
-     * @param buffer
-     * @param length Length from the start to convert
-     * @return Processed
-     */
-    public static double[] convertBytesToDouble(byte[] buffer, int length, ByteOrder byteOrder) {
-        short[] samplesShort = convertBytesToShort(buffer, length, byteOrder);
+    public static double[] convertShortToDouble(short[] samplesShort) {
         double[] samples = new double[samplesShort.length];
         for (int i = 0; i < samplesShort.length; i++) {
             if (samplesShort[i] > 0) {
@@ -144,6 +137,16 @@ public class SOSSignalProcessing {
             }
         }
         return samples;
+    }
+
+    /**
+     *
+     * @param buffer
+     * @param length Length from the start to convert
+     * @return Processed
+     */
+    public static double[] convertBytesToDouble(byte[] buffer, int length, ByteOrder byteOrder) {
+        return convertShortToDouble(convertBytesToShort(buffer, length, byteOrder));
     }
 
     public static short[] loadShortStream(InputStream inputStream, ByteOrder byteOrder) throws IOException {

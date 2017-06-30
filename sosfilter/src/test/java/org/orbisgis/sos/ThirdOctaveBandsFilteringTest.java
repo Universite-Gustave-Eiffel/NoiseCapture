@@ -147,7 +147,7 @@ public class ThirdOctaveBandsFilteringTest {
      * expected ones
      * @throws IOException
      */
-
+    @Test
     public void testThirdOctaveBandsFiltering() throws IOException{
 
         /*

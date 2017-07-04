@@ -131,9 +131,7 @@ public class SOSSignalProcessing {
         double[] samples = new double[samplesShort.length];
         for (int i = 0; i < samplesShort.length; i++) {
             if (samplesShort[i] > 0) {
-                samples[i] = Math.min(1, samplesShort[i] / ((double) Short.MAX_VALUE));
-            } else {
-                samples[i] = Math.max(-1, samplesShort[i] / (-(double) Short.MIN_VALUE));
+                samples[i] = samplesShort[i];
             }
         }
         return samples;

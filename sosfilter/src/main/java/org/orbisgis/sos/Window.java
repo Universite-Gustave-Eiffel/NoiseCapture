@@ -27,11 +27,6 @@
 
 package org.orbisgis.sos;
 
-import java.beans.PropertyChangeSupport;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 /**
  * Overlaps the window of signal processing.
  */
@@ -43,72 +38,51 @@ public class Window {
     private int lastProcessedSpectrum = 0;
     // added samples
     private int pushedSamples;
-    private int samplingRate;
-    private double windowTime;
     private int windowSize;
     // The size of this buffer is dependent on window type, sampling rate and window size
     private short[] sampleBuffer;
     private boolean aWeighting;
     private long beginRecordTime = 0;
+    private double overlap = 0;
 
     public Window(WINDOW_TYPE window, int samplingRate, double[] standardFrequencies,
-                  double windowTime, boolean aWeighting, long beginRecordTime) {
+                  double windowTime, boolean aWeighting, long beginRecordTime,
+                  double dbFsReference) {
+        if(window == WINDOW_TYPE.HANN) {
+            overlap = 0.5;
+        }
         this.signalProcessing = new FFTSignalProcessing(samplingRate, standardFrequencies,
-                (int)(samplingRate * windowTime));
-        this.samplingRate = samplingRate;
+                (int)(samplingRate * windowTime), dbFsReference);
         this.window = window;
-        this.windowTime = windowTime;
         this.aWeighting = aWeighting;
         this.beginRecordTime = beginRecordTime;
         this.windowSize = (int)(samplingRate * windowTime);
-        this.sampleBuffer = new short[window == WINDOW_TYPE.HANN ?
-                (int)(Math.ceil(samplingRate * (5. / 3.) * windowTime ))
-                : windowSize];
+        this.sampleBuffer = new short[windowSize];
     }
 
     public FFTSignalProcessing.ProcessingResult processSample() {
         lastProcessedSpectrum = pushedSamples;
-        if(window == WINDOW_TYPE.HANN) {
-            // Window, energetic sum of overlapping
-            int step = (int)(samplingRate * (windowTime / 3.));
-            int start = Math.max(0, sampleBuffer.length - step * 5);
-            FFTSignalProcessing.ProcessingResult[] results =
-                    new FFTSignalProcessing.ProcessingResult[3];
-            signalProcessing.addSample(Arrays.copyOfRange(sampleBuffer, start,
-                    Math.min(sampleBuffer.length, start + (3 * step))));
-            results[0] = signalProcessing.processSample(true,
-                    aWeighting, true);
-            start +=  3 * step;
-            signalProcessing.addSample(Arrays.copyOfRange(sampleBuffer, start,
-                    Math.min(sampleBuffer.length, start + step)));
-            results[1] = signalProcessing.processSample(true,
-                    aWeighting, true);
-            start += step;
-            signalProcessing.addSample(Arrays.copyOfRange(sampleBuffer, start,
-                    Math.min(sampleBuffer.length, start + step)));
-            results[2] = signalProcessing.processSample(true,
-                    aWeighting, true);
-            return new FFTSignalProcessing.ProcessingResult(false, results);
-        } else {
-            //window == WINDOW_TYPE.RECTANGULAR
-            signalProcessing.addSample(sampleBuffer);
-            return signalProcessing.processSample(false,
-                    aWeighting, true);
-        }
+        signalProcessing.addSample(sampleBuffer);
+        return signalProcessing.processSample(window == WINDOW_TYPE.HANN,
+                aWeighting, true);
     }
 
     /**
      * @return True if the defined windowTime is pushed since the last call of processSample
      */
     public boolean isWindowAvailable() {
-        return pushedSamples - lastProcessedSpectrum >= windowSize;
+        return pushedSamples - lastProcessedSpectrum >= (int)(windowSize * (1 - overlap));
+    }
+
+    public double getOverlap() {
+        return overlap;
     }
 
     /**
      * @return The maximal buffer size provided in pushSample in order to not skip a result
      */
     public int getMaximalBufferSize() {
-        return Math.max(0, windowSize - (pushedSamples - lastProcessedSpectrum));
+        return Math.max(0, (int)(windowSize * (1 - overlap)) - (pushedSamples - lastProcessedSpectrum));
     }
 
     /**

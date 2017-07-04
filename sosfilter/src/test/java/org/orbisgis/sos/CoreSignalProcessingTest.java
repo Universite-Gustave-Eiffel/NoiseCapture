@@ -43,7 +43,7 @@ import static org.junit.Assert.assertEquals;
 public class CoreSignalProcessingTest {
 
     // Reference sound pressure level [Pa]
-    public static final double REF_SOUND_PRESSURE = Math.sqrt(0.00002);
+    private static final double REF_SOUND_PRESSURE = 2e-5;
 
 //    @Test
 //    public void testGetSamplingRate() throws Exception {

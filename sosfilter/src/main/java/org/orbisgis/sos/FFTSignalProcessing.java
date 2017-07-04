@@ -42,7 +42,8 @@ public class FFTSignalProcessing {
     private final int windowSize;
     private FloatFFT_1D floatFFT_1D;
     private static final double RMS_REFERENCE_90DB = 2500;
-    private static final double DB_FS_REFERENCE = - (20 * Math.log10(RMS_REFERENCE_90DB)) + 90;
+    public static final double DB_FS_REFERENCE = - (20 * Math.log10(RMS_REFERENCE_90DB)) + 90;
+    private final double refSoundPressure;
 
     public FFTSignalProcessing(int samplingRate, double[] standardFrequencies, int windowSize) {
         this.windowSize = windowSize;
@@ -50,6 +51,16 @@ public class FFTSignalProcessing {
         this.samplingRate = samplingRate;
         this.sampleBuffer = new short[windowSize];
         this.floatFFT_1D = new FloatFFT_1D(windowSize);
+        this.refSoundPressure = 1 / Math.pow(10, DB_FS_REFERENCE / 20);
+    }
+
+    public FFTSignalProcessing(int samplingRate, double[] standardFrequencies, int windowSize, double dbFsReference) {
+        this.windowSize = windowSize;
+        this.standardFrequencies = standardFrequencies;
+        this.samplingRate = samplingRate;
+        this.sampleBuffer = new short[windowSize];
+        this.floatFFT_1D = new FloatFFT_1D(windowSize);
+        this.refSoundPressure = 1 / Math.pow(10, dbFsReference / 20);
     }
 
 
@@ -107,19 +118,15 @@ public class FFTSignalProcessing {
     }
 
     public double computeRms() {
-        double sampleSum = 0;
-        for (short sample : sampleBuffer) {
-            sampleSum += sample * sample;
-        }
-        return Math.sqrt(sampleSum / sampleBuffer.length);
+        return AcousticIndicators.computeRms(sampleBuffer);
     }
 
     public double computeGlobalLeq() {
-        return todBspl(computeRms());
+        return AcousticIndicators.getLeq(sampleBuffer, refSoundPressure);
     }
 
-    public static double todBspl(double rms) {
-        return (20 * Math.log10(rms) + DB_FS_REFERENCE);
+    public double todBspl(double rms) {
+        return AcousticIndicators.todBspl (rms,  refSoundPressure);
     }
 
     /**
@@ -170,6 +177,10 @@ public class FFTSignalProcessing {
 
     private double squareAbsoluteFFTToRMS(double squareAbsoluteFFT, int sampleSize) {
         return Math.sqrt((squareAbsoluteFFT / 2) / (sampleSize * sampleSize));
+    }
+
+    public double getRefSoundPressure() {
+        return refSoundPressure;
     }
 
     public float[] thirdOctaveProcessing(float[] squareAbsoluteFFT, boolean thirdOctaveAWeighting) {
@@ -229,11 +240,9 @@ public class FFTSignalProcessing {
 
         /**
          * Energetic avg of provided results.
-         * @param toMerge
          */
-        public ProcessingResult(boolean average, ProcessingResult... toMerge) {
+        public ProcessingResult(int windowCount, ProcessingResult... toMerge) {
             if(toMerge.length > 0) {
-                int avgDiv = average ? toMerge.length : 1;
                 if(toMerge[0].fftResult != null) {
                     this.fftResult = new float[toMerge[0].fftResult.length];
                     for(ProcessingResult merge : toMerge) {
@@ -242,7 +251,7 @@ public class FFTSignalProcessing {
                         }
                     }
                     for(int i = 0; i < fftResult.length; i++) {
-                        fftResult[i] = (float)(10. * Math.log10(fftResult[i] / avgDiv));
+                        fftResult[i] = (float)(10. * Math.log10(fftResult[i] / windowCount));
                     }
                 }
                 this.dBaLevels = new float[toMerge[0].dBaLevels.length];
@@ -252,13 +261,13 @@ public class FFTSignalProcessing {
                     }
                 }
                 for(int i = 0; i < dBaLevels.length; i++) {
-                    dBaLevels[i] = (float)(10. * Math.log10(dBaLevels[i] / avgDiv));
+                    dBaLevels[i] = (float)(10. * Math.log10(dBaLevels[i] / windowCount));
                 }
                 double sum = 0;
                 for(ProcessingResult merge : toMerge) {
                     sum += Math.pow(10, merge.getGlobaldBaValue() / 10.);
                 }
-                this.globaldBaValue = (float)(10. * Math.log10(sum / avgDiv));
+                this.globaldBaValue = (float)(10. * Math.log10(sum / windowCount));
             }
         }
 

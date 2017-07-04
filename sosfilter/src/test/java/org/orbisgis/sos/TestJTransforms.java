@@ -73,9 +73,9 @@ public class TestJTransforms {
         FFTSignalProcessing fftSignalProcessing = new FFTSignalProcessing(44100,
                 ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, fftResult.length);
         float[] thirdOctaveSum = fftSignalProcessing.thirdOctaveProcessing(fftResult, false);
-        double ref = FFTSignalProcessing.todBspl(thirdOctaveSum[0]);
+        double ref = fftSignalProcessing.todBspl(thirdOctaveSum[0]);
         for(int idThirdOctave  = 1; idThirdOctave < thirdOctaveSum.length; idThirdOctave++) {
-            assertEquals(ref + idThirdOctave, FFTSignalProcessing.todBspl(thirdOctaveSum[idThirdOctave]), 0.01);
+            assertEquals(ref + idThirdOctave, fftSignalProcessing.todBspl(thirdOctaveSum[idThirdOctave]), 0.01);
         }
     }
 
@@ -154,8 +154,9 @@ public class TestJTransforms {
         FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false, false);
 
         assertEquals(323.85, fftSignalProcessing.computeRms(), 0.01);
-        assertEquals(72.24, processingResult.getGlobaldBaValue(), 1);
+        assertEquals(72.24, AcousticIndicators.getLeq(signal, fftSignalProcessing.getRefSoundPressure()), 0.01) ;
         assertEquals(72.24, fftSignalProcessing.computeGlobalLeq(), 0.01);
+        assertEquals(72.24, processingResult.getGlobaldBaValue(), 0.01);
     }
 
     @Test

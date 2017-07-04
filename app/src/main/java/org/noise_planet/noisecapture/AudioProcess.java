@@ -356,7 +356,7 @@ public class AudioProcess implements Runnable {
                             Math.min(sampleBuffer.length, start + step)));
                     results[2] = signalProcessing.processSample(audioProcess.hannWindowFast,
                             audioProcess.weightingA, true);
-                    result = new FFTSignalProcessing.ProcessingResult(false, results);
+                    result = new FFTSignalProcessing.ProcessingResult(1, results);
                 } else {
                     // No window
                     signalProcessing.addSample(sampleBuffer);

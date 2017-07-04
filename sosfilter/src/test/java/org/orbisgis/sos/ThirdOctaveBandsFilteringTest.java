@@ -46,6 +46,7 @@ import java.util.Scanner;
  */
 public class ThirdOctaveBandsFilteringTest {
     private final static Logger LOGGER = LoggerFactory.getLogger(ThirdOctaveBandsFiltering.class);
+    private static final double REF_SOUND_PRESSURE = 2e-5;
 
     /**
      * Get the index of a double value in a double array
@@ -129,13 +130,13 @@ public class ThirdOctaveBandsFilteringTest {
         // Equivalent sound pressure levels of the third octave bands filtered signals
         // Warmup
         for(int i = 0; i < 5; i++) {
-            AcousticIndicators.getLeq(actualFilteredSignal[0], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
+            AcousticIndicators.getLeq(actualFilteredSignal[0], REF_SOUND_PRESSURE);
         }
 
         long beginLeq = System.currentTimeMillis();
         double[] actualLeq = new double[nbFrequencies];
         for (int idf = 0; idf < nbFrequencies; idf++) {
-            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredSignal[idf], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
+            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredSignal[idf], REF_SOUND_PRESSURE);
         }
 
 
@@ -147,7 +148,6 @@ public class ThirdOctaveBandsFilteringTest {
      * expected ones
      * @throws IOException
      */
-    @Test
     public void testThirdOctaveBandsFiltering() throws IOException{
 
         /*
@@ -223,7 +223,7 @@ public class ThirdOctaveBandsFilteringTest {
         // Equivalent sound pressure levels of the third octave bands filtered signals
         double[] actualLeq = new double[nbFrequencies];
         for (int idf = 0; idf < nbFrequencies; idf++) {
-            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredSignal[idf], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
+            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredSignal[idf], REF_SOUND_PRESSURE);
         }
 
 
@@ -247,7 +247,7 @@ public class ThirdOctaveBandsFilteringTest {
      * levels per third octave bands with expected ones
      * @throws IOException
      */
-
+    @Test
     public void testAWeightingAnThirdOctaveBandsFiltering() throws IOException{
         Logger logger = LoggerFactory.getLogger(ThirdOctaveBandsFilteringTest.class);
         /*
@@ -318,24 +318,15 @@ public class ThirdOctaveBandsFilteringTest {
 
         // Third octave bands filtering of the input signal (i.e. unweighted)
         long deb = System.currentTimeMillis();
-        double[][] actualFilteredInputSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(audioSignalArr);
         logger.info("Compute Filtering signal in "+(System.currentTimeMillis() - deb)+" ms");
 
         // Equivalent sound pressure levels of the third octave bands filtered A-weighted signals
         double[] actualLAeq = new double[nbFrequencies];
         for (int idf = 0; idf < nbFrequencies; idf++) {
-            actualLAeq[idf] = AcousticIndicators.getLeq(actualFilteredAWeightedSignal[idf], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
+            actualLAeq[idf] = AcousticIndicators.getLeq(actualFilteredAWeightedSignal[idf], Math.sqrt(2e-5));
         }
 
-        // Equivalent sound pressure levels of the third octave bands filtered unweighted signals
-        double[] actualLeq = new double[nbFrequencies];
-        for (int idf = 0; idf < nbFrequencies; idf++) {
-            actualLeq[idf] = AcousticIndicators.getLeq(actualFilteredInputSignal[idf], CoreSignalProcessingTest.REF_SOUND_PRESSURE);
-        }
-
-        /*
-        Comparisons of expected and actual results
-         */
+        //Comparisons of expected and actual results
 
         // Comparison of expected and actual filtered signals
         for (int idf = 0; idf < nbFrequencies; idf++) {

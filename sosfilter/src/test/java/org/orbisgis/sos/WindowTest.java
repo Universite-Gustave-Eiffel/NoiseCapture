@@ -82,12 +82,18 @@ public class WindowTest {
         for(int idFreq = 0; idFreq < dbResult.length; idFreq++) {
             normalisedDbResult[idFreq] = dbResult[idFreq] - delta;
         }
-        assertArrayEquals(expectedLeq, normalisedDbResult, maximalDeviation);
+
+        double err = 0;
+        for(int idFreq = 0; idFreq < dbResult.length; idFreq++) {
+            err+= Math.pow(normalisedDbResult[idFreq] - expectedLeq[idFreq], 2);
+        }
+        err = Math.sqrt(err / dbResult.length);
+        assertEquals("Deviation of "+err+"\nExpected: \n" + Arrays.toString(expectedLeq)+"\nGot:\n"+Arrays.toString(normalisedDbResult), 0, err, maximalDeviation);
     }
 
-    private float[] testFFTWindow(short[] signal, int sampleRate,double windowTime,Window.WINDOW_TYPE windowType) {
+    private float[] testFFTWindow(short[] signal, int sampleRate,double windowTime,Window.WINDOW_TYPE windowType, double dbFsReference) {
         Window window = new Window(windowType, sampleRate,
-                STANDARD_FREQUENCIES_UNITTEST, windowTime, false, 0, FFTSignalProcessing.DB_FS_REFERENCE);
+                STANDARD_FREQUENCIES_UNITTEST, windowTime, false, 0, dbFsReference);
 
         int packetSize = (int) (0.01 * sampleRate);
         int processedFastWindows = 0;
@@ -109,7 +115,7 @@ public class WindowTest {
         // Ex:
         // The signal is 10s and the window is 125 ms
         // So there is 80 * 125 ms results
-        assertEquals((int)(Math.round((signal.length / sampleRate) / (windowTime * (1 - window.getOverlap())))), processedFastWindows, 0);
+        assertEquals((int)((signal.length / sampleRate) / (windowTime * (1 - window.getOverlap()))), processedFastWindows, 0);
 
         FFTSignalProcessing.ProcessingResult fullSampleResult =
                 new FFTSignalProcessing.ProcessingResult((int)((signal.length / sampleRate) / windowTime), res.toArray(new FFTSignalProcessing.ProcessingResult[res.size()]));
@@ -120,129 +126,72 @@ public class WindowTest {
     @Test
     public void testVoice1() throws IOException {
         final int sampleRate = 44100;
+        double p0 = 32767.;
+        double dbFsReference = -20 * Math.log10(p0);
+        // Reference spectrum
+        double[] refSpl = {-66  , -68.04, -67.52, -45.97, -31.96, -37.13, -49.21, -35.29, -43.01,
+                -42.95, -48.65, -49.04, -53.27, -52.15, -52.65, -52.8 , -52.31, -53.56, -52.54,
+                -53.96, -53.63, -58.53, -67.22};
+        double refGlobalSpl = 0;
+        for(double lvl : refSpl) {
+            refGlobalSpl += Math.pow(10, lvl / 10.);
+        }
+        refGlobalSpl = 10 * Math.log10(refGlobalSpl);
         // Test error induced by window overlapping
         // Read input signal
-        InputStream inputStream =  WindowTest.class.getResourceAsStream("capture_1000hz_16bits_44100hz_signed.raw");
+        InputStream inputStream =  WindowTest.class.getResourceAsStream("speak_44100Hz_16bitsPCM_10s.raw");
         short[] signal = SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN);
+        // Reference value from ITA Toolbox
 
         // Test FFT without cutting
         FFTSignalProcessing fftSignalProcessing =
-                new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, signal.length, FFTSignalProcessing.DB_FS_REFERENCE);
+                new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, signal.length, dbFsReference);
         fftSignalProcessing.addSample(signal);
         FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false, false);
-        double leq = fftSignalProcessing.computeGlobalLeq();
-        assertEquals(leq, processingResult.getGlobaldBaValue(), 0.01);
 
-        //Test Butterworth
-        ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(sampleRate, ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
-
-        double[] doubleSignal = SOSSignalProcessing.convertShortToDouble(signal);
-
-        double[][] actualFilteredSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(doubleSignal);
-
-        double[] refSpl = new double[STANDARD_FREQUENCIES_UNITTEST.length];
-
-        for (int idf = 0; idf < STANDARD_FREQUENCIES_UNITTEST.length; idf++) {
-            refSpl[idf] = (float)AcousticIndicators.getLeq(actualFilteredSignal[idf], REF_SOUND_PRESSURE);
-        }
-
-        double leqSOS = getGlobalLeq(refSpl);
-
-        assertEquals(leq, leqSOS, 0.1);
-        // Reference spectrum
-        //double[] refSpl = {34.0, 31.7, 32.9, 55.4, 68.0, 62.9, 51.8, 64.6, 57.2, 57.0, 51.4, 50.8, 46.9, 47.8, 47.2, 47.5, 47.7, 46.5, 47.4, 46.1, 46.4, 41.6, 33.0};
+        assertEquals(refGlobalSpl, fftSignalProcessing.computeGlobalLeq(), 0.01);
+        assertEquals(refGlobalSpl, processingResult.getGlobaldBaValue(), 0.01);
 
         // Test FFT windows
 
-        double dBError = 1.87;
-        float[] levels = testFFTWindow(signal, sampleRate, 0.125, Window.WINDOW_TYPE.RECTANGULAR);
-//        double delta = getDelta(refSpl, levels);
+        double dBError = 0.63;
+        float[] levels = testFFTWindow(signal, sampleRate, 0.125, Window.WINDOW_TYPE.HANN, dbFsReference);
         checkSplSpectrum(refSpl, levels, 0, dBError);
-//        dBError = 9.71;
-//        testFFTWindow(signal, sampleRate, 0.125, Window.WINDOW_TYPE.RECTANGULAR, refSpl, dBError);
-//        dBError = 1.47;
-//        testFFTWindow(signal, sampleRate, 1.0, Window.WINDOW_TYPE.HANN, refSpl, dBError);
-//        dBError = 2.59;
-//        testFFTWindow(signal, sampleRate, 1.0, Window.WINDOW_TYPE.RECTANGULAR, refSpl, dBError);
 
+        dBError = 2.64;
+        levels = testFFTWindow(signal, sampleRate, 0.125, Window.WINDOW_TYPE.RECTANGULAR, dbFsReference);
+        checkSplSpectrum(refSpl, levels, 0, dBError);
+
+        dBError = 0.2;
+        levels = testFFTWindow(signal, sampleRate, 1., Window.WINDOW_TYPE.HANN, dbFsReference);
+        checkSplSpectrum(refSpl, levels, 0, dBError);
+
+        dBError = 0.78;
+        levels = testFFTWindow(signal, sampleRate, 1., Window.WINDOW_TYPE.RECTANGULAR, dbFsReference);
+        checkSplSpectrum(refSpl, levels, 0, dBError);
+
+        //Test SOS
+
+        //        SOSSignalProcessing sosSignalProcessing = new SOSSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
+        //        sosSignalProcessing.setAweighting(false);
+        //
+        //        int idSampleStart = 0;
+        //        float[] sosBands = new float[STANDARD_FREQUENCIES_UNITTEST.length];
+        //        while (idSampleStart < signal.length) {
+        //            // Compute sub-sample size in order to not skip samples
+        //            short[] samples = Arrays.copyOfRange(signal, idSampleStart, Math.min(signal.length, idSampleStart + sampleRate));
+        //            idSampleStart += samples.length;
+        //
+        //            sosSignalProcessing.addSample(SOSSignalProcessing.convertShortToDouble(samples));
+        //            double[] secondResults = sosSignalProcessing.processSample(p0);
+        //            for (int idf = 0; idf < STANDARD_FREQUENCIES_UNITTEST.length; idf++) {
+        //                sosBands[idf] += Math.pow(10, secondResults[idf] / 10);
+        //            }
+        //        }
+        //        for (int idf = 0; idf < STANDARD_FREQUENCIES_UNITTEST.length; idf++) {
+        //            sosBands[idf] = (float)(10 * Math.log10(sosBands[idf]));
+        //        }
+        //        dBError = 0.;
+        //        checkSplSpectrum(refSpl, sosBands, 0, dBError);
     }
-//
-//    @Test
-//    public void testVoice2() throws IOException {
-//        final int sampleRate = 44100;
-//        // Test error induced by window overlapping
-//        // Read input signal
-//        InputStream inputStream =  WindowTest.class.getResourceAsStream("pierre_44100Hz_16bitPCM_10s.raw");
-//        short[] signal = SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN);
-//
-//        // Compute global leq without filtering frequencies
-//        FFTSignalProcessing fftSignalProcessing =
-//                new FFTSignalProcessing(sampleRate, STANDARD_FREQUENCIES_UNITTEST, signal.length);
-//        fftSignalProcessing.addSample(signal);
-//        double signalLeq = fftSignalProcessing.computeGlobalLeq();
-//        //assertEquals(83.62, signalLeq, 0.01);
-//        double windowTime = 0.125;
-//        Window window = new Window(Window.WINDOW_TYPE.HANN, sampleRate,
-//                STANDARD_FREQUENCIES_UNITTEST, windowTime, false, 0);
-//
-//        int packetSize = (int)(0.01 * sampleRate);
-//        int processedFastWindows = 0;
-//        int idSampleStart = 0;
-//        List<FFTSignalProcessing.ProcessingResult> resFreq = new ArrayList<>();
-//
-//        while(idSampleStart < signal.length) {
-//            // Compute sub-sample size in order to not skip samples
-//            int sampleLen = Math.min(window.getMaximalBufferSize(), packetSize);
-//            short[] samples = Arrays.copyOfRange(signal, idSampleStart, Math.min(signal.length,idSampleStart+sampleLen));
-//            idSampleStart+=samples.length;
-//
-//            window.pushSample(samples);
-//            if(window.isWindowAvailable()) {
-//                resFreq.add(window.processSample());
-//                processedFastWindows++;
-//            }
-//        }
-//
-//        // Compute the final result
-//        FFTSignalProcessing.ProcessingResult finalResult = new FFTSignalProcessing.ProcessingResult(true, resFreq.toArray(new FFTSignalProcessing.ProcessingResult[resFreq.size()]));
-//
-//        float[] dbaLevels = finalResult.getdBaLevels();
-//        for(int idFreq = 0; idFreq < STANDARD_FREQUENCIES_UNITTEST.length; idFreq++) {
-//            System.out.println(STANDARD_FREQUENCIES_UNITTEST[idFreq] + " " + dbaLevels[idFreq]);
-//        }
-//    }
-//
-//    @Test
-//    public void testVoice2ButterWorth() throws IOException {
-//        // Reference sound pressure level [Pa]
-//        final double REF_SOUND_PRESSURE = Math.sqrt(0.00002);
-//        final int sampleRate = 44100;
-//        // Test error induced by window overlapping
-//        // Read input signal
-//        InputStream inputStream =  WindowTest.class.getResourceAsStream("pierre_44100Hz_16bitPCM_10s.raw");
-//        //short[] signal = SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN);
-//        //double[] doubleSignal = new double[signal.length];
-//        //for(int t = 0; t < signal.length; t++) {
-//        //    doubleSignal[t] = (double)signal[t];
-//        //}
-//
-//        SOSSignalProcessing sosSignalProcessing = new SOSSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
-//        sosSignalProcessing.setAweighting(false);
-//
-//        List<double[]> timeLevels = sosSignalProcessing.processAudio(16, sampleRate, inputStream, 1., REF_SOUND_PRESSURE, ByteOrder.LITTLE_ENDIAN);
-//
-//
-//        double[] freqLeq = new double[ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED.length];
-//        for(int timestep = 0; timestep < timeLevels.size(); timestep++) {
-//            double[] leqVals = timeLevels.get(timestep);
-//            for(int idFreq = 0; idFreq < ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED.length; idFreq++) {
-//                freqLeq[idFreq] += Math.pow(10, leqVals[idFreq] / 10.0);
-//            }
-//        }
-//        for(int idFreq = 0; idFreq < ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED.length; idFreq++) {
-//            double dbVal = 10 * Math.log10(freqLeq[idFreq] / timeLevels.size());
-//            System.out.println(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[idFreq] + " " + dbVal);
-//        }
-//    }
-//
 }

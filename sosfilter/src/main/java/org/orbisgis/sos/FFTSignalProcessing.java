@@ -150,18 +150,16 @@ public class FFTSignalProcessing {
         final double freqByCell = samplingRate / (double)windowSize;
         float[] squareAbsoluteFFT = new float[signal.length / 2];
         //a[offa+2*k] = Re[k], 0<=k<n/2
+        double sumRMS = 0;
         for(int k = 0; k < squareAbsoluteFFT.length; k++) {
             final float re = signal[k * 2];
             final float im = signal[k * 2 + 1];
             squareAbsoluteFFT[k] = re * re + im * im;
+            sumRMS += squareAbsoluteFFT[k];
         }
         //rmsFft = Math.sqrt((rmsFft / 2) / (fftResult.length * fftResult.length));
         // Compute A weighted third octave bands
         float[] splLevels = thirdOctaveProcessing(squareAbsoluteFFT, false);
-        double globalSpl = 0;
-        for(float splLevel : splLevels) {
-            globalSpl += Math.pow(10, splLevel / 10);
-        }
         // Limit spectrum output by specified frequencies and convert to dBspl
         float[] spectrumSplLevels = null;
         if(outputThinFrequency) {
@@ -169,20 +167,26 @@ public class FFTSignalProcessing {
                     freqByCell)];
             for (int i = 0; i < spectrumSplLevels.length; i++) {
                 spectrumSplLevels[i] = (float) todBspl(squareAbsoluteFFTToRMS(squareAbsoluteFFT[i
-                        ], squareAbsoluteFFT.length));
+                        ], 1));
             }
         }
-        return new ProcessingResult(spectrumSplLevels, splLevels, (float)(10 * Math.log10(globalSpl)));
+        return new ProcessingResult(spectrumSplLevels, splLevels, (float)todBspl(squareAbsoluteFFTToRMS(sumRMS, squareAbsoluteFFT.length)));
     }
 
     private double squareAbsoluteFFTToRMS(double squareAbsoluteFFT, int sampleSize) {
-        return Math.sqrt((squareAbsoluteFFT / 2) / (sampleSize * sampleSize));
+        return Math.sqrt(squareAbsoluteFFT / 2) / sampleSize;
     }
 
     public double getRefSoundPressure() {
         return refSoundPressure;
     }
 
+    /**
+     * Third-octave recombination method
+     * @param squareAbsoluteFFT Narrow frequency array
+     * @param thirdOctaveAWeighting True to apply a A weighting on bands
+     * @return Third octave bands
+     */
     public float[] thirdOctaveProcessing(float[] squareAbsoluteFFT, boolean thirdOctaveAWeighting) {
         final double freqByCell = samplingRate / (double)windowSize;
         float[] splLevels = new float[standardFrequencies.length];

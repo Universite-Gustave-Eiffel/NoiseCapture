@@ -49,7 +49,7 @@ public class Window {
                   double windowTime, boolean aWeighting, long beginRecordTime,
                   double dbFsReference) {
         if(window == WINDOW_TYPE.HANN) {
-            overlap = 0.5;
+            overlap = 0.63;
         }
         this.signalProcessing = new FFTSignalProcessing(samplingRate, standardFrequencies,
                 (int)(samplingRate * windowTime), dbFsReference);

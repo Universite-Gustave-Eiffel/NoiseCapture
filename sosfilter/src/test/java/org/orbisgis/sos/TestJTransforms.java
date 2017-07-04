@@ -81,13 +81,15 @@ public class TestJTransforms {
 
     @Test
     public void testProcessing() {
-        // Make 1000 Hz signal
+        // Make 2s 1000 Hz signal
+        final double length = 2;
         final int sampleRate = 44100;
+        final int samples = (int)(sampleRate * length);
         final int signalFrequency = 1000;
         double powerRMS = 2500; // 90 dBspl
         double powerPeak = powerRMS * Math.sqrt(2);
-        short[] signal = new short[sampleRate * 2];
-        for (int s = 0; s < sampleRate * 2; s++) {
+        short[] signal = new short[samples];
+        for (int s = 0; s < samples; s++) {
             double t = s * (1 / (double) sampleRate);
             signal[s] = (short)(Math.sin(2 * Math.PI * signalFrequency * t) * (powerPeak));
         }

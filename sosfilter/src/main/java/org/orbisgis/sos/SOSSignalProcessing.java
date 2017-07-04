@@ -130,9 +130,7 @@ public class SOSSignalProcessing {
     public static double[] convertShortToDouble(short[] samplesShort) {
         double[] samples = new double[samplesShort.length];
         for (int i = 0; i < samplesShort.length; i++) {
-            if (samplesShort[i] > 0) {
-                samples[i] = samplesShort[i];
-            }
+            samples[i] = samplesShort[i];
         }
         return samples;
     }

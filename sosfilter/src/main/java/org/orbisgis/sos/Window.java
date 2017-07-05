@@ -39,11 +39,11 @@ public class Window {
     // added samples
     private int pushedSamples;
     private int windowSize;
-    // The size of this buffer is dependent on window type, sampling rate and window size
-    private short[] sampleBuffer;
     private boolean aWeighting;
     private long beginRecordTime = 0;
     private double overlap = 0;
+    private FFTSignalProcessing.ProcessingResult[] windowResults;
+    private int windowIndex = 0;
 
     public Window(WINDOW_TYPE window, int samplingRate, double[] standardFrequencies,
                   double windowTime, boolean aWeighting, long beginRecordTime,
@@ -57,21 +57,42 @@ public class Window {
         this.aWeighting = aWeighting;
         this.beginRecordTime = beginRecordTime;
         this.windowSize = (int)(samplingRate * windowTime);
-        this.sampleBuffer = new short[windowSize];
-    }
-
-    public FFTSignalProcessing.ProcessingResult processSample() {
-        lastProcessedSpectrum = pushedSamples;
-        signalProcessing.addSample(sampleBuffer);
-        return signalProcessing.processSample(window == WINDOW_TYPE.HANN,
-                aWeighting, true);
+        this.windowResults = new FFTSignalProcessing.ProcessingResult[(int)(Math.round(1 / (1 - overlap)))];
+        //lastProcessedSpectrum = (int)(windowSize * overlap);
     }
 
     /**
-     * @return True if the defined windowTime is pushed since the last call of processSample
+     * Process the current window
      */
-    public boolean isWindowAvailable() {
-        return pushedSamples - lastProcessedSpectrum >= (int)(windowSize * (1 - overlap));
+    private void processSample() {
+        lastProcessedSpectrum = pushedSamples;
+        FFTSignalProcessing.ProcessingResult result = signalProcessing.processSample(window == WINDOW_TYPE.HANN,
+                aWeighting, true);
+        // Move result by 1 backward
+        if(windowResults.length > 1) {
+            System.arraycopy(windowResults, 1, windowResults, 0, windowResults.length - 1);
+        }
+        windowResults[windowResults.length - 1] = result;
+        windowIndex +=1;
+    }
+
+    /**
+     * @return The sum of overlaps windows, null if not available
+     */
+    public FFTSignalProcessing.ProcessingResult getLastWindowMean() {
+        if(windowResults.length > 1) {
+            return new FFTSignalProcessing.ProcessingResult(1, windowResults);
+        } else {
+            return windowResults[0];
+        }
+    }
+
+
+    /**
+     * @return The non-overlaped window index
+     */
+    public int getWindowIndex() {
+        return windowIndex / windowResults.length;
     }
 
     public double getOverlap() {
@@ -91,15 +112,10 @@ public class Window {
      * @return The last result, null if the pushed samples was not enough to get a leq.
      */
     public void pushSample(short[] buffer) {
-        if(buffer.length < sampleBuffer.length) {
-            // Move previous samples backward
-            System.arraycopy(sampleBuffer, buffer.length, sampleBuffer, 0, sampleBuffer.length - buffer.length);
-            System.arraycopy(buffer, 0, sampleBuffer, sampleBuffer.length - buffer.length, buffer.length);
-        } else {
-            // Take last samples
-            System.arraycopy(buffer, Math.max(0, buffer.length - sampleBuffer.length), sampleBuffer, 0,
-                    sampleBuffer.length);
-        }
+        signalProcessing.addSample(buffer);
         pushedSamples += buffer.length;
+        if(pushedSamples - lastProcessedSpectrum >= (int)(windowSize * (1 - overlap))) {
+            processSample();
+        }
     }
 }

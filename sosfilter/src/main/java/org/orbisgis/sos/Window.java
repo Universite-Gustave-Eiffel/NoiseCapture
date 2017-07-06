@@ -33,7 +33,7 @@ import java.util.Arrays;
  * Overlaps the window of signal processing.
  */
 public class Window {
-    enum WINDOW_TYPE { RECTANGULAR, HANN }
+    public enum WINDOW_TYPE { RECTANGULAR, HANN }
     public final WINDOW_TYPE window;
     private FFTSignalProcessing signalProcessing;
     // processed sample index
@@ -42,12 +42,11 @@ public class Window {
     private int pushedSamples;
     private int windowSize;
     private boolean aWeighting;
-    private long beginRecordTime = 0;
     private double overlap = 0;
     private FFTSignalProcessing.ProcessingResult[] windowResults;
 
     public Window(WINDOW_TYPE window, int samplingRate, double[] standardFrequencies,
-                  double windowTime, boolean aWeighting, long beginRecordTime,
+                  double windowTime, boolean aWeighting,
                   double dbFsReference) {
         if(window == WINDOW_TYPE.HANN) {
             overlap = 0.63;
@@ -56,10 +55,24 @@ public class Window {
                 (int)(samplingRate * windowTime), dbFsReference);
         this.window = window;
         this.aWeighting = aWeighting;
-        this.beginRecordTime = beginRecordTime;
         this.windowSize = (int)(samplingRate * windowTime);
         this.windowResults = new FFTSignalProcessing.ProcessingResult[(int)(Math.round(1 / (1 - overlap)))];
-        //lastProcessedSpectrum = (int)(windowSize * overlap);
+    }
+
+    public void setaWeighting(boolean aWeighting) {
+        this.aWeighting = aWeighting;
+    }
+
+    public WINDOW_TYPE getWindowType() {
+        return window;
+    }
+
+    public boolean isAWeighting() {
+        return aWeighting;
+    }
+
+    public double getWindowTime() {
+        return signalProcessing.getSampleDuration();
     }
 
     /**

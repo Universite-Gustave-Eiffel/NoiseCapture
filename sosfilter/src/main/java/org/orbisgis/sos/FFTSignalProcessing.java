@@ -44,6 +44,7 @@ public class FFTSignalProcessing {
     private static final double RMS_REFERENCE_90DB = 2500;
     public static final double DB_FS_REFERENCE = - (20 * Math.log10(RMS_REFERENCE_90DB)) + 90;
     private final double refSoundPressure;
+    private long sampleAdded = 0;
 
     public FFTSignalProcessing(int samplingRate, double[] standardFrequencies, int windowSize) {
         this.windowSize = windowSize;
@@ -110,10 +111,12 @@ public class FFTSignalProcessing {
             // Move previous samples backward
             System.arraycopy(sampleBuffer, sample.length, sampleBuffer, 0, sampleBuffer.length - sample.length);
             System.arraycopy(sample, 0, sampleBuffer, sampleBuffer.length - sample.length, sample.length);
+            sampleAdded+=sample.length;
         } else {
             // Take last samples
             System.arraycopy(sample, Math.max(0, sample.length - sampleBuffer.length), sampleBuffer, 0,
                     sampleBuffer.length);
+            sampleAdded+=sampleBuffer.length;
         }
     }
 
@@ -170,7 +173,7 @@ public class FFTSignalProcessing {
                         ], 1));
             }
         }
-        return new ProcessingResult(spectrumSplLevels, splLevels, (float)todBspl(squareAbsoluteFFTToRMS(sumRMS, squareAbsoluteFFT.length)));
+        return new ProcessingResult(sampleAdded, spectrumSplLevels, splLevels, (float)todBspl(squareAbsoluteFFTToRMS(sumRMS, squareAbsoluteFFT.length)));
     }
 
     private double squareAbsoluteFFTToRMS(double squareAbsoluteFFT, int sampleSize) {
@@ -228,7 +231,7 @@ public class FFTSignalProcessing {
         float globaldBaValue;
         long id;
 
-        public ProcessingResult(float[] fftResult, float[] dBaLevels, float globaldBaValue) {
+        public ProcessingResult(long id, float[] fftResult, float[] dBaLevels, float globaldBaValue) {
             this.fftResult = fftResult;
             this.dBaLevels = dBaLevels;
             this.globaldBaValue = globaldBaValue;
@@ -246,7 +249,10 @@ public class FFTSignalProcessing {
          * Energetic avg of provided results.
          */
         public ProcessingResult(double windowCount, ProcessingResult... toMerge) {
+            // Take the last processing result as reference because results are moved from
+            // the right to the left in the array
             if(toMerge[toMerge.length - 1] != null && toMerge.length > 0) {
+                id = toMerge[toMerge.length - 1].id;
                 if(toMerge[toMerge.length - 1].fftResult != null) {
                     this.fftResult = new float[toMerge[toMerge.length - 1].fftResult.length];
                     for(ProcessingResult merge : toMerge) {

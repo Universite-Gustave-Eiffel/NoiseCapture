@@ -27,8 +27,6 @@
 
 package org.orbisgis.sos;
 
-import com.sun.org.apache.regexp.internal.RE;
-
 import org.junit.Test;
 
 import java.io.IOException;
@@ -71,31 +69,30 @@ public class WindowTest {
     }
 
     /**
-     *
-     * @param expectedLeq Expected spectrum
-     * @param dbResult Original computed spectrum
-     * @param delta Apply this delta to dbResult before comparing
+     * @param expectedLeq      Expected spectrum
+     * @param dbResult         Original computed spectrum
+     * @param delta            Apply this delta to dbResult before comparing
      * @param maximalDeviation Fail if one of frequency band is superior than this error (dB)
      */
-    private void checkSplSpectrum(double[] expectedLeq, float[] dbResult,double delta, double maximalDeviation) {
+    private void checkSplSpectrum(double[] expectedLeq, float[] dbResult, double delta, double maximalDeviation) {
         double[] normalisedDbResult = new double[dbResult.length];
-        for(int idFreq = 0; idFreq < dbResult.length; idFreq++) {
+        for (int idFreq = 0; idFreq < dbResult.length; idFreq++) {
             normalisedDbResult[idFreq] = dbResult[idFreq] - delta;
         }
 
         double err = 0;
-        for(int idFreq = 0; idFreq < dbResult.length; idFreq++) {
-            err+= Math.pow(normalisedDbResult[idFreq] - expectedLeq[idFreq], 2);
+        for (int idFreq = 0; idFreq < dbResult.length; idFreq++) {
+            err += Math.pow(normalisedDbResult[idFreq] - expectedLeq[idFreq], 2);
         }
         err = Math.sqrt(err / dbResult.length);
-        assertEquals("Deviation of "+err+"\nExpected: \n" + Arrays.toString(expectedLeq)+"\nGot:\n"+Arrays.toString(normalisedDbResult), 0, err, maximalDeviation);
+        assertEquals("Deviation of " + err + "\nExpected: \n" + Arrays.toString(expectedLeq) + "\nGot:\n" + Arrays.toString(normalisedDbResult), 0, err, maximalDeviation);
     }
 
-    private float[] testFFTWindow(short[] signal, int sampleRate,double windowTime,Window.WINDOW_TYPE windowType, double dbFsReference) {
+    private float[] testFFTWindow(short[] signal, int sampleRate, double windowTime, Window.WINDOW_TYPE windowType, double dbFsReference) {
         Window window = new Window(windowType, sampleRate,
-                STANDARD_FREQUENCIES_UNITTEST, windowTime, false, 0, dbFsReference);
+                STANDARD_FREQUENCIES_UNITTEST, windowTime, false, dbFsReference);
 
-        int packetSize = sampleRate;
+        int packetSize = (int) (0.1 * sampleRate);
         int idSampleStart = 0;
         List<FFTSignalProcessing.ProcessingResult> res = new ArrayList<>();
         int lastPushIndex = 0;
@@ -113,7 +110,7 @@ public class WindowTest {
             }
         }
         // Zero padding for window finishing scan
-        if(!window.isCacheEmpty()) {
+        if (!window.isCacheEmpty()) {
             res.add(window.getLastWindowMean());
             window.cleanWindows();
         }
@@ -121,7 +118,7 @@ public class WindowTest {
         // Ex:
         // The signal is 10s and the window is 125 ms
         // So there is 80 * 125 ms results
-        assertEquals((int)((signal.length / sampleRate) / windowTime), res.size(), 0);
+        assertEquals((int) ((signal.length / sampleRate) / windowTime), res.size(), 0);
 
         FFTSignalProcessing.ProcessingResult fullSampleResult =
                 new FFTSignalProcessing.ProcessingResult((signal.length / sampleRate) / windowTime, res.toArray(new FFTSignalProcessing.ProcessingResult[res.size()]));
@@ -135,17 +132,17 @@ public class WindowTest {
         double p0 = 32767.;
         double dbFsReference = -20 * Math.log10(p0);
         // Reference spectrum
-        double[] refSpl = {-66  , -68.04, -67.52, -45.97, -31.96, -37.13, -49.21, -35.29, -43.01,
-                -42.95, -48.65, -49.04, -53.27, -52.15, -52.65, -52.8 , -52.31, -53.56, -52.54,
+        double[] refSpl = {-66, -68.04, -67.52, -45.97, -31.96, -37.13, -49.21, -35.29, -43.01,
+                -42.95, -48.65, -49.04, -53.27, -52.15, -52.65, -52.8, -52.31, -53.56, -52.54,
                 -53.96, -53.63, -58.53, -67.22};
         double refGlobalSpl = 0;
-        for(double lvl : refSpl) {
+        for (double lvl : refSpl) {
             refGlobalSpl += Math.pow(10, lvl / 10.);
         }
         refGlobalSpl = 10 * Math.log10(refGlobalSpl);
         // Test error induced by window overlapping
         // Read input signal
-        InputStream inputStream =  WindowTest.class.getResourceAsStream("speak_44100Hz_16bitsPCM_10s.raw");
+        InputStream inputStream = WindowTest.class.getResourceAsStream("speak_44100Hz_16bitsPCM_10s.raw");
         short[] signal = SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN);
         // Reference value from ITA Toolbox
 

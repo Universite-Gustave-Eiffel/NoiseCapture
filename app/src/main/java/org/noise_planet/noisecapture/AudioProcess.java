@@ -35,6 +35,7 @@ import android.util.Log;
 
 import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.FFTSignalProcessing;
+import org.orbisgis.sos.Window;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,13 +66,13 @@ public class AudioProcess implements Runnable {
     public static final String PROP_DELAYED_STANDART_PROCESSING = "PROP_DSP";
     public static final String PROP_STATE_CHANGED = "PROP_STATE_CHANGED";
     // 1s level evaluation for upload to server
-    private final MovingLeqProcessing fftLeqProcessing;
-    private final StandartLeqProcessing standartLeqProcessing;
+    private final LeqProcessingThread fastLeqProcessing;
+    private final LeqProcessingThread slowLeqProcessing;
     private long beginRecordTime;
     public static final int REALTIME_SAMPLE_RATE_LIMITATION = 16000;
+    public static final double[] realTimeCenterFrequency = FFTSignalProcessing.computeFFTCenterFrequency(REALTIME_SAMPLE_RATE_LIMITATION);
     private float gain = 1;
     private boolean hasGain = false;
-    private boolean weightingA = true;
     private boolean hannWindowFast = false;
     private boolean hannWindowOneSecond = true;
 
@@ -102,8 +103,15 @@ public class AudioProcess implements Runnable {
                         encoding = tryEncoding;
                         audioChannel = tryAudioChannel;
                         rate = tryRate;
-                        this.fftLeqProcessing = new MovingLeqProcessing(this);
-                        this.standartLeqProcessing = new StandartLeqProcessing(this);
+                        this.fastLeqProcessing = new LeqProcessingThread(this,
+                                AcousticIndicators.TIMEPERIOD_FAST, true,
+                                hannWindowFast ? Window.WINDOW_TYPE.HANN :
+                                        Window.WINDOW_TYPE.RECTANGULAR, PROP_MOVING_SPECTRUM);
+                        this.slowLeqProcessing = new LeqProcessingThread(this,
+                                AcousticIndicators.TIMEPERIOD_SLOW, true,
+                                hannWindowOneSecond ? Window.WINDOW_TYPE.HANN :
+                                        Window.WINDOW_TYPE.RECTANGULAR,
+                                PROP_DELAYED_STANDART_PROCESSING);
                         return;
                     }
                 }
@@ -117,12 +125,14 @@ public class AudioProcess implements Runnable {
 
     public void setHannWindowFast(boolean hannWindowFast) {
         this.hannWindowFast = hannWindowFast;
-        fftLeqProcessing.initSampleBuffer();
+        fastLeqProcessing.setWindowType(hannWindowFast ? Window.WINDOW_TYPE.HANN :
+                Window.WINDOW_TYPE.RECTANGULAR);
     }
 
     public void setHannWindowOneSecond(boolean hannWindowOneSecond) {
         this.hannWindowOneSecond = hannWindowOneSecond;
-        standartLeqProcessing.recomputeSample();
+        fastLeqProcessing.setWindowType(hannWindowOneSecond ? Window.WINDOW_TYPE.HANN :
+                Window.WINDOW_TYPE.RECTANGULAR);
     }
 
     public void setDoFastLeq(boolean doFastLeq) {
@@ -134,7 +144,8 @@ public class AudioProcess implements Runnable {
     }
 
     public void setWeightingA(boolean weightingA) {
-        this.weightingA = weightingA;
+        fastLeqProcessing.setAweighting(weightingA);
+        slowLeqProcessing.setAweighting(weightingA);
     }
 
     /**
@@ -156,25 +167,25 @@ public class AudioProcess implements Runnable {
      * @return Frequency feed in {@link AudioProcess#PROP_MOVING_SPECTRUM} {@link PropertyChangeEvent#getNewValue()}
     */
     public double[] getRealtimeCenterFrequency() {
-        return fftLeqProcessing.getFftCenterFreq();
+        return realTimeCenterFrequency;
     }
 
     /**
      * @return Frequency feed in {@link AudioProcess#PROP_DELAYED_STANDART_PROCESSING} {@link PropertyChangeEvent#getNewValue()}
      */
     public double[] getDelayedCenterFrequency() {
-        return standartLeqProcessing.getComputedFrequencies();
+        return realTimeCenterFrequency;
     }
 
     public int getRemainingNotProcessSamples() {
-        return standartLeqProcessing.bufferToProcess.size();
+        return slowLeqProcessing.bufferToProcess.size();
     }
 
     /**
      * @return Third octave SPL up to 8Khz (4 Khz if the phone support 8Khz only)
      */
     public float[] getThirdOctaveFrequencySPL() {
-        return fftLeqProcessing.getThirdOctaveFrequencySPL();
+        return fastLeqProcessing.getThirdOctaveFrequencySPL();
     }
 
     private AudioRecord createAudioRecord() {
@@ -195,7 +206,7 @@ public class AudioProcess implements Runnable {
     }
 
     public double getFFTDelay() {
-        return MovingLeqProcessing.SECOND_FIRE_MOVING_SPECTRUM;
+        return fastLeqProcessing.getWindow().getWindowTime();
     }
 
     @Override
@@ -212,10 +223,10 @@ public class AudioProcess implements Runnable {
                         // Ignore
                     }
                     if(doFastLeq) {
-                        new Thread(fftLeqProcessing).start();
+                        new Thread(fastLeqProcessing).start();
                     }
                     if(doOneSecondLeq) {
-                        new Thread(standartLeqProcessing).start();
+                        new Thread(slowLeqProcessing).start();
                     }
                     audioRecord.startRecording();
                     beginRecordTime = System.currentTimeMillis();
@@ -231,11 +242,11 @@ public class AudioProcess implements Runnable {
                                 buffer[i] = (short) (Math.max(Math.min(buffer[i] * gain, Short.MAX_VALUE), Short.MIN_VALUE));
                             }
                         }
-                        fftLeqProcessing.addSample(buffer);
-                        standartLeqProcessing.addSample(buffer);
+                        fastLeqProcessing.addSample(buffer);
+                        slowLeqProcessing.addSample(buffer);
                     }
                     setCurrentState(STATE.WAITING_END_PROCESSING);
-                    while (fftLeqProcessing.isProcessing() || standartLeqProcessing.isProcessing()) {
+                    while (fastLeqProcessing.isProcessing() || slowLeqProcessing.isProcessing()) {
                         Thread.sleep(10);
                     }
                 } catch (Exception ex) {
@@ -256,7 +267,7 @@ public class AudioProcess implements Runnable {
      * @return In the array fftResultLvl, how many frequency cover one cell.
      */
     public double getFFTFreqArrayStep() {
-        return fftLeqProcessing.getFFTFreqArrayStep();
+        return fastLeqProcessing.getFFTFreqArrayStep();
     }
     /**
      * @return Listener manager
@@ -266,54 +277,63 @@ public class AudioProcess implements Runnable {
     }
 
     double getLeq() {
-        return fftLeqProcessing.getLeq();
+        return fastLeqProcessing.getLeq();
     }
 
     public int getRate() {
         return rate;
     }
 
-    private static final class MovingLeqProcessing implements Runnable {
+    private static final class LeqProcessingThread implements Runnable {
         private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
         private final AudioProcess audioProcess;
-        private short[] sampleBuffer;
         private AtomicBoolean processing = new AtomicBoolean(false);
-        private FFTSignalProcessing signalProcessing;
+        private Window window;
         private double leq = 0;
+        private int lastPushIndex = 0;
+        private String propertyName;
+        private double timePeriod;
+        private boolean Aweighting;
 
-        // 0.066 mean 15 fps max
-        public final static double FFT_TIMELENGTH_FACTOR = Math.min(1, AcousticIndicators.TIMEPERIOD_FAST);
-        public final static double SECOND_FIRE_MOVING_SPECTRUM = FFT_TIMELENGTH_FACTOR;
         // Output only frequency response on this sample rate on the real time result (center + upper band)
-        private final int expectedFFTSize;
-        private final double[] fftCenterFreq;
-        private int lastProcessedSpectrum = 0;
         private float[] thirdOctaveSplLevels;
-        public MovingLeqProcessing(AudioProcess audioProcess) {
+
+        public LeqProcessingThread(AudioProcess audioProcess, double timePeriod, boolean Aweighting, Window.WINDOW_TYPE window_type, String propertyName) {
             this.audioProcess = audioProcess;
-            expectedFFTSize = (int)(audioProcess.getRate() * FFT_TIMELENGTH_FACTOR);
-            initSampleBuffer();
-            fftCenterFreq = FFTSignalProcessing.computeFFTCenterFrequency(REALTIME_SAMPLE_RATE_LIMITATION);
-            this.signalProcessing = new FFTSignalProcessing(audioProcess.getRate(),
-                    fftCenterFreq, expectedFFTSize);
-            thirdOctaveSplLevels = new float[fftCenterFreq.length];
+            this.propertyName = propertyName;
+            this.timePeriod = timePeriod;
+            this.Aweighting = Aweighting;
+            this.window = new Window(window_type,
+                    audioProcess.getRate(), audioProcess.getRealtimeCenterFrequency(), timePeriod,
+                    Aweighting, FFTSignalProcessing.DB_FS_REFERENCE);
+            thirdOctaveSplLevels = new float[audioProcess.getRealtimeCenterFrequency().length];
         }
 
-        private void initSampleBuffer() {
-            this.sampleBuffer = new short[audioProcess.hannWindowFast ?
-                    (int)(Math.ceil(audioProcess.getRate() * (5. / 3.) * FFT_TIMELENGTH_FACTOR ))
-                    : expectedFFTSize];
+        public void setWindowType(Window.WINDOW_TYPE windowType) {
+            if(windowType != window.getWindowType()) {
+                this.window = new Window(windowType,
+                        audioProcess.getRate(), audioProcess.getRealtimeCenterFrequency(), timePeriod,
+                        window.isAWeighting(), FFTSignalProcessing.DB_FS_REFERENCE);
+                lastPushIndex = 0;
+            }
+        }
+
+        public void setAweighting(boolean Aweighting) {
+            if(Aweighting != this.Aweighting) {
+                this.Aweighting = Aweighting;
+                window.setaWeighting(Aweighting);
+            }
+        }
+
+        public Window getWindow() {
+            return window;
         }
 
         /**
          * @return In the array fftResultLvl, how many frequency cover one cell.
          */
         public double getFFTFreqArrayStep() {
-            return 1 / FFT_TIMELENGTH_FACTOR;
-        }
-
-        public double[] getFftCenterFreq() {
-            return fftCenterFreq;
+            return 1 / window.getWindowTime();
         }
 
         public double getLeq() {
@@ -331,48 +351,25 @@ public class AudioProcess implements Runnable {
             bufferToProcess.add(sample);
         }
 
-        private void processSample(int pushedSamples) {
-            if((pushedSamples - lastProcessedSpectrum) / (double)audioProcess.getRate() >
-                    SECOND_FIRE_MOVING_SPECTRUM) {
-                lastProcessedSpectrum = pushedSamples;
-                FFTSignalProcessing.ProcessingResult result;
-                if(audioProcess.hannWindowFast) {
-                    // Window, energetic sum of overlapping
-                    int step = (int)(audioProcess.getRate() * (SECOND_FIRE_MOVING_SPECTRUM / 3.));
-                    int start = Math.max(0, sampleBuffer.length - step * 5);
-                    FFTSignalProcessing.ProcessingResult[] results =
-                            new FFTSignalProcessing.ProcessingResult[3];
-                    signalProcessing.addSample(Arrays.copyOfRange(sampleBuffer, start,
-                            Math.min(sampleBuffer.length, start + (3 * step))));
-                    results[0] = signalProcessing.processSample(audioProcess.hannWindowFast,
-                                    audioProcess.weightingA, true);
-                    start +=  3 * step;
-                    signalProcessing.addSample(Arrays.copyOfRange(sampleBuffer, start,
-                            Math.min(sampleBuffer.length, start + step)));
-                    results[1] = signalProcessing.processSample(audioProcess.hannWindowFast,
-                            audioProcess.weightingA, true);
-                    start += step;
-                    signalProcessing.addSample(Arrays.copyOfRange(sampleBuffer, start,
-                            Math.min(sampleBuffer.length, start + step)));
-                    results[2] = signalProcessing.processSample(audioProcess.hannWindowFast,
-                            audioProcess.weightingA, true);
-                    result = new FFTSignalProcessing.ProcessingResult(1, results);
-                } else {
-                    // No window
-                    signalProcessing.addSample(sampleBuffer);
-                    result = signalProcessing.processSample(audioProcess.hannWindowFast,
-                                    audioProcess.weightingA, true);
-                }
-                thirdOctaveSplLevels = result.getdBaLevels();
-                // Compute leq
-                leq = result.getGlobaldBaValue();
-                // Compute record time
-                long beginRecordTime = audioProcess.beginRecordTime +
-                        (long) ((pushedSamples  /
-                                (double) audioProcess.getRate()) * 1000);
-                audioProcess.listeners.firePropertyChange(PROP_MOVING_SPECTRUM,
-                        null,
-                        new AudioMeasureResult(result,  beginRecordTime, 0));
+        private void processWindow() {
+            lastPushIndex = window.getWindowIndex();
+            FFTSignalProcessing.ProcessingResult  result = window.getLastWindowMean();
+            window.cleanWindows();
+            thirdOctaveSplLevels = result.getdBaLevels();
+            // Compute leq
+            leq = result.getGlobaldBaValue();
+            // Compute record time
+            long beginRecordTime = audioProcess.beginRecordTime +
+                    (long) ((result.getId()  /
+                            (double) audioProcess.getRate()) * 1000);
+            audioProcess.listeners.firePropertyChange(propertyName,
+                    null,
+                    new AudioMeasureResult(result,  beginRecordTime, 0));
+        }
+        private void processSample(short[] buffer) {
+            window.pushSample(buffer);
+            if (window.getWindowIndex() != lastPushIndex) {
+                processWindow();
             }
         }
 
@@ -382,7 +379,6 @@ public class AudioProcess implements Runnable {
 
         @Override
         public void run() {
-            int secondCursor = 0;
             try {
                 try {
                     android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
@@ -395,129 +391,33 @@ public class AudioProcess implements Runnable {
                     while (!bufferToProcess.isEmpty() && !audioProcess.canceled.get()) {
                         processing.set(true);
                         short[] buffer = bufferToProcess.poll();
-                        if(buffer.length < sampleBuffer.length) {
-                            // Move previous samples backward
-                            System.arraycopy(sampleBuffer, buffer.length, sampleBuffer, 0, sampleBuffer.length - buffer.length);
-                            System.arraycopy(buffer, 0, sampleBuffer, sampleBuffer.length - buffer.length, buffer.length);
+                        if(buffer.length <= window.getMaximalBufferSize()) {
+                            // Good buffer size, use it
+                            processSample(buffer);
                         } else {
-                            // Take last samples
-                            System.arraycopy(buffer, Math.max(0, buffer.length - sampleBuffer.length), sampleBuffer, 0,
-                                    sampleBuffer.length);
+                            // Buffer is too large for the window
+                            // Split the buffer in multiple parts
+                            int cursor = 0;
+                            while(cursor < buffer.length) {
+                                int sampleLen = Math.min(window.getMaximalBufferSize(), buffer.length - cursor);
+                                short[] samples = Arrays.copyOfRange(buffer, cursor, sampleLen);
+                                cursor += samples.length;
+                                processSample(samples);
+                            }
                         }
-                        secondCursor += buffer.length;
-                        // Process pushed samples
-                        processSample(secondCursor);
                     }
                     try {
                         Thread.sleep(5);
                     } catch (InterruptedException ex) {
                         break;
                     }
+                }
+                // Gather incomplete window
+                if(!window.isCacheEmpty()) {
+                    processWindow();
                 }
             } finally {
                 processing.set(false);
-            }
-        }
-    }
-
-    /**
-     * Delayed Second-order recursive linear filtering that will be kept for future storage and optionally uploaded.
-     */
-    private static final class StandartLeqProcessing implements Runnable {
-        private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
-        private boolean processing = false;
-        private final AudioProcess audioProcess;
-        private FFTSignalProcessing fftSignalProcessing;
-        private double windowDelay = 1.;
-        private double[] fftCenterFreq;
-        private int processEachSamples = 0;
-
-        public StandartLeqProcessing(AudioProcess audioProcess) {
-            this.audioProcess = audioProcess;
-            fftCenterFreq = FFTSignalProcessing.computeFFTCenterFrequency(REALTIME_SAMPLE_RATE_LIMITATION);
-            this.fftSignalProcessing = new FFTSignalProcessing(audioProcess.getRate(),
-                    fftCenterFreq, audioProcess.getRate());
-        }
-
-        public void recomputeSample() {
-            //TODO change window delay to 1/3 if hann window then sum the last 3 processing result
-            // each second.
-            processEachSamples = (int)((audioProcess.getRate() * fftSignalProcessing.getSampleDuration()) *
-                    windowDelay);
-        }
-
-        public double[] getComputedFrequencies() {
-            return fftSignalProcessing.getStandardFrequencies();
-        }
-
-        public boolean isProcessing() {
-            return processing;
-        }
-
-        public void addSample(short[] sample) {
-            bufferToProcess.add(sample);
-        }
-
-        @Override
-        public void run() {
-            long secondCursor = 0;
-            recomputeSample();
-            long lastProcessedSamples = 0;
-            try {
-                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_BACKGROUND);
-            } catch (IllegalArgumentException | SecurityException ex) {
-                // Ignore
-            }
-            try {
-                while (audioProcess.currentState != STATE.WAITING_END_PROCESSING &&
-                        !audioProcess.canceled.get()
-                        && audioProcess.currentState != STATE.CLOSED) {
-                    while (!bufferToProcess.isEmpty() && !audioProcess.canceled.get()) {
-                        processing = true;
-                        short[] buffer = bufferToProcess.poll();
-                        // Cancel Hanning window weighting by overlapping signal by 50%
-                        if(secondCursor + buffer.length - lastProcessedSamples >= processEachSamples) {
-                            // Check if some samples are to be processed in the next batch
-                            int remainingSamplesToPostPone = (int)(secondCursor + buffer.length -
-                                    lastProcessedSamples - processEachSamples);
-                            if (remainingSamplesToPostPone > 0) {
-                                fftSignalProcessing.addSample(Arrays.copyOfRange(buffer, 0,
-                                        buffer.length - remainingSamplesToPostPone));
-                            } else {
-                                fftSignalProcessing.addSample(buffer);
-                            }
-                            // Do processing
-                            FFTSignalProcessing.ProcessingResult result =
-                                    fftSignalProcessing.processSample(audioProcess.hannWindowOneSecond,
-                                            audioProcess.weightingA, false);
-                            // Compute record time
-                            long beginRecordTime = audioProcess.beginRecordTime +
-                                    (long) (((secondCursor + buffer.length
-                                            - remainingSamplesToPostPone) /
-                                            (double) audioProcess.getRate()) * 1000);
-                            audioProcess.listeners.firePropertyChange(
-                                    AudioProcess.PROP_DELAYED_STANDART_PROCESSING, null,
-                                    new AudioMeasureResult(result,  beginRecordTime,
-                                            fftSignalProcessing.computeGlobalLeq()));
-                            lastProcessedSamples = secondCursor;
-                            // Add not processed samples for the next batch
-                            if(remainingSamplesToPostPone > 0) {
-                                fftSignalProcessing.addSample(Arrays.copyOfRange(buffer,
-                                        buffer.length - remainingSamplesToPostPone, buffer.length));
-                            }
-                        } else {
-                            fftSignalProcessing.addSample(buffer);
-                        }
-                        secondCursor += buffer.length;
-                    }
-                    try {
-                        Thread.sleep(5);
-                    } catch (InterruptedException ex) {
-                        break;
-                    }
-                }
-            } finally {
-                processing = false;
             }
         }
     }

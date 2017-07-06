@@ -27,6 +27,8 @@
 
 package org.orbisgis.sos;
 
+import java.util.Arrays;
+
 /**
  * Overlaps the window of signal processing.
  */
@@ -43,7 +45,6 @@ public class Window {
     private long beginRecordTime = 0;
     private double overlap = 0;
     private FFTSignalProcessing.ProcessingResult[] windowResults;
-    private int windowIndex = 0;
 
     public Window(WINDOW_TYPE window, int samplingRate, double[] standardFrequencies,
                   double windowTime, boolean aWeighting, long beginRecordTime,
@@ -73,7 +74,13 @@ public class Window {
             System.arraycopy(windowResults, 1, windowResults, 0, windowResults.length - 1);
         }
         windowResults[windowResults.length - 1] = result;
-        windowIndex +=1;
+    }
+
+    /**
+     * Remove stored windows
+     */
+    public void cleanWindows() {
+        Arrays.fill(windowResults, null);
     }
 
     /**
@@ -87,12 +94,23 @@ public class Window {
         }
     }
 
+    /**
+     * @return False if a window mean is available
+     */
+    public boolean isCacheEmpty() {
+        for(FFTSignalProcessing.ProcessingResult windowCache : windowResults) {
+            if(windowCache != null) {
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * @return The non-overlaped window index
      */
     public int getWindowIndex() {
-        return windowIndex / windowResults.length;
+        return lastProcessedSpectrum / windowSize;
     }
 
     public double getOverlap() {

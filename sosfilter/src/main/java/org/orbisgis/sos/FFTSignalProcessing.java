@@ -170,7 +170,7 @@ public class FFTSignalProcessing {
                     freqByCell)];
             for (int i = 0; i < spectrumSplLevels.length; i++) {
                 spectrumSplLevels[i] = (float) todBspl(squareAbsoluteFFTToRMS(squareAbsoluteFFT[i
-                        ], 1));
+                        ], squareAbsoluteFFT.length));
             }
         }
         return new ProcessingResult(sampleAdded, spectrumSplLevels, splLevels, (float)todBspl(squareAbsoluteFFTToRMS(sumRMS, squareAbsoluteFFT.length)));

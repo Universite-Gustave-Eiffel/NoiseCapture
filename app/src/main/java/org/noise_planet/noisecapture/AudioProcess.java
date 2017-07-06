@@ -106,12 +106,12 @@ public class AudioProcess implements Runnable {
                         this.fastLeqProcessing = new LeqProcessingThread(this,
                                 AcousticIndicators.TIMEPERIOD_FAST, true,
                                 hannWindowFast ? Window.WINDOW_TYPE.HANN :
-                                        Window.WINDOW_TYPE.RECTANGULAR, PROP_MOVING_SPECTRUM);
+                                        Window.WINDOW_TYPE.RECTANGULAR, PROP_MOVING_SPECTRUM, true);
                         this.slowLeqProcessing = new LeqProcessingThread(this,
                                 AcousticIndicators.TIMEPERIOD_SLOW, true,
                                 hannWindowOneSecond ? Window.WINDOW_TYPE.HANN :
                                         Window.WINDOW_TYPE.RECTANGULAR,
-                                PROP_DELAYED_STANDART_PROCESSING);
+                                PROP_DELAYED_STANDART_PROCESSING, false);
                         return;
                     }
                 }
@@ -298,14 +298,15 @@ public class AudioProcess implements Runnable {
         // Output only frequency response on this sample rate on the real time result (center + upper band)
         private float[] thirdOctaveSplLevels;
 
-        public LeqProcessingThread(AudioProcess audioProcess, double timePeriod, boolean Aweighting, Window.WINDOW_TYPE window_type, String propertyName) {
+        public LeqProcessingThread(AudioProcess audioProcess, double timePeriod, boolean Aweighting,
+                                   Window.WINDOW_TYPE window_type, String propertyName, boolean outputSpectrogram) {
             this.audioProcess = audioProcess;
             this.propertyName = propertyName;
             this.timePeriod = timePeriod;
             this.Aweighting = Aweighting;
             this.window = new Window(window_type,
                     audioProcess.getRate(), audioProcess.getRealtimeCenterFrequency(), timePeriod,
-                    Aweighting, FFTSignalProcessing.DB_FS_REFERENCE);
+                    Aweighting, FFTSignalProcessing.DB_FS_REFERENCE, outputSpectrogram);
             thirdOctaveSplLevels = new float[audioProcess.getRealtimeCenterFrequency().length];
         }
 
@@ -313,7 +314,7 @@ public class AudioProcess implements Runnable {
             if(windowType != window.getWindowType()) {
                 this.window = new Window(windowType,
                         audioProcess.getRate(), audioProcess.getRealtimeCenterFrequency(), timePeriod,
-                        window.isAWeighting(), FFTSignalProcessing.DB_FS_REFERENCE);
+                        window.isAWeighting(), FFTSignalProcessing.DB_FS_REFERENCE, window.isOutputThinFrequency());
                 lastPushIndex = 0;
             }
         }
@@ -333,7 +334,7 @@ public class AudioProcess implements Runnable {
          * @return In the array fftResultLvl, how many frequency cover one cell.
          */
         public double getFFTFreqArrayStep() {
-            return 1 / window.getWindowTime();
+            return 1 / timePeriod;
         }
 
         public double getLeq() {
@@ -400,7 +401,7 @@ public class AudioProcess implements Runnable {
                             int cursor = 0;
                             while(cursor < buffer.length) {
                                 int sampleLen = Math.min(window.getMaximalBufferSize(), buffer.length - cursor);
-                                short[] samples = Arrays.copyOfRange(buffer, cursor, sampleLen);
+                                short[] samples = Arrays.copyOfRange(buffer, cursor, cursor + sampleLen);
                                 cursor += samples.length;
                                 processSample(samples);
                             }

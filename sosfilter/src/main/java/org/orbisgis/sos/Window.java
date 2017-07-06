@@ -42,12 +42,13 @@ public class Window {
     private int pushedSamples;
     private int windowSize;
     private boolean aWeighting;
+    private boolean outputThinFrequency;
     private double overlap = 0;
     private FFTSignalProcessing.ProcessingResult[] windowResults;
 
     public Window(WINDOW_TYPE window, int samplingRate, double[] standardFrequencies,
                   double windowTime, boolean aWeighting,
-                  double dbFsReference) {
+                  double dbFsReference,boolean outputThinFrequency) {
         if(window == WINDOW_TYPE.HANN) {
             overlap = 0.63;
         }
@@ -57,6 +58,11 @@ public class Window {
         this.aWeighting = aWeighting;
         this.windowSize = (int)(samplingRate * windowTime);
         this.windowResults = new FFTSignalProcessing.ProcessingResult[(int)(Math.round(1 / (1 - overlap)))];
+        this.outputThinFrequency = outputThinFrequency;
+    }
+
+    public boolean isOutputThinFrequency() {
+        return outputThinFrequency;
     }
 
     public void setaWeighting(boolean aWeighting) {

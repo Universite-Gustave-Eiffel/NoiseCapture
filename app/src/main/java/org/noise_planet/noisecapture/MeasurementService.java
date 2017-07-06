@@ -39,6 +39,7 @@ import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
@@ -60,6 +61,8 @@ import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+
+import static android.media.AudioManager.ADJUST_MUTE;
 
 /**
  * Fetch the most precise location from different location services.
@@ -166,6 +169,8 @@ public class MeasurementService extends Service {
         this.measurementManager = new MeasurementManager(getApplicationContext());
         // Display a notification about us starting.  We put an icon in the status bar.
         showNotification();
+        AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        mgr.setStreamMute(AudioManager.STREAM_SYSTEM, true);
     }
 
     /**
@@ -190,6 +195,8 @@ public class MeasurementService extends Service {
         if(isRecording()) {
             cancel();
         }
+        AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+        mgr.setStreamMute(AudioManager.STREAM_SYSTEM, false);
     }
 
     /***

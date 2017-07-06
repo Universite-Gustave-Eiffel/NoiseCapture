@@ -90,7 +90,7 @@ public class WindowTest {
 
     private float[] testFFTWindow(short[] signal, int sampleRate, double windowTime, Window.WINDOW_TYPE windowType, double dbFsReference) {
         Window window = new Window(windowType, sampleRate,
-                STANDARD_FREQUENCIES_UNITTEST, windowTime, false, dbFsReference);
+                STANDARD_FREQUENCIES_UNITTEST, windowTime, false, dbFsReference, false);
 
         int packetSize = (int) (0.1 * sampleRate);
         int idSampleStart = 0;

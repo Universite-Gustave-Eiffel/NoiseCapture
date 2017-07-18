@@ -256,6 +256,10 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
         <item>Notifica</item>
         <item>DTMF</item>
     </string-array>
+    <string-array name="settings_display_measurement_window_labels">
+        <item>Rettangolare</item>
+        <item>Hann</item>
+    </string-array>
     <string name="measurement_tab_map">Mappa</string>
     <string name="measurement_tab_spectrogram">Spettrogramma</string>
     <string name="measurement_tab_spectrum">Spettro</string>

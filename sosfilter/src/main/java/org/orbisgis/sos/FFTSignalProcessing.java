@@ -84,7 +84,7 @@ public class FFTSignalProcessing {
      * @return Time in seconds of sample buffer
      */
     public double getSampleDuration() {
-        return samplingRate / (double)windowSize;
+        return windowSize / (double)samplingRate;
     }
 
     /**

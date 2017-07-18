@@ -32,6 +32,8 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebSettings;
+import android.webkit.WebView;
 
 
 /**
@@ -48,6 +50,12 @@ public class MeasurementMapFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_measurement_map, container, false);
+        View view = inflater.inflate(R.layout.fragment_measurement_map, container, false);
+        WebView leaflet = (WebView) view.findViewById(R.id.measurement_webmapview);
+        WebSettings webSettings = leaflet.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        leaflet.clearCache(true);
+        leaflet.loadUrl("file:///android_asset/html/map_measurement.html");
+        return view;
     }
 }

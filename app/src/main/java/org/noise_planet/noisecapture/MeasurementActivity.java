@@ -90,7 +90,7 @@ public class MeasurementActivity extends MainActivity implements
     private DoProcessing doProcessing;
     private ImageButton buttonrecord;
     private ImageButton buttonPause;
-    private ViewPager viewPager;
+    private ViewPagerExt viewPager;
     private static final int PAGE_SPECTRUM = 0;
     private static final int PAGE_SPECTROGRAM = 1;
     private static final int PAGE_MAP = 2;
@@ -163,12 +163,13 @@ public class MeasurementActivity extends MainActivity implements
         }
     }
 
-    private void setupViewPager(ViewPager viewPager) {
+    private void setupViewPager(ViewPagerExt viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(new MeasurementSpectrumFragment(), getString(R.string.measurement_tab_spectrum));
         adapter.addFragment(new MeasurementSpectrogramFragment(), getString(R.string.measurement_tab_spectrogram));
         adapter.addFragment(new MeasurementMapFragment(), getString(R.string.measurement_tab_map));
         viewPager.setAdapter(adapter);
+        viewPager.addIgnoredTab(3);
     }
 
     @Override
@@ -242,7 +243,7 @@ public class MeasurementActivity extends MainActivity implements
 
         // Init tabs (Spectrum, Spectrogram, Map)
 
-        viewPager = (ViewPager) findViewById(R.id.measurement_viewpager);
+        viewPager = (ViewPagerExt) findViewById(R.id.measurement_viewpager);
         setupViewPager(viewPager);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.measurement_tabs);
         tabLayout.setupWithViewPager(viewPager);

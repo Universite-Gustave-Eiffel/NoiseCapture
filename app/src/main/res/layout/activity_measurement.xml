@@ -193,7 +193,7 @@
                         app:tabMode="fixed"
                         app:tabGravity="fill"/>
 
-                    <android.support.v4.view.ViewPager
+                    <org.noise_planet.noisecapture.ViewPagerExt
                         android:id="@+id/measurement_viewpager"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"/>

@@ -242,6 +242,8 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
         <item>16 kHz</item>
     </string-array>
     <string name="share_message">J\'ai mesuré %.01f dB(A) avec #NoiseCapture @Noise_Planet</string>
+    <string name="summary_settings_measurement_display_window">Fenêtrage de la mesure temps réel (n\'affecte pas le résultat final)</string>
+    <string name="title_settings_measurement_display_window">Fenêtrage</string>
 
     <string-array name="output_mode_labels">
         <item>Appel téléphonique</item>
@@ -252,4 +254,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
         <item>Notification</item>
         <item>DTMF</item>
     </string-array>
+    <string name="measurement_tab_spectrogram">Image</string>
+    <string name="measurement_tab_spectrum">Spectre</string>
+    <string name="measurement_tab_map">Carte</string>
 </resources>

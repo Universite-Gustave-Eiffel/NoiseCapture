@@ -181,16 +181,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <org.noise_planet.noisecapture.Spectrogram
-                    android:id="@+id/spectrogram_view"
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:visibility="gone" />
+                    android:orientation="vertical">
+                    <android.support.design.widget.TabLayout
+                        android:id="@+id/measurement_tabs"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:tabMode="fixed"
+                        app:tabGravity="fill"/>
 
-                <com.github.mikephil.charting.charts.HorizontalBarChart
-                    android:id="@+id/spectrumChart"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent" />
+                    <android.support.v4.view.ViewPager
+                        android:id="@+id/measurement_viewpager"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
+                </LinearLayout>
 
                 <TextView
                     android:id="@+id/textView_message_overlay"

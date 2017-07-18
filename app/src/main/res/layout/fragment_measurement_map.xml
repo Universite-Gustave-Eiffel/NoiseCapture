@@ -26,20 +26,15 @@
   ~  or write to scientific.computing@ifsttar.fr
   -->
 
-<resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
-    <string-array name="output_mode">
-        <!-- DO not localize -->
-        <item>STREAM_VOICE_CALL</item>
-        <item>STREAM_SYSTEM</item>
-        <item>STREAM_RING</item>
-        <item>STREAM_MUSIC</item>
-        <item>STREAM_ALARM</item>
-        <item>STREAM_NOTIFICATION</item>
-        <item>STREAM_DTMF</item>
-    </string-array>
-    <string-array name="settings_display_measurement_window">
-        <!-- DO not localize -->
-        <item>RECTANGULAR</item>
-        <item>HANN</item>
-    </string-array>
-</resources>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+
+    <WebView  xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/measurement_webmapview"
+        android:layout_width="fill_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        />
+
+</RelativeLayout>

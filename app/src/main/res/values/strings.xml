@@ -86,6 +86,9 @@
     <string name="measurement_dba_la10">LA10</string>
     <string name="measurement_dba_la50">LA50</string>
     <string name="measurement_dba_la90">LA90</string>
+    <string name="measurement_tab_spectrum">Spectrum</string>
+    <string name="measurement_tab_spectrogram">Spectrogram</string>
+    <string name="measurement_tab_map">Map</string>
 
     <!--  Ressources for the spinner calibration !-->
     <string name="title_choice_data_map">Choose data:</string>
@@ -248,6 +251,8 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>16 kHz</item>
     </string-array>
     <string name="share_message">I measure %.01f dB(A) using #NoiseCapture @Noise_Planet</string>
+    <string name="summary_settings_measurement_display_window">Window function for realtime measurement (not used for final result)</string>
+    <string name="title_settings_measurement_display_window">Realtime window</string>
 
     <string-array name="output_mode_labels">
         <item>Voice call</item>
@@ -257,5 +262,9 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>Alarm</item>
         <item>Notification</item>
         <item>DTMF</item>
+    </string-array>
+    <string-array name="settings_display_measurement_window_labels">
+        <item>Rectangular</item>
+        <item>Hann</item>
     </string-array>
 </resources>

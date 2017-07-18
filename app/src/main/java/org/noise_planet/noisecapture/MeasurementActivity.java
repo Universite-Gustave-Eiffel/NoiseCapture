@@ -42,10 +42,13 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.support.design.widget.TabLayout;
+import android.support.v4.view.ViewPager;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
+import android.webkit.WebView;
 import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
@@ -56,6 +59,7 @@ import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.HorizontalBarChart;
+import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.XAxis.XAxisPosition;
@@ -83,11 +87,13 @@ public class MeasurementActivity extends MainActivity implements
     private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
     // For the Charts
     protected HorizontalBarChart mChart; // VUMETER representation
-    protected BarChart sChart; // Spectrum representation
-    protected Spectrogram spectrogram;
     private DoProcessing doProcessing;
     private ImageButton buttonrecord;
     private ImageButton buttonPause;
+    private ViewPager viewPager;
+    private static final int PAGE_SPECTRUM = 0;
+    private static final int PAGE_SPECTROGRAM = 1;
+    private static final int PAGE_MAP = 2;
     // From this accuracy the location hint color is orange
     private static final float APROXIMATE_LOCATION_ACCURACY = 10.f;
 
@@ -108,6 +114,7 @@ public class MeasurementActivity extends MainActivity implements
     private static final String DELETE_LEQ_ON_PAUSE_SETTING = "settings_delete_leq_on_pause";
     private static final String HAS_MAXIMAL_MEASURE_TIME_SETTING = "settings_recording";
     private static final String MAXIMAL_MEASURE_TIME_SETTING = "settings_recording_duration";
+    private static final String SETTINGS_MEASUREMENT_DISPLAY_WINDOW = "settings_measurement_display_window";
     private static final int DEFAULT_MAXIMAL_MEASURE_TIME_SETTING = 10;
 
     public int getRecordId() {
@@ -116,18 +123,62 @@ public class MeasurementActivity extends MainActivity implements
 
 
     public void initComponents() {
-        spectrogram.setTimeStep(measurementService.getAudioProcess().getFFTDelay());
+        Spectrogram spectrogram = getSpectrogram();
+        if(spectrogram != null) {
+            spectrogram.setTimeStep(measurementService.getAudioProcess().getFFTDelay());
+        }
         setData(0);
         updateSpectrumGUI();
-        Legend ls = sChart.getLegend();
-        ls.setEnabled(false); // Hide legend
+        BarChart sChart = getSpectrum();
+        if(sChart != null) {
+            Legend ls = sChart.getLegend();
+            ls.setEnabled(false); // Hide legend
+        }
+    }
+
+    private Spectrogram getSpectrogram() {
+        View view = ((ViewPagerAdapter)viewPager.getAdapter()).getItem(PAGE_SPECTROGRAM).getView();
+        if(view != null) {
+            return (Spectrogram) view.findViewById(R.id.spectrogram_view);
+        } else {
+            return null;
+        }
+    }
+
+    private BarChart getSpectrum() {
+        View view = ((ViewPagerAdapter)viewPager.getAdapter()).getItem(PAGE_SPECTRUM).getView();
+        if(view != null) {
+            return (BarChart) view.findViewById(R.id.spectrumChart);
+        } else {
+            return null;
+        }
+    }
+
+    private WebView getMap() {
+        View view = ((ViewPagerAdapter)viewPager.getAdapter()).getItem(PAGE_MAP).getView();
+        if(view != null) {
+            return (WebView) view.findViewById(R.id.measurement_webmapview);
+        } else {
+            return null;
+        }
+    }
+
+    private void setupViewPager(ViewPager viewPager) {
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        adapter.addFragment(new MeasurementSpectrumFragment(), getString(R.string.measurement_tab_spectrum));
+        adapter.addFragment(new MeasurementSpectrogramFragment(), getString(R.string.measurement_tab_spectrogram));
+        adapter.addFragment(new MeasurementMapFragment(), getString(R.string.measurement_tab_map));
+        viewPager.setAdapter(adapter);
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if(LOG_SCALE_SETTING.equals(key)) {
-            spectrogram.setScaleMode(sharedPreferences.getBoolean(key, true) ?
-                    Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR);
+            Spectrogram spectrogram = getSpectrogram();
+            if(spectrogram != null) {
+                spectrogram.setScaleMode(sharedPreferences.getBoolean(key, true) ?
+                        Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR);
+            }
         } else if(DELETE_LEQ_ON_PAUSE_SETTING.equals(key)) {
             measurementService.setDeletedLeqOnPause(getInteger(sharedPreferences,key, DEFAULT_DELETE_LEQ_ON_PAUSE));
         } else if(HAS_MAXIMAL_MEASURE_TIME_SETTING.equals(key)) {
@@ -135,8 +186,10 @@ public class MeasurementActivity extends MainActivity implements
                     false);
         } else if(MAXIMAL_MEASURE_TIME_SETTING.equals(key)) {
             maximalMeasurementTime = getInteger(sharedPreferences,MAXIMAL_MEASURE_TIME_SETTING, DEFAULT_MAXIMAL_MEASURE_TIME_SETTING);
-        } if("settings_recording_gain".equals(key) && measurementService != null) {
+        } else if("settings_recording_gain".equals(key) && measurementService != null) {
             measurementService.setdBGain(getDouble(sharedPreferences, key, 0));
+        } else if(SETTINGS_MEASUREMENT_DISPLAY_WINDOW.equals(key) && measurementService != null) {
+            measurementService.getAudioProcess().setHannWindowFast(sharedPreferences.getString(SETTINGS_MEASUREMENT_DISPLAY_WINDOW, "RECTANGULAR").equals("HANN"));
         }
     }
 
@@ -174,25 +227,6 @@ public class MeasurementActivity extends MainActivity implements
         buttonPause = (ImageButton) findViewById(R.id.pauseBtn);
         buttonPause.setEnabled(false);
 
-        // Display element in expert mode or not
-        Boolean CheckViewModeSettings = sharedPref.getBoolean("settings_view_mode", true);
-        //FrameLayout Frame_Stat_SEL = (FrameLayout) findViewById(R.id.Frame_Stat_SEL);
-        TextView textView_value_Min_i = (TextView) findViewById(R.id.textView_value_Min_i);
-        TextView textView_value_Mean_i = (TextView) findViewById(R.id.textView_value_Mean_i);
-        TextView textView_value_Max_i = (TextView) findViewById(R.id.textView_value_Max_i);
-        TextView textView_title_Min_i = (TextView) findViewById(R.id.textView_title_Min_i);
-        TextView textView_title_Mean_i = (TextView) findViewById(R.id.textView_title_Mean_i);
-        TextView textView_title_Max_i = (TextView) findViewById(R.id.textView_title_Max_i);
-        if (!CheckViewModeSettings){
-            textView_value_Min_i.setVisibility(View.GONE);
-            textView_value_Mean_i.setVisibility(View.GONE);
-            textView_value_Max_i.setVisibility(View.GONE);
-            textView_title_Min_i.setVisibility(View.GONE);
-            textView_title_Mean_i.setVisibility(View.GONE);
-            textView_title_Max_i.setVisibility(View.GONE);
-        }
-
-
         // To start a record (test mode)
         buttonrecord = (ImageButton) findViewById(R.id.recordBtn);
         buttonrecord.setImageResource(R.drawable.button_record_normal);
@@ -206,34 +240,26 @@ public class MeasurementActivity extends MainActivity implements
         buttonPause.setOnClickListener(onButtonPause);
         buttonPause.setOnTouchListener(new ToggleButtonTouch(this));
 
+        // Init tabs (Spectrum, Spectrogram, Map)
+
+        viewPager = (ViewPager) findViewById(R.id.measurement_viewpager);
+        setupViewPager(viewPager);
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.measurement_tabs);
+        tabLayout.setupWithViewPager(viewPager);
+
         // Instantaneous sound level VUMETER
         // Stacked bars are used for represented Min, Current and Max values
         // Horizontal barchart
         LinearLayout graphLayouts = (LinearLayout) findViewById(R.id.graph_components_layout);
-        sChart = (BarChart) findViewById(R.id.spectrumChart);
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
-        spectrogram = (Spectrogram) findViewById(R.id.spectrogram_view);
-        spectrogram.setScaleMode(sharedPref.getBoolean("settings_spectrogram_logscalemode", true) ?
-                Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR);
         mChart.setTouchEnabled(false);
-        sChart.setTouchEnabled(false);
-        // When user click on spectrum control, view are switched
-        SwitchVisibilityListener switchVisibilityListener = new SwitchVisibilityListener(sChart, spectrogram);
-        graphLayouts.setOnClickListener(switchVisibilityListener);
-        initSpectrum();
+
         initVueMeter();
         setData(0);
         // Legend: hide all
         Legend lv = mChart.getLegend();
         lv.setEnabled(false); // Hide legend
 
-        // Instantaneous spectrum
-        // Stacked bars are used for represented Min, Current and Max values
-        sChart = (BarChart) findViewById(R.id.spectrumChart);
-        if (!CheckViewModeSettings){
-            sChart.setVisibility(View.GONE);
-        }
-        initSpectrum();
     }
 
     @Override
@@ -289,33 +315,6 @@ public class MeasurementActivity extends MainActivity implements
     }
 
 
-    private void initSpectrum() {
-        sChart.setDrawBarShadow(false);
-        sChart.setDescription("");
-        sChart.setPinchZoom(false);
-        sChart.setDrawGridBackground(false);
-        sChart.setMaxVisibleValueCount(0);
-        sChart.setNoDataTextDescription(getText(R.string.no_data_text_description).toString());
-        // XAxis parameters:
-        XAxis xls = sChart.getXAxis();
-        xls.setPosition(XAxisPosition.BOTTOM);
-        xls.setDrawAxisLine(true);
-        xls.setDrawGridLines(false);
-        xls.setDrawLabels(true);
-        xls.setTextColor(Color.WHITE);
-        // YAxis parameters (left): main axis for dB values representation
-        YAxis yls = sChart.getAxisLeft();
-        yls.setDrawAxisLine(true);
-        yls.setDrawGridLines(true);
-        yls.setAxisMaxValue(110.f);
-        yls.setStartAtZero(true);
-        yls.setTextColor(Color.WHITE);
-        yls.setGridColor(Color.WHITE);
-        yls.setValueFormatter(new SPLValueFormatter());
-        // YAxis parameters (right): no axis, hide all
-        YAxis yrs = sChart.getAxisRight();
-        yrs.setEnabled(false);
-    }
 
     // Init RNE Pie Chart
     public void initVueMeter(){
@@ -440,8 +439,11 @@ public class MeasurementActivity extends MainActivity implements
         BarData data = new BarData(xVals, dataSets);
         data.setValueTextSize(10f);
 
-        sChart.setData(data);
-        sChart.invalidate(); // refresh
+        BarChart sChart = getSpectrum();
+        if(sChart != null){
+            sChart.setData(data);
+            sChart.invalidate(); // refresh
+        }
     }
 
     private static class WaitEndOfProcessing implements Runnable {
@@ -565,8 +567,11 @@ public class MeasurementActivity extends MainActivity implements
                 AudioProcess.AudioMeasureResult measure =
                         (AudioProcess.AudioMeasureResult) event.getNewValue();
                 // Realtime audio processing
-                activity.spectrogram.addTimeStep(measure.getResult().getFftResult(),
-                        activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
+                Spectrogram spectrogram = activity.getSpectrogram();
+                if(spectrogram  != null) {
+                    spectrogram.addTimeStep(measure.getResult().getFftResult(),
+                            activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
+                }
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));
                 }
@@ -726,28 +731,6 @@ public class MeasurementActivity extends MainActivity implements
 
     }
 
-    private static class SwitchVisibilityListener implements View.OnClickListener {
-        private BarChart sChart; // Spectrum representation
-        private Spectrogram spectrogram;
-
-        public SwitchVisibilityListener(BarChart sChart, Spectrogram spectrogram) {
-            this.sChart = sChart;
-            this.spectrogram = spectrogram;
-        }
-
-        @Override
-        public void onClick(View view) {
-            if(sChart.getVisibility() == View.GONE) {
-                sChart.setVisibility(View.VISIBLE);
-                spectrogram.setVisibility(View.GONE);
-            } else {
-                sChart.setVisibility(View.GONE);
-                spectrogram.setVisibility(View.VISIBLE);
-            }
-        }
-    }
-
-
     private MeasurementService measurementService;
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -775,7 +758,7 @@ public class MeasurementActivity extends MainActivity implements
             measurementService.getAudioProcess().setDoOneSecondLeq(true);
             measurementService.getAudioProcess().setWeightingA(true);
             measurementService.getAudioProcess().setHannWindowOneSecond(true);
-            measurementService.getAudioProcess().setHannWindowFast(true);
+            measurementService.getAudioProcess().setHannWindowFast(sharedPref.getString(SETTINGS_MEASUREMENT_DISPLAY_WINDOW, "RECTANGULAR").equals("HANN"));
             initGuiState();
         }
 

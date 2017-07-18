@@ -178,7 +178,7 @@ public class AudioProcess implements Runnable {
     }
 
     public int getRemainingNotProcessSamples() {
-        return slowLeqProcessing.bufferToProcess.size();
+        return slowLeqProcessing.bufferToProcess.size() + fastLeqProcessing.bufferToProcess.size();
     }
 
     /**
@@ -381,11 +381,6 @@ public class AudioProcess implements Runnable {
         @Override
         public void run() {
             try {
-                try {
-                    android.os.Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
-                } catch (IllegalArgumentException | SecurityException ex) {
-                    // Ignore
-                }
                 while (audioProcess.currentState != STATE.WAITING_END_PROCESSING &&
                         !audioProcess.canceled.get()
                         && audioProcess.currentState != STATE.CLOSED) {

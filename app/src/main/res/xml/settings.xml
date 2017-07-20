@@ -24,14 +24,15 @@
         android:defaultValue="false" />
  </PreferenceCategory>
     <PreferenceCategory android:title="@string/setting_measurement_group">
-    <ListPreference
-        android:key="settings_measurement_display_window"
-        android:title="@string/title_settings_measurement_display_window"
-        android:defaultValue="RECTANGULAR"
-        android:summary="@string/summary_settings_measurement_display_window"
-        android:entryValues="@array/settings_display_measurement_window"
-        android:entries="@array/settings_display_measurement_window_labels"
-        />
+        <!--Hidden setting-->
+    <!--<ListPreference-->
+        <!--android:key="settings_measurement_display_window"-->
+        <!--android:title="@string/title_settings_measurement_display_window"-->
+        <!--android:defaultValue="RECTANGULAR"-->
+        <!--android:summary="@string/summary_settings_measurement_display_window"-->
+        <!--android:entryValues="@array/settings_display_measurement_window"-->
+        <!--android:entries="@array/settings_display_measurement_window_labels"-->
+        <!--/>-->
     <CheckBoxPreference
         android:key="settings_recording"
         android:title="@string/title_settings_recording"

@@ -803,15 +803,22 @@ public class MeasurementActivity extends MainActivity implements
         doBindService();
         if(measurementService != null) {
             initGuiState();
+            measurementService.getAudioProcess().setDoFastLeq(true);
         }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if(measurementService != null && !measurementService.isStoring()) {
+        if(measurementService != null) {
             // Disconnect listener from measurement
-            doUnbindService();
+            if(!measurementService.isStoring()) {
+                doUnbindService();
+
+            } else {
+                // Disable 125ms processing as it is only used for display
+                measurementService.getAudioProcess().setDoFastLeq(false);
+            }
         }
     }
 

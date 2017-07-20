@@ -137,6 +137,9 @@ public class AudioProcess implements Runnable {
 
     public void setDoFastLeq(boolean doFastLeq) {
         this.doFastLeq = doFastLeq;
+        if(!doFastLeq) {
+            fastLeqProcessing.bufferToProcess.clear();
+        }
     }
 
     public void setDoOneSecondLeq(boolean doOneSecondLeq) {
@@ -242,8 +245,12 @@ public class AudioProcess implements Runnable {
                                 buffer[i] = (short) (Math.max(Math.min(buffer[i] * gain, Short.MAX_VALUE), Short.MIN_VALUE));
                             }
                         }
-                        fastLeqProcessing.addSample(buffer);
-                        slowLeqProcessing.addSample(buffer);
+                        if(doFastLeq) {
+                            fastLeqProcessing.addSample(buffer);
+                        }
+                        if(doOneSecondLeq) {
+                            slowLeqProcessing.addSample(buffer);
+                        }
                     }
                     setCurrentState(STATE.WAITING_END_PROCESSING);
                     while (fastLeqProcessing.isProcessing() || slowLeqProcessing.isProcessing()) {

@@ -35,6 +35,8 @@ import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 
+import java.io.File;
+
 
 /**
  * Map tab content on measurement activity
@@ -54,7 +56,9 @@ public class MeasurementMapFragment extends Fragment {
         WebView leaflet = (WebView) view.findViewById(R.id.measurement_webmapview);
         WebSettings webSettings = leaflet.getSettings();
         webSettings.setJavaScriptEnabled(true);
-        leaflet.clearCache(true);
+        WebSettings settings = leaflet.getSettings();
+        settings.setAppCachePath(new File(getContext().getCacheDir(), "webview").getPath());
+        settings.setAppCacheEnabled(true);
         leaflet.loadUrl("file:///android_asset/html/map_measurement.html");
         return view;
     }

@@ -57,6 +57,15 @@ public class ViewPagerExt extends ViewPager {
     }
 
     @Override
+    public boolean onInterceptTouchEvent(MotionEvent ev) {
+        if(!disabledSwipeTabs.contains(getCurrentItem())) {
+            return super.onInterceptTouchEvent(ev);
+        } else {
+            return false;
+        }
+    }
+
+    @Override
     public boolean onTouchEvent(MotionEvent ev) {
         if(!disabledSwipeTabs.contains(getCurrentItem())) {
             return super.onTouchEvent(ev);

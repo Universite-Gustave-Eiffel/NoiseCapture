@@ -168,8 +168,9 @@ public class MeasurementActivity extends MainActivity implements
         adapter.addFragment(new MeasurementSpectrumFragment(), getString(R.string.measurement_tab_spectrum));
         adapter.addFragment(new MeasurementSpectrogramFragment(), getString(R.string.measurement_tab_spectrogram));
         adapter.addFragment(new MeasurementMapFragment(), getString(R.string.measurement_tab_map));
+        // Give full control of swipe to the map instead of the tabs controller.
+        viewPager.addIgnoredTab(2);
         viewPager.setAdapter(adapter);
-        viewPager.addIgnoredTab(3);
     }
 
     @Override

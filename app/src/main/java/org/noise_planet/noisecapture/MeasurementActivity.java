@@ -38,12 +38,12 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.design.widget.TabLayout;
-import android.support.v4.view.ViewPager;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -59,7 +59,6 @@ import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.HorizontalBarChart;
-import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.XAxis;
 import com.github.mikephil.charting.components.XAxis.XAxisPosition;
@@ -163,11 +162,15 @@ public class MeasurementActivity extends MainActivity implements
         }
     }
 
+    private MapFragment getMapControler() {
+        return (MapFragment) (((ViewPagerAdapter)viewPager.getAdapter()).getItem(PAGE_MAP));
+    }
+
     private void setupViewPager(ViewPagerExt viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(new MeasurementSpectrumFragment(), getString(R.string.measurement_tab_spectrum));
         adapter.addFragment(new MeasurementSpectrogramFragment(), getString(R.string.measurement_tab_spectrogram));
-        adapter.addFragment(new MeasurementMapFragment(), getString(R.string.measurement_tab_map));
+        adapter.addFragment(new MapFragment(), getString(R.string.measurement_tab_map));
         // Give full control of swipe to the map instead of the tabs controller.
         viewPager.addIgnoredTab(2);
         viewPager.setAdapter(adapter);
@@ -592,6 +595,20 @@ public class MeasurementActivity extends MainActivity implements
                     });
                 }
             }
+//            else if(MeasurementService.PROP_NEW_MEASUREMENT.equals(event.getPropertyName())) {
+//                MapFragment mapFragment = activity.getMapControler();
+//                if(mapFragment != null) {
+//                    final Storage.Leq leq = (Storage.Leq) event.getNewValue();
+//                    if(!(Double.compare(leq.getLatitude(), 0) == 0 && Double.compare(leq.getLongitude(), 0) == 0)) {
+//                        activity.runOnUiThread(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                activity.getMapControler().updateLocationMarker(new MapFragment.LatLng(leq.getLatitude(), leq.getLongitude()), leq.getAccuracy());
+//                            }
+//                        });
+//                    }
+//                }
+//            }
         }
 
         @Override
@@ -677,22 +694,27 @@ public class MeasurementActivity extends MainActivity implements
                     //Update accuracy hint
                     final TextView accuracyText = (TextView) activity.findViewById(R.id.textView_value_gps_precision);
                     final ImageView accuracyImageHint = (ImageView) activity.findViewById(R.id.imageView_value_gps_precision);
-                    Float lastPrecision = activity.measurementService.getLastPrecision();
-                    if(lastPrecision == null) {
+                    Location location = activity.measurementService.getLastLocation();
+                    if(location != null) {
+                        float lastPrecision = location.getAccuracy();
+                        if (lastPrecision < APROXIMATE_LOCATION_ACCURACY) {
+                            accuracyImageHint.setImageResource(R.drawable.gps_fixed);
+                            accuracyText.setText(activity.getString(R.string.gps_hint_precision,
+                                    (int)lastPrecision));
+                        } else {
+                            accuracyImageHint.setImageResource(R.drawable.gps_not_fixed);
+                            accuracyText.setText(activity.getString(R.string.gps_hint_precision,
+                                    (int)lastPrecision));
+                        }
+                        if (accuracyImageHint.getVisibility() == View.INVISIBLE) {
+                            accuracyImageHint.setVisibility(View.VISIBLE);
+                        }
+                        activity.getMapControler().updateLocationMarker(new MapFragment.LatLng(location.getLatitude(), location.getLongitude()), location.getAccuracy());
+                    } else {
                         accuracyImageHint.setImageResource(R.drawable.gps_off);
                         accuracyText.setText(R.string.no_gps_hint);
-                    } else if(lastPrecision < APROXIMATE_LOCATION_ACCURACY) {
-                        accuracyImageHint.setImageResource(R.drawable.gps_fixed);
-                        accuracyText.setText(activity.getString(R.string.gps_hint_precision,
-                                lastPrecision.intValue()));
-                    } else {
-                        accuracyImageHint.setImageResource(R.drawable.gps_not_fixed);
-                        accuracyText.setText(activity.getString(R.string.gps_hint_precision,
-                                lastPrecision.intValue()));
                     }
-                    if(accuracyImageHint.getVisibility() == View.INVISIBLE) {
-                        accuracyImageHint.setVisibility(View.VISIBLE);
-                    }
+                    // Update current location of user
                     final double leq = activity.measurementService.getAudioProcess().getLeq();
                     activity.setData(leq);
                     // Change the text and the textcolor in the corresponding textview

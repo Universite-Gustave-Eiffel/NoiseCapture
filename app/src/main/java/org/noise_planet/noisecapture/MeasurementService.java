@@ -76,6 +76,8 @@ public class MeasurementService extends Service {
     private CommonLocationListener gpsLocationListener;
     private CommonLocationListener networkLocationListener;
     private CommonLocationListener passiveLocationListener;
+    // New measurement record sent to the database Event object is Storage.Leq
+    public static final String PROP_NEW_MEASUREMENT = "PROP_NEW_MEASUREMENT";
     private long minTimeDelay = 1000;
     private static final long MAXIMUM_LOCATION_HISTORY = 50;
     private AudioProcess audioProcess;
@@ -202,8 +204,8 @@ public class MeasurementService extends Service {
     /***
      * @return Get last precision in meters. Null if no available location
      */
-    public Float getLastPrecision() {
-        return timeLocation.isEmpty() ? null : timeLocation.lastEntry().getValue().getAccuracy();
+    public Location getLastLocation() {
+        return timeLocation.isEmpty() ? null : timeLocation.lastEntry().getValue();
     }
 
     @Override
@@ -439,8 +441,8 @@ public class MeasurementService extends Service {
         Map.Entry<Long, Location> high = timeLocation.ceilingEntry(utcTime);
         Location res = null;
         if (low != null && high != null) {
-            // Got two results, find nearest
-            res = Math.abs(utcTime-low.getKey()) < Math.abs(utcTime-high.getKey())
+            // Got two results, take most precise
+            res = low.getValue().getAccuracy() < high.getValue().getAccuracy()
                     ?   low.getValue()
                     :   high.getValue();
         } else if (low != null || high != null) {
@@ -548,6 +550,7 @@ public class MeasurementService extends Service {
                     measurementService.measurementManager
                             .addLeqBatch(new MeasurementManager.LeqBatch(leq, leqValueList));
                     measurementService.leqAdded.addAndGet(1);
+                    measurementService.listeners.firePropertyChange(PROP_NEW_MEASUREMENT, null, leq);
                 }
             } else if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName
                     ())) {

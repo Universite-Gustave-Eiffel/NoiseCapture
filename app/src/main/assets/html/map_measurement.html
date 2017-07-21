@@ -2,7 +2,7 @@
 <html>
 <head>
 	
-	<title>Mobile tutorial - Leaflet</title>
+	<title>Measurement map</title>
 
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -26,6 +26,31 @@
 
 <script>
 	var map = L.map('map').fitWorld();
+
+	var userLocationPrecision = L.circle([0., 0.], {
+    color: '#deebf7',
+    fillColor: '#deebf7',
+    fillOpacity: 0.5,
+    radius: 12,
+    stroke: false
+	});
+
+	var userLocationPoint = L.circleMarker([0., 0.], {
+    color: '#ffffff',
+    fillColor: '#2b8cbe',
+    weight: 1.,
+    fillOpacity: 1.,
+    radius: 4
+	});
+
+	var userLocationLayer = L.layerGroup( [userLocationPrecision, userLocationPoint] );
+
+	function updateLocation(newLoc, precision) {
+     userLocationPrecision.setLatLng(newLoc)
+     userLocationPrecision.setRadius(precision)
+     userLocationPoint.setLatLng(newLoc)
+     map.flyTo(newLoc, 18)
+    }
 
     var osm = L.tileLayer('http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'

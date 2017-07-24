@@ -8,7 +8,11 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	
     <link rel="stylesheet" href="style/leaflet.css"/>
+	<link rel="stylesheet" href="style/easy-button.css"/>
+	<link rel="stylesheet" href="style/control_icons.css"/>
+	<link rel="stylesheet" href="style/style.css"/>
     <script src="js/leaflet.js"></script>
+	<script src="js/easy-button.js"></script>
 
 
 	<style>
@@ -26,6 +30,25 @@
 
 <script>
 	var map = L.map('map').fitWorld();
+	var autoTrack = true;
+
+	map.on('dragstart', function() {
+	  autoTrack = false;
+	})
+
+
+	L.control.scale({
+		'position': 'bottomright',
+		'metric': true,
+		'imperial': false
+	}).addTo(map);
+
+	var autoTrackButton = L.easyButton('icon-dot-circled icon-dot-circled-1px', function(btn, map){
+		autoTrack = true;
+		if(userLocationPoint.LatLng != null) {
+     		map.flyTo(userLocationPoint.LatLng, 18);
+		}
+	}).addTo( map );
 
 	var userLocationPrecision = L.circle([0., 0.], {
     color: '#deebf7',
@@ -43,7 +66,7 @@
     radius: 4
 	});
 
-	var userLocationLayer = L.layerGroup( [userLocationPrecision, userLocationPoint] , {zIndex: 2});
+	var userLocationLayer = L.layerGroup( [userLocationPrecision, userLocationPoint] , {zIndex: 3});
 
 	var userMeasurementPoints = L.layerGroup();
 
@@ -51,7 +74,9 @@
      userLocationPrecision.setLatLng(newLoc)
      userLocationPrecision.setRadius(precision)
      userLocationPoint.setLatLng(newLoc)
-     map.flyTo(newLoc, 18)
+     if(autoTrack) {
+     	map.flyTo(newLoc, 18)
+	 }
     }
 
     function addMeasurementPoint(loc, color) {
@@ -62,11 +87,19 @@
 			fillOpacity: 1.,
 			radius: 2,
 			stroke: false,
-        	zIndex: 3
+        	zIndex: 4
 			}));
     }
 
     userMeasurementPoints.addTo(map);
+
+	var onomap = L.tileLayer('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_area@EPSG:900913@png/{z}/{x}/{y}.png', {
+	"attribution": "<a href='http://onomap-gs.noise-planet.org'>OnoMap server</a>",
+	tms: true,
+	zIndex: 2,
+	opacity: 0.5,
+	minZoom: 14
+	});
 
     var osm = L.tileLayer('http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
@@ -75,6 +108,7 @@
     
     
     osm.addTo(map);
+    onomap.addTo(map);
 </script>
 
 

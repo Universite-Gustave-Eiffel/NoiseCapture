@@ -27,6 +27,9 @@
 
 package org.noise_planet.noisecapture;
 
+import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Color;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -38,8 +41,12 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+
 import java.io.File;
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import static org.noise_planet.noisecapture.MainActivity.getNEcatColors;
 
 
 /**
@@ -52,10 +59,23 @@ public class MapFragment extends Fragment {
     private final AtomicBoolean pageLoaded = new AtomicBoolean(false);
     private double ignoreNewPointDistanceDelta = 1;
     private LatLng lastPt;
+    public int[] NE_COLORS;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
+
+    int[] getNE_COLORS(Context context) {
+        if(NE_COLORS == null) {
+            Resources res = context.getResources();
+            NE_COLORS = new int[]{res.getColor(R.color.R1_SL_level),
+                    res.getColor(R.color.R2_SL_level),
+                    res.getColor(R.color.R3_SL_level),
+                    res.getColor(R.color.R4_SL_level),
+                    res.getColor(R.color.R5_SL_level)};
+        }
+        return NE_COLORS;
     }
 
     @Override
@@ -107,7 +127,7 @@ public class MapFragment extends Fragment {
         runJs("userLocationLayer.addTo(map)");
     }
 
-    public void addMeasurement(LatLng location, double spl) {
+    public void addMeasurement(Context context, LatLng location, double spl) {
         if(lastPt != null) {
             float[] result = new float[3];
             Location.distanceBetween(lastPt.lat, lastPt.lng, location.lat, location.lng, result);
@@ -116,8 +136,9 @@ public class MapFragment extends Fragment {
             }
         }
         lastPt = location;
+        int nc= MainActivity.getNEcatColors(spl);    // Choose the color category in function of the sound level
         String htmlColor = String.format("#%06X",
-                (0xFFFFFF & Spectrogram.getColor((float)spl, 45, 100)));
+                (0xFFFFFF & getNE_COLORS(context)[nc]));
         runJs("addMeasurementPoint(["+location.getLat()+","+location.getLng()+"], '"+htmlColor+"')");
     }
 

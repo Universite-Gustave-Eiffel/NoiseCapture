@@ -606,7 +606,7 @@ public class MeasurementActivity extends MainActivity implements
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                activity.getMapControler().addMeasurement(new MapFragment.LatLng(measurement.leq.getLatitude(), measurement.leq.getLongitude()), measurement.measure.getGlobaldBaValue());
+                                activity.getMapControler().addMeasurement(activity.getApplicationContext(), new MapFragment.LatLng(measurement.leq.getLatitude(), measurement.leq.getLongitude()), measurement.measure.getGlobaldBaValue());
                             }
                         });
                     }

@@ -27,9 +27,6 @@
 
 package org.noise_planet.noisecapture;
 
-import android.content.Context;
-import android.content.res.Resources;
-import android.graphics.Color;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -41,12 +38,12 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.noise_planet.noisecapture.MainActivity.getNEcatColors;
 
 
 /**
@@ -59,23 +56,16 @@ public class MapFragment extends Fragment {
     private final AtomicBoolean pageLoaded = new AtomicBoolean(false);
     private double ignoreNewPointDistanceDelta = 1;
     private LatLng lastPt;
-    public int[] NE_COLORS;
+    private MapFragmentAvailableListener mapFragmentAvailableListener;
+    private List<String> cachedCommands = new ArrayList<>();
+
+    public void setMapFragmentAvailableListener(MapFragmentAvailableListener mapFragmentAvailableListener) {
+        this.mapFragmentAvailableListener = mapFragmentAvailableListener;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-    }
-
-    int[] getNE_COLORS(Context context) {
-        if(NE_COLORS == null) {
-            Resources res = context.getResources();
-            NE_COLORS = new int[]{res.getColor(R.color.R1_SL_level),
-                    res.getColor(R.color.R2_SL_level),
-                    res.getColor(R.color.R3_SL_level),
-                    res.getColor(R.color.R4_SL_level),
-                    res.getColor(R.color.R5_SL_level)};
-        }
-        return NE_COLORS;
     }
 
     @Override
@@ -95,19 +85,35 @@ public class MapFragment extends Fragment {
                 public void onPageFinished(WebView view, String url) {
                     super.onPageFinished(view, url);
                     pageLoaded.set(true);
+                    if(mapFragmentAvailableListener != null) {
+                        mapFragmentAvailableListener.onPageLoaded(MapFragment.this);
+                    }
                 }
             });
-            leaflet.loadUrl("file:///android_asset/html/map_measurement.html");
+            if(mapFragmentAvailableListener != null) {
+                mapFragmentAvailableListener.onMapFragmentAvailable(this);
+            }
         }
         return view;
     }
 
+    public void loadUrl(String url) {
+        if(leaflet != null) {
+            leaflet.loadUrl(url);
+        }
+    }
+
     public boolean runJs(String js) {
         if(leaflet != null && pageLoaded.get()) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-                leaflet.evaluateJavascript(js, null);
-            } else {
-                leaflet.loadUrl("javascript:" + js);
+            // Run cached commands before this new command
+            cachedCommands.add(js);
+            while(!cachedCommands.isEmpty()) {
+                js = cachedCommands.remove(0);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+                    leaflet.evaluateJavascript(js, null);
+                } else {
+                    leaflet.loadUrl("javascript:" + js);
+                }
             }
             return true;
         }
@@ -127,7 +133,7 @@ public class MapFragment extends Fragment {
         runJs("userLocationLayer.addTo(map)");
     }
 
-    public void addMeasurement(Context context, LatLng location, double spl) {
+    public void addMeasurement(LatLng location, String htmlColor) {
         if(lastPt != null) {
             float[] result = new float[3];
             Location.distanceBetween(lastPt.lat, lastPt.lng, location.lat, location.lng, result);
@@ -136,10 +142,10 @@ public class MapFragment extends Fragment {
             }
         }
         lastPt = location;
-        int nc= MainActivity.getNEcatColors(spl);    // Choose the color category in function of the sound level
-        String htmlColor = String.format("#%06X",
-                (0xFFFFFF & getNE_COLORS(context)[nc]));
-        runJs("addMeasurementPoint(["+location.getLat()+","+location.getLng()+"], '"+htmlColor+"')");
+        String command = "addMeasurementPoint(["+location.getLat()+","+location.getLng()+"], '"+htmlColor+"')";
+        if(!runJs(command)) {
+            cachedCommands.add(command);
+        }
     }
 
     public void removeLocationMarker() {
@@ -170,17 +176,10 @@ public class MapFragment extends Fragment {
             return lng;
         }
     }
-    /**
-     *
-     *
 
+    public interface MapFragmentAvailableListener {
+        void onMapFragmentAvailable(MapFragment mapFragment);
+        void onPageLoaded(MapFragment mapFragment);
+    }
 
-     updateLocation([47.65,-2.76], 18)
-
-     userLocationLayer.addTo(map)
-
-     userLocationLayer.removeFrom(map)
-
-
-     * */
 }

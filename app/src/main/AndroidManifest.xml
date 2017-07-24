@@ -22,8 +22,6 @@
         android:name="android.hardware.camera"
         android:required="false" />
 
-    <uses-permission android:name="com.example.hellomap.permission.MAPS_RECEIVE" />
-
     <uses-feature
         android:glEsVersion="0x00020000"
         android:required="true" />
@@ -43,10 +41,6 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/filepaths" />
         </provider>
-
-        <meta-data
-            android:name="com.google.android.gms.version"
-            android:value="@integer/google_play_services_version" />
 
         <service android:name=".MeasurementService" />
 
@@ -95,10 +89,6 @@
             android:name=".CalibrationLinearityActivity"
             android:screenOrientation="portrait"
             android:label="@string/title_activity_calibration_linearity"/>
-
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAYoxRofWQ-HVerF_Bb1ysuiXajgYcWlNM" />
 
         <activity
             android:name=".CommentActivity"

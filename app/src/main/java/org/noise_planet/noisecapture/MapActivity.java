@@ -30,55 +30,24 @@ package org.noise_planet.noisecapture;
 
 import android.content.Intent;
 import android.content.res.Resources;
-import android.graphics.Color;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.view.Menu;
-import android.view.View;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
 import android.widget.Toast;
-
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class MapActivity extends MainActivity implements OnMapReadyCallback,
-        GoogleMap.OnMapLoadedCallback {
+public class MapActivity extends MainActivity implements MapFragment.MapFragmentAvailableListener {
     public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
     private MeasurementManager measurementManager;
     private Storage.Record record;
-    private GoogleMap mMap;
-    private LatLngBounds.Builder builder;
     private boolean validBoundingBox = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            setContentView(R.layout.activity_map);
-        } catch (Exception e){
-            Toast.makeText(this, "Google Maps problem", Toast.LENGTH_SHORT).show();
-            Log.e(MapActivity.class.getName(), "Crash on MapActivity.setContentView", e);
-            Intent a = new Intent(getApplicationContext(), History.class);
-            startActivity(a);
-            finish();
-            return;
-        }
+        setContentView(R.layout.activity_map);
         initDrawer();
 
         this.measurementManager = new MeasurementManager(getApplicationContext());
@@ -96,86 +65,43 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
                         Toast.LENGTH_LONG).show();
             }
         }
+        MapFragment mapFragment = getMapControler();
+        mapFragment.setMapFragmentAvailableListener(this);
+        onMapFragmentAvailable(mapFragment);
 
-        // Fill the spinner_map
-        Spinner spinner = (Spinner) findViewById(R.id.spinner_map);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.choice_user_map, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(new MapDropDownChooseListener(this));
+    }
 
-        // Display the map
-        setUpMapIfNeeded();
-
+    private MapFragment getMapControler() {
+        return (MapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
     }
 
     @Override
-    public void onMapReady(GoogleMap mMap) {
-        // Initialize map options. For example:
-        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-        mMap.setOnMapLoadedCallback(this);
-        this.mMap = mMap;
+    public void onMapFragmentAvailable(MapFragment mapFragment) {
+        mapFragment.loadUrl("file:///android_asset/html/map_result.html");
     }
 
     @Override
-    protected void onResume() {
-        super.onResume();
-        setUpMapIfNeeded();
-    }
-
-    public void loadWebView() {
-        WebView leaflet = (WebView) findViewById(R.id.webmapview);
-        WebSettings webSettings = leaflet.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        leaflet.clearCache(true);
-        leaflet.setInitialScale(200);
-        String location = "";
-        if(builder != null && validBoundingBox) {
-            LatLng latLng = builder.build().getCenter();
-            location = "/#18/"+latLng.latitude+"/"+latLng.longitude;
-        }
-        leaflet.loadUrl("http://onomap.noise-planet.org" + location);
-    }
-
-    @Override
-    public void onMapLoaded() {
-        Resources res = getResources();
-        Spinner spinner = (Spinner) findViewById(R.id.spinner_map);
-        boolean onlySelected = spinner.getSelectedItemPosition() == 0;
-        // Add markers and move the camera.
+    public void onPageLoaded(MapFragment mapFragment) {
         List<MeasurementManager.LeqBatch> measurements = new ArrayList<MeasurementManager.LeqBatch>();
         if(record != null) {
-            measurements = measurementManager.getRecordLocations(onlySelected ? record.getId() : -1, true, 500);
+            measurements = measurementManager.getRecordLocations(record.getId() , true, 500);
         }
-        builder = new LatLngBounds.Builder();
-        validBoundingBox = measurements.size() > 1;
+        boolean validBoundingBox = measurements.size() > 1;
         for(int idMarker = 0; idMarker < measurements.size(); idMarker++) {
             MeasurementManager.LeqBatch leq = measurements.get(idMarker);
-            LatLng position = new LatLng(leq.getLeq().getLatitude(), leq.getLeq().getLongitude());
-            MarkerOptions marker = new MarkerOptions();
-            marker.position(position);
+            MapFragment.LatLng position = new MapFragment.LatLng(leq.getLeq().getLatitude(), leq.getLeq().getLongitude());
             double leqValue = leq.computeGlobalLeq();
-            marker.title(res.getString(R.string.map_marker_label, leqValue,
-                    leq.getLeq().getAccuracy()));
-            int nc=getNEcatColors(leqValue);    // Choose the color category in function of the sound level
-            float[] hsv = new float[3];
-            Color.colorToHSV(NE_COLORS[nc], hsv);  // Apply color category for the corresponding sound level
-            marker.icon(BitmapDescriptorFactory.defaultMarker(hsv[0]));
-            mMap.addMarker(marker);
-            builder.include(position);
+            int nc = getNEcatColors(leqValue);    // Choose the color category in function of the sound level
+            String htmlColor = String.format("#%06X",
+                    (0xFFFFFF & NE_COLORS[nc]));
+            mapFragment.addMeasurement(position, htmlColor);
         }
         if(validBoundingBox) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 0));
+            mapFragment.runJs("map.flyToBounds(userMeasurementPoints.getBounds(), 18)");
         } else {
             Toast.makeText(getApplicationContext(), getString(R.string.no_gps_results),
                     Toast.LENGTH_LONG).show();
         }
-    }
-
-    private void setUpMapIfNeeded() {
-        SupportMapFragment mapFragment = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
-        mapFragment.getMapAsync(this);
     }
 
     @Override
@@ -185,45 +111,4 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
         return true;
     }
 
-    private static class MapDropDownChooseListener implements AdapterView.OnItemSelectedListener {
-        private MapActivity mapActivity;
-
-        public MapDropDownChooseListener(MapActivity mapActivity) {
-            this.mapActivity = mapActivity;
-        }
-
-        @Override
-        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            FragmentManager fragmentManager = mapActivity
-                    .getSupportFragmentManager();
-            SupportMapFragment mapFragment = ((SupportMapFragment)fragmentManager.findFragmentById(R.id.map));
-            WebView webView = (WebView) mapActivity.findViewById(R.id.webmapview);
-            if(webView == null) {
-                return;
-            }
-            if(position <= 1) {
-                if(mapFragment != null && mapFragment.isHidden()) {
-                    fragmentManager.beginTransaction()
-                                   .show(mapFragment).commit();
-                    webView.setVisibility(View.GONE);
-                }
-                if(mapActivity.mMap != null) {
-                    mapActivity.onMapLoaded();
-                }
-            } else {
-                // TODO server side map
-                if(mapFragment != null) {
-                    fragmentManager.beginTransaction()
-                                   .hide(mapFragment).commit();
-                    webView.setVisibility(View.VISIBLE);
-                    mapActivity.loadWebView();
-                }
-            }
-        }
-
-        @Override
-        public void onNothingSelected(AdapterView<?> parent) {
-
-        }
-    }
 }

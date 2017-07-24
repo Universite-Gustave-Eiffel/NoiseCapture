@@ -69,6 +69,7 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.YAxisValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
+import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.LeqStats;
 
 import java.beans.PropertyChangeEvent;
@@ -78,7 +79,7 @@ import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MeasurementActivity extends MainActivity implements
-        SharedPreferences.OnSharedPreferenceChangeListener {
+        SharedPreferences.OnSharedPreferenceChangeListener, MapFragment.MapFragmentAvailableListener {
 
     //public ImageButton buttonrecord;
     //public ImageButton buttoncancel;
@@ -111,6 +112,10 @@ public class MeasurementActivity extends MainActivity implements
 
     private boolean hasMaximalMeasurementTime;
     private int maximalMeasurementTime = 0;
+
+    // NoiseCapture will switch from Hann window to Rectangular window if the measurement delay
+    // is superior than this value in ms
+    private final static long SWITCH_TO_FAST_RECTANGULAR_DELAY = 1500;
 
     private static final String LOG_SCALE_SETTING = "settings_spectrogram_logscalemode";
     private static final String DELETE_LEQ_ON_PAUSE_SETTING = "settings_delete_leq_on_pause";
@@ -173,10 +178,22 @@ public class MeasurementActivity extends MainActivity implements
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         adapter.addFragment(new MeasurementSpectrumFragment(), getString(R.string.measurement_tab_spectrum));
         adapter.addFragment(new MeasurementSpectrogramFragment(), getString(R.string.measurement_tab_spectrogram));
-        adapter.addFragment(new MapFragment(), getString(R.string.measurement_tab_map));
+        MapFragment mapFragment = new MapFragment();
+        mapFragment.setMapFragmentAvailableListener(this);
+        adapter.addFragment(mapFragment, getString(R.string.measurement_tab_map));
         // Give full control of swipe to the map instead of the tabs controller.
         viewPager.addIgnoredTab(2);
         viewPager.setAdapter(adapter);
+    }
+
+    @Override
+    public void onMapFragmentAvailable(MapFragment mapFragment) {
+        mapFragment.loadUrl("file:///android_asset/html/map_measurement.html");
+    }
+
+    @Override
+    public void onPageLoaded(MapFragment mapFragment) {
+        // Nothing to do
     }
 
     @Override
@@ -198,6 +215,9 @@ public class MeasurementActivity extends MainActivity implements
             measurementService.setdBGain(getDouble(sharedPreferences, key, 0));
         } else if(SETTINGS_MEASUREMENT_DISPLAY_WINDOW.equals(key) && measurementService != null) {
             measurementService.getAudioProcess().setHannWindowFast(sharedPreferences.getString(SETTINGS_MEASUREMENT_DISPLAY_WINDOW, "RECTANGULAR").equals("HANN"));
+            if(BuildConfig.DEBUG) {
+                System.out.println("Switch to Rectangular window");
+            }
         }
     }
 
@@ -583,6 +603,17 @@ public class MeasurementActivity extends MainActivity implements
                 if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
                     activity.runOnUiThread(new UpdateText(activity));
                 }
+                if(activity.measurementService.getAudioProcess().isHannWindowFast() && activity.measurementService.getAudioProcess().getFastNotProcessedMilliseconds() > SWITCH_TO_FAST_RECTANGULAR_DELAY) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
+                            SharedPreferences.Editor editor = sharedPref.edit();
+                            editor.putString(MeasurementActivity.SETTINGS_MEASUREMENT_DISPLAY_WINDOW, "RECTANGULAR");
+                            editor.apply();
+                        }
+                    });
+                }
             } else if(AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
                 if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
                     activity.runOnUiThread(new UpdateText(activity));
@@ -599,6 +630,9 @@ public class MeasurementActivity extends MainActivity implements
                 }
             }
             else if(MeasurementService.PROP_NEW_MEASUREMENT.equals(event.getPropertyName())) {
+                if(BuildConfig.DEBUG) {
+                    System.out.println("Measure offset "+activity.measurementService.getAudioProcess().getFastNotProcessedMilliseconds()+" ms");
+                }
                 MapFragment mapFragment = activity.getMapControler();
                 if(mapFragment != null) {
                     final MeasurementService.MeasurementEventObject measurement = (MeasurementService.MeasurementEventObject) event.getNewValue();
@@ -606,7 +640,11 @@ public class MeasurementActivity extends MainActivity implements
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                activity.getMapControler().addMeasurement(activity.getApplicationContext(), new MapFragment.LatLng(measurement.leq.getLatitude(), measurement.leq.getLongitude()), measurement.measure.getGlobaldBaValue());
+
+                                int nc= MainActivity.getNEcatColors(measurement.measure.getGlobaldBaValue());    // Choose the color category in function of the sound level
+                                String htmlColor = String.format("#%06X",
+                                        (0xFFFFFF & activity.NE_COLORS[nc]));
+                                activity.getMapControler().addMeasurement(new MapFragment.LatLng(measurement.leq.getLatitude(), measurement.leq.getLongitude()), htmlColor);
                             }
                         });
                     }

@@ -128,6 +128,14 @@ public class AudioProcess implements Runnable {
                 Window.WINDOW_TYPE.RECTANGULAR);
     }
 
+    public boolean isHannWindowFast() {
+        return hannWindowFast;
+    }
+
+    public boolean isHannWindowOneSecond() {
+        return hannWindowOneSecond;
+    }
+
     public void setHannWindowOneSecond(boolean hannWindowOneSecond) {
         this.hannWindowOneSecond = hannWindowOneSecond;
         fastLeqProcessing.setWindowType(hannWindowOneSecond ? Window.WINDOW_TYPE.HANN :
@@ -181,6 +189,13 @@ public class AudioProcess implements Runnable {
 
     public int getRemainingNotProcessSamples() {
         return slowLeqProcessing.bufferToProcess.size() + fastLeqProcessing.bufferToProcess.size();
+    }
+
+    /**
+     * @return The current delay between the audio input and the processed output
+     */
+    public long getFastNotProcessedMilliseconds() {
+        return (fastLeqProcessing.getPushedSamples() - fastLeqProcessing.getProcessedSamples()) / (rate / 1000);
     }
 
     /**
@@ -312,6 +327,7 @@ public class AudioProcess implements Runnable {
         private double timePeriod;
         private boolean Aweighting;
         private long pushedSamples = 0;
+        private long processedSamples = 0;
 
         // Output only frequency response on this sample rate on the real time result (center + upper band)
         private float[] thirdOctaveSplLevels;
@@ -335,6 +351,13 @@ public class AudioProcess implements Runnable {
                         window.isAWeighting(), FFTSignalProcessing.DB_FS_REFERENCE, window.isOutputThinFrequency());
                 lastPushIndex = 0;
             }
+        }
+
+        /**
+         * @return Samples processed by FFT
+         */
+        public long getProcessedSamples() {
+            return processedSamples;
         }
 
         public void setAweighting(boolean Aweighting) {
@@ -387,19 +410,17 @@ public class AudioProcess implements Runnable {
             long beginRecordTime = System.currentTimeMillis() -
                     (long) (((pushedSamples - result.getId())  /
                             (double) audioProcess.getRate()) * 1000);
-            if(BuildConfig.DEBUG && Double.compare(timePeriod, AcousticIndicators.TIMEPERIOD_SLOW) == 0) {
-                System.out.println("Measure offset "+((long) (((pushedSamples - result.getId())  /
-                        (double) audioProcess.getRate()) * 1000))+" ms");
-            }
             audioProcess.listeners.firePropertyChange(propertyName,
                     null,
                     new AudioMeasureResult(result,  beginRecordTime, 0));
         }
+
         private void processSample(short[] buffer) {
             window.pushSample(buffer);
             if (window.getWindowIndex() != lastPushIndex) {
                 processWindow();
             }
+            processedSamples += buffer.length;
         }
 
         public boolean isProcessing() {

@@ -231,10 +231,11 @@ public class FFTSignalProcessing {
         float globaldBaValue;
         long id;
 
-        public ProcessingResult(long id, float[] fftResult, float[] dBaLevels, float globaldBaValue) {
+        ProcessingResult(long id, float[] fftResult, float[] dBaLevels, float globaldBaValue) {
             this.fftResult = fftResult;
             this.dBaLevels = dBaLevels;
             this.globaldBaValue = globaldBaValue;
+            this.id = id;
         }
 
         public long getId() {

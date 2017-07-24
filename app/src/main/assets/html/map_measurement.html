@@ -43,7 +43,9 @@
     radius: 4
 	});
 
-	var userLocationLayer = L.layerGroup( [userLocationPrecision, userLocationPoint] );
+	var userLocationLayer = L.layerGroup( [userLocationPrecision, userLocationPoint] , {zIndex: 2});
+
+	var userMeasurementPoints = L.layerGroup();
 
 	function updateLocation(newLoc, precision) {
      userLocationPrecision.setLatLng(newLoc)
@@ -52,8 +54,23 @@
      map.flyTo(newLoc, 18)
     }
 
+    function addMeasurementPoint(loc, color) {
+		userMeasurementPoints.addLayer(L.circleMarker(loc, {
+			color: '#ffffff',
+			fillColor: color,
+			weight: 0.,
+			fillOpacity: 1.,
+			radius: 2,
+			stroke: false,
+        	zIndex: 3
+			}));
+    }
+
+    userMeasurementPoints.addTo(map);
+
     var osm = L.tileLayer('http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
+        attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+        zIndex: 1
     });
     
     

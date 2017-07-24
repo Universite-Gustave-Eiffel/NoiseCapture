@@ -98,6 +98,9 @@ public class MeasurementActivity extends MainActivity implements
 
     // Other resources
     private boolean mIsBound = false;
+    private long lastMapLocationRefresh = 0;
+    // Map user location refresh rate in milliseconds
+    private static final long REFRESH_MAP_LOCATION_RATE = 1000;
     private AtomicBoolean chronometerWaitingToStart = new AtomicBoolean(false);
 
     public final static double MIN_SHOWN_DBA_VALUE = 20;
@@ -595,20 +598,20 @@ public class MeasurementActivity extends MainActivity implements
                     });
                 }
             }
-//            else if(MeasurementService.PROP_NEW_MEASUREMENT.equals(event.getPropertyName())) {
-//                MapFragment mapFragment = activity.getMapControler();
-//                if(mapFragment != null) {
-//                    final Storage.Leq leq = (Storage.Leq) event.getNewValue();
-//                    if(!(Double.compare(leq.getLatitude(), 0) == 0 && Double.compare(leq.getLongitude(), 0) == 0)) {
-//                        activity.runOnUiThread(new Runnable() {
-//                            @Override
-//                            public void run() {
-//                                activity.getMapControler().updateLocationMarker(new MapFragment.LatLng(leq.getLatitude(), leq.getLongitude()), leq.getAccuracy());
-//                            }
-//                        });
-//                    }
-//                }
-//            }
+            else if(MeasurementService.PROP_NEW_MEASUREMENT.equals(event.getPropertyName())) {
+                MapFragment mapFragment = activity.getMapControler();
+                if(mapFragment != null) {
+                    final MeasurementService.MeasurementEventObject measurement = (MeasurementService.MeasurementEventObject) event.getNewValue();
+                    if(!(Double.compare(measurement.leq.getLatitude(), 0) == 0 && Double.compare(measurement.leq.getLongitude(), 0) == 0)) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                activity.getMapControler().addMeasurement(new MapFragment.LatLng(measurement.leq.getLatitude(), measurement.leq.getLongitude()), measurement.measure.getGlobaldBaValue());
+                            }
+                        });
+                    }
+                }
+            }
         }
 
         @Override
@@ -709,7 +712,11 @@ public class MeasurementActivity extends MainActivity implements
                         if (accuracyImageHint.getVisibility() == View.INVISIBLE) {
                             accuracyImageHint.setVisibility(View.VISIBLE);
                         }
-                        activity.getMapControler().updateLocationMarker(new MapFragment.LatLng(location.getLatitude(), location.getLongitude()), location.getAccuracy());
+                        long now = System.currentTimeMillis();
+                        if(now - activity.lastMapLocationRefresh >= REFRESH_MAP_LOCATION_RATE) {
+                            activity.getMapControler().updateLocationMarker(new MapFragment.LatLng(location.getLatitude(), location.getLongitude()), location.getAccuracy());
+                            activity.lastMapLocationRefresh = now;
+                        }
                     } else {
                         accuracyImageHint.setImageResource(R.drawable.gps_off);
                         accuracyText.setText(R.string.no_gps_hint);

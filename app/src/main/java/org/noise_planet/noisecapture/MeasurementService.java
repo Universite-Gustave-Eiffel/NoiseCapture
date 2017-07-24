@@ -62,8 +62,6 @@ import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static android.media.AudioManager.ADJUST_MUTE;
-
 /**
  * Fetch the most precise location from different location services.
  */
@@ -381,6 +379,8 @@ public class MeasurementService extends Service {
     public void setPause(boolean newState) {
         isPaused.set(newState);
         LOGGER.info("Measurement pause = " + String.valueOf(newState));
+        audioProcess.setDoFastLeq(!newState);
+        audioProcess.setDoOneSecondLeq(!newState);
         if(newState && deletedLeqOnPause > 0 && recordId > -1) {
             // Delete last recorded leq
             int deletedLeq = measurementManager.deleteLastLeqs(recordId,
@@ -420,10 +420,10 @@ public class MeasurementService extends Service {
         // than two times of old location
         // see https://developer.android.com/guide/topics/location/strategies.html
         Location previousLocation = timeLocation.isEmpty() ? null : timeLocation.lastEntry().getValue();
-        if(previousLocation == null || (location.getAccuracy() < previousLocation.distanceTo(location)
-                && (location.getAccuracy() < previousLocation.getAccuracy()
-                || previousLocation.getAccuracy() < location.getAccuracy() * 2))) {
-            timeLocation.put(location.getTime(), location);
+        if(previousLocation == null || (location.getProvider().equals(LocationManager.GPS_PROVIDER) ||
+                previousLocation.getProvider().equals(LocationManager.NETWORK_PROVIDER)||
+                previousLocation.getProvider().equals(LocationManager.PASSIVE_PROVIDER))) {
+            timeLocation.put(System.currentTimeMillis(), location);
             if (timeLocation.size() > MAXIMUM_LOCATION_HISTORY) {
                 // Clean old entry
                 timeLocation.remove(timeLocation.firstKey());
@@ -440,14 +440,22 @@ public class MeasurementService extends Service {
         Map.Entry<Long, Location> low = timeLocation.floorEntry(utcTime);
         Map.Entry<Long, Location> high = timeLocation.ceilingEntry(utcTime);
         Location res = null;
+        long key = 0;
         if (low != null && high != null) {
-            // Got two results, take most precise
-            res = low.getValue().getAccuracy() < high.getValue().getAccuracy()
+            // Got two results, find nearest
+            res = Math.abs(utcTime-low.getKey()) < Math.abs(utcTime-high.getKey())
                     ?   low.getValue()
-                    :   high.getValue();
+                    : high.getValue();
+            key = Math.abs(utcTime-low.getKey()) < Math.abs(utcTime-high.getKey())
+                    ?   low.getKey()
+                    : high.getKey();
         } else if (low != null || high != null) {
             // Just one range bound, search the good one
             res = low != null ? low.getValue() : high.getValue();
+            key = low != null ? low.getKey() : high.getKey();
+        }
+        if(BuildConfig.DEBUG) {
+            System.out.println("Fetch time offset "+(utcTime-key)+" ms");
         }
         return res;
     }
@@ -550,10 +558,9 @@ public class MeasurementService extends Service {
                     measurementService.measurementManager
                             .addLeqBatch(new MeasurementManager.LeqBatch(leq, leqValueList));
                     measurementService.leqAdded.addAndGet(1);
-                    measurementService.listeners.firePropertyChange(PROP_NEW_MEASUREMENT, null, leq);
+                    measurementService.listeners.firePropertyChange(PROP_NEW_MEASUREMENT, null, new MeasurementEventObject(measure, leq));
                 }
-            } else if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName
-                    ())) {
+            } else if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
                 if (measurementService.isStoring() && !measurementService.isPaused.get()) {
                     AudioProcess.AudioMeasureResult measure =
                             (AudioProcess.AudioMeasureResult) event.getNewValue();
@@ -614,4 +621,13 @@ public class MeasurementService extends Service {
         showNotification();
     }
 
+    public static final class MeasurementEventObject {
+        public final Storage.Leq leq;
+        public final AudioProcess.AudioMeasureResult measure;
+
+        public MeasurementEventObject(AudioProcess.AudioMeasureResult measure, Storage.Leq leq) {
+            this.measure = measure;
+            this.leq = leq;
+        }
+    }
 }

@@ -27,6 +27,7 @@
 
 package org.noise_planet.noisecapture;
 
+import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -49,6 +50,8 @@ public class MapFragment extends Fragment {
     private WebView leaflet;
     private boolean isLocationLayerAdded = false;
     private final AtomicBoolean pageLoaded = new AtomicBoolean(false);
+    private double ignoreNewPointDistanceDelta = 1;
+    private LatLng lastPt;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -100,8 +103,22 @@ public class MapFragment extends Fragment {
         }
     }
 
-    public void addLocationMarker() {
+    private void addLocationMarker() {
         runJs("userLocationLayer.addTo(map)");
+    }
+
+    public void addMeasurement(LatLng location, double spl) {
+        if(lastPt != null) {
+            float[] result = new float[3];
+            Location.distanceBetween(lastPt.lat, lastPt.lng, location.lat, location.lng, result);
+            if(result[0] < ignoreNewPointDistanceDelta) {
+                return;
+            }
+        }
+        lastPt = location;
+        String htmlColor = String.format("#%06X",
+                (0xFFFFFF & Spectrogram.getColor((float)spl, 45, 100)));
+        runJs("addMeasurementPoint(["+location.getLat()+","+location.getLng()+"], '"+htmlColor+"')");
     }
 
     public void removeLocationMarker() {

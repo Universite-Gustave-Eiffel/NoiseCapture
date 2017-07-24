@@ -186,14 +186,19 @@
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:orientation="vertical">
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal">
                     <android.support.design.widget.TabLayout
                         android:id="@+id/measurement_tabs"
-                        android:layout_width="match_parent"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        app:tabMode="fixed"
-                        app:tabGravity="fill"/>
-
-                    <org.noise_planet.noisecapture.ViewPagerExt
+                        app:tabTextAppearance="@style/SmallTabText"
+                        app:tabMode="scrollable"/>
+                 </LinearLayout>
+                 <org.noise_planet.noisecapture.ViewPagerExt
                         android:id="@+id/measurement_viewpager"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"/>

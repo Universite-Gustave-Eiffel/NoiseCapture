@@ -258,7 +258,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
         <item>Rectangulaire</item>
         <item>Hann</item>
     </string-array>
-    <string name="measurement_tab_spectrogram">Image</string>
+    <string name="measurement_tab_spectrogram">Spectrogramme</string>
     <string name="measurement_tab_spectrum">Spectre</string>
     <string name="measurement_tab_map">Carte</string>
 </resources>

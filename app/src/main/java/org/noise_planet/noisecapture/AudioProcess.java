@@ -68,7 +68,6 @@ public class AudioProcess implements Runnable {
     // 1s level evaluation for upload to server
     private final LeqProcessingThread fastLeqProcessing;
     private final LeqProcessingThread slowLeqProcessing;
-    private long beginRecordTime;
     public static final int REALTIME_SAMPLE_RATE_LIMITATION = 16000;
     public static final double[] realTimeCenterFrequency = FFTSignalProcessing.computeFFTCenterFrequency(REALTIME_SAMPLE_RATE_LIMITATION);
     private float gain = 1;
@@ -185,6 +184,18 @@ public class AudioProcess implements Runnable {
     }
 
     /**
+     * @return Currently pushed samples
+     */
+    public long getSlowProcessedSamples() {
+        if(slowLeqProcessing != null) {
+            return slowLeqProcessing.getPushedSamples();
+        } else {
+            return 0;
+        }
+    }
+
+
+    /**
      * @return Third octave SPL up to 8Khz (4 Khz if the phone support 8Khz only)
      */
     public float[] getThirdOctaveFrequencySPL() {
@@ -232,7 +243,6 @@ public class AudioProcess implements Runnable {
                         new Thread(slowLeqProcessing).start();
                     }
                     audioRecord.startRecording();
-                    beginRecordTime = System.currentTimeMillis();
                     while (recording.get()) {
                         buffer = new short[bufferSize];
                         int read = audioRecord.read(buffer, 0, buffer.length);
@@ -301,6 +311,7 @@ public class AudioProcess implements Runnable {
         private String propertyName;
         private double timePeriod;
         private boolean Aweighting;
+        private long pushedSamples = 0;
 
         // Output only frequency response on this sample rate on the real time result (center + upper band)
         private float[] thirdOctaveSplLevels;
@@ -357,6 +368,11 @@ public class AudioProcess implements Runnable {
 
         public void addSample(short[] sample) {
             bufferToProcess.add(sample);
+            pushedSamples+=sample.length;
+        }
+
+        public long getPushedSamples() {
+            return pushedSamples;
         }
 
         private void processWindow() {
@@ -367,9 +383,14 @@ public class AudioProcess implements Runnable {
             // Compute leq
             leq = result.getGlobaldBaValue();
             // Compute record time
-            long beginRecordTime = audioProcess.beginRecordTime +
-                    (long) ((result.getId()  /
+            // Take current time minus the computed delay of the measurement
+            long beginRecordTime = System.currentTimeMillis() -
+                    (long) (((pushedSamples - result.getId())  /
                             (double) audioProcess.getRate()) * 1000);
+            if(BuildConfig.DEBUG && Double.compare(timePeriod, AcousticIndicators.TIMEPERIOD_SLOW) == 0) {
+                System.out.println("Measure offset "+((long) (((pushedSamples - result.getId())  /
+                        (double) audioProcess.getRate()) * 1000))+" ms");
+            }
             audioProcess.listeners.firePropertyChange(propertyName,
                     null,
                     new AudioMeasureResult(result,  beginRecordTime, 0));

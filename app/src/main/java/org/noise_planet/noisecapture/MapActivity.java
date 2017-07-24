@@ -44,6 +44,32 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
     private Storage.Record record;
     private boolean validBoundingBox = false;
 
+    public static String getColorFromLevel(double spl) {
+        if(spl <35) {
+            return "#82A6AD";
+        }else if(spl <40) {
+            return "#A0BABF";
+        }else if(spl <45) {
+            return "#B8D6D1";
+        }else if(spl <50) {
+            return "#CEE4CC";
+        }else if(spl <55) {
+            return "#E2F2BF";
+        }else if(spl <60) {
+            return "#F3C683";
+        }else if(spl <65) {
+            return "#E87E4D";
+        }else if(spl <70) {
+            return "#CD463E";
+        }else if(spl <75) {
+            return "#A11A4D";
+        }else if(spl <80) {
+            return "#75085C";
+        } else {
+            return "#430A4A";
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -90,14 +116,10 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         for(int idMarker = 0; idMarker < measurements.size(); idMarker++) {
             MeasurementManager.LeqBatch leq = measurements.get(idMarker);
             MapFragment.LatLng position = new MapFragment.LatLng(leq.getLeq().getLatitude(), leq.getLeq().getLongitude());
-            double leqValue = leq.computeGlobalLeq();
-            int nc = getNEcatColors(leqValue);    // Choose the color category in function of the sound level
-            String htmlColor = String.format("#%06X",
-                    (0xFFFFFF & NE_COLORS[nc]));
-            mapFragment.addMeasurement(position, htmlColor);
+            mapFragment.addMeasurement(position, getColorFromLevel(leq.computeGlobalLeq()));
         }
         if(validBoundingBox) {
-            mapFragment.runJs("map.flyToBounds(userMeasurementPoints.getBounds(), 18)");
+            mapFragment.runJs("map.fitBounds(userMeasurementPoints.getBounds())");
         } else {
             Toast.makeText(getApplicationContext(), getString(R.string.no_gps_results),
                     Toast.LENGTH_LONG).show();

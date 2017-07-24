@@ -74,16 +74,24 @@
 	legend.addTo(map);
     
     osm.addTo(map);
-    onomap.addTo(map);
 
     var baseLayers = {
     "OpenStreetMap": osm
 	};
 
-	var overlays = {
-		"Measurements": userMeasurementPoints,
-		"Sound level (LA50)": onomap
-	};
+	var community_layer_name = "Community sound level (LA50)"
+	var measurements_layer_name = "Measurements";
+
+	var overlays = {};
+
+	overlays[measurements_layer_name] = userMeasurementPoints;
+	overlays[community_layer_name] = onomap;
+
+	map.on('overlayadd', function(eventLayer){
+        if(eventLayer.name === measurements_layer_name) {
+            map.flyToBounds(userMeasurementPoints.getBounds())
+        }
+    });
 
 	L.control.layers(baseLayers, overlays).addTo(map);
 

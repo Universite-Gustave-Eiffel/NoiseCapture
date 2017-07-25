@@ -262,5 +262,5 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="measurement_tab_spectrum">Spectre</string>
     <string name="measurement_tab_map">Carte</string>
     <string name="title_settings_map_maxmarker" >Limites de mesure affichées</string>
-    <string name="summary_settings_map_maxmarker" >Limite d\'affichage du nombre de mesure sur la carte (0 sans limites)</string>
+    <string name="summary_settings_map_maxmarker" >Nombre maximal de mesures affichées sur une carte (0 pour toute les mesures)</string>
 </resources>

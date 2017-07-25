@@ -310,12 +310,10 @@ public class MeasurementManager {
                     if(cursorRecordId != lastRecordId) {
                         skipLeqId = -1;
                         lastLatLng = null;
+                        lastRecordId = cursorRecordId;
                     }
                     Storage.LeqValue leqValue = new Storage.LeqValue(cursor);
                     if(lastId != leqValue.getLeqId() && lastId != -1) {
-                        // All frequencies for the current measurement are parsed
-                        leqBatches.add(lastLeq);
-                        lastLeq = null;
                         if(progressionCallBack != null) {
                             progressionCallBack.onCursorNext();
                         }
@@ -338,6 +336,9 @@ public class MeasurementManager {
                                 lastLatLng = location;
                             }
                         }
+                        // All frequencies for the current measurement are parsed
+                        leqBatches.add(lastLeq);
+                        lastLeq = null;
                     }
                     lastId = leqValue.getLeqId();
                     if(lastLeq == null) {

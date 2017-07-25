@@ -33,6 +33,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.location.Location;
 import android.net.Uri;
 
 import org.slf4j.Logger;
@@ -220,7 +221,35 @@ public class MeasurementManager {
      * @param limitation Extract up to limitation point
      */
     public List<LeqBatch> getRecordLocations(int recordId, boolean withCoordinatesOnly, int limitation) {
-        return getRecordLocations(recordId, withCoordinatesOnly, limitation, null);
+        return getRecordLocations(recordId, withCoordinatesOnly, limitation, null, null);
+    }
+
+
+    public int getRecordLocationsCount(int recordId, boolean withCoordinatesOnly) {
+        SQLiteDatabase database = storage.getReadableDatabase();
+        double[] lastLatLng = null;
+        // Divide number, ex 2 will take half of the measurement (only odd leq_id numbers)
+        String divMod = "1";
+        // Count the number of stored locations
+        Cursor cursor;
+        if (recordId >= 0) {
+            cursor = database.rawQuery("SELECT COUNT(*) CPT FROM " + Storage.Leq.TABLE_NAME +
+                    " L WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
+                    Storage.Leq.COLUMN_ACCURACY + " > ?", new String[]{String.valueOf(recordId),
+                    withCoordinatesOnly ? "0" : "-1"});
+        } else {
+            cursor = database.rawQuery("SELECT COUNT(*) CPT FROM " + Storage.Leq.TABLE_NAME +
+                            " L WHERE L." + Storage.Leq.COLUMN_ACCURACY + " > ?",
+                    new String[]{withCoordinatesOnly ? "0" : "-1"});
+        }
+        try {
+            if (cursor.moveToNext()) {
+                return cursor.getInt(0);
+            }
+        } finally {
+            cursor.close();
+        }
+        return 0;
     }
 
     /**
@@ -229,37 +258,20 @@ public class MeasurementManager {
      * @param withCoordinatesOnly Do not extract leq that does not contain a coordinate
      * @param limitation Extract up to limitation point
      */
-    public List<LeqBatch> getRecordLocations(int recordId, boolean withCoordinatesOnly, int limitation, ProgressionCallBack progressionCallBack) {
+    public List<LeqBatch> getRecordLocations(int recordId, boolean withCoordinatesOnly, int limitation, ProgressionCallBack progressionCallBack, Double minDistance) {
         SQLiteDatabase database = storage.getReadableDatabase();
+        double[] lastLatLng = null;
         // Divide number, ex 2 will take half of the measurement (only odd leq_id numbers)
         String divMod = "1";
         if(limitation > 0) {
-            // Count the number of stored locations
-            Cursor cursor;
-            if(recordId >= 0) {
-                cursor = database.rawQuery("SELECT COUNT(*) CPT FROM " + Storage.Leq.TABLE_NAME +
-                        " L WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
-                        Storage.Leq.COLUMN_ACCURACY + " > ?", new String[]{String.valueOf(recordId),
-                        withCoordinatesOnly ? "0" : "-1"});
-            } else {
-                cursor = database.rawQuery("SELECT COUNT(*) CPT FROM " + Storage.Leq.TABLE_NAME +
-                        " L WHERE L." + Storage.Leq.COLUMN_ACCURACY + " > ?",
-                        new String[]{withCoordinatesOnly ? "0" : "-1"});
+            int totalLocations = getRecordLocationsCount(recordId, withCoordinatesOnly);
+            if(progressionCallBack != null) {
+                progressionCallBack.onCreateCursor(totalLocations);
             }
-            try {
-                if (cursor.moveToNext()) {
-                    int totalLocations = cursor.getInt(0);
-                    if(progressionCallBack != null) {
-                        progressionCallBack.onCreateCursor(totalLocations);
-                    }
-                    divMod = String.valueOf(Math.max(1, Math.ceil((double) totalLocations / limitation)));
-                }
-            } finally {
-                cursor.close();
-            }
+            divMod = String.valueOf(Math.max(1, Math.ceil((double) totalLocations / limitation)));
         } else {
             if(progressionCallBack != null) {
-                progressionCallBack.onCreateCursor(limitation);
+                progressionCallBack.onCreateCursor(getRecordLocationsCount(recordId, withCoordinatesOnly));
             }
         }
         try {
@@ -286,15 +298,46 @@ public class MeasurementManager {
             try {
                 List<LeqBatch> leqBatches = new ArrayList<LeqBatch>();
                 int lastId = -1;
+                int lastRecordId = -1;
+                int skipLeqId = -1;
                 LeqBatch lastLeq = null;
                 while (cursor.moveToNext()) {
-                    if(progressionCallBack != null) {
-                        progressionCallBack.onCursorNext();
+                    int cursorLeqId = cursor.getInt(cursor.getColumnIndex(Storage.Leq.COLUMN_LEQ_ID));
+                    int cursorRecordId = cursor.getInt(cursor.getColumnIndex(Storage.Leq.COLUMN_RECORD_ID));
+                    if(skipLeqId != -1 && skipLeqId == cursorLeqId) {
+                        continue;
+                    }
+                    if(cursorRecordId != lastRecordId) {
+                        skipLeqId = -1;
+                        lastLatLng = null;
                     }
                     Storage.LeqValue leqValue = new Storage.LeqValue(cursor);
                     if(lastId != leqValue.getLeqId() && lastId != -1) {
+                        // All frequencies for the current measurement are parsed
                         leqBatches.add(lastLeq);
                         lastLeq = null;
+                        if(progressionCallBack != null) {
+                            progressionCallBack.onCursorNext();
+                        }
+                        // Ignore point if the new point is too close from the last point
+                        if(minDistance != null) {
+                            double[] location = new double[]{
+                                    cursor.getDouble(cursor.getColumnIndex(Storage.Leq.COLUMN_LATITUDE)),
+                                    cursor.getDouble(cursor.getColumnIndex(Storage.Leq.COLUMN_LONGITUDE))};
+                            double accuracy = cursor.getFloat(cursor.getColumnIndex(Storage.Leq.COLUMN_ACCURACY));
+                            if(accuracy > 0) {
+                                if(lastLatLng != null) {
+                                    float[] result = new float[3];
+                                    Location.distanceBetween(lastLatLng[0], lastLatLng[1], location[0], location[1], result);
+                                    if(result[0] < minDistance) {
+                                        // Ignore all next frequencies of this measurement leq
+                                        skipLeqId = cursorLeqId;
+                                        continue;
+                                    }
+                                }
+                                lastLatLng = location;
+                            }
+                        }
                     }
                     lastId = leqValue.getLeqId();
                     if(lastLeq == null) {

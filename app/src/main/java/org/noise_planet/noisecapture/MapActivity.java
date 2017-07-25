@@ -39,6 +39,9 @@ import android.view.Menu;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,41 +52,17 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
     private Storage.Record record;
     private boolean validBoundingBox = false;
     private WebViewContent webViewContent = new WebViewContent();
-
-    public static String getColorFromLevel(double spl) {
-        if(spl <35) {
-            return "#82A6AD";
-        }else if(spl <40) {
-            return "#A0BABF";
-        }else if(spl <45) {
-            return "#B8D6D1";
-        }else if(spl <50) {
-            return "#CEE4CC";
-        }else if(spl <55) {
-            return "#E2F2BF";
-        }else if(spl <60) {
-            return "#F3C683";
-        }else if(spl <65) {
-            return "#E87E4D";
-        }else if(spl <70) {
-            return "#CD463E";
-        }else if(spl <75) {
-            return "#A11A4D";
-        }else if(spl <80) {
-            return "#75085C";
-        } else {
-            return "#430A4A";
-        }
-    }
+    private double ignoreNewPointDistanceDelta = 1;
+    private long beginLoadPage = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
-        initDrawer();
+        Intent intent = getIntent();
+        initDrawer(intent != null ? intent.getIntExtra(RESULTS_RECORD_ID, -1) : null);
 
         this.measurementManager = new MeasurementManager(getApplicationContext());
-        Intent intent = getIntent();
         if(intent != null && intent.hasExtra(RESULTS_RECORD_ID)) {
             record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1));
         } else {
@@ -111,6 +90,7 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
     @SuppressLint("AddJavascriptInterface")
     @Override
     public void onMapFragmentAvailable(MapFragment mapFragment) {
+        beginLoadPage = System.currentTimeMillis();
         // addJavascriptInterface
         mapFragment.getWebView().addJavascriptInterface(webViewContent, "androidContent");
         mapFragment.loadUrl("file:///android_asset/html/map_result.html");
@@ -118,7 +98,10 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
 
     @Override
     public void onPageLoaded(MapFragment mapFragment) {
-
+        long beginLoadContent = System.currentTimeMillis();
+        if(BuildConfig.DEBUG) {
+            System.out.println("Load leaflet in "+(beginLoadContent - beginLoadPage)+" ms");
+        }
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         int measureLimitation = getInteger(sharedPref, "summary_settings_map_maxmarker", 0);
 
@@ -126,17 +109,28 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         // TODO Transfer all records through
         // addJavascriptInterface
         if(record != null) {
-            measurements = measurementManager.getRecordLocations(record.getId() , true, measureLimitation);
-            webViewContent.setSelectedMeasurements(measurements);
+            measurements = measurementManager.getRecordLocations(record.getId() , true, measureLimitation, null, ignoreNewPointDistanceDelta);
+            if(BuildConfig.DEBUG) {
+                System.out.println("Read data from db in "+(System.currentTimeMillis() - beginLoadContent)+" ms");
+            }
+            try {
+                long beginConversionToJson = System.currentTimeMillis();
+                webViewContent.setSelectedMeasurements(MeasurementExport.recordsToGeoJSON(measurements, false, false));
+                if(BuildConfig.DEBUG) {
+                    System.out.println("ConversionToJson in "+(System.currentTimeMillis() - beginConversionToJson)+" ms");
+                }
+            } catch (JSONException ex) {
+                Toast.makeText(getApplicationContext(), ex.getLocalizedMessage(),
+                        Toast.LENGTH_LONG).show();
+            }
         }
         boolean validBoundingBox = measurements.size() > 1;
-        for(int idMarker = 0; idMarker < measurements.size(); idMarker++) {
-            MeasurementManager.LeqBatch leq = measurements.get(idMarker);
-            MapFragment.LatLng position = new MapFragment.LatLng(leq.getLeq().getLatitude(), leq.getLeq().getLongitude());
-            mapFragment.addMeasurement(position, getColorFromLevel(leq.computeGlobalLeq()));
-        }
         if(validBoundingBox) {
+            mapFragment.runJs("addMeasurementPoints(JSON.parse(androidContent.getSelectedMeasurementData()))");
             mapFragment.runJs("map.fitBounds(userMeasurementPoints.getBounds())");
+            if(BuildConfig.DEBUG) {
+                System.out.println("Load data for leaflet in "+(System.currentTimeMillis() - beginLoadContent)+" ms");
+            }
         } else {
             Toast.makeText(getApplicationContext(), getString(R.string.no_gps_results),
                     Toast.LENGTH_LONG).show();
@@ -151,20 +145,20 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
     }
 
     public static final class WebViewContent {
-        List<MeasurementManager.LeqBatch> selectedMeasurements;
-        List<MeasurementManager.LeqBatch> allMeasurements;
+        JSONArray selectedMeasurements;
+        JSONArray allMeasurements;
 
-        public void setSelectedMeasurements(List<MeasurementManager.LeqBatch> selectedMeasurements) {
+        public void setSelectedMeasurements(JSONArray selectedMeasurements) {
             this.selectedMeasurements = selectedMeasurements;
         }
 
-        public void setAllMeasurements(List<MeasurementManager.LeqBatch> allMeasurements) {
+        public void setAllMeasurements(JSONArray allMeasurements) {
             this.allMeasurements = allMeasurements;
         }
 
         @JavascriptInterface
         public String getSelectedMeasurementData() {
-            return "";
+            return selectedMeasurements.toString();
         }
     }
 }

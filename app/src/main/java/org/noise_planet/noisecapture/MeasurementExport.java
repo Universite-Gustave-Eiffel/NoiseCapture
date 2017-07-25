@@ -79,6 +79,32 @@ public class MeasurementExport {
         this.context = context;
     }
 
+
+    public static String getColorFromLevel(double spl) {
+        if(spl <35) {
+            return "#82A6AD";
+        }else if(spl <40) {
+            return "#A0BABF";
+        }else if(spl <45) {
+            return "#B8D6D1";
+        }else if(spl <50) {
+            return "#CEE4CC";
+        }else if(spl <55) {
+            return "#E2F2BF";
+        }else if(spl <60) {
+            return "#F3C683";
+        }else if(spl <65) {
+            return "#E87E4D";
+        }else if(spl <70) {
+            return "#CD463E";
+        }else if(spl <75) {
+            return "#A11A4D";
+        }else if(spl <80) {
+            return "#75085C";
+        } else {
+            return "#430A4A";
+        }
+    }
     /**
      * Convert list of measurements into GeoJSON feature array
      * @param records Measurements array
@@ -110,15 +136,15 @@ public class MeasurementExport {
 
             // Add properties
             JSONObject featureProperties = new JSONObject();
-            featureProperties.put(Storage.Record.COLUMN_LEQ_MEAN, entry.computeGlobalLeq());
+            double lAeq = entry.computeGlobalLeq();
+            featureProperties.put(Storage.Record.COLUMN_LEQ_MEAN, lAeq);
+            //marker-color tag for geojson.io and leaflet map
+            featureProperties.put("marker-color", getColorFromLevel(lAeq));
             if(fullProperties) {
                 featureProperties.put(Storage.Leq.COLUMN_ACCURACY, leq.getAccuracy());
                 featureProperties.put(Storage.Leq.COLUMN_LOCATION_UTC, leq.getLocationUTC());
                 featureProperties.put(Storage.Leq.COLUMN_LEQ_UTC, leq.getLeqUtc());
                 featureProperties.put(Storage.Leq.COLUMN_LEQ_ID, leq.getLeqId());
-                //marker-color tag for geojson.io
-                featureProperties.put("marker-color", String.format("#%06X",
-                        (0xFFFFFF & Spectrogram.getColor((float) entry.computeGlobalLeq(), 45, 100))));
                 if (leq.getBearing() != null) {
                     featureProperties.put(Storage.Leq.COLUMN_BEARING, leq.getBearing());
                 }

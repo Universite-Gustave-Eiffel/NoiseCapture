@@ -273,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
                 case 1:
                     // Comment
                     Intent ir = new Intent(getApplicationContext(), CommentActivity.class);
-                    if(recordId != null) {
+                    if(recordId != null && recordId >= 0) {
                         ir.putExtra(CommentActivity.COMMENT_RECORD_ID, recordId);
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
@@ -283,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
                 case 2:
                     // Results
                     ir = new Intent(getApplicationContext(), Results.class);
-                    if(recordId != null) {
+                    if(recordId != null && recordId >= 0) {
                         ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
@@ -300,6 +300,9 @@ public class MainActivity extends AppCompatActivity {
                 case 4:
                     // Show the map
                     Intent imap = new Intent(getApplicationContext(), MapActivity.class);
+                    if(recordId != null && recordId >= 0) {
+                        imap.putExtra(Results.RESULTS_RECORD_ID, recordId);
+                    }
                     startActivity(imap);
                     finish();
                     mDrawerLayout.closeDrawer(mDrawerList);

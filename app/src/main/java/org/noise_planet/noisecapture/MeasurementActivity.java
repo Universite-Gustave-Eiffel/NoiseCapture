@@ -136,11 +136,6 @@ public class MeasurementActivity extends MainActivity implements
         }
         setData(0);
         updateSpectrumGUI();
-        BarChart sChart = getSpectrum();
-        if(sChart != null) {
-            Legend ls = sChart.getLegend();
-            ls.setEnabled(false); // Hide legend
-        }
     }
 
     private Spectrogram getSpectrogram() {

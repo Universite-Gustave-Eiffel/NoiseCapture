@@ -253,6 +253,8 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="share_message">I measure %.01f dB(A) using #NoiseCapture @Noise_Planet</string>
     <string name="summary_settings_measurement_display_window">Window function for realtime measurement (not used for final result)</string>
     <string name="title_settings_measurement_display_window">Realtime window</string>
+    <string name="title_settings_map_maxmarker" >Displayed measurement limits</string>
+    <string name="summary_settings_map_maxmarker" >Measurement count display limit on the map (0 for no limits)</string>
 
     <string-array name="output_mode_labels">
         <item>Voice call</item>

@@ -97,6 +97,13 @@ public class MapFragment extends Fragment {
         return view;
     }
 
+    /**
+     * @return The WebView control
+     */
+    public WebView getWebView() {
+        return leaflet;
+    }
+
     public void loadUrl(String url) {
         if(leaflet != null) {
             leaflet.loadUrl(url);

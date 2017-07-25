@@ -28,10 +28,15 @@
 package org.noise_planet.noisecapture;
 
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.util.JsonWriter;
 import android.view.Menu;
+import android.webkit.JavascriptInterface;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -43,6 +48,7 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
     private MeasurementManager measurementManager;
     private Storage.Record record;
     private boolean validBoundingBox = false;
+    private WebViewContent webViewContent = new WebViewContent();
 
     public static String getColorFromLevel(double spl) {
         if(spl <35) {
@@ -101,16 +107,27 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         return (MapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
     }
 
+    // Disable warning as the injected object cannot communicate with the NoiseCapture application
+    @SuppressLint("AddJavascriptInterface")
     @Override
     public void onMapFragmentAvailable(MapFragment mapFragment) {
+        // addJavascriptInterface
+        mapFragment.getWebView().addJavascriptInterface(webViewContent, "androidContent");
         mapFragment.loadUrl("file:///android_asset/html/map_result.html");
     }
 
     @Override
     public void onPageLoaded(MapFragment mapFragment) {
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        int measureLimitation = getInteger(sharedPref, "summary_settings_map_maxmarker", 0);
+
         List<MeasurementManager.LeqBatch> measurements = new ArrayList<MeasurementManager.LeqBatch>();
+        // TODO Transfer all records through
+        // addJavascriptInterface
         if(record != null) {
-            measurements = measurementManager.getRecordLocations(record.getId() , true, 500);
+            measurements = measurementManager.getRecordLocations(record.getId() , true, measureLimitation);
+            webViewContent.setSelectedMeasurements(measurements);
         }
         boolean validBoundingBox = measurements.size() > 1;
         for(int idMarker = 0; idMarker < measurements.size(); idMarker++) {
@@ -133,4 +150,21 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         return true;
     }
 
+    public static final class WebViewContent {
+        List<MeasurementManager.LeqBatch> selectedMeasurements;
+        List<MeasurementManager.LeqBatch> allMeasurements;
+
+        public void setSelectedMeasurements(List<MeasurementManager.LeqBatch> selectedMeasurements) {
+            this.selectedMeasurements = selectedMeasurements;
+        }
+
+        public void setAllMeasurements(List<MeasurementManager.LeqBatch> allMeasurements) {
+            this.allMeasurements = allMeasurements;
+        }
+
+        @JavascriptInterface
+        public String getSelectedMeasurementData() {
+            return "";
+        }
+    }
 }

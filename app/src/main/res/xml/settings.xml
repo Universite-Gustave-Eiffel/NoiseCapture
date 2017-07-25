@@ -86,4 +86,14 @@
             />
 
     </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/title_activity_map">
+        <EditTextPreference
+            android:defaultValue="500"
+            android:key="settings_map_maxmarker"
+            android:title="@string/title_settings_map_maxmarker"
+            android:summary="@string/summary_settings_map_maxmarker"
+            android:inputType="number"/>
+    </PreferenceCategory>
+
 </PreferenceScreen>

@@ -213,7 +213,6 @@ public class MeasurementManager {
         }
     }
 
-
     /**
      * Fetch all leq that hold a coordinate
      * @param recordId Record identifier, -1 for all
@@ -221,6 +220,16 @@ public class MeasurementManager {
      * @param limitation Extract up to limitation point
      */
     public List<LeqBatch> getRecordLocations(int recordId, boolean withCoordinatesOnly, int limitation) {
+        return getRecordLocations(recordId, withCoordinatesOnly, limitation, null);
+    }
+
+    /**
+     * Fetch all leq that hold a coordinate
+     * @param recordId Record identifier, -1 for all
+     * @param withCoordinatesOnly Do not extract leq that does not contain a coordinate
+     * @param limitation Extract up to limitation point
+     */
+    public List<LeqBatch> getRecordLocations(int recordId, boolean withCoordinatesOnly, int limitation, ProgressionCallBack progressionCallBack) {
         SQLiteDatabase database = storage.getReadableDatabase();
         // Divide number, ex 2 will take half of the measurement (only odd leq_id numbers)
         String divMod = "1";
@@ -237,9 +246,20 @@ public class MeasurementManager {
                         " L WHERE L." + Storage.Leq.COLUMN_ACCURACY + " > ?",
                         new String[]{withCoordinatesOnly ? "0" : "-1"});
             }
-            if(cursor.moveToNext()) {
-                int totalLocations = cursor.getInt(0);
-                divMod = String.valueOf(Math.max(1, Math.ceil((double)totalLocations / limitation)));
+            try {
+                if (cursor.moveToNext()) {
+                    int totalLocations = cursor.getInt(0);
+                    if(progressionCallBack != null) {
+                        progressionCallBack.onCreateCursor(totalLocations);
+                    }
+                    divMod = String.valueOf(Math.max(1, Math.ceil((double) totalLocations / limitation)));
+                }
+            } finally {
+                cursor.close();
+            }
+        } else {
+            if(progressionCallBack != null) {
+                progressionCallBack.onCreateCursor(limitation);
             }
         }
         try {
@@ -268,6 +288,9 @@ public class MeasurementManager {
                 int lastId = -1;
                 LeqBatch lastLeq = null;
                 while (cursor.moveToNext()) {
+                    if(progressionCallBack != null) {
+                        progressionCallBack.onCursorNext();
+                    }
                     Storage.LeqValue leqValue = new Storage.LeqValue(cursor);
                     if(lastId != leqValue.getLeqId() && lastId != -1) {
                         leqBatches.add(lastLeq);
@@ -516,5 +539,10 @@ public class MeasurementManager {
         public List<Storage.LeqValue> getLeqValues() {
             return leqValues;
         }
+    }
+
+    public interface ProgressionCallBack {
+        void onCreateCursor(int recordCount);
+        void onCursorNext();
     }
 }

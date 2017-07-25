@@ -44,6 +44,8 @@ import com.github.mikephil.charting.components.YAxis;
  */
 public class MeasurementSpectrumFragment extends Fragment {
 
+    private View view;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,35 +54,38 @@ public class MeasurementSpectrumFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_measurement_spectrum, container, false);
-        BarChart sChart = (BarChart) view.findViewById(R.id.spectrumChart);
-        sChart.setDrawBarShadow(false);
-        sChart.setDescription("");
-        sChart.setPinchZoom(false);
-        sChart.setDrawGridBackground(false);
-        sChart.setMaxVisibleValueCount(0);
-        sChart.setNoDataTextDescription(getText(R.string.no_data_text_description).toString());
-        // XAxis parameters:
-        XAxis xls = sChart.getXAxis();
-        xls.setPosition(XAxis.XAxisPosition.BOTTOM);
-        xls.setDrawAxisLine(true);
-        xls.setDrawGridLines(false);
-        xls.setDrawLabels(true);
-        xls.setTextColor(Color.WHITE);
-        // YAxis parameters (left): main axis for dB values representation
-        YAxis yls = sChart.getAxisLeft();
-        yls.setDrawAxisLine(true);
-        yls.setDrawGridLines(true);
-        yls.setAxisMaxValue(110.f);
-        yls.setStartAtZero(true);
-        yls.setTextColor(Color.WHITE);
-        yls.setGridColor(Color.WHITE);
-        yls.setValueFormatter(new SPLValueFormatter());
-        // YAxis parameters (right): no axis, hide all
-        YAxis yrs = sChart.getAxisRight();
-        yrs.setEnabled(false);
-
+        if(view == null) {
+            // Inflate the layout for this fragment
+            view = inflater.inflate(R.layout.fragment_measurement_spectrum, container, false);
+            BarChart sChart = (BarChart) view.findViewById(R.id.spectrumChart);
+            sChart.setDrawBarShadow(false);
+            sChart.setDescription("");
+            sChart.getLegend().setEnabled(false);
+            sChart.setTouchEnabled(false);
+            sChart.setPinchZoom(false);
+            sChart.setDrawGridBackground(false);
+            sChart.setMaxVisibleValueCount(0);
+            sChart.setNoDataTextDescription(getText(R.string.no_data_text_description).toString());
+            // XAxis parameters:
+            XAxis xls = sChart.getXAxis();
+            xls.setPosition(XAxis.XAxisPosition.BOTTOM);
+            xls.setDrawAxisLine(true);
+            xls.setDrawGridLines(false);
+            xls.setDrawLabels(true);
+            xls.setTextColor(Color.WHITE);
+            // YAxis parameters (left): main axis for dB values representation
+            YAxis yls = sChart.getAxisLeft();
+            yls.setDrawAxisLine(true);
+            yls.setDrawGridLines(true);
+            yls.setAxisMaxValue(110.f);
+            yls.setAxisMinValue(0f);
+            yls.setTextColor(Color.WHITE);
+            yls.setGridColor(Color.WHITE);
+            yls.setValueFormatter(new SPLValueFormatter());
+            // YAxis parameters (right): no axis, hide all
+            YAxis yrs = sChart.getAxisRight();
+            yrs.setEnabled(false);
+        }
         return view;
     }
 }

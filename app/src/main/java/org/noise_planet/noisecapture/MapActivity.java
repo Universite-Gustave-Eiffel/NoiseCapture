@@ -31,10 +31,8 @@ package org.noise_planet.noisecapture;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Resources;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.JsonWriter;
 import android.view.Menu;
 import android.webkit.JavascriptInterface;
 import android.widget.Toast;
@@ -43,6 +41,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 
@@ -51,8 +50,7 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
     private MeasurementManager measurementManager;
     private Storage.Record record;
     private boolean validBoundingBox = false;
-    private WebViewContent webViewContent = new WebViewContent();
-    private double ignoreNewPointDistanceDelta = 1;
+    private WebViewContent webViewContent;
     private long beginLoadPage = 0;
 
     @Override
@@ -63,6 +61,7 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         initDrawer(intent != null ? intent.getIntExtra(RESULTS_RECORD_ID, -1) : null);
 
         this.measurementManager = new MeasurementManager(getApplicationContext());
+        webViewContent = new WebViewContent(measurementManager);
         if(intent != null && intent.hasExtra(RESULTS_RECORD_ID)) {
             record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1));
         } else {
@@ -104,37 +103,16 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         }
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         int measureLimitation = getInteger(sharedPref, "summary_settings_map_maxmarker", 0);
+        webViewContent.setMeasureLimitation(measureLimitation);
 
-        List<MeasurementManager.LeqBatch> measurements = new ArrayList<MeasurementManager.LeqBatch>();
-        // TODO Transfer all records through
-        // addJavascriptInterface
         if(record != null) {
-            measurements = measurementManager.getRecordLocations(record.getId() , true, measureLimitation, null, ignoreNewPointDistanceDelta);
-            if(BuildConfig.DEBUG) {
-                System.out.println("Read data from db in "+(System.currentTimeMillis() - beginLoadContent)+" ms");
-            }
-            try {
-                long beginConversionToJson = System.currentTimeMillis();
-                webViewContent.setSelectedMeasurements(MeasurementExport.recordsToGeoJSON(measurements, false, false));
-                if(BuildConfig.DEBUG) {
-                    System.out.println("ConversionToJson in "+(System.currentTimeMillis() - beginConversionToJson)+" ms");
-                }
-            } catch (JSONException ex) {
-                Toast.makeText(getApplicationContext(), ex.getLocalizedMessage(),
-                        Toast.LENGTH_LONG).show();
-            }
+            webViewContent.setSelectedMeasurementRecordId(record.getId());
         }
-        boolean validBoundingBox = measurements.size() > 1;
-        if(validBoundingBox) {
-            mapFragment.runJs("addMeasurementPoints(JSON.parse(androidContent.getSelectedMeasurementData()))");
-            mapFragment.runJs("map.fitBounds(userMeasurementPoints.getBounds())");
-            if(BuildConfig.DEBUG) {
-                System.out.println("Load data for leaflet in "+(System.currentTimeMillis() - beginLoadContent)+" ms");
-            }
-        } else {
-            Toast.makeText(getApplicationContext(), getString(R.string.no_gps_results),
-                    Toast.LENGTH_LONG).show();
-        }
+
+        mapFragment.runJs("addMeasurementPoints(JSON.parse(androidContent" +
+                ".getSelectedMeasurementData()))");
+        mapFragment.runJs("map.fitBounds(userMeasurementPoints.getBounds())");
+
     }
 
     @Override
@@ -145,20 +123,61 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
     }
 
     public static final class WebViewContent {
-        JSONArray selectedMeasurements;
-        JSONArray allMeasurements;
+        private int selectedMeasurementRecordId;
+        private JSONArray allMeasurementsBounds = new JSONArray(Arrays.asList(new Double[]{}));
+        private MeasurementManager measurementManager;
+        private int measureLimitation;
+        private double ignoreNewPointDistanceDelta = 1;
 
-        public void setSelectedMeasurements(JSONArray selectedMeasurements) {
-            this.selectedMeasurements = selectedMeasurements;
+        WebViewContent(MeasurementManager measurementManager) {
+            this.measurementManager = measurementManager;
         }
 
-        public void setAllMeasurements(JSONArray allMeasurements) {
-            this.allMeasurements = allMeasurements;
+        public void setSelectedMeasurementRecordId(int selectedMeasurementRecordId) {
+            this.selectedMeasurementRecordId = selectedMeasurementRecordId;
+        }
+
+        public void setMeasureLimitation(int measureLimitation) {
+            this.measureLimitation = measureLimitation;
         }
 
         @JavascriptInterface
         public String getSelectedMeasurementData() {
-            return selectedMeasurements.toString();
+            long beginLoadContent = System.currentTimeMillis();
+            List<MeasurementManager.LeqBatch> measurements = measurementManager.getRecordLocations(selectedMeasurementRecordId , true, measureLimitation, null, ignoreNewPointDistanceDelta);
+
+            //            Toast.makeText(getApplicationContext(), getString(R.string.no_gps_results),
+            //                    Toast.LENGTH_LONG).show();
+            if(BuildConfig.DEBUG) {
+                System.out.println("Read data from db in "+(System.currentTimeMillis() - beginLoadContent)+" ms");
+            }
+            try {
+                return MeasurementExport.recordsToGeoJSON(measurements, false, false).toString();
+            } catch (JSONException ex) {
+                if(BuildConfig.DEBUG) {
+                    System.out.println("Error while building JSON "+ex.getLocalizedMessage());
+                }
+                return new JSONArray().toString();
+            }
+        }
+
+        @JavascriptInterface
+        public String getAllMeasurementData() {
+            long beginLoadContent = System.currentTimeMillis();
+            List<MeasurementManager.LeqBatch> measurements = measurementManager
+                    .getRecordLocations(-1 , true, measureLimitation, null,
+                            ignoreNewPointDistanceDelta);
+            if(BuildConfig.DEBUG) {
+                System.out.println("Read data from db in "+(System.currentTimeMillis() - beginLoadContent)+" ms");
+            }
+            try {
+                return MeasurementExport.recordsToGeoJSON(measurements, false, false).toString();
+            } catch (JSONException ex) {
+                if(BuildConfig.DEBUG) {
+                    System.out.println("Error while building JSON "+ex.getLocalizedMessage());
+                }
+                return new JSONArray().toString();
+            }
         }
     }
 }

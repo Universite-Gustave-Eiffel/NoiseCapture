@@ -84,13 +84,13 @@ var index;
 var ready = false;
 
 
-function addAllMeasurementPoints(geoJSONFeatures) {
+function addAllMeasurementPoints() {
     index = supercluster({
         log: true,
         radius: 60,
         extent: 256,
-        maxZoom: 16
-    }).load(geoJSONFeatures);
+        maxZoom: 15
+    }).load(JSON.parse(androidContent.getAllMeasurementData()));
     ready= true;
 }
 
@@ -109,6 +109,11 @@ map.on('moveend', update);
 map.on('overlayadd', function(eventLayer){
     if(eventLayer.name === measurements_layer_name) {
         map.flyToBounds(userMeasurementPoints.getBounds())
+    } else if(eventLayer.name === all_measurements_layer_name) {
+        if(!ready) {
+            addAllMeasurementPoints();
+        }
+        //map.flyToBounds(androidContent.getAllMeasurementBounds());
     }
 });
 

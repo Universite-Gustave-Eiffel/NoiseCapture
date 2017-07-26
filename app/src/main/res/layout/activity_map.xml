@@ -29,15 +29,27 @@
         android:layout_width="match_parent"
         android:id="@+id/map_progress_layout"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical|center_horizontal"
+        android:orientation="vertical"
+        android:background="@drawable/round_corner"
+        android:gravity="right|center_horizontal"
         android:layout_centerInParent="true"
+        android:layout_margin="10dp"
         android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:gravity="center"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            style="@style/Base.TextAppearance.AppCompat.Title"
+            android:text="@string/map_title_progress_loading"/>
 
         <ProgressBar
             style="@style/Widget.AppCompat.ProgressBar.Horizontal"
             android:id="@+id/map_progress_control"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
+            android:progress="25"
+            android:layout_margin="5dp"
             android:layout_weight="1"
             android:layout_height="wrap_content" />
 

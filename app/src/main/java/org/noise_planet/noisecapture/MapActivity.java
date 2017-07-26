@@ -31,6 +31,7 @@ package org.noise_planet.noisecapture;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
@@ -46,6 +47,7 @@ import org.json.JSONException;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class MapActivity extends MainActivity implements MapFragment.MapFragmentAvailableListener {
@@ -190,8 +192,9 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
     }
 
     private static final class ReadRecordsProgression implements MeasurementManager
-            .ProgressionCallBack {
+            .ProgressionCallBack, View.OnClickListener {
         private AppCompatActivity activity;
+        AtomicBoolean canceled = new AtomicBoolean(false);
         int recordCount = 0;
         int record = 0;
         int lastProgress = 0;
@@ -209,6 +212,12 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
                     .map_progress_control);
             button = (Button)activity.findViewById(R.id
                     .map_progress_cancel);
+            button.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            canceled.set(true);
         }
 
         @Override
@@ -227,20 +236,25 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         }
 
         @Override
-        public void onCursorNext() {
+        public boolean onCursorNext() {
             if(handleProgression) {
                 record++;
                 final int newProgression = (int)((record / (double) recordCount) * 100);
-                if(newProgression != lastProgress) {
+                if(newProgression / 5 != lastProgress / 5) {
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            progressBar.setProgress(newProgression, true);
+                        } else {
                             progressBar.setProgress(newProgression);
+                        }
                         }
                     });
                     lastProgress = newProgression;
                 }
             }
+            return !canceled.get();
         }
 
         @Override

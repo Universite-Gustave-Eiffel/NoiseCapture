@@ -265,4 +265,5 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="measurement_tab_spectrum">Spettro</string>
     <string name="title_settings_map_maxmarker" >Limiti di misura visualizzati</string>
     <string name="summary_settings_map_maxmarker" >Limite di visualizzazione dei conteggi di misura sulla mappa (0 per nessun limite)</string>
+    <string name="map_title_progress_loading" />
 </resources>

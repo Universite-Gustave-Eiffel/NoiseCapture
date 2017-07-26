@@ -315,7 +315,10 @@ public class MeasurementManager {
                     Storage.LeqValue leqValue = new Storage.LeqValue(cursor);
                     if(lastId != leqValue.getLeqId() && lastId != -1) {
                         if(progressionCallBack != null) {
-                            progressionCallBack.onCursorNext();
+                            if(!progressionCallBack.onCursorNext()) {
+                                // user cancel the loading of data
+                                break;
+                            }
                         }
                         // Ignore point if the new point is too close from the last point
                         if(minDistance != null) {
@@ -590,7 +593,7 @@ public class MeasurementManager {
 
     public interface ProgressionCallBack {
         void onCreateCursor(int recordCount);
-        void onCursorNext();
+        boolean onCursorNext();
         void onDeleteCursor();
     }
 }

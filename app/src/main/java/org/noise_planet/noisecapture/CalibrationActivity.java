@@ -329,7 +329,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             final double leq;
             // Use global dB value or only the selected frequency band
             if(spinner.getSelectedItemPosition() == 0) {
-                leq = measure.getSignalLeq();
+                leq = measure.getGlobaldBaValue();
             } else {
                 int selectFreq = freq_choice[spinner.getSelectedItemPosition()];
                 int index = Arrays.binarySearch(measurementService.getAudioProcess().getDelayedCenterFrequency(), selectFreq);
@@ -374,7 +374,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             measurementService.getAudioProcess().setDoFastLeq(false);
             measurementService.getAudioProcess().setDoOneSecondLeq(true);
             measurementService.getAudioProcess().setWeightingA(false);
-            measurementService.getAudioProcess().setHannWindowOneSecond(false);
+            measurementService.getAudioProcess().setHannWindowOneSecond(true);
         }
 
         public void onServiceDisconnected(ComponentName className) {

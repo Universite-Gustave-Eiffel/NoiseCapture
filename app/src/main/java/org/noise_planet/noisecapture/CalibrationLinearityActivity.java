@@ -765,7 +765,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                     (AudioProcess.AudioMeasureResult) event.getNewValue();
             final double leq;
             // Use global dB value or only the selected frequency band
-            leq = measure.getSignalLeq();
+            leq = measure.getGlobaldBaValue();
             if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
                 leqStats.addLeq(leq);
                 if(!freqLeqStats.isEmpty() && splBackroundNoise != 0) {

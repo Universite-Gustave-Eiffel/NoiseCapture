@@ -31,7 +31,7 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="@drawable/round_corner"
-        android:gravity="right|center_horizontal"
+        android:gravity="end|center_horizontal"
         android:layout_centerInParent="true"
         android:layout_margin="10dp"
         android:visibility="gone">
@@ -51,7 +51,7 @@
             android:progress="25"
             android:layout_margin="5dp"
             android:layout_weight="1"
-            android:layout_height="wrap_content" />
+            android:layout_height="0dp" />
 
 
         <android.support.v7.widget.AppCompatButton

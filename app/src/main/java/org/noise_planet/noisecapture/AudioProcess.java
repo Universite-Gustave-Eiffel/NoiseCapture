@@ -412,7 +412,7 @@ public class AudioProcess implements Runnable {
                             (double) audioProcess.getRate()) * 1000);
             audioProcess.listeners.firePropertyChange(propertyName,
                     null,
-                    new AudioMeasureResult(result,  beginRecordTime, 0));
+                    new AudioMeasureResult(result,  beginRecordTime));
         }
 
         private void processSample(short[] buffer) {
@@ -470,23 +470,14 @@ public class AudioProcess implements Runnable {
     public static final class AudioMeasureResult {
         private final FFTSignalProcessing.ProcessingResult result;
         private final long beginRecordTime;
-        private double signalLeq;
 
-        public AudioMeasureResult(FFTSignalProcessing.ProcessingResult result, long beginRecordTime, double signalLeq) {
+        public AudioMeasureResult(FFTSignalProcessing.ProcessingResult result, long beginRecordTime) {
             this.result = result;
             this.beginRecordTime = beginRecordTime;
-            this.signalLeq = signalLeq;
         }
 
         public FFTSignalProcessing.ProcessingResult getResult() {
             return result;
-        }
-
-        /**
-         * @return Leq computed using signal; not recomposed third-octave bands
-         */
-        public double getSignalLeq() {
-            return signalLeq;
         }
 
         /**

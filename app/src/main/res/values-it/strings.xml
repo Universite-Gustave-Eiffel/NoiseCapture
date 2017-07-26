@@ -174,7 +174,7 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
     <string name="upload_progress_title">Caricamento in corso&#8230;</string>
     <string name="upload_progress_message">Caricamento misurazione in corso</string>
 
-    <string name="history_length">Durata: %d secondi</string>
+    <string name="history_length">%d s</string>
     <string name="history_date">Data: %s</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Carica</string>

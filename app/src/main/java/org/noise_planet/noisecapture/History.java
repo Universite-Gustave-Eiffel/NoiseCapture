@@ -30,9 +30,12 @@ package org.noise_planet.noisecapture;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -347,6 +350,7 @@ public class History extends MainActivity {
         private List<Storage.Record> informationHistoryList;
         private History activity;
         private MeasurementManager measurementManager;
+        private SimpleDateFormat simpleDateFormat = new SimpleDateFormat("EEE, d MMM yyyy HH:mm z", Locale.getDefault());
 
         public InformationHistoryAdapter(MeasurementManager measurementManager, History activity) {
             this.informationHistoryList = measurementManager.getRecords();
@@ -418,28 +422,34 @@ public class History extends MainActivity {
 
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
-            if(convertView==null)
-            {
-                LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(R.layout.history_item_layout, parent,false);
+            if(convertView == null) {
+                LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Context
+                        .LAYOUT_INFLATER_SERVICE);
+                convertView = inflater.inflate(R.layout.history_item_layout, parent, false);
             }
-            TextView description = (TextView)convertView.findViewById(R.id.textView_description_item_history);
-            TextView history_Date = (TextView)convertView.findViewById(R.id.textView_Date_item_history);
-            TextView history_SEL = (TextView)convertView.findViewById(R.id.textView_SEL_item_history);
-            TextView history_SEL_bar = (TextView)convertView.findViewById(R.id.textView_SEL_bar_item_history);
+            TextView description = (TextView) convertView.findViewById(R.id
+                    .textView_description_item_history);
+            TextView history_Date = (TextView) convertView.findViewById(R.id
+                    .textView_Date_item_history);
+            TextView history_SEL = (TextView) convertView.findViewById(R.id
+                    .textView_SEL_item_history);
+            TextView history_SEL_bar = (TextView) convertView.findViewById(R.id
+                    .textView_SEL_bar_item_history);
             Storage.Record record = informationHistoryList.get(position);
 
             // Update history item
             Resources res = activity.getResources();
             description.setText(record.getDescription());
-            history_Date.setText(res.getString(R.string.history_date, record.getUtcDate()));
-            history_SEL.setText(res.getString(R.string.history_sel, record.getLeqMean()) + " " + res.getString(R.string.history_length, record.getTimeLength()));
-            int nc= getNEcatColors(record.getLeqMean());
+            history_Date.setText(res.getString(R.string.history_length, record.getTimeLength()) +
+                    " " + res.getString(R.string.history_date, simpleDateFormat.format(new Date
+                    (record.getUtc()))));
+            history_SEL.setText(res.getString(R.string.history_sel, record.getLeqMean()));
+            int nc = getNEcatColors(record.getLeqMean());
             history_SEL.setTextColor(activity.NE_COLORS[nc]);
             history_SEL_bar.setBackgroundColor(activity.NE_COLORS[nc]);
 
-            ImageView imageView = (ImageView)convertView.findViewById(R.id.history_uploaded);
-            if(record.getUploadId().isEmpty()) {
+            ImageView imageView = (ImageView) convertView.findViewById(R.id.history_uploaded);
+            if (record.getUploadId().isEmpty()) {
                 imageView.setImageResource(R.drawable.localonly);
             } else {
                 imageView.setImageResource(R.drawable.uploaded);

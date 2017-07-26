@@ -172,7 +172,7 @@
     <string name="upload_progress_title">Transfert&#8230;</string>
     <string name="upload_progress_message">Transfert de la mesure</string>
 
-    <string name="history_length">Durée : %d secondes</string>
+    <string name="history_length">%d s</string>
     <string name="history_date">Date : %s</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Transfert</string>

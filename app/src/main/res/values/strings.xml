@@ -181,7 +181,7 @@
     <string name="upload_progress_title">Uploading&#8230;</string>
     <string name="upload_progress_message">Uploading measurement</string>
 
-    <string name="history_length">Duration: %d seconds</string>
+    <string name="history_length">%d s</string>
     <string name="history_date">Date: %s</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Upload</string>

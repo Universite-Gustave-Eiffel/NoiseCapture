@@ -1,3 +1,4 @@
+'use strict';
 
 var map = L.map('map').fitWorld();
 
@@ -8,7 +9,7 @@ L.control.scale({
 }).addTo(map);
 
 function featureToMarker(feature, latlng) {
-        return L.circleMarker(latlng, {
+        if (!feature.properties.cluster)  return L.circleMarker(latlng, {
             color: '#ffffff',
             fillColor: feature.properties["marker-color"],
             weight: 0.,
@@ -17,9 +18,21 @@ function featureToMarker(feature, latlng) {
             stroke: false,
             zIndex: 4
         });
+    var count = feature.properties.point_count;
+    var size =
+        count < 100 ? 'small' :
+        count < 1000 ? 'medium' : 'large';
+    var icon = L.divIcon({
+        html: '<div><span>' + feature.properties.point_count_abbreviated + '</span></div>',
+        className: 'marker-cluster marker-cluster-' + size,
+        iconSize: L.point(40, 40)
+    });
+    return L.marker(latlng, {icon: icon});
 }
 
 var userMeasurementPoints = L.geoJSON(null,{pointToLayer : featureToMarker});
+
+var allUserMeasurementPoints = L.geoJSON(null,{pointToLayer : featureToMarker});
 
 function addMeasurementPoints(GeoJSONFeatures) {
     userMeasurementPoints.addData(GeoJSONFeatures);
@@ -57,12 +70,41 @@ var baseLayers = {
 };
 
 var community_layer_name = "Community sound level (LA50)"
+var all_measurements_layer_name = "All measurements"
 var measurements_layer_name = "Measurements";
 
 var overlays = {};
 
 overlays[measurements_layer_name] = userMeasurementPoints;
+overlays[all_measurements_layer_name] = allUserMeasurementPoints;
 overlays[community_layer_name] = onomap;
+
+// Init supercluster
+var index;
+var ready = false;
+
+
+function addAllMeasurementPoints(geoJSONFeatures) {
+    index = supercluster({
+        log: true,
+        radius: 60,
+        extent: 256,
+        maxZoom: 16
+    }).load(geoJSONFeatures);
+    ready= true;
+}
+
+function update() {
+    if (!ready) return;
+    allUserMeasurementPoints.clearLayers();
+    var bounds = map.getBounds();
+    var bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]
+    var data = index.getClusters(bbox, map.getZoom())
+    allUserMeasurementPoints.addData(data);
+}
+
+map.on('moveend', update);
+
 
 map.on('overlayadd', function(eventLayer){
     if(eventLayer.name === measurements_layer_name) {

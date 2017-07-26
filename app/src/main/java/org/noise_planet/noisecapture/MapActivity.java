@@ -33,23 +33,24 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
+import android.view.View;
 import android.webkit.JavascriptInterface;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 
 public class MapActivity extends MainActivity implements MapFragment.MapFragmentAvailableListener {
     public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
-    private MeasurementManager measurementManager;
     private Storage.Record record;
-    private boolean validBoundingBox = false;
     private WebViewContent webViewContent;
     private long beginLoadPage = 0;
 
@@ -60,8 +61,8 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         Intent intent = getIntent();
         initDrawer(intent != null ? intent.getIntExtra(RESULTS_RECORD_ID, -1) : null);
 
-        this.measurementManager = new MeasurementManager(getApplicationContext());
-        webViewContent = new WebViewContent(measurementManager);
+        MeasurementManager measurementManager = new MeasurementManager(getApplicationContext());
+        webViewContent = new WebViewContent(this, measurementManager);
         if(intent != null && intent.hasExtra(RESULTS_RECORD_ID)) {
             record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1));
         } else {
@@ -123,13 +124,15 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
     }
 
     public static final class WebViewContent {
+        private AppCompatActivity activity;
         private int selectedMeasurementRecordId;
         private JSONArray allMeasurementsBounds = new JSONArray(Arrays.asList(new Double[]{}));
         private MeasurementManager measurementManager;
         private int measureLimitation;
         private double ignoreNewPointDistanceDelta = 1;
 
-        WebViewContent(MeasurementManager measurementManager) {
+        public WebViewContent(AppCompatActivity activity, MeasurementManager measurementManager) {
+            this.activity = activity;
             this.measurementManager = measurementManager;
         }
 
@@ -144,18 +147,22 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         @JavascriptInterface
         public String getSelectedMeasurementData() {
             long beginLoadContent = System.currentTimeMillis();
-            List<MeasurementManager.LeqBatch> measurements = measurementManager.getRecordLocations(selectedMeasurementRecordId , true, measureLimitation, null, ignoreNewPointDistanceDelta);
-
-            //            Toast.makeText(getApplicationContext(), getString(R.string.no_gps_results),
-            //                    Toast.LENGTH_LONG).show();
-            if(BuildConfig.DEBUG) {
-                System.out.println("Read data from db in "+(System.currentTimeMillis() - beginLoadContent)+" ms");
+            List<MeasurementManager.LeqBatch> measurements = measurementManager
+                    .getRecordLocations(selectedMeasurementRecordId, true, measureLimitation,
+                            new ReadRecordsProgression(activity), ignoreNewPointDistanceDelta);
+            if (measurements.isEmpty()) {
+                Toast.makeText(activity, activity.getText(R.string.no_gps_results), Toast
+                        .LENGTH_LONG).show();
+            }
+            if (BuildConfig.DEBUG) {
+                System.out.println("Read data from db in " + (System.currentTimeMillis() -
+                        beginLoadContent) + " ms");
             }
             try {
                 return MeasurementExport.recordsToGeoJSON(measurements, false, false).toString();
             } catch (JSONException ex) {
-                if(BuildConfig.DEBUG) {
-                    System.out.println("Error while building JSON "+ex.getLocalizedMessage());
+                if (BuildConfig.DEBUG) {
+                    System.out.println("Error while building JSON " + ex.getLocalizedMessage());
                 }
                 return new JSONArray().toString();
             }
@@ -163,9 +170,10 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
 
         @JavascriptInterface
         public String getAllMeasurementData() {
+
             long beginLoadContent = System.currentTimeMillis();
             List<MeasurementManager.LeqBatch> measurements = measurementManager
-                    .getRecordLocations(-1 , true, measureLimitation, null,
+                    .getRecordLocations(-1 , true, measureLimitation, new ReadRecordsProgression(activity),
                             ignoreNewPointDistanceDelta);
             if(BuildConfig.DEBUG) {
                 System.out.println("Read data from db in "+(System.currentTimeMillis() - beginLoadContent)+" ms");
@@ -178,6 +186,71 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
                 }
                 return new JSONArray().toString();
             }
+        }
+    }
+
+    private static final class ReadRecordsProgression implements MeasurementManager
+            .ProgressionCallBack {
+        private AppCompatActivity activity;
+        int recordCount = 0;
+        int record = 0;
+        int lastProgress = 0;
+        boolean handleProgression = false;
+        private static final int MINIMAL_RECORD_DISPLAY_PROGRESS = 100;
+        View progressView;
+        ProgressBar progressBar;
+        Button button;
+
+        public ReadRecordsProgression(AppCompatActivity activity) {
+            this.activity = activity;
+            progressView = activity.findViewById(R.id
+                    .map_progress_layout);
+            progressBar = (ProgressBar) activity.findViewById(R.id
+                    .map_progress_control);
+            button = (Button)activity.findViewById(R.id
+                    .map_progress_cancel);
+        }
+
+        @Override
+        public void onCreateCursor(int recordCount) {
+            this.recordCount = recordCount;
+            if(recordCount > MINIMAL_RECORD_DISPLAY_PROGRESS) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setProgress(0);
+                        progressView.setVisibility(View.VISIBLE);
+                    }
+                });
+                handleProgression = true;
+            }
+        }
+
+        @Override
+        public void onCursorNext() {
+            if(handleProgression) {
+                record++;
+                final int newProgression = (int)((record / (double) recordCount) * 100);
+                if(newProgression != lastProgress) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            progressBar.setProgress(newProgression);
+                        }
+                    });
+                    lastProgress = newProgression;
+                }
+            }
+        }
+
+        @Override
+        public void onDeleteCursor() {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    progressView.setVisibility(View.GONE);
+                }
+            });
         }
     }
 }

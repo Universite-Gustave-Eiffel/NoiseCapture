@@ -32,6 +32,7 @@ function featureToMarker(feature, latlng) {
 
 var userMeasurementPoints = L.geoJSON(null,{pointToLayer : featureToMarker});
 
+var allUserMeasurementPointsBounds;
 var allUserMeasurementPoints = L.geoJSON(null,{pointToLayer : featureToMarker});
 
 function addMeasurementPoints(GeoJSONFeatures) {
@@ -92,6 +93,22 @@ function addAllMeasurementPoints() {
         maxZoom: 15
     }).load(JSON.parse(androidContent.getAllMeasurementData()));
     ready= true;
+    // Compute bounds
+    for (var i = 0; i < index.points.length; i++) {
+        var point = index.points[i];
+        if (!point.geometry) {
+            continue;
+        }
+        var coordinates = point.geometry.coordinates;
+        if(typeof allUserMeasurementPointsBounds !== 'undefined') {
+            allUserMeasurementPointsBounds.extend(L.latLng(coordinates[1], coordinates[0]))
+        } else {
+            allUserMeasurementPointsBounds = L.latLngBounds(L.latLng(coordinates[1], coordinates[0]), L.latLng(coordinates[1], coordinates[0]));
+        }
+    }
+    if(typeof allUserMeasurementPointsBounds !== 'undefined') {
+        map.flyToBounds(allUserMeasurementPointsBounds);
+    }
 }
 
 function update() {
@@ -113,7 +130,9 @@ map.on('overlayadd', function(eventLayer){
         if(!ready) {
             addAllMeasurementPoints();
         }
-        //map.flyToBounds(androidContent.getAllMeasurementBounds());
+        if(typeof allUserMeasurementPointsBounds !== 'undefined') {
+            map.flyToBounds(allUserMeasurementPointsBounds);
+        }
     }
 });
 

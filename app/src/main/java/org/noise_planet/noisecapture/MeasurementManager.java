@@ -352,6 +352,9 @@ public class MeasurementManager {
                 }
                 return leqBatches;
             } finally {
+                if(progressionCallBack != null) {
+                    progressionCallBack.onDeleteCursor();
+                }
                 cursor.close();
             }
         } finally {
@@ -588,5 +591,6 @@ public class MeasurementManager {
     public interface ProgressionCallBack {
         void onCreateCursor(int recordCount);
         void onCursorNext();
+        void onDeleteCursor();
     }
 }

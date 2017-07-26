@@ -423,7 +423,7 @@ public class History extends MainActivity {
                 LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
                 convertView = inflater.inflate(R.layout.history_item_layout, parent,false);
             }
-            TextView history_length = (TextView)convertView.findViewById(R.id.textView_length_item_history);
+            TextView description = (TextView)convertView.findViewById(R.id.textView_description_item_history);
             TextView history_Date = (TextView)convertView.findViewById(R.id.textView_Date_item_history);
             TextView history_SEL = (TextView)convertView.findViewById(R.id.textView_SEL_item_history);
             TextView history_SEL_bar = (TextView)convertView.findViewById(R.id.textView_SEL_bar_item_history);
@@ -431,9 +431,9 @@ public class History extends MainActivity {
 
             // Update history item
             Resources res = activity.getResources();
-            history_length.setText(res.getString(R.string.history_length, record.getTimeLength()));
+            description.setText(record.getDescription());
             history_Date.setText(res.getString(R.string.history_date, record.getUtcDate()));
-            history_SEL.setText(res.getString(R.string.history_sel, record.getLeqMean()));
+            history_SEL.setText(res.getString(R.string.history_sel, record.getLeqMean()) + " " + res.getString(R.string.history_length, record.getTimeLength()));
             int nc= getNEcatColors(record.getLeqMean());
             history_SEL.setTextColor(activity.NE_COLORS[nc]);
             history_SEL_bar.setBackgroundColor(activity.NE_COLORS[nc]);

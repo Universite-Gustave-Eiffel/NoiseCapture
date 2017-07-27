@@ -206,10 +206,11 @@ meta.properties file are general info on device and record:\n
 - uuid Random identifier set on first application start\n
 - leq_mean Mean equivalent sound level in dB(A) of the measure\n
 - record_utc Record time in epoch millisecond\n
-- device_manufacturer device_model device_product Generic Hardware information of measure device\n\n
-- pleasantness User input pleasantness 1-100
-- tags Comma separated values of user selected tags (english only)
-track.geojson 1s samples of measures. Using the geojson format (http://geojson.io)
+- device_manufacturer device_model device_product Generic Hardware information of measure device\n
+- pleasantness User input pleasantness 1-100\n
+- tags Comma separated values of user selected tags (english only)\n\n
+
+track.geojson 1s samples of measures. Using the geojson format (http://geojson.io)\n
 - leq_mean 1s mean equivalent sound level in dB(A)\n
 - accuracy Localisation precision in m (provided by gps, network or gsm)\n
 - location_utc Localisation fix time in epoch millisecond\n
@@ -253,9 +254,9 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="share_message">I measure %.01f dB(A) using #NoiseCapture @Noise_Planet</string>
     <string name="summary_settings_measurement_display_window">Window function for realtime measurement (not used for final result)</string>
     <string name="title_settings_measurement_display_window">Realtime window</string>
-    <string name="title_settings_map_maxmarker" >Displayed measurement limits</string>
-    <string name="summary_settings_map_maxmarker" >Maximum number of measurements displayed on the map (0 for all measurements)</string>
-    <string name="map_title_progress_loading" >Loading of measurements locations</string>
+    <string name="title_settings_map_maxmarker">Displayed measurement limits</string>
+    <string name="summary_settings_map_maxmarker">Maximum number of measurements displayed on the map (0 for all measurements)</string>
+    <string name="map_title_progress_loading">Loading of measurements locations</string>
 
     <string-array name="output_mode_labels">
         <item>Voice call</item>

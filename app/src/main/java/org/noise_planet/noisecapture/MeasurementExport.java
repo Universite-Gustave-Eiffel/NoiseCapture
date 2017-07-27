@@ -219,6 +219,8 @@ public class MeasurementExport {
 
         try {
 
+            // Add measures
+            main.put("type", "FeatureCollection");
             main.put("features", recordsToGeoJSON(records, true, true));
             zipOutputStream.putNextEntry(new ZipEntry(GEOJSON_FILENAME));
             Writer writer = new OutputStreamWriter(zipOutputStream);

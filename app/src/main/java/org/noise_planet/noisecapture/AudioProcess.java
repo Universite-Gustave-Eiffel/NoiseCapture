@@ -86,7 +86,8 @@ public class AudioProcess implements Runnable {
     public AudioProcess(AtomicBoolean recording, AtomicBoolean canceled) {
         this.recording = recording;
         this.canceled = canceled;
-        final int[] mSampleRates = new int[] {44100, 22050, 16000, 11025,8000};
+        final int[] mSampleRates = new int[] {44100}; // AWeigting coefficient are based on 44100
+        // Hz sampling rate, so we do not support other samplings (22050, 16000, 11025,8000)
         final int[] encodings = new int[] { AudioFormat.ENCODING_PCM_16BIT , AudioFormat.ENCODING_PCM_8BIT };
         final short[] audioChannels = new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO };
         for (int tryRate : mSampleRates) {

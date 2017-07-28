@@ -42,6 +42,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
@@ -150,6 +151,9 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         spinner.setAdapter(adapter);
         // Set default value to standard calibration mode (Global)
         spinner.setSelection(0, false);
+
+        ((TextView)findViewById(R.id.text_calibration_warning)).setMovementMethod(LinkMovementMethod
+                .getInstance());
 
 
         initCalibration();

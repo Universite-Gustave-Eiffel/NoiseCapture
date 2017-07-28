@@ -52,7 +52,6 @@ import android.support.v7.app.AppCompatDelegate;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -329,7 +328,7 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                     break;
                 case 6:
-                    Intent ih = new Intent(getApplicationContext(),View_html_page.class);
+                    Intent ih = new Intent(getApplicationContext(),ViewHtmlPage.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     ih.putExtra("pagetosee",
                             getString(R.string.url_help));
@@ -339,7 +338,7 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                     break;
                 case 7:
-                    Intent ia = new Intent(getApplicationContext(),View_html_page.class);
+                    Intent ia = new Intent(getApplicationContext(),ViewHtmlPage.class);
                     ia.putExtra("pagetosee",
                             getString(R.string.url_about));
                     ia.putExtra("titletosee",
@@ -406,7 +405,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
             /*
             case R.id.action_about:
-                Intent ia = new Intent(getApplicationContext(),View_html_page.class);
+                Intent ia = new Intent(getApplicationContext(),ViewHtmlPage.class);
                 pagetosee=getString(R.string.url_about);
                 titletosee=getString((R.string.title_activity_about));
                 startActivity(ia);

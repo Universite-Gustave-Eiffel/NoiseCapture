@@ -56,9 +56,16 @@
             android:name=".MainActivity"
             android:label="@string/title_activity_main"/>
         <activity
-            android:name=".View_html_page"
+            android:name=".ViewHtmlPage"
             android:label="@string/title_activity_view_html_page"
-            android:noHistory="true"/>
+            android:noHistory="true">
+            <!--  listen to ACTION_VIEW intents (links to this view) -->
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT" />
+                <action android:name="android.intent.action.VIEW" />
+                <data android:scheme="org.noise_planet.noisecapture" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"

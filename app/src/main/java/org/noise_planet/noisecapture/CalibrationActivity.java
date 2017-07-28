@@ -42,7 +42,9 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
+import android.text.util.Linkify;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
@@ -155,6 +157,14 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         ((TextView)findViewById(R.id.text_calibration_warning)).setMovementMethod(LinkMovementMethod
                 .getInstance());
 
+        final TextView message = new TextView(this);
+        message.setText(R.string.calibration_warning);
+        message.setMovementMethod(LinkMovementMethod.getInstance());
+        new AlertDialog.Builder(this).setTitle(R.string.title_caution)
+                .setView(message)
+                .setNeutralButton(R.string.text_OK, null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .show();
 
         initCalibration();
     }

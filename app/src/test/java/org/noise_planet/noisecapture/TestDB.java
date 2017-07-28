@@ -30,6 +30,10 @@ package org.noise_planet.noisecapture;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.util.JsonReader;
+import android.util.JsonToken;
+
+import junit.framework.Assert;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -172,21 +176,37 @@ public class TestDB {
         // Check properties of zip file
         FileInputStream fileInputStream = new FileInputStream(testFile);
         Properties meta = null;
+        boolean foundJson = false;
         try {
             ZipInputStream zipInputStream = new ZipInputStream(fileInputStream);
             ZipEntry zipEntry;
             while((zipEntry = zipInputStream.getNextEntry()) != null) {
-                if ("meta.properties".equals(zipEntry.getName())) {
+                if (MeasurementExport.PROPERTY_FILENAME.equals(zipEntry.getName())) {
                     meta = new Properties();
                     meta.load(zipInputStream);
+                }else if (MeasurementExport.GEOJSON_FILENAME.equals(zipEntry.getName())) {
+                    JsonReader jsonReader = new JsonReader(new InputStreamReader(zipInputStream,
+                            "UTF-8"));
+                    assertTrue(jsonReader.hasNext());
+                    assertEquals(JsonToken.BEGIN_OBJECT, jsonReader.peek());
+                    jsonReader.beginObject();
+                    assertEquals(JsonToken.NAME, jsonReader.peek());
+                    Assert.assertEquals("type" ,jsonReader.nextName());
+                    assertEquals(JsonToken.STRING, jsonReader.peek());
+                    Assert.assertEquals("FeatureCollection" ,jsonReader.nextString());
+                    assertEquals(JsonToken.NAME, jsonReader.peek());
+                    Assert.assertEquals("features" ,jsonReader.nextName());
+                    assertEquals(JsonToken.BEGIN_ARRAY, jsonReader.peek());
+                    foundJson = true;
                 }
             }
         } finally {
             fileInputStream.close();
         }
+        assertTrue(foundJson);
         assertNotNull(meta);
-        assertEquals(-4.76f, Float.valueOf(
-                meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
+        assertNotNull(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION));
+        assertEquals(-4.76f, Float.valueOf(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
         assertEquals((float)leqBatch.computeGlobalLeq(),
                 Float.valueOf(meta.getProperty(Storage.Record.COLUMN_LEQ_MEAN)), 0.01f);
     }

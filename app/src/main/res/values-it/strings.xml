@@ -265,5 +265,10 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="measurement_tab_spectrum">Spettro</string>
     <string name="title_settings_map_maxmarker" >Limiti di misura visualizzati</string>
     <string name="summary_settings_map_maxmarker" >Limite di visualizzazione dei conteggi di misura sulla mappa (0 per nessun limite)</string>
-    <string name="map_title_progress_loading" />
+    <string name="map_title_progress_loading" >Caricamento delle posizioni delle misurazioni</string>
+    <string name="policy_legal_age">Ho l\'età legale (definita dalla legge del mio paese) per l\'utilizzo di questo software</string>
+    <string name="policy_agree_statement">Ho letto e accetto l\'informativa sulla privacy</string>
+    <string name="policy_button_continue">Continuare</string>
+    <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
+    <string name="privacy_policy_title">Informativa sulla privacy</string>
 </resources>

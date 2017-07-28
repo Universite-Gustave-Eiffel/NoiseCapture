@@ -92,7 +92,8 @@
             android:name=".CommentActivity"
             android:label="@string/title_activity_comment"
             android:windowSoftInputMode="adjustPan"/>
-        <activity android:name=".PrivacyPolicyActivity">
+        <activity android:name=".PrivacyPolicyActivity"
+            android:label="@string/privacy_policy_title">
         </activity>
     </application>
 

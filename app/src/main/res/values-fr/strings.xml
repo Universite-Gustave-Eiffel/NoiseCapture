@@ -264,4 +264,9 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="title_settings_map_maxmarker" >Limites de mesure affichées</string>
     <string name="summary_settings_map_maxmarker" >Nombre maximal de mesures affichées sur une carte (0 pour toute les mesures)</string>
     <string name="map_title_progress_loading" >Chargement des données</string>
+    <string name="policy_legal_age">J\'ai l\'âge légal (défini par la loi de mon pays) pour l\'utilisation de ce logiciel</string>
+    <string name="policy_agree_statement">J\'ai lu et j\'accepte la politique de confidentialité</string>
+    <string name="policy_button_continue">Suivant</string>
+    <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
+    <string name="privacy_policy_title">Politique de confidentialité</string>
 </resources>

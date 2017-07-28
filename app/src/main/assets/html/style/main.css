@@ -87,7 +87,7 @@ body {
     font-family: "Lato";
     font-weight: 300;
     font-size: 16px;
-    color: #555;
+    color: #b4b3b3;
 
     -webkit-font-smoothing: antialiased;
     -webkit-overflow-scrolling: touch;
@@ -161,7 +161,7 @@ a img {
 h1, h2, h3, h4, h5, h6 {
     font-family: "Raleway";
     font-weight: 300;
-    color: #333;
+    color: #878787;
 }
 
 

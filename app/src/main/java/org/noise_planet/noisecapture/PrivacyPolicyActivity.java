@@ -27,14 +27,77 @@
 
 package org.noise_planet.noisecapture;
 
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.TypedValue;
+import android.view.View;
+import android.webkit.WebView;
+import android.widget.Button;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 
-public class PrivacyPolicyActivity extends AppCompatActivity {
+import java.util.UUID;
+
+public class PrivacyPolicyActivity extends AppCompatActivity implements View.OnClickListener {
+    boolean checkedLegalAge = false;
+    boolean checkedAgree = false;
+    public static final String PROP_POLICY_AGREED = "POLICY_AGREED";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_privacy_policy);
+        final WebView myWebView = (WebView) findViewById(R.id.privacy_policy_webview);
+        myWebView.loadUrl(getText(R.string.privacy_policy_webpage).toString());
+        // Get background color
+        TypedValue a = new TypedValue();
+        getTheme().resolveAttribute(android.R.attr.windowBackground, a, true);
+        if (a.type >= TypedValue.TYPE_FIRST_COLOR_INT && a.type <= TypedValue.TYPE_LAST_COLOR_INT) {
+            myWebView.setBackgroundColor(a.data);
+        }
+
+
+        CheckBox legalAgeCheckBox = (CheckBox) findViewById(R.id.policy_legal_age_checkbox);
+        legalAgeCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                checkedLegalAge = isChecked;
+                PrivacyPolicyActivity.this.onCheckChange();
+            }
+        });
+
+        final CheckBox agreeCheckBox = (CheckBox) findViewById(R.id.policy_agree_checkbox);
+        agreeCheckBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                checkedAgree = isChecked;
+                PrivacyPolicyActivity.this.onCheckChange();
+            }
+        });
+
+        Button continueButton = (Button) findViewById(R.id.policy_agree_continue_button);
+        continueButton.setOnClickListener(this);
+    }
+
+    private void onCheckChange() {
+        Button continueButton = (Button) findViewById(R.id.policy_agree_continue_button);
+        continueButton.setEnabled(checkedAgree && checkedLegalAge);
+    }
+
+    @Override
+    public void onClick(View v) {
+        // User click on Continue
+        // Save policy state
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putBoolean(PROP_POLICY_AGREED, checkedAgree && checkedLegalAge);
+        editor.apply();
+        // Start measurement activity
+        Intent i = new Intent(getApplicationContext(), MeasurementActivity.class);
+        startActivity(i);
+        finish();
     }
 }

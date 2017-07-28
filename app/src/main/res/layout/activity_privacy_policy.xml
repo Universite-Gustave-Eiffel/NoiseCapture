@@ -37,5 +37,32 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="org.noise_planet.noisecapture.PrivacyPolicyActivity">
-
+<LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="left">
+    <WebView
+        android:layout_width="match_parent"
+        android:id="@+id/privacy_policy_webview"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/policy_legal_age_checkbox"
+        android:text="@string/policy_legal_age"/>
+    <CheckBox
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/policy_agree_checkbox"
+        android:text="@string/policy_agree_statement"/>
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/policy_agree_continue_button"
+        android:layout_gravity="right"
+        android:text="@string/policy_button_continue"
+        android:enabled="false"/>
+</LinearLayout>
 </RelativeLayout>

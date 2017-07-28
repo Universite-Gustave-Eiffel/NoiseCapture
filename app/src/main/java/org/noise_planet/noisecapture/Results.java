@@ -224,17 +224,7 @@ public class Results extends MainActivity {
         exportComment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Export
-                final ProgressDialog progress = ProgressDialog.show(Results.this,
-                        Results.this.getText(R.string.upload_progress_title),
-                        Results.this.getText(R.string.upload_progress_message), true);
-                new Thread(new SendZipToServer(Results.this, Results.this.record.getId(), progress,
-                        new OnUploadedListener() {
-                            @Override
-                            public void onMeasurementUploaded() {
-                                onTransferRecord();
-                            }
-                        })).start();
+                Results.this.doTransferRecords();
             }
         });
 

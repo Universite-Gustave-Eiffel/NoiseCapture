@@ -52,6 +52,7 @@ import android.support.v7.app.AppCompatDelegate;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -83,6 +84,7 @@ public class MainActivity extends AppCompatActivity {
     public DrawerLayout mDrawerLayout;
     public String[] mMenuLeft;
     public ActionBarDrawerToggle mDrawerToggle;
+    private ProgressDialog progress;
 
     public static final int PERMISSION_RECORD_AUDIO_AND_GPS = 1;
     public static final int PERMISSION_WIFI_STATE = 2;
@@ -132,6 +134,19 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
         return true;
+    }
+
+
+    @Override
+    protected void onPause() {
+        if(progress != null && progress.isShowing()) {
+            try {
+                progress.dismiss();
+            } catch (IllegalArgumentException ex) {
+                //Ignore
+            }
+        }
+        super.onPause();
     }
 
     /**
@@ -455,9 +470,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Transfer provided records
+     */
+    protected void doTransferRecords(List<Integer> selectedRecordIds) {
+        runOnUiThread(new SendResults(this, selectedRecordIds, progress));
+    }
+
+    /**
      * Transfer records without checking user preferences
      */
-    private void doTransferRecords() {
+    protected void doTransferRecords() {
         if(!isOnline()) {
             MAINLOGGER.info("Not online, skip send of record");
             return;
@@ -471,7 +493,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if(!recordsToTransfer.isEmpty()) {
-            runOnUiThread(new SendResults(this, recordsToTransfer));
+            doTransferRecords(recordsToTransfer);
         }
     }
 
@@ -479,7 +501,7 @@ public class MainActivity extends AppCompatActivity {
         private MainActivity mainActivity;
         private List<Integer> recordsToTransfer;
 
-        public SendResults(MainActivity mainActivity, List<Integer> recordsToTransfer) {
+        public SendResults(MainActivity mainActivity, List<Integer> recordsToTransfer, ProgressDialog progress) {
             this.mainActivity = mainActivity;
             this.recordsToTransfer = recordsToTransfer;
         }
@@ -487,16 +509,25 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             // Export
-            final ProgressDialog progress = ProgressDialog.show(mainActivity,
-                    mainActivity.getText(R.string.upload_progress_title),
-                    mainActivity.getText(R.string.upload_progress_message), true);
-            new Thread(new SendZipToServer(mainActivity, recordsToTransfer, progress,
-                    new OnUploadedListener() {
-                        @Override
-                        public void onMeasurementUploaded() {
-                            mainActivity.onTransferRecord();
-                        }
-                    })).start();
+            try {
+                mainActivity.progress = ProgressDialog.show(mainActivity, mainActivity
+                        .getText(R.string
+                        .upload_progress_title),
+                        mainActivity.getText(R.string.upload_progress_message), true);
+            } catch (RuntimeException ex) {
+                // This error may arise on some system
+                // The display of progression are not vital so cancel the crash by handling the
+                // error
+                MAINLOGGER.error(ex.getLocalizedMessage(), ex);
+            }
+            new Thread(new SendZipToServer(mainActivity, recordsToTransfer, mainActivity
+                    .progress, new
+                    OnUploadedListener() {
+                @Override
+                public void onMeasurementUploaded() {
+                    mainActivity.onTransferRecord();
+                }
+            })).start();
         }
     }
 
@@ -597,7 +628,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             } finally {
-                progress.dismiss();
+                if(progress != null && progress.isShowing()) {
+                    try {
+                        progress.dismiss();
+                    } catch (IllegalArgumentException ex) {
+                        //Ignore
+                    }
+                }
             }
         }
     }

@@ -102,7 +102,6 @@ public class History extends MainActivity {
         infohistory.setOnItemClickListener(new HistoryItemListener(this));
     }
 
-
     private static class HistoryMultiChoiceListener implements AbsListView.MultiChoiceModeListener {
         History history;
 
@@ -146,7 +145,7 @@ public class History extends MainActivity {
                 case R.id.publish:
                     if(!selectedRecordIds.isEmpty()) {
                         // publish selected items following the ids
-                        history.runOnUiThread(new SendResults(history, selectedRecordIds));
+                        history.doTransferRecords(selectedRecordIds);
                     }
                     // Close CAB
                     mode.finish();

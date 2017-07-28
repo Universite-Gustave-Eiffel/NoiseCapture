@@ -41,12 +41,17 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="left">
+    android:gravity="start">
     <WebView
         android:layout_width="match_parent"
         android:id="@+id/privacy_policy_webview"
         android:layout_height="0dp"
+        android:scrollbarAlwaysDrawVerticalTrack="true"
+        android:fadeScrollbars="false"
         android:layout_weight="1"/>
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/activity_vertical_margin"/>
     <CheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

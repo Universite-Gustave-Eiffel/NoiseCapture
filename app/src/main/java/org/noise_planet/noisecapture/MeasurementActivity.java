@@ -317,6 +317,7 @@ public class MeasurementActivity extends MainActivity implements
             // Stop measurement without waiting for the end of processing
             measurementService.setPause(!measurementService.isPaused());
             chronometerWaitingToStart.set(true);
+            MeasurementActivity.this.runOnUiThread(new UpdateText(MeasurementActivity.this));
         }
     };
 

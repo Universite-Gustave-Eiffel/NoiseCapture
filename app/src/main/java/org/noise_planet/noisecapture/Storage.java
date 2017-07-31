@@ -35,6 +35,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.text.TextUtils;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -387,6 +388,14 @@ public class Storage extends SQLiteOpenHelper {
                     getFloat(cursor, COLUMN_BEARING),
                     cursor.getFloat(cursor.getColumnIndex(COLUMN_ACCURACY)),
                     cursor.getLong(cursor.getColumnIndex(COLUMN_LOCATION_UTC)));
+        }
+
+        public static String getAllFields(String prepend) {
+            return TextUtils.join(",", new String[]{prepend + COLUMN_RECORD_ID, prepend +
+                    COLUMN_LEQ_ID, prepend + COLUMN_LEQ_UTC, prepend + COLUMN_LATITUDE, prepend +
+                    COLUMN_LONGITUDE, prepend + COLUMN_ALTITUDE, prepend + COLUMN_ACCURACY,
+                    prepend + COLUMN_SPEED, prepend + COLUMN_BEARING, prepend +
+                    COLUMN_LOCATION_UTC});
         }
 
         public int getRecordId() {

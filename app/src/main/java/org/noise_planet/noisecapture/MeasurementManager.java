@@ -289,21 +289,25 @@ public class MeasurementManager {
         try {
             Cursor cursor;
             if (recordId >= 0) {
-                cursor = database.rawQuery("SELECT L.*, LV." + Storage.LeqValue.COLUMN_SPL +
-                        ", LV." + Storage.LeqValue.COLUMN_FREQUENCY +
-                        " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
+                cursor = database.rawQuery("SELECT "+Storage.Leq.getAllFields("L.")+", GROUP_CONCAT(LV." + Storage.LeqValue
+                        .COLUMN_SPL +
+                        ") leq_array FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue
+                        .TABLE_NAME +
                         " LV WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
                         Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
-                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? AND L." + Storage.Leq.COLUMN_LEQ_ID + " % ? = 0 ORDER BY L." +
+                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? AND L." + Storage.Leq
+                        .COLUMN_LEQ_ID + " % ? = 0 GROUP BY "+Storage.Leq.getAllFields("L.")+" ORDER BY L." +
                         Storage.Leq.COLUMN_LEQ_ID + ", " +
                         Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId), withCoordinatesOnly ? "0" : "-1", divMod});
             } else {
-                cursor = database.rawQuery("SELECT L.*, LV." + Storage.LeqValue.COLUMN_SPL +
-                        ", LV." + Storage.LeqValue.COLUMN_FREQUENCY +
-                        " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
+                cursor = database.rawQuery("SELECT "+Storage.Leq.getAllFields("L.")+", GROUP_CONCAT(LV." + Storage.LeqValue
+                        .COLUMN_SPL +
+                        ") leq_array FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue
+                        .TABLE_NAME +
                         " LV WHERE L." +
                         Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
-                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? AND L." + Storage.Leq.COLUMN_LEQ_ID + " % ? = 0 ORDER BY L." +
+                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? AND L." + Storage.Leq
+                        .COLUMN_LEQ_ID + " % ? = 0 GROUP BY "+Storage.Leq.getAllFields("L.")+" ORDER BY L." +
                         Storage.Leq.COLUMN_LEQ_ID + ", " +
                         Storage.LeqValue.COLUMN_FREQUENCY, new String[]{withCoordinatesOnly ? "0" : "-1", divMod});
             }
@@ -313,6 +317,7 @@ public class MeasurementManager {
                 int lastRecordId = -1;
                 int skipLeqId = -1;
                 LeqBatch lastLeq = null;
+                int leqArrayIndex = cursor.getColumnIndex("leq_array");
                 while (cursor.moveToNext()) {
                     int cursorLeqId = cursor.getInt(cursor.getColumnIndex(Storage.Leq.COLUMN_LEQ_ID));
                     int cursorRecordId = cursor.getInt(cursor.getColumnIndex(Storage.Leq.COLUMN_RECORD_ID));
@@ -324,8 +329,7 @@ public class MeasurementManager {
                         lastLatLng = null;
                         lastRecordId = cursorRecordId;
                     }
-                    Storage.LeqValue leqValue = new Storage.LeqValue(cursor);
-                    if(lastId != leqValue.getLeqId() && lastId != -1) {
+                    if(lastId != -1) {
                         if(progressionCallBack != null) {
                             if(!progressionCallBack.onCursorNext()) {
                                 // user cancel the loading of data
@@ -355,11 +359,19 @@ public class MeasurementManager {
                         leqBatches.add(lastLeq);
                         lastLeq = null;
                     }
-                    lastId = leqValue.getLeqId();
                     if(lastLeq == null) {
                         lastLeq = new LeqBatch(new Storage.Leq(cursor));
+                        lastId = lastLeq.getLeq().getLeqId();
                     }
-                    lastLeq.addLeqValue(leqValue);
+                    String leqStringArray = cursor.getString(leqArrayIndex);
+                    StringTokenizer stringTokenizer = new StringTokenizer(leqStringArray, ",");
+                    int i = 0;
+                    while (stringTokenizer.hasMoreTokens()) {
+                        Storage.LeqValue leqValue = new Storage.LeqValue(lastId, (int)
+                                AudioProcess.realTimeCenterFrequency[i++], Float.valueOf
+                                (stringTokenizer.nextToken()));
+                        lastLeq.addLeqValue(leqValue);
+                    }
                 }
                 // Add last leq
                 if(lastLeq != null) {

@@ -175,7 +175,10 @@ public class MeasurementManager {
      * @param leqs Leq value by time and frequency in the same order of frequency list
      * @return True if recordId has been found
      */
-    public boolean getRecordLeqs(int recordId, List<Integer> frequency, List<Float[]> leqs) {
+    public boolean getRecordLeqs(int recordId, List<Integer> frequency, List<Float[]> leqs, ProgressionCallBack progressionCallBack) {
+        if(progressionCallBack != null) {
+            progressionCallBack.onCreateCursor(getRecord(recordId).getTimeLength());
+        }
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
             Cursor cursor = database.rawQuery("SELECT L." + Storage.Leq.COLUMN_LEQ_ID + ", LV." +
@@ -193,6 +196,11 @@ public class MeasurementManager {
                     if(lastId != leqValue.getLeqId() && !leqArray.isEmpty()) {
                         leqs.add(leqArray.toArray(new Float[leqArray.size()]));
                         leqArray.clear();
+                        if(progressionCallBack != null) {
+                            if(!progressionCallBack.onCursorNext()) {
+                                break;
+                            }
+                        }
                     }
                     lastId = leqValue.getLeqId();
                     leqArray.add(leqValue.getSpl());
@@ -208,6 +216,9 @@ public class MeasurementManager {
                 return lastId != -1;
             } finally {
                 cursor.close();
+                if(progressionCallBack != null) {
+                    progressionCallBack.onDeleteCursor();
+                }
             }
         } finally {
             database.close();
@@ -593,6 +604,11 @@ public class MeasurementManager {
 
     public interface ProgressionCallBack {
         void onCreateCursor(int recordCount);
+
+        /**
+         * Event new record (second)
+         * @return False to stop iterating through records
+         */
         boolean onCursorNext();
         void onDeleteCursor();
     }

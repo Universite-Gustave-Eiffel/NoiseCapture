@@ -271,4 +271,5 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="privacy_policy_title">Politique de confidentialité</string>
     <string name="calibration_warning">La procédure d\'étalonnage nécessite l\'utilisation d\'un dispositif de référence calibré tel qu\'un sonomètre ou un smartphone calibré. Pour plus d\'informations, reportez-vous à <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">la page d\'aide</a> de la demande</string>
     <string name="notification_record_content">Mesure en cours.. %1$.1f dB(A)</string>
+    <string name="result_title_progress_loading">Chargement de la mesure</string>
 </resources>

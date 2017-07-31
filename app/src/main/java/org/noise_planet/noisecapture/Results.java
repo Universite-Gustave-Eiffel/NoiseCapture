@@ -529,6 +529,7 @@ public class Results extends MainActivity {
     private static final class ReadRecordsProgression implements MeasurementManager
             .ProgressionCallBack, View.OnClickListener {
         private AppCompatActivity activity;
+        private long beginReadRecords = 0;
         AtomicBoolean canceled = new AtomicBoolean(false);
         int recordCount = 0;
         int record = 0;
@@ -558,6 +559,7 @@ public class Results extends MainActivity {
         @Override
         public void onCreateCursor(int recordCount) {
             this.recordCount = recordCount;
+            beginReadRecords = System.currentTimeMillis();
             if(recordCount > MINIMAL_RECORD_DISPLAY_PROGRESS) {
                 activity.runOnUiThread(new Runnable() {
                     @Override
@@ -600,6 +602,10 @@ public class Results extends MainActivity {
                     progressView.setVisibility(View.GONE);
                 }
             });
+            if(BuildConfig.DEBUG) {
+                System.out.println("Fetch measurement time "+(System.currentTimeMillis() - beginReadRecords)+" " +
+                        "ms");
+            }
         }
     }
     private static class LoadMeasurements implements Runnable {

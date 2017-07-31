@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * Add, remove and list all measures using android private storage.
@@ -179,41 +180,41 @@ public class MeasurementManager {
         if(progressionCallBack != null) {
             progressionCallBack.onCreateCursor(getRecord(recordId).getTimeLength());
         }
+        double[] frequencies = AudioProcess.realTimeCenterFrequency;
+        for(double freq : frequencies) {
+            frequency.add((int)freq);
+        }
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
-            Cursor cursor = database.rawQuery("SELECT L." + Storage.Leq.COLUMN_LEQ_ID + ", LV." +
-                    Storage.LeqValue.COLUMN_FREQUENCY + ", LV." + Storage.LeqValue.COLUMN_SPL +
-                    " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
+            Cursor cursor = database.rawQuery("SELECT L." + Storage.Leq.COLUMN_LEQ_ID + ", " +
+                    "GROUP_CONCAT(LV." + Storage.LeqValue.COLUMN_SPL +
+                    ") leq_array FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue
+                    .TABLE_NAME +
                     " LV WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
                     Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
-                    " ORDER BY L." + Storage.Leq.COLUMN_LEQ_ID + ", " +
+                    " GROUP BY L." + Storage.Leq.COLUMN_LEQ_ID + " ORDER BY L." + Storage.Leq
+                    .COLUMN_LEQ_ID + ", " +
                     Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId)});
             try {
-                List<Float> leqArray = new ArrayList<>();
-                int lastId = -1;
+                int leqArrayIndex = cursor.getColumnIndex("leq_array");
+                boolean foundLeq = false;
                 while (cursor.moveToNext()) {
-                    Storage.LeqValue leqValue = new Storage.LeqValue(cursor);
-                    if(lastId != leqValue.getLeqId() && !leqArray.isEmpty()) {
-                        leqs.add(leqArray.toArray(new Float[leqArray.size()]));
-                        leqArray.clear();
-                        if(progressionCallBack != null) {
-                            if(!progressionCallBack.onCursorNext()) {
-                                break;
-                            }
+                    foundLeq = true;
+                    String leqStringArray = cursor.getString(leqArrayIndex);
+                    StringTokenizer stringTokenizer = new StringTokenizer(leqStringArray, ",");
+                    Float[] leqArray = new Float[stringTokenizer.countTokens()];
+                    int i = 0;
+                    while (stringTokenizer.hasMoreTokens()) {
+                        leqArray[i++] = Float.valueOf(stringTokenizer.nextToken());
+                    }
+                    leqs.add(leqArray);
+                    if(progressionCallBack != null) {
+                        if(!progressionCallBack.onCursorNext()) {
+                            break;
                         }
                     }
-                    lastId = leqValue.getLeqId();
-                    leqArray.add(leqValue.getSpl());
-                    if(!frequency.contains(leqValue.getFrequency())) {
-                        frequency.add(leqValue.getFrequency());
-                    }
                 }
-                // Add last leq
-                if(!leqArray.isEmpty()) {
-                    leqs.add(leqArray.toArray(new Float[leqArray.size()]));
-                    leqArray.clear();
-                }
-                return lastId != -1;
+                return foundLeq;
             } finally {
                 cursor.close();
                 if(progressionCallBack != null) {

@@ -596,7 +596,8 @@ public class MeasurementActivity extends MainActivity implements
                     spectrogram.addTimeStep(measure.getResult().getFftResult(),
                             activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
                 }
-                if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
+                if(activity.isComputingMovingLeq.compareAndSet(false, true) && activity
+                        .measurementService.isRecording()) {
                     activity.runOnUiThread(new UpdateText(activity));
                 }
                 if(activity.measurementService.getAudioProcess().isHannWindowFast() && activity.measurementService.getAudioProcess().getFastNotProcessedMilliseconds() > SWITCH_TO_FAST_RECTANGULAR_DELAY) {
@@ -660,6 +661,8 @@ public class MeasurementActivity extends MainActivity implements
                 buttonrecord.setImageResource(R.drawable.button_record_pressed);
                 buttonrecord.setEnabled(false);
                 activity.measurementService.startStorage();
+                // Force service to stay alive even if this activity is killed (Foreground service)
+                activity.startService(new Intent(activity, MeasurementService.class));
             } else {
                 // Stop measurement
                 activity.measurementService.stopRecording();
@@ -875,13 +878,11 @@ public class MeasurementActivity extends MainActivity implements
         super.onStop();
         if(measurementService != null) {
             // Disconnect listener from measurement
-            if(!measurementService.isStoring()) {
-                doUnbindService();
-
-            } else {
+            if(measurementService.isStoring()) {
                 // Disable 125ms processing as it is only used for display
                 measurementService.getAudioProcess().setDoFastLeq(false);
             }
+            doUnbindService();
         }
     }
 

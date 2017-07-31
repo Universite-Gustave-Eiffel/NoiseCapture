@@ -310,7 +310,13 @@ public class AudioProcess implements Runnable {
     }
 
     double getLeq() {
-        return fastLeqProcessing.getLeq();
+        if(doFastLeq) {
+            return fastLeqProcessing.getLeq();
+        } else if(doOneSecondLeq){
+            return slowLeqProcessing.getLeq();
+        } else {
+            return 0;
+        }
     }
 
     public int getRate() {

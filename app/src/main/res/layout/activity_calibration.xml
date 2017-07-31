@@ -6,32 +6,90 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                  xmlns:tools="http://schemas.android.com/tools"
+                  android:layout_width="match_parent"
+                  android:layout_height="match_parent"
+                  android:gravity="center"
+                  android:orientation="vertical"
+                  android:paddingBottom="@dimen/activity_vertical_margin"
+                  android:paddingLeft="@dimen/activity_horizontal_margin"
+                  android:paddingRight="@dimen/activity_horizontal_margin"
+                  android:paddingTop="@dimen/activity_vertical_margin"
+                  tools:context=".CalibrationActivity">
 
-        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                      xmlns:tools="http://schemas.android.com/tools"
-                      android:layout_width="match_parent"
-                      android:layout_height="match_parent"
-                      android:gravity="center"
-                      android:orientation="vertical"
-                      android:paddingBottom="@dimen/activity_vertical_margin"
-                      android:paddingLeft="@dimen/activity_horizontal_margin"
-                      android:paddingRight="@dimen/activity_horizontal_margin"
-                      android:paddingTop="@dimen/activity_vertical_margin"
-                      tools:context=".CalibrationActivity">
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:fillViewport="true">
 
-            <ScrollView
+            <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:fillViewport="true">
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:id="@+id/calibration_mode_label"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/calibration_mode"
+                        android:textSize="15sp"/>
+
+                    <Spinner
+                        android:id="@+id/spinner_calibration_mode"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        />
+                </LinearLayout>
+
+                <CheckBox
+                    android:id="@+id/checkbox_test_gain"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/calibration_test_gain_checkbox"/>
+
+                <LinearLayout
+                    android:id="@+id/layout_progress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
                     android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/textView_recording_state"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/calibration_status_waiting_for_user_start"
+                        android:textSize="15sp"/>
+
+                    <ProgressBar
+                        android:id="@+id/progressBar_wait_calibration_recording"
+                        style="@android:style/Widget.ProgressBar.Horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"/>
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/calibration_leq_title"
+                        android:textSize="20sp"/>
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -40,186 +98,94 @@
                         android:orientation="horizontal">
 
                         <TextView
-                            android:id="@+id/calibration_mode_label"
-                            android:layout_width="wrap_content"
+                            android:id="@+id/textView_value_SL_i"
+                            android:layout_width="80dp"
                             android:layout_height="wrap_content"
-                            android:text="@string/calibration_mode"
-                            android:textSize="15sp"/>
-
-                        <Spinner
-                            android:id="@+id/spinner_calibration_mode"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            />
-                    </LinearLayout>
-
-                    <CheckBox
-                        android:id="@+id/checkbox_test_gain"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/calibration_test_gain_checkbox"/>
-
-                    <LinearLayout
-                        android:id="@+id/layout_progress"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:id="@+id/textView_recording_state"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/calibration_status_waiting_for_user_start"
-                            android:textSize="15sp"/>
-
-                        <ProgressBar
-                            android:id="@+id/progressBar_wait_calibration_recording"
-                            style="@android:style/Widget.ProgressBar.Horizontal"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="6dp"/>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
+                            android:gravity="right"
+                            android:text="@string/no_valid_dba_value"
+                            android:textSize="25sp"
+                            android:textStyle="normal"/>
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@string/calibration_leq_title"
+                            android:paddingLeft="15dp"
+                            android:paddingRight="0dp"
+                            android:text="@string/SL_dB"
                             android:textSize="20sp"/>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:orientation="horizontal">
-
-                            <TextView
-                                android:id="@+id/textView_value_SL_i"
-                                android:layout_width="80dp"
-                                android:layout_height="wrap_content"
-                                android:gravity="right"
-                                android:text="@string/no_valid_dba_value"
-                                android:textSize="25sp"
-                                android:textStyle="normal"/>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:paddingLeft="15dp"
-                                android:paddingRight="0dp"
-                                android:text="@string/SL_dB"
-                                android:textSize="20sp"/>
-                        </LinearLayout>
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:gravity="center"
-                        android:orientation="vertical">
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="@string/calibration_measure_title"
-                            android:textSize="20sp"/>
-
-                        <LinearLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:gravity="center"
-                            android:orientation="horizontal">
-
-                            <EditText
-                                android:id="@+id/edit_text_external_measured"
-                                android:layout_width="80dp"
-                                android:layout_height="wrap_content"
-                                android:enabled="false"
-                                android:gravity="right"
-                                android:inputType="numberDecimal"
-                                android:textSize="25sp"/>
-
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:paddingLeft="15dp"
-                                android:paddingRight="0dp"
-                                android:text="@string/SL_dB"
-                                android:textSize="20sp"/>
-                        </LinearLayout>
                     </LinearLayout>
                 </LinearLayout>
-            </ScrollView>
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/btn_start"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/calibration_button_start"/>
+                    android:gravity="center"
+                    android:orientation="vertical">
 
-                <Button
-                    android:id="@+id/btn_apply"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:enabled="false"
-                    android:text="@string/calibration_button_apply"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/calibration_measure_title"
+                        android:textSize="20sp"/>
 
-                <Button
-                    android:id="@+id/btn_reset"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:enabled="false"
-                    android:text="@string/calibration_button_reset"/>
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="horizontal">
+
+                        <EditText
+                            android:id="@+id/edit_text_external_measured"
+                            android:layout_width="80dp"
+                            android:layout_height="wrap_content"
+                            android:enabled="false"
+                            android:gravity="right"
+                            android:inputType="numberDecimal"
+                            android:textSize="25sp"/>
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="15dp"
+                            android:paddingRight="0dp"
+                            android:text="@string/SL_dB"
+                            android:textSize="20sp"/>
+                    </LinearLayout>
+                </LinearLayout>
             </LinearLayout>
-        </LinearLayout>
+        </ScrollView>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="vertical"
-            android:visibility="gone"
-            android:clickable="true"
-            android:gravity="center_vertical"
-            android:background="@color/black_opaque_overlay">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="10dp"
-            android:background="@drawable/round_corner_opaque"
-            android:orientation="vertical"
-            android:paddingBottom="@dimen/activity_vertical_margin"
-            android:paddingRight="@dimen/activity_horizontal_margin"
-            android:paddingTop="@dimen/activity_vertical_margin"
-            >
+            android:gravity="center"
+            android:orientation="horizontal">
 
-            <TextView
+            <Button
+                android:id="@+id/btn_start"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/text_calibration_warning"
-                android:text="@string/calibration_warning"/>
+                android:layout_weight="1"
+                android:text="@string/calibration_button_start"/>
 
+            <Button
+                android:id="@+id/btn_apply"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:enabled="false"
+                android:text="@string/calibration_button_apply"/>
 
+            <Button
+                android:id="@+id/btn_reset"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:enabled="false"
+                android:text="@string/calibration_button_reset"/>
         </LinearLayout>
     </LinearLayout>
-    </RelativeLayout>
 
     <ListView
         android:id="@+id/left_drawer"

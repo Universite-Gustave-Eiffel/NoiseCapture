@@ -107,6 +107,8 @@ public class MeasurementService extends Service {
     // Unique Identification Number for the Notification.
     // We use it on Notification start, and to cancel it.
     private int NOTIFICATION = R.string.local_service_started;
+    private Notification.Builder notification;
+    private Notification notificationInstance;
 
     /**
      * Class for clients to access.  Because we know this service always
@@ -251,28 +253,37 @@ public class MeasurementService extends Service {
      */
     private void showNotification() {
         // Text for the ticker
-        CharSequence text = isStoring() ? getText(R.string.title_service_measurement) :
+        CharSequence text = isStoring() ? getString(R.string.notification_record_content,
+                audioProcess.getLeq()) :
                 getText(R.string.record_message);
 
-        // The PendingIntent to launch our activity if the user selects this notification
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, MeasurementActivity.class), 0);
-
         // Set the info for the views that show in the notification panel.
-        Notification.Builder notification = new Notification.Builder(this)
-                .setSmallIcon(getNotificationIcon())  // the status icon
-                .setWhen(System.currentTimeMillis())
-                .setTicker(text)  // the status text
-                .setWhen(System.currentTimeMillis())  // the time stamp
-                .setContentTitle("NoiseCapture")  // the label of the entry
-                .setContentText(text)  // the contents of the entry
-                .setContentIntent(contentIntent)  // The intent to send when the entry is clicked
-                ;
+        if(notification == null) {
+
+            // The PendingIntent to launch our activity if the user selects this notification
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+                    new Intent(this, MeasurementActivity.class), 0);
+
+
+            notification = new Notification.Builder(this).setSmallIcon(getNotificationIcon())  // the status icon
+                    .setWhen(System.currentTimeMillis()).setTicker(text)  // the status text
+                    .setWhen(System.currentTimeMillis())  // the time stamp
+                    .setContentTitle(getString(R.string.title_service_measurement))  // the label
+                    // of the
+                    // entry
+                    .setContentText(text)  // the contents of the entry
+                    .setContentIntent(contentIntent)  // The intent to send when the entry is clicked
+
+            ;
+        } else {
+            notification.setContentText(text);
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             notification.setUsesChronometer(true);
         }
         // Send the notification.
-        mNM.notify(NOTIFICATION, notification.getNotification());
+        notificationInstance = notification.getNotification();
+        mNM.notify(NOTIFICATION, notificationInstance);
     }
 
     private void initLocalisationServices() {
@@ -550,6 +561,8 @@ public class MeasurementService extends Service {
                     final float[] leqs = measure.getLeqs();
                     // Add leqs to stats
                     measurementService.leqStats.addLeq(measure.getGlobaldBaValue());
+                    // Update notification
+                    measurementService.showNotification();
                     List<Storage.LeqValue> leqValueList = new ArrayList<>(leqs.length);
                     for (int idFreq = 0; idFreq < leqs.length; idFreq++) {
                         leqValueList
@@ -588,6 +601,9 @@ public class MeasurementService extends Service {
                     }
                     measurementService.isRecording.set(false);
                     measurementService.stopLocalisationServices();
+                    // Stop task
+                    measurementService.stopForeground(true);
+                    measurementService.stopSelf();
                 }
             }
             measurementService.listeners.firePropertyChange(event);
@@ -619,6 +635,8 @@ public class MeasurementService extends Service {
         leqAdded.set(0);
         isStorageActivated.set(true);
         showNotification();
+        // Set is foreground in order to let this service running without stopping
+        startForeground(NOTIFICATION, notificationInstance);
     }
 
     public static final class MeasurementEventObject {

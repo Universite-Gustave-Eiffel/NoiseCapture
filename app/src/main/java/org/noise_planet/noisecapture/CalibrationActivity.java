@@ -154,18 +154,17 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         // Set default value to standard calibration mode (Global)
         spinner.setSelection(0, false);
 
-        ((TextView)findViewById(R.id.text_calibration_warning)).setMovementMethod(LinkMovementMethod
-                .getInstance());
-
-        final TextView message = new TextView(this);
-        message.setText(R.string.calibration_warning);
-        message.setMovementMethod(LinkMovementMethod.getInstance());
-        new AlertDialog.Builder(this).setTitle(R.string.title_caution)
-                .setView(message)
+        AlertDialog alterDialog = new AlertDialog.Builder(this).setTitle(R.string.title_caution)
+                .setMessage(R.string.calibration_warning)
                 .setNeutralButton(R.string.text_OK, null)
                 .setIcon(android.R.drawable.ic_dialog_alert)
-                .show();
-
+                .create();
+        alterDialog.show();
+        TextView message = (TextView) alterDialog.findViewById(android.R.id.message);
+        if(message != null) {
+            // Activate links
+            message.setMovementMethod(LinkMovementMethod.getInstance());
+        }
         initCalibration();
     }
 

@@ -41,7 +41,7 @@ function addMeasurementPoints(GeoJSONFeatures) {
 
 userMeasurementPoints.addTo(map);
 
-var onomap = L.tileLayer('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_area@EPSG:900913@png/{z}/{x}/{y}.png', {
+var onomap = L.tileLayer('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_area_laeq@EPSG:900913@png/{z}/{x}/{y}.png', {
 "attribution": "<a href='http://onomap-gs.noise-planet.org'>OnoMap server</a>",
 tms: true,
 zIndex: 2,
@@ -70,9 +70,9 @@ var baseLayers = {
 "OpenStreetMap": osm
 };
 
-var community_layer_name = "Community sound level (LA50)"
+var community_layer_name = "Community sound level (LAeq)"
 var all_measurements_layer_name = "All measurements"
-var measurements_layer_name = "Measurements";
+var measurements_layer_name = "Selected measurement";
 
 var overlays = {};
 

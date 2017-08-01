@@ -267,21 +267,20 @@ public class Results extends MainActivity {
         // Fetch and store ShareActionProvider
         ShareActionProvider mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
 
-        Map<String, Integer> tagToIndex = new HashMap<>(Storage.TAGS.length);
-        int iTag = 0;
-        for(String sysTag : Storage.TAGS) {
-            tagToIndex.put(sysTag, iTag++);
+        Map<String, Storage.TagInfo> tagToIndex = new HashMap<>(Storage.TAGS_INFO.length);
+        for(Storage.TagInfo sysTag : Storage.TAGS_INFO) {
+            tagToIndex.put(sysTag.name, sysTag);
         }
 
         StringBuilder hashtags = new StringBuilder();
         String[] localeStringArray = getResources().getStringArray(R.array.tags);
         for(String enTag : tags) {
-            Integer tagIndex = tagToIndex.get(enTag);
-            if (tagIndex != null) {
+            Storage.TagInfo tagInfo = tagToIndex.get(enTag);
+            if (tagInfo != null && tagInfo.id < localeStringArray.length) {
                 if(hashtags.length() > 0 ) {
                     hashtags.append(",");
                 }
-                hashtags.append(localeStringArray[tagIndex].replace(" ",""));
+                hashtags.append(localeStringArray[tagInfo.id].replace(" ",""));
             }
         }
 

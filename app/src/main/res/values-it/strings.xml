@@ -157,6 +157,16 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
         <item>Lavori</item>
         <item>Traffico aereo</item>
         <item>Intrattenimenti</item>
+        <item>Bambini</item>
+        <item>Musica</item>
+        <item>Traffico</item>
+        <item>Traffico ferroviario</item>
+        <item>Traffico marittimo</item>
+        <item>Allarmi</item>
+        <item>Industriale</item>
+        <item>Acqua</item>
+        <item>Animali</item>
+        <item>Vegetazione</item>
     </string-array>
     <string name="title_activity_main">MainActivity</string>
 
@@ -274,4 +284,5 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="calibration_warning">The calibration procedure requires the use of a calibrated reference device such as a sonometer or calibrated smartphone. For more information, refer to the <a href="org.noise_planet.noisecapture://help.html#calibration">help page</a> of the application\"</string>
     <string name="notification_record_content">Misura in corso .. %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Caricamento delle misure</string>
+    <string name="userinfo_tags_measurement_conditions">Condizioni di misura</string>
 </resources>

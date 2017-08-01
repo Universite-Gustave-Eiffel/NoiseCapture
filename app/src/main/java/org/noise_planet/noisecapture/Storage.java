@@ -35,6 +35,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.annotation.IdRes;
 import android.text.TextUtils;
 
 import java.text.DateFormat;
@@ -44,9 +45,44 @@ import java.util.Date;
  * Handle database schema creation and upgrade
  */
 public class Storage extends SQLiteOpenHelper {
-    // Untranslated Tags in the same order as string.xml used when exporting to zip file
-    public static final String[] TAGS = {"test", "rain", "wind", "indoor",
-            "footsteps", "chatting", "natural", "mechanical", "human", "works", "air_traffic", "entertainment"};
+    // Untranslated Tags, in the same order as displayed in the layouts
+    public static final TagInfo[] TAGS_INFO = {t(0, "test", R.id.tags_measurement_conditions), t
+            (3, "indoor", R.id.tags_measurement_conditions), t(1, "rain", R.id
+            .tags_measurement_conditions), t(2, "wind", R.id.tags_measurement_conditions), t(5,
+            "chatting", R.id.tags_predominant_sound_sources_col1), t(12, "children", R.id
+            .tags_predominant_sound_sources_col1), t(4, "footsteps", R.id
+            .tags_predominant_sound_sources_col1), t(13, "music", R.id
+            .tags_predominant_sound_sources_col1), t(14, "road", R.id
+            .tags_predominant_sound_sources_col2), t(15, "rail", R.id
+            .tags_predominant_sound_sources_col2), t(10, "air_traffic", R.id
+            .tags_predominant_sound_sources_col2), t(16, "marine_traffic", R.id
+            .tags_predominant_sound_sources_col2), t(9, "works", R.id
+            .tags_predominant_sound_sources_col3), t(17, "alarms", R.id
+            .tags_predominant_sound_sources_col3), t(18, "industrial", R.id
+            .tags_predominant_sound_sources_col3), t(19, "water", R.id
+            .tags_predominant_sound_sources_end_row), t(20, "animals", R.id
+            .tags_predominant_sound_sources_end_row), t(21, "vegetation", R.id
+            .tags_predominant_sound_sources_end_row)};
+
+    private static TagInfo t(int id, String name, @IdRes int location) {
+        return new TagInfo(id, name, location);
+    }
+
+    public static final class TagInfo {
+        // Id to peek into string.xml used when translation must be done
+        public final int id;
+        // Name stored in database
+        public final String name;
+        public final
+        @IdRes
+        int location;
+
+        public TagInfo(int id, String name, @IdRes int location) {
+            this.id = id;
+            this.name = name;
+            this.location = location;
+        }
+    }
     // If you change the database schema, you must increment the database version.
     public static final int DATABASE_VERSION = 7;
     public static final String DATABASE_NAME = "Storage.db";

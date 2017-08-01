@@ -25,11 +25,10 @@ L.control.scale({
 
 function featureToMarker(feature, latlng) {
         if (!feature.properties.cluster)  return L.circleMarker(latlng, {
-            color: '#ffffff',
             fillColor: feature.properties["marker-color"],
-            weight: 1,
+            stroke: false,
             fillOpacity: 1.,
-            radius: 6,
+            radius: 5,
             zIndex: 4
         });
     var count = feature.properties.point_count;
@@ -44,13 +43,28 @@ function featureToMarker(feature, latlng) {
     return L.marker(latlng, {icon: icon});
 }
 
-var userMeasurementPoints = L.geoJSON(null,{pointToLayer : featureToMarker});
+function featureToMarkerBackground(feature, latlng) {
+        if (!feature.properties.cluster)  return L.circleMarker(latlng, {
+            stroke: false,
+            fillColor: '#ffffff',
+            fillOpacity: 1.,
+            radius: 6,
+            zIndex: 4
+        });
+    return L.featureGroup([]);
+}
+var userMeasurementPointsStroke = L.geoJSON(null,{pointToLayer : featureToMarkerBackground});
+var userMeasurementPointsFill = L.geoJSON(null,{pointToLayer : featureToMarker});
+var userMeasurementPoints = L.featureGroup([userMeasurementPointsStroke, userMeasurementPointsFill]);
 
 var allUserMeasurementPointsBounds;
-var allUserMeasurementPoints = L.geoJSON(null,{pointToLayer : featureToMarker});
+var allUserMeasurementPointsStroke = L.geoJSON(null,{pointToLayer : featureToMarkerBackground});
+var allUserMeasurementPointsFill = L.geoJSON(null,{pointToLayer : featureToMarker});
+var allUserMeasurementPoints = L.featureGroup([allUserMeasurementPointsStroke, allUserMeasurementPointsFill]);
 
 function addMeasurementPoints(GeoJSONFeatures) {
-    userMeasurementPoints.addData(GeoJSONFeatures);
+    userMeasurementPointsStroke.addData(GeoJSONFeatures);
+    userMeasurementPointsFill.addData(GeoJSONFeatures);
     map.fitBounds(userMeasurementPoints.getBounds())
 }
 
@@ -59,11 +73,13 @@ userMeasurementPoints.addTo(map);
 var onomap = L.tileLayer('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_area_laeq@EPSG:900913@png/{z}/{x}/{y}.png', {
 tms: true,
 zIndex: 2,
+maxZoom: 19,
 minZoom: 14
 });
 
 var osm = L.tileLayer('http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
+    maxZoom: 19,
     zIndex: 1
 });
 
@@ -127,11 +143,13 @@ function addAllMeasurementPoints() {
 
 function update() {
     if (!ready) return;
-    allUserMeasurementPoints.clearLayers();
+    allUserMeasurementPointsStroke.clearLayers();
+    allUserMeasurementPointsFill.clearLayers();
     var bounds = map.getBounds();
     var bbox = [bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()]
     var data = index.getClusters(bbox, map.getZoom())
-    allUserMeasurementPoints.addData(data);
+    allUserMeasurementPointsStroke.addData(data);
+    allUserMeasurementPointsFill.addData(data);
 }
 
 

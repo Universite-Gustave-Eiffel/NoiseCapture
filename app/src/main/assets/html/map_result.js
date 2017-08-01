@@ -1,5 +1,20 @@
 'use strict';
 
+function debounce(func, wait, immediate) {
+	var timeout;
+	return function() {
+		var context = this, args = arguments;
+		var later = function() {
+			timeout = null;
+			if (!immediate) func.apply(context, args);
+		};
+		var callNow = immediate && !timeout;
+		clearTimeout(timeout);
+		timeout = setTimeout(later, wait);
+		if (callNow) func.apply(context, args);
+	};
+};
+
 var map = L.map('map').fitWorld();
 
 L.control.scale({
@@ -12,10 +27,9 @@ function featureToMarker(feature, latlng) {
         if (!feature.properties.cluster)  return L.circleMarker(latlng, {
             color: '#ffffff',
             fillColor: feature.properties["marker-color"],
-            weight: 0.,
+            weight: 1,
             fillOpacity: 1.,
-            radius: 2,
-            stroke: false,
+            radius: 6,
             zIndex: 4
         });
     var count = feature.properties.point_count;
@@ -37,12 +51,12 @@ var allUserMeasurementPoints = L.geoJSON(null,{pointToLayer : featureToMarker});
 
 function addMeasurementPoints(GeoJSONFeatures) {
     userMeasurementPoints.addData(GeoJSONFeatures);
+    map.fitBounds(userMeasurementPoints.getBounds())
 }
 
 userMeasurementPoints.addTo(map);
 
 var onomap = L.tileLayer('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_area_laeq@EPSG:900913@png/{z}/{x}/{y}.png', {
-"attribution": "<a href='http://onomap-gs.noise-planet.org'>OnoMap server</a>",
 tms: true,
 zIndex: 2,
 minZoom: 14
@@ -120,17 +134,36 @@ function update() {
     allUserMeasurementPoints.addData(data);
 }
 
-map.on('moveend', update);
+
+// Returns a function, that, as long as it continues to be invoked, will not
+// be triggered. The function will be called after it stops being called for
+// N milliseconds. If `immediate` is passed, trigger the function on the
+// leading edge, instead of the trailing.
+function debounce(func, wait, immediate) {
+	var timeout;
+	return function() {
+		var context = this, args = arguments;
+		var later = function() {
+			timeout = null;
+			if (!immediate) func.apply(context, args);
+		};
+		var callNow = immediate && !timeout;
+		clearTimeout(timeout);
+		timeout = setTimeout(later, wait);
+		if (callNow) func.apply(context, args);
+	};
+};
+
+map.on('moveend', debounce(update, 250));
 
 
 map.on('overlayadd', function(eventLayer){
     if(eventLayer.name === measurements_layer_name) {
-        map.flyToBounds(userMeasurementPoints.getBounds())
+        map.fitBounds(userMeasurementPoints.getBounds())
     } else if(eventLayer.name === all_measurements_layer_name) {
         if(!ready) {
             addAllMeasurementPoints();
-        }
-        if(typeof allUserMeasurementPointsBounds !== 'undefined') {
+        } else if(typeof allUserMeasurementPointsBounds !== 'undefined') {
             map.flyToBounds(allUserMeasurementPointsBounds);
         }
     }

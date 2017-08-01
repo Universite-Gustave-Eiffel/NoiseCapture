@@ -114,7 +114,6 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
 
         mapFragment.runJs("addMeasurementPoints(JSON.parse(androidContent" +
                 ".getSelectedMeasurementData()))");
-        mapFragment.runJs("map.fitBounds(userMeasurementPoints.getBounds())");
 
     }
 
@@ -128,7 +127,6 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
     public static final class WebViewContent {
         private AppCompatActivity activity;
         private int selectedMeasurementRecordId;
-        private JSONArray allMeasurementsBounds = new JSONArray(Arrays.asList(new Double[]{}));
         private MeasurementManager measurementManager;
         private int measureLimitation;
         private double ignoreNewPointDistanceDelta = 1;

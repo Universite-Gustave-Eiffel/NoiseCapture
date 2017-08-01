@@ -27,13 +27,16 @@
 
 package org.noise_planet.noisecapture;
 
+import android.content.Intent;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -88,6 +91,13 @@ public class MapFragment extends Fragment {
                     if(mapFragmentAvailableListener != null) {
                         mapFragmentAvailableListener.onPageLoaded(MapFragment.this);
                     }
+                }
+
+                @Override
+                public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    startActivity(browserIntent);
+                    return true;
                 }
             });
             if(mapFragmentAvailableListener != null) {

@@ -466,6 +466,8 @@ public class MeasurementActivity extends MainActivity implements
         BarChart sChart = getSpectrum();
         if(sChart != null){
             sChart.setData(data);
+            sChart.setPadding(0, 0, 0, 0);
+            sChart.setViewPortOffsets(0,0,0,0);
             sChart.invalidate(); // refresh
         }
     }
@@ -637,10 +639,8 @@ public class MeasurementActivity extends MainActivity implements
                         activity.runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-
-                                int nc= MainActivity.getNEcatColors(measurement.measure.getGlobaldBaValue());    // Choose the color category in function of the sound level
-                                String htmlColor = String.format("#%06X",
-                                        (0xFFFFFF & activity.NE_COLORS[nc]));
+                                String htmlColor = MeasurementExport.getColorFromLevel
+                                        (measurement.measure.getGlobaldBaValue());
                                 activity.getMapControler().addMeasurement(new MapFragment.LatLng(measurement.leq.getLatitude(), measurement.leq.getLongitude()), htmlColor);
                             }
                         });

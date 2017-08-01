@@ -30,6 +30,7 @@
 
 <script>
 	var map = L.map('map').fitWorld();
+
 	var autoTrack = true;
 
 	map.on('dragstart', function() {
@@ -51,11 +52,12 @@
 	}).addTo( map );
 
 	var userLocationPrecision = L.circle([0., 0.], {
+    color: '#ffffff',
     color: '#deebf7',
+    weight: 1.,
     fillColor: '#deebf7',
     fillOpacity: 0.5,
     radius: 12,
-    stroke: false
 	});
 
 	var userLocationPoint = L.circleMarker([0., 0.], {
@@ -94,7 +96,6 @@
     userMeasurementPoints.addTo(map);
 
 	var onomap = L.tileLayer('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_area@EPSG:900913@png/{z}/{x}/{y}.png', {
-	"attribution": "<a href='http://onomap-gs.noise-planet.org'>OnoMap server</a>",
 	tms: true,
 	zIndex: 2,
 	opacity: 0.5,

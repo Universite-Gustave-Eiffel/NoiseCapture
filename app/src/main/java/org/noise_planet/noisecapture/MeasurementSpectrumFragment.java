@@ -65,6 +65,8 @@ public class MeasurementSpectrumFragment extends Fragment {
             sChart.setPinchZoom(false);
             sChart.setDrawGridBackground(false);
             sChart.setMaxVisibleValueCount(0);
+            sChart.setHorizontalScrollBarEnabled(false);
+            sChart.setVerticalScrollBarEnabled(false);
             sChart.setNoDataTextDescription(getText(R.string.no_data_text_description).toString());
             // XAxis parameters:
             XAxis xls = sChart.getXAxis();
@@ -73,14 +75,17 @@ public class MeasurementSpectrumFragment extends Fragment {
             xls.setDrawGridLines(false);
             xls.setDrawLabels(true);
             xls.setTextColor(Color.WHITE);
+            xls.setAvoidFirstLastClipping(false);
             // YAxis parameters (left): main axis for dB values representation
             YAxis yls = sChart.getAxisLeft();
             yls.setDrawAxisLine(true);
             yls.setDrawGridLines(true);
-            yls.setAxisMaxValue(110.f);
+            yls.setAxisMaxValue(100.f);
             yls.setAxisMinValue(0f);
             yls.setTextColor(Color.WHITE);
             yls.setGridColor(Color.WHITE);
+            yls.setSpaceBottom(0);
+            yls.setSpaceTop(0);
             yls.setValueFormatter(new SPLValueFormatter());
             // YAxis parameters (right): no axis, hide all
             YAxis yrs = sChart.getAxisRight();

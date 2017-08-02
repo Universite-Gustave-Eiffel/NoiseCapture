@@ -33,6 +33,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
+import android.location.Location;
 import android.net.Uri;
 
 import org.slf4j.Logger;
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.StringTokenizer;
 
 /**
  * Add, remove and list all measures using android private storage.
@@ -174,45 +176,55 @@ public class MeasurementManager {
      * @param leqs Leq value by time and frequency in the same order of frequency list
      * @return True if recordId has been found
      */
-    public boolean getRecordLeqs(int recordId, List<Integer> frequency, List<Float[]> leqs) {
+    public boolean getRecordLeqs(int recordId, List<Integer> frequency, List<Float[]> leqs, ProgressionCallBack progressionCallBack) {
+        if(progressionCallBack != null) {
+            progressionCallBack.onCreateCursor(getRecord(recordId).getTimeLength());
+        }
+        double[] frequencies = AudioProcess.realTimeCenterFrequency;
+        for(double freq : frequencies) {
+            frequency.add((int)freq);
+        }
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
-            Cursor cursor = database.rawQuery("SELECT L." + Storage.Leq.COLUMN_LEQ_ID + ", LV." +
-                    Storage.LeqValue.COLUMN_FREQUENCY + ", LV." + Storage.LeqValue.COLUMN_SPL +
-                    " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
+            Cursor cursor = database.rawQuery("SELECT L." + Storage.Leq.COLUMN_LEQ_ID + ", " +
+                    "GROUP_CONCAT(LV." + Storage.LeqValue.COLUMN_SPL +
+                    ") leq_array FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue
+                    .TABLE_NAME +
                     " LV WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
                     Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
-                    " ORDER BY L." + Storage.Leq.COLUMN_LEQ_ID + ", " +
+                    " GROUP BY L." + Storage.Leq.COLUMN_LEQ_ID + " ORDER BY L." + Storage.Leq
+                    .COLUMN_LEQ_ID + ", " +
                     Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId)});
             try {
-                List<Float> leqArray = new ArrayList<>();
-                int lastId = -1;
+                int leqArrayIndex = cursor.getColumnIndex("leq_array");
+                boolean foundLeq = false;
                 while (cursor.moveToNext()) {
-                    Storage.LeqValue leqValue = new Storage.LeqValue(cursor);
-                    if(lastId != leqValue.getLeqId() && !leqArray.isEmpty()) {
-                        leqs.add(leqArray.toArray(new Float[leqArray.size()]));
-                        leqArray.clear();
+                    foundLeq = true;
+                    String leqStringArray = cursor.getString(leqArrayIndex);
+                    StringTokenizer stringTokenizer = new StringTokenizer(leqStringArray, ",");
+                    Float[] leqArray = new Float[stringTokenizer.countTokens()];
+                    int i = 0;
+                    while (stringTokenizer.hasMoreTokens()) {
+                        leqArray[i++] = Float.valueOf(stringTokenizer.nextToken());
                     }
-                    lastId = leqValue.getLeqId();
-                    leqArray.add(leqValue.getSpl());
-                    if(!frequency.contains(leqValue.getFrequency())) {
-                        frequency.add(leqValue.getFrequency());
+                    leqs.add(leqArray);
+                    if(progressionCallBack != null) {
+                        if(!progressionCallBack.onCursorNext()) {
+                            break;
+                        }
                     }
                 }
-                // Add last leq
-                if(!leqArray.isEmpty()) {
-                    leqs.add(leqArray.toArray(new Float[leqArray.size()]));
-                    leqArray.clear();
-                }
-                return lastId != -1;
+                return foundLeq;
             } finally {
                 cursor.close();
+                if(progressionCallBack != null) {
+                    progressionCallBack.onDeleteCursor();
+                }
             }
         } finally {
             database.close();
         }
     }
-
 
     /**
      * Fetch all leq that hold a coordinate
@@ -221,63 +233,145 @@ public class MeasurementManager {
      * @param limitation Extract up to limitation point
      */
     public List<LeqBatch> getRecordLocations(int recordId, boolean withCoordinatesOnly, int limitation) {
+        return getRecordLocations(recordId, withCoordinatesOnly, limitation, null, null);
+    }
+
+
+    public int getRecordLocationsCount(int recordId, boolean withCoordinatesOnly) {
         SQLiteDatabase database = storage.getReadableDatabase();
+        double[] lastLatLng = null;
+        // Divide number, ex 2 will take half of the measurement (only odd leq_id numbers)
+        String divMod = "1";
+        // Count the number of stored locations
+        Cursor cursor;
+        if (recordId >= 0) {
+            cursor = database.rawQuery("SELECT COUNT(*) CPT FROM " + Storage.Leq.TABLE_NAME +
+                    " L WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
+                    Storage.Leq.COLUMN_ACCURACY + " > ?", new String[]{String.valueOf(recordId),
+                    withCoordinatesOnly ? "0" : "-1"});
+        } else {
+            cursor = database.rawQuery("SELECT COUNT(*) CPT FROM " + Storage.Leq.TABLE_NAME +
+                            " L WHERE L." + Storage.Leq.COLUMN_ACCURACY + " > ?",
+                    new String[]{withCoordinatesOnly ? "0" : "-1"});
+        }
+        try {
+            if (cursor.moveToNext()) {
+                return cursor.getInt(0);
+            }
+        } finally {
+            cursor.close();
+        }
+        return 0;
+    }
+
+    /**
+     * Fetch all leq that hold a coordinate
+     * @param recordId Record identifier, -1 for all
+     * @param withCoordinatesOnly Do not extract leq that does not contain a coordinate
+     * @param limitation Extract up to limitation point
+     */
+    public List<LeqBatch> getRecordLocations(int recordId, boolean withCoordinatesOnly, int limitation, ProgressionCallBack progressionCallBack, Double minDistance) {
+        SQLiteDatabase database = storage.getReadableDatabase();
+        double[] lastLatLng = null;
         // Divide number, ex 2 will take half of the measurement (only odd leq_id numbers)
         String divMod = "1";
         if(limitation > 0) {
-            // Count the number of stored locations
-            Cursor cursor;
-            if(recordId >= 0) {
-                cursor = database.rawQuery("SELECT COUNT(*) CPT FROM " + Storage.Leq.TABLE_NAME +
-                        " L WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
-                        Storage.Leq.COLUMN_ACCURACY + " > ?", new String[]{String.valueOf(recordId),
-                        withCoordinatesOnly ? "0" : "-1"});
-            } else {
-                cursor = database.rawQuery("SELECT COUNT(*) CPT FROM " + Storage.Leq.TABLE_NAME +
-                        " L WHERE L." + Storage.Leq.COLUMN_ACCURACY + " > ?",
-                        new String[]{withCoordinatesOnly ? "0" : "-1"});
+            int totalLocations = getRecordLocationsCount(recordId, withCoordinatesOnly);
+            if(progressionCallBack != null) {
+                progressionCallBack.onCreateCursor(totalLocations);
             }
-            if(cursor.moveToNext()) {
-                int totalLocations = cursor.getInt(0);
-                divMod = String.valueOf(Math.max(1, Math.ceil((double)totalLocations / limitation)));
+            divMod = String.valueOf(Math.max(1, Math.ceil((double) totalLocations / limitation)));
+        } else {
+            if(progressionCallBack != null) {
+                progressionCallBack.onCreateCursor(getRecordLocationsCount(recordId, withCoordinatesOnly));
             }
         }
         try {
             Cursor cursor;
             if (recordId >= 0) {
-                cursor = database.rawQuery("SELECT L.*, LV." + Storage.LeqValue.COLUMN_SPL +
-                        ", LV." + Storage.LeqValue.COLUMN_FREQUENCY +
-                        " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
+                cursor = database.rawQuery("SELECT "+Storage.Leq.getAllFields("L.")+", GROUP_CONCAT(LV." + Storage.LeqValue
+                        .COLUMN_SPL +
+                        ") leq_array FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue
+                        .TABLE_NAME +
                         " LV WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
                         Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
-                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? AND L." + Storage.Leq.COLUMN_LEQ_ID + " % ? = 0 ORDER BY L." +
+                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? AND L." + Storage.Leq
+                        .COLUMN_LEQ_ID + " % ? = 0 GROUP BY "+Storage.Leq.getAllFields("L.")+" ORDER BY L." +
                         Storage.Leq.COLUMN_LEQ_ID + ", " +
                         Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId), withCoordinatesOnly ? "0" : "-1", divMod});
             } else {
-                cursor = database.rawQuery("SELECT L.*, LV." + Storage.LeqValue.COLUMN_SPL +
-                        ", LV." + Storage.LeqValue.COLUMN_FREQUENCY +
-                        " FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue.TABLE_NAME +
+                cursor = database.rawQuery("SELECT "+Storage.Leq.getAllFields("L.")+", GROUP_CONCAT(LV." + Storage.LeqValue
+                        .COLUMN_SPL +
+                        ") leq_array FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue
+                        .TABLE_NAME +
                         " LV WHERE L." +
                         Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
-                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? AND L." + Storage.Leq.COLUMN_LEQ_ID + " % ? = 0 ORDER BY L." +
+                        " AND L." + Storage.Leq.COLUMN_ACCURACY + " > ? AND L." + Storage.Leq
+                        .COLUMN_LEQ_ID + " % ? = 0 GROUP BY "+Storage.Leq.getAllFields("L.")+" ORDER BY L." +
                         Storage.Leq.COLUMN_LEQ_ID + ", " +
                         Storage.LeqValue.COLUMN_FREQUENCY, new String[]{withCoordinatesOnly ? "0" : "-1", divMod});
             }
             try {
                 List<LeqBatch> leqBatches = new ArrayList<LeqBatch>();
                 int lastId = -1;
+                int lastRecordId = -1;
+                int skipLeqId = -1;
                 LeqBatch lastLeq = null;
+                int leqArrayIndex = cursor.getColumnIndex("leq_array");
                 while (cursor.moveToNext()) {
-                    Storage.LeqValue leqValue = new Storage.LeqValue(cursor);
-                    if(lastId != leqValue.getLeqId() && lastId != -1) {
+                    int cursorLeqId = cursor.getInt(cursor.getColumnIndex(Storage.Leq.COLUMN_LEQ_ID));
+                    int cursorRecordId = cursor.getInt(cursor.getColumnIndex(Storage.Leq.COLUMN_RECORD_ID));
+                    if(skipLeqId != -1 && skipLeqId == cursorLeqId) {
+                        continue;
+                    }
+                    if(cursorRecordId != lastRecordId) {
+                        skipLeqId = -1;
+                        lastLatLng = null;
+                        lastRecordId = cursorRecordId;
+                    }
+                    if(lastId != -1) {
+                        if(progressionCallBack != null) {
+                            if(!progressionCallBack.onCursorNext()) {
+                                // user cancel the loading of data
+                                break;
+                            }
+                        }
+                        // Ignore point if the new point is too close from the last point
+                        if(minDistance != null) {
+                            double[] location = new double[]{
+                                    cursor.getDouble(cursor.getColumnIndex(Storage.Leq.COLUMN_LATITUDE)),
+                                    cursor.getDouble(cursor.getColumnIndex(Storage.Leq.COLUMN_LONGITUDE))};
+                            double accuracy = cursor.getFloat(cursor.getColumnIndex(Storage.Leq.COLUMN_ACCURACY));
+                            if(accuracy > 0) {
+                                if(lastLatLng != null) {
+                                    float[] result = new float[3];
+                                    Location.distanceBetween(lastLatLng[0], lastLatLng[1], location[0], location[1], result);
+                                    if(result[0] < minDistance) {
+                                        // Ignore all next frequencies of this measurement leq
+                                        skipLeqId = cursorLeqId;
+                                        continue;
+                                    }
+                                }
+                                lastLatLng = location;
+                            }
+                        }
+                        // All frequencies for the current measurement are parsed
                         leqBatches.add(lastLeq);
                         lastLeq = null;
                     }
-                    lastId = leqValue.getLeqId();
                     if(lastLeq == null) {
                         lastLeq = new LeqBatch(new Storage.Leq(cursor));
+                        lastId = lastLeq.getLeq().getLeqId();
                     }
-                    lastLeq.addLeqValue(leqValue);
+                    String leqStringArray = cursor.getString(leqArrayIndex);
+                    StringTokenizer stringTokenizer = new StringTokenizer(leqStringArray, ",");
+                    int i = 0;
+                    while (stringTokenizer.hasMoreTokens()) {
+                        Storage.LeqValue leqValue = new Storage.LeqValue(lastId, (int)
+                                AudioProcess.realTimeCenterFrequency[i++], Float.valueOf
+                                (stringTokenizer.nextToken()));
+                        lastLeq.addLeqValue(leqValue);
+                    }
                 }
                 // Add last leq
                 if(lastLeq != null) {
@@ -285,6 +379,9 @@ public class MeasurementManager {
                 }
                 return leqBatches;
             } finally {
+                if(progressionCallBack != null) {
+                    progressionCallBack.onDeleteCursor();
+                }
                 cursor.close();
             }
         } finally {
@@ -516,5 +613,16 @@ public class MeasurementManager {
         public List<Storage.LeqValue> getLeqValues() {
             return leqValues;
         }
+    }
+
+    public interface ProgressionCallBack {
+        void onCreateCursor(int recordCount);
+
+        /**
+         * Event new record (second)
+         * @return False to stop iterating through records
+         */
+        boolean onCursorNext();
+        void onDeleteCursor();
     }
 }

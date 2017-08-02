@@ -166,7 +166,7 @@ public class AWeightingTest {
 //            double[] spectrums = new double[binSize / 2 + 1];
 //            // Buffer of length binSize
 //            double[] buffer = Arrays.copyOfRange(actualFilteredInputSignal[idF], read, read + binSize);
-//            buffer = AcousticIndicators.hanningWindow(buffer);
+//            buffer = AcousticIndicators.hannWindow(buffer);
 //            FastFourierTransformer fft = new FastFourierTransformer(DftNormalization.STANDARD);
 //            Complex resultCmplx[] = fft.transform(buffer, TransformType.FORWARD);
 //            double resultsReal[] = new double[binSize];

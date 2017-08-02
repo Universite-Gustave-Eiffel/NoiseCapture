@@ -42,6 +42,9 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.text.SpannableString;
+import android.text.method.LinkMovementMethod;
+import android.text.util.Linkify;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
@@ -68,6 +71,7 @@ import java.text.ParseException;
 import java.text.ParsePosition;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class CalibrationActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
@@ -87,11 +91,11 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     private int defaultWarmupTime;
     private int defaultCalibrationTime;
     private LeqStats leqStats;
-    private static final float DEFAULT_CALIBRATION_LEVEL = 94.f;
     private static final double MINIMAL_VALID_MEASURED_VALUE = 72;
     private static final double MAXIMAL_VALID_MEASURED_VALUE = 102;
-    private boolean mIsBound = false;
-    private MeasurementService measurementService;
+    private AudioProcess audioProcess;
+    private AtomicBoolean recording = new AtomicBoolean(true);
+    private AtomicBoolean canceled = new AtomicBoolean(false);
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationActivity.class);
     private static final int COUNTDOWN_STEP_MILLISECOND = 125;
     private ProgressHandler progressHandler = new ProgressHandler(this);
@@ -151,7 +155,17 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         // Set default value to standard calibration mode (Global)
         spinner.setSelection(0, false);
 
-
+        AlertDialog alterDialog = new AlertDialog.Builder(this).setTitle(R.string.title_caution)
+                .setMessage(R.string.calibration_warning)
+                .setNeutralButton(R.string.text_OK, null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .create();
+        alterDialog.show();
+        TextView message = (TextView) alterDialog.findViewById(android.R.id.message);
+        if(message != null) {
+            // Activate links
+            message.setMovementMethod(LinkMovementMethod.getInstance());
+        }
         initCalibration();
     }
 
@@ -189,6 +203,20 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             }
             return false;
         }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        canceled.set(true);
+        recording.set(false);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        canceled.set(true);
+        recording.set(false);
     }
 
     private Number getCalibrationReferenceLevel() throws ParseException {
@@ -286,7 +314,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             // Link measurement service with gui
             if (checkAndAskPermissions()) {
                 // Application have right now all permissions
-                doBindService();
+                initAudioProcess();
             }
             spinner.setEnabled(false);
             startButton.setText(R.string.calibration_button_cancel);
@@ -308,8 +336,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    doBindService();
+                    initAudioProcess();
                 } else {
                     // permission denied
                     // Ask again
@@ -317,6 +344,26 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
                 }
             }
         }
+    }
+
+    private void initAudioProcess() {
+        canceled.set(false);
+        recording.set(true);
+        audioProcess = new AudioProcess(recording, canceled);
+        audioProcess.setDoFastLeq(false);
+        audioProcess.setDoOneSecondLeq(true);
+        audioProcess.setWeightingA(false);
+        audioProcess.setHannWindowOneSecond(true);
+        if(testGainCheckBox.isChecked()) {
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationActivity.this);
+            audioProcess.setGain((float)Math.pow(10, getDouble(sharedPref,"settings_recording_gain", 0) / 20));
+        } else {
+            audioProcess.setGain(1);
+        }
+        audioProcess.getListeners().addPropertyChangeListener(this);
+
+        // Start measurement
+        new Thread(audioProcess).start();
     }
 
     @Override
@@ -329,10 +376,10 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             final double leq;
             // Use global dB value or only the selected frequency band
             if(spinner.getSelectedItemPosition() == 0) {
-                leq = measure.getSignalLeq();
+                leq = measure.getGlobaldBaValue();
             } else {
                 int selectFreq = freq_choice[spinner.getSelectedItemPosition()];
-                int index = Arrays.binarySearch(measurementService.getAudioProcess().getDelayedCenterFrequency(), selectFreq);
+                int index = Arrays.binarySearch(audioProcess.getDelayedCenterFrequency(), selectFreq);
                 if(index < 0) {
                     index = Math.min(measure.getLeqs().length -1,  Math.max(0, -index - 1));
                 }
@@ -357,63 +404,10 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         }
     }
 
-    private ServiceConnection mConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            measurementService = ((MeasurementService.LocalBinder)service).getService();
-            if(testGainCheckBox.isChecked()) {
-                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationActivity.this);
-                measurementService.setdBGain(
-                        getDouble(sharedPref,"settings_recording_gain", 0));
-            } else {
-                measurementService.setdBGain(0);
-            }
-            measurementService.addPropertyChangeListener(CalibrationActivity.this);
-            if(!measurementService.isRecording()) {
-                measurementService.startRecording();
-            }
-            measurementService.getAudioProcess().setDoFastLeq(false);
-            measurementService.getAudioProcess().setDoOneSecondLeq(true);
-            measurementService.getAudioProcess().setWeightingA(false);
-            measurementService.getAudioProcess().setHannWindowOneSecond(false);
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            // This is called when the connection with the service has been
-            // unexpectedly disconnected -- that is, its process crashed.
-            // Because it is running in our same process, we should never
-            // see this happen.
-            measurementService.removePropertyChangeListener(CalibrationActivity.this);
-            measurementService = null;
-        }
-    };
-
-    void doBindService() {
-        // Establish a connection with the service.  We use an explicit
-        // class name because we want a specific service implementation that
-        // we know will be running in our own process (and thus won't be
-        // supporting component replacement by other applications).
-        if(!bindService(new Intent(this, MeasurementService.class), mConnection,
-                Context.BIND_AUTO_CREATE)) {
-            Toast.makeText(CalibrationActivity.this, R.string.measurement_service_disconnected,
-                    Toast.LENGTH_SHORT).show();
-        } else {
-            mIsBound = true;
-        }
-    }
 
     public void onReset() {
         initCalibration();
     }
-
-    void doUnbindService() {
-        if (mIsBound) {
-            measurementService.removePropertyChangeListener(this);
-            // Detach our existing connection.
-            unbindService(mConnection);
-            mIsBound = false;
-        }
-    }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -432,9 +426,8 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         } else if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
             calibration_step = CALIBRATION_STEP.END;
             textStatus.setText(R.string.calibration_status_end);
-            measurementService.stopRecording();
-            // Remove measurement service
-            doUnbindService();
+            recording.set(false);
+            audioProcess = null;
             // Activate user input
             if(!testGainCheckBox.isChecked()) {
                 applyButton.setEnabled(true);

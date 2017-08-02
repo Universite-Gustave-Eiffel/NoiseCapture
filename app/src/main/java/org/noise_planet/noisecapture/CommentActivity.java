@@ -30,15 +30,27 @@ package org.noise_planet.noisecapture;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RectShape;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.ColorRes;
+import android.support.annotation.Dimension;
 import android.support.v4.content.FileProvider;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -58,6 +70,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -121,10 +134,9 @@ public class CommentActivity extends MainActivity {
 
         // Load stored user comment
         // Pleasantness and tags are read only if the record has been uploaded
-        Map<String, Integer> tagToIndex = new HashMap<>(Storage.TAGS.length);
-        int i = 0;
-        for(String sysTag : Storage.TAGS) {
-            tagToIndex.put(sysTag, i++);
+        Map<String, Storage.TagInfo> tagToIndex = new HashMap<>(Storage.TAGS_INFO.length);
+        for(Storage.TagInfo sysTag : Storage.TAGS_INFO) {
+            tagToIndex.put(sysTag.name, sysTag);
         }
 
         View thumbnail = findViewById(R.id.image_thumbnail);
@@ -132,9 +144,9 @@ public class CommentActivity extends MainActivity {
         if(record != null) {
             // Load selected tags
             for (String sysTag : measurementManager.getTags(record.getId())) {
-                Integer tagIndex = tagToIndex.get(sysTag);
-                if (tagIndex != null) {
-                    checkedTags.add(tagIndex);
+                Storage.TagInfo tagInfo = tagToIndex.get(sysTag);
+                if (tagInfo != null) {
+                    checkedTags.add(tagInfo.id);
                 }
             }
             // Load description
@@ -144,7 +156,7 @@ public class CommentActivity extends MainActivity {
             }
             Integer pleasantness = record.getPleasantness();
             if(pleasantness != null) {
-                seekBar.setProgress(pleasantness);
+                seekBar.setProgress((int)(Math.round((pleasantness / 100.0) * seekBar.getMax())));
                 seekBar.setThumb(seekBar.getResources().getDrawable(
                         R.drawable.seekguess_scrubber_control_normal_holo));
                 userInputSeekBar.set(true);
@@ -165,19 +177,15 @@ public class CommentActivity extends MainActivity {
 
         seekBar.setOnSeekBarChangeListener(new OnSeekBarUserInput(userInputSeekBar));
         // Fill tags grid
-        String[] tags = getResources().getStringArray(R.array.tags);
+        Resources r = getResources();
+        String[] tags = r.getStringArray(R.array.tags);
         // Append tags items
-        ViewGroup tagColumn = (ViewGroup) findViewById(R.id.tags_grid_col1);
-        for(int idTag = 0; idTag < tags.length; idTag += 3) {
-            addTag(tags[idTag], idTag, tagColumn);
-        }
-        tagColumn = (ViewGroup) findViewById(R.id.tags_grid_col2);
-        for(int idTag = 1; idTag < tags.length; idTag += 3) {
-            addTag(tags[idTag], idTag, tagColumn);
-        }
-        tagColumn = (ViewGroup) findViewById(R.id.tags_grid_col3);
-        for(int idTag = 2; idTag < tags.length; idTag += 3) {
-            addTag(tags[idTag], idTag, tagColumn);
+        for(Storage.TagInfo tagInfo : Storage.TAGS_INFO) {
+            ViewGroup tagContainer = (ViewGroup) findViewById(tagInfo.location);
+            if(tagContainer != null && tagInfo.id < tags.length) {
+                addTag(tags[tagInfo.id], tagInfo.id, tagContainer, tagInfo.color != -1 ? r.getColor
+                        (tagInfo.color) : -1);
+            }
         }
     }
 
@@ -228,22 +236,53 @@ public class CommentActivity extends MainActivity {
     }
 
     private void saveChanges() {
-        if(record != null) {
+        if (record != null) {
             TextView description = (TextView) findViewById(R.id.edit_description);
             SeekBar seekBar = (SeekBar) findViewById(R.id.pleasantness_slider);
-            String[] tags = new String[checkedTags.size()];
-            int tagCounter = 0;
-            for(int tagId : checkedTags) {
-                tags[tagCounter++] = Storage.TAGS[tagId];
+            List<String> tags = new ArrayList<>(checkedTags.size());
+            for (Storage.TagInfo sysTag : Storage.TAGS_INFO) {
+                if (checkedTags.contains(sysTag.id)) {
+                    tags.add(sysTag.name);
+                }
             }
-            measurementManager.updateRecordUserInput(record.getId(), description.getText().toString(),
-                  userInputSeekBar.get() ? (short)seekBar.getProgress() : null, tags, photo_uri);
+            measurementManager.updateRecordUserInput(record.getId(), description.getText()
+                    .toString(), userInputSeekBar.get() ? (short)((seekBar.getProgress() /
+                    (double)seekBar.getMax()) * 100) : null,
+                    tags.toArray(new String[tags.size()]), photo_uri);
         }
     }
 
-    private void addTag(String tagName, int id, ViewGroup column) {
+    static int darker(int color) {
+        float[] hsv = new float[3];
+        Color.colorToHSV(color, hsv);
+        hsv[2] = 1.0f - 0.4f * (1.0f - hsv[2]);
+        return Color.HSVToColor(hsv);
+    }
+
+    private void addTag(String tagName, int id, ViewGroup column, int color) {
         ToggleButton tagButton = new ToggleButton(this);
-        column.addView(tagButton);
+        if(color != -1) {
+            LinearLayout colorBox = new LinearLayout(this);
+            // Convert the dps to pixels, based on density scale
+            final int tagPaddingPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                    1, getResources().getDisplayMetrics());
+            final int tagPaddingPxBottom = (int) TypedValue.applyDimension(TypedValue
+                    .COMPLEX_UNIT_DIP,
+                    3, getResources().getDisplayMetrics());
+            //use a GradientDrawable with only one color set, to make it a solid color
+            colorBox.setBackgroundResource(R.drawable.tag_round_corner);
+            GradientDrawable gradientDrawable = (GradientDrawable) colorBox.getBackground();
+            gradientDrawable.setColor(color);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams
+                    .MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.setMargins(tagPaddingPx,tagPaddingPx,tagPaddingPx,tagPaddingPxBottom);
+            colorBox.setLayoutParams(params);
+            colorBox.addView(tagButton);
+            column.addView(colorBox);
+        } else {
+            column.addView(tagButton);
+        }
         tagButton.setTextOff(tagName);
         tagButton.setTextOn(tagName);
         boolean isChecked = checkedTags.contains(id);
@@ -253,7 +292,8 @@ public class CommentActivity extends MainActivity {
         }
         tagButton.setOnCheckedChangeListener(new TagStateListener(id, checkedTags));
         tagButton.setMinHeight(0);
-        tagButton.setMinWidth(0);
+        tagButton.setMinimumHeight(0);
+        tagButton.setTextSize(Dimension.SP, 12);
         tagButton.setEnabled(record == null || record.getUploadId().isEmpty());
         tagButton.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT));

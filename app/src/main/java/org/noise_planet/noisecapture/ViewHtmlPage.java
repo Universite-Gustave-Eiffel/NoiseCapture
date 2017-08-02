@@ -30,7 +30,6 @@ package org.noise_planet.noisecapture;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -40,8 +39,11 @@ import android.view.Menu;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 
-public class View_html_page extends MainActivity {
+
+public class ViewHtmlPage extends MainActivity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,7 +53,21 @@ public class View_html_page extends MainActivity {
         initDrawer();
         final WebView myWebView = (WebView) findViewById(R.id.webview);
         myWebView.getSettings().setJavaScriptEnabled(true);
-        myWebView.loadUrl(intent.getStringExtra("pagetosee"));
+        String url = "";
+        if(intent.hasExtra("pagetosee")) {
+            url = intent.getStringExtra("pagetosee");
+        } else {
+            // Convert
+            // org.noise_planet.noisecapture://android_asset/html/help.html#smartphone_calibration
+            // into file:///android_asset/html/help.html#smartphone_calibration
+            try {
+                URL internalUrl = new URL("file", intent.getData().getHost(), intent.getData().getPath() + "#" + intent.getData().getFragment());
+                url = internalUrl.toString();
+            }catch (MalformedURLException ex) {
+                onBackPressed();
+            }
+        }
+        myWebView.loadUrl(url);
         runJs();
         myWebView.setWebViewClient(new WebViewClient(){
             @Override
@@ -79,7 +95,7 @@ public class View_html_page extends MainActivity {
         // Load extra parameters
         String versionInfo = "";
         try {
-            versionInfo = getVersionString(View_html_page.this);
+            versionInfo = getVersionString(ViewHtmlPage.this);
         } catch (PackageManager.NameNotFoundException ex){
             MAINLOGGER.error(ex.getLocalizedMessage(), ex);
         }

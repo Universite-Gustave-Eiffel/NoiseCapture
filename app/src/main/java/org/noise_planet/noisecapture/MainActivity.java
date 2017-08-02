@@ -83,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
     public DrawerLayout mDrawerLayout;
     public String[] mMenuLeft;
     public ActionBarDrawerToggle mDrawerToggle;
+    private ProgressDialog progress;
 
     public static final int PERMISSION_RECORD_AUDIO_AND_GPS = 1;
     public static final int PERMISSION_WIFI_STATE = 2;
@@ -132,6 +133,19 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
         return true;
+    }
+
+
+    @Override
+    protected void onPause() {
+        if(progress != null && progress.isShowing()) {
+            try {
+                progress.dismiss();
+            } catch (IllegalArgumentException ex) {
+                //Ignore
+            }
+        }
+        super.onPause();
     }
 
     /**
@@ -273,7 +287,7 @@ public class MainActivity extends AppCompatActivity {
                 case 1:
                     // Comment
                     Intent ir = new Intent(getApplicationContext(), CommentActivity.class);
-                    if(recordId != null) {
+                    if(recordId != null && recordId >= 0) {
                         ir.putExtra(CommentActivity.COMMENT_RECORD_ID, recordId);
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
@@ -283,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
                 case 2:
                     // Results
                     ir = new Intent(getApplicationContext(), Results.class);
-                    if(recordId != null) {
+                    if(recordId != null && recordId >= 0) {
                         ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
@@ -300,6 +314,9 @@ public class MainActivity extends AppCompatActivity {
                 case 4:
                     // Show the map
                     Intent imap = new Intent(getApplicationContext(), MapActivity.class);
+                    if(recordId != null && recordId >= 0) {
+                        imap.putExtra(Results.RESULTS_RECORD_ID, recordId);
+                    }
                     startActivity(imap);
                     finish();
                     mDrawerLayout.closeDrawer(mDrawerList);
@@ -311,7 +328,7 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                     break;
                 case 6:
-                    Intent ih = new Intent(getApplicationContext(),View_html_page.class);
+                    Intent ih = new Intent(getApplicationContext(),ViewHtmlPage.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     ih.putExtra("pagetosee",
                             getString(R.string.url_help));
@@ -321,7 +338,7 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                     break;
                 case 7:
-                    Intent ia = new Intent(getApplicationContext(),View_html_page.class);
+                    Intent ia = new Intent(getApplicationContext(),ViewHtmlPage.class);
                     ia.putExtra("pagetosee",
                             getString(R.string.url_about));
                     ia.putExtra("titletosee",
@@ -388,7 +405,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
             /*
             case R.id.action_about:
-                Intent ia = new Intent(getApplicationContext(),View_html_page.class);
+                Intent ia = new Intent(getApplicationContext(),ViewHtmlPage.class);
                 pagetosee=getString(R.string.url_about);
                 titletosee=getString((R.string.title_activity_about));
                 startActivity(ia);
@@ -452,9 +469,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Transfer provided records
+     */
+    protected void doTransferRecords(List<Integer> selectedRecordIds) {
+        runOnUiThread(new SendResults(this, selectedRecordIds, progress));
+    }
+
+    /**
      * Transfer records without checking user preferences
      */
-    private void doTransferRecords() {
+    protected void doTransferRecords() {
         if(!isOnline()) {
             MAINLOGGER.info("Not online, skip send of record");
             return;
@@ -468,7 +492,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         if(!recordsToTransfer.isEmpty()) {
-            runOnUiThread(new SendResults(this, recordsToTransfer));
+            doTransferRecords(recordsToTransfer);
         }
     }
 
@@ -476,7 +500,7 @@ public class MainActivity extends AppCompatActivity {
         private MainActivity mainActivity;
         private List<Integer> recordsToTransfer;
 
-        public SendResults(MainActivity mainActivity, List<Integer> recordsToTransfer) {
+        public SendResults(MainActivity mainActivity, List<Integer> recordsToTransfer, ProgressDialog progress) {
             this.mainActivity = mainActivity;
             this.recordsToTransfer = recordsToTransfer;
         }
@@ -484,16 +508,25 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             // Export
-            final ProgressDialog progress = ProgressDialog.show(mainActivity,
-                    mainActivity.getText(R.string.upload_progress_title),
-                    mainActivity.getText(R.string.upload_progress_message), true);
-            new Thread(new SendZipToServer(mainActivity, recordsToTransfer, progress,
-                    new OnUploadedListener() {
-                        @Override
-                        public void onMeasurementUploaded() {
-                            mainActivity.onTransferRecord();
-                        }
-                    })).start();
+            try {
+                mainActivity.progress = ProgressDialog.show(mainActivity, mainActivity
+                        .getText(R.string
+                        .upload_progress_title),
+                        mainActivity.getText(R.string.upload_progress_message), true);
+            } catch (RuntimeException ex) {
+                // This error may arise on some system
+                // The display of progression are not vital so cancel the crash by handling the
+                // error
+                MAINLOGGER.error(ex.getLocalizedMessage(), ex);
+            }
+            new Thread(new SendZipToServer(mainActivity, recordsToTransfer, mainActivity
+                    .progress, new
+                    OnUploadedListener() {
+                @Override
+                public void onMeasurementUploaded() {
+                    mainActivity.onTransferRecord();
+                }
+            })).start();
         }
     }
 
@@ -594,7 +627,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             } finally {
-                progress.dismiss();
+                if(progress != null && progress.isShowing()) {
+                    try {
+                        progress.dismiss();
+                    } catch (IllegalArgumentException ex) {
+                        //Ignore
+                    }
+                }
             }
         }
     }

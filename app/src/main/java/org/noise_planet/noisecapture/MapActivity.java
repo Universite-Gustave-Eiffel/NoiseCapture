@@ -28,61 +28,43 @@
 package org.noise_planet.noisecapture;
 
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.content.res.Resources;
-import android.graphics.Color;
+import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
-import android.support.v4.app.FragmentManager;
-import android.util.Log;
+import android.preference.PreferenceManager;
+import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.View;
-import android.webkit.WebSettings;
-import android.webkit.WebView;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Spinner;
+import android.webkit.JavascriptInterface;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdateFactory;
-import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
-import com.google.android.gms.maps.OnMapReadyCallback;
-import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
-import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.MarkerOptions;
+import org.json.JSONArray;
+import org.json.JSONException;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
-public class MapActivity extends MainActivity implements OnMapReadyCallback,
-        GoogleMap.OnMapLoadedCallback {
+public class MapActivity extends MainActivity implements MapFragment.MapFragmentAvailableListener {
     public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
-    private MeasurementManager measurementManager;
     private Storage.Record record;
-    private GoogleMap mMap;
-    private LatLngBounds.Builder builder;
-    private boolean validBoundingBox = false;
+    private WebViewContent webViewContent;
+    private long beginLoadPage = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            setContentView(R.layout.activity_map);
-        } catch (Exception e){
-            Toast.makeText(this, "Google Maps problem", Toast.LENGTH_SHORT).show();
-            Log.e(MapActivity.class.getName(), "Crash on MapActivity.setContentView", e);
-            Intent a = new Intent(getApplicationContext(), History.class);
-            startActivity(a);
-            finish();
-            return;
-        }
-        initDrawer();
-
-        this.measurementManager = new MeasurementManager(getApplicationContext());
+        setContentView(R.layout.activity_map);
         Intent intent = getIntent();
+        initDrawer(intent != null ? intent.getIntExtra(RESULTS_RECORD_ID, -1) : null);
+
+        MeasurementManager measurementManager = new MeasurementManager(getApplicationContext());
+        webViewContent = new WebViewContent(this, measurementManager);
         if(intent != null && intent.hasExtra(RESULTS_RECORD_ID)) {
             record = measurementManager.getRecord(intent.getIntExtra(RESULTS_RECORD_ID, -1));
         } else {
@@ -96,86 +78,43 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
                         Toast.LENGTH_LONG).show();
             }
         }
+        MapFragment mapFragment = getMapControler();
+        mapFragment.setMapFragmentAvailableListener(this);
+        onMapFragmentAvailable(mapFragment);
 
-        // Fill the spinner_map
-        Spinner spinner = (Spinner) findViewById(R.id.spinner_map);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.choice_user_map, android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(new MapDropDownChooseListener(this));
+    }
 
-        // Display the map
-        setUpMapIfNeeded();
+    private MapFragment getMapControler() {
+        return (MapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
+    }
 
+    // Disable warning as the injected object cannot communicate with the NoiseCapture application
+    @SuppressLint("AddJavascriptInterface")
+    @Override
+    public void onMapFragmentAvailable(MapFragment mapFragment) {
+        beginLoadPage = System.currentTimeMillis();
+        // addJavascriptInterface
+        mapFragment.getWebView().addJavascriptInterface(webViewContent, "androidContent");
+        mapFragment.loadUrl("file:///android_asset/html/map_result.html");
     }
 
     @Override
-    public void onMapReady(GoogleMap mMap) {
-        // Initialize map options. For example:
-        mMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
-        mMap.setOnMapLoadedCallback(this);
-        this.mMap = mMap;
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        setUpMapIfNeeded();
-    }
-
-    public void loadWebView() {
-        WebView leaflet = (WebView) findViewById(R.id.webmapview);
-        WebSettings webSettings = leaflet.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        leaflet.clearCache(true);
-        leaflet.setInitialScale(200);
-        String location = "";
-        if(builder != null && validBoundingBox) {
-            LatLng latLng = builder.build().getCenter();
-            location = "/#18/"+latLng.latitude+"/"+latLng.longitude;
+    public void onPageLoaded(MapFragment mapFragment) {
+        long beginLoadContent = System.currentTimeMillis();
+        if(BuildConfig.DEBUG) {
+            System.out.println("Load leaflet in "+(beginLoadContent - beginLoadPage)+" ms");
         }
-        leaflet.loadUrl("http://onomap.noise-planet.org" + location);
-    }
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        int measureLimitation = getInteger(sharedPref, "summary_settings_map_maxmarker", 0);
+        webViewContent.setMeasureLimitation(measureLimitation);
 
-    @Override
-    public void onMapLoaded() {
-        Resources res = getResources();
-        Spinner spinner = (Spinner) findViewById(R.id.spinner_map);
-        boolean onlySelected = spinner.getSelectedItemPosition() == 0;
-        // Add markers and move the camera.
-        List<MeasurementManager.LeqBatch> measurements = new ArrayList<MeasurementManager.LeqBatch>();
         if(record != null) {
-            measurements = measurementManager.getRecordLocations(onlySelected ? record.getId() : -1, true, 500);
+            webViewContent.setSelectedMeasurementRecordId(record.getId());
         }
-        builder = new LatLngBounds.Builder();
-        validBoundingBox = measurements.size() > 1;
-        for(int idMarker = 0; idMarker < measurements.size(); idMarker++) {
-            MeasurementManager.LeqBatch leq = measurements.get(idMarker);
-            LatLng position = new LatLng(leq.getLeq().getLatitude(), leq.getLeq().getLongitude());
-            MarkerOptions marker = new MarkerOptions();
-            marker.position(position);
-            double leqValue = leq.computeGlobalLeq();
-            marker.title(res.getString(R.string.map_marker_label, leqValue,
-                    leq.getLeq().getAccuracy()));
-            int nc=getNEcatColors(leqValue);    // Choose the color category in function of the sound level
-            float[] hsv = new float[3];
-            Color.colorToHSV(NE_COLORS[nc], hsv);  // Apply color category for the corresponding sound level
-            marker.icon(BitmapDescriptorFactory.defaultMarker(hsv[0]));
-            mMap.addMarker(marker);
-            builder.include(position);
-        }
-        if(validBoundingBox) {
-            mMap.moveCamera(CameraUpdateFactory.newLatLngBounds(builder.build(), 0));
-        } else {
-            Toast.makeText(getApplicationContext(), getString(R.string.no_gps_results),
-                    Toast.LENGTH_LONG).show();
-        }
-    }
 
-    private void setUpMapIfNeeded() {
-        SupportMapFragment mapFragment = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
-        mapFragment.getMapAsync(this);
+        mapFragment.runJs("addMeasurementPoints(JSON.parse(androidContent" +
+                ".getSelectedMeasurementData()))");
+
     }
 
     @Override
@@ -185,45 +124,145 @@ public class MapActivity extends MainActivity implements OnMapReadyCallback,
         return true;
     }
 
-    private static class MapDropDownChooseListener implements AdapterView.OnItemSelectedListener {
-        private MapActivity mapActivity;
+    public static final class WebViewContent {
+        private AppCompatActivity activity;
+        private int selectedMeasurementRecordId;
+        private MeasurementManager measurementManager;
+        private int measureLimitation;
+        private double ignoreNewPointDistanceDelta = 1;
 
-        public MapDropDownChooseListener(MapActivity mapActivity) {
-            this.mapActivity = mapActivity;
+        public WebViewContent(AppCompatActivity activity, MeasurementManager measurementManager) {
+            this.activity = activity;
+            this.measurementManager = measurementManager;
+        }
+
+        public void setSelectedMeasurementRecordId(int selectedMeasurementRecordId) {
+            this.selectedMeasurementRecordId = selectedMeasurementRecordId;
+        }
+
+        public void setMeasureLimitation(int measureLimitation) {
+            this.measureLimitation = measureLimitation;
+        }
+
+        @JavascriptInterface
+        public String getSelectedMeasurementData() {
+            long beginLoadContent = System.currentTimeMillis();
+            List<MeasurementManager.LeqBatch> measurements = measurementManager
+                    .getRecordLocations(selectedMeasurementRecordId, true, measureLimitation,
+                            new ReadRecordsProgression(activity), ignoreNewPointDistanceDelta);
+            if (measurements.isEmpty()) {
+                Toast.makeText(activity, activity.getText(R.string.no_gps_results), Toast
+                        .LENGTH_LONG).show();
+            }
+            if (BuildConfig.DEBUG) {
+                System.out.println("Read data from db in " + (System.currentTimeMillis() -
+                        beginLoadContent) + " ms");
+            }
+            try {
+                return MeasurementExport.recordsToGeoJSON(measurements, false, false).toString();
+            } catch (JSONException ex) {
+                if (BuildConfig.DEBUG) {
+                    System.out.println("Error while building JSON " + ex.getLocalizedMessage());
+                }
+                return new JSONArray().toString();
+            }
+        }
+
+        @JavascriptInterface
+        public String getAllMeasurementData() {
+
+            long beginLoadContent = System.currentTimeMillis();
+            List<MeasurementManager.LeqBatch> measurements = measurementManager
+                    .getRecordLocations(-1 , true, measureLimitation, new ReadRecordsProgression(activity),
+                            ignoreNewPointDistanceDelta);
+            if(BuildConfig.DEBUG) {
+                System.out.println("Read data from db in "+(System.currentTimeMillis() - beginLoadContent)+" ms");
+            }
+            try {
+                return MeasurementExport.recordsToGeoJSON(measurements, false, false).toString();
+            } catch (JSONException ex) {
+                if(BuildConfig.DEBUG) {
+                    System.out.println("Error while building JSON "+ex.getLocalizedMessage());
+                }
+                return new JSONArray().toString();
+            }
+        }
+    }
+
+    private static final class ReadRecordsProgression implements MeasurementManager
+            .ProgressionCallBack, View.OnClickListener {
+        private AppCompatActivity activity;
+        AtomicBoolean canceled = new AtomicBoolean(false);
+        int recordCount = 0;
+        int record = 0;
+        int lastProgress = 0;
+        boolean handleProgression = false;
+        private static final int MINIMAL_RECORD_DISPLAY_PROGRESS = 100;
+        View progressView;
+        ProgressBar progressBar;
+        Button button;
+
+        public ReadRecordsProgression(AppCompatActivity activity) {
+            this.activity = activity;
+            progressView = activity.findViewById(R.id
+                    .map_progress_layout);
+            progressBar = (ProgressBar) activity.findViewById(R.id
+                    .map_progress_control);
+            button = (Button)activity.findViewById(R.id
+                    .map_progress_cancel);
+            button.setOnClickListener(this);
         }
 
         @Override
-        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-            FragmentManager fragmentManager = mapActivity
-                    .getSupportFragmentManager();
-            SupportMapFragment mapFragment = ((SupportMapFragment)fragmentManager.findFragmentById(R.id.map));
-            WebView webView = (WebView) mapActivity.findViewById(R.id.webmapview);
-            if(webView == null) {
-                return;
-            }
-            if(position <= 1) {
-                if(mapFragment != null && mapFragment.isHidden()) {
-                    fragmentManager.beginTransaction()
-                                   .show(mapFragment).commit();
-                    webView.setVisibility(View.GONE);
-                }
-                if(mapActivity.mMap != null) {
-                    mapActivity.onMapLoaded();
-                }
-            } else {
-                // TODO server side map
-                if(mapFragment != null) {
-                    fragmentManager.beginTransaction()
-                                   .hide(mapFragment).commit();
-                    webView.setVisibility(View.VISIBLE);
-                    mapActivity.loadWebView();
-                }
+        public void onClick(View v) {
+            canceled.set(true);
+        }
+
+        @Override
+        public void onCreateCursor(int recordCount) {
+            this.recordCount = recordCount;
+            if(recordCount > MINIMAL_RECORD_DISPLAY_PROGRESS) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setProgress(0);
+                        progressView.setVisibility(View.VISIBLE);
+                    }
+                });
+                handleProgression = true;
             }
         }
 
         @Override
-        public void onNothingSelected(AdapterView<?> parent) {
+        public boolean onCursorNext() {
+            if(handleProgression) {
+                record++;
+                final int newProgression = (int)((record / (double) recordCount) * 100);
+                if(newProgression / 5 != lastProgress / 5) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                            progressBar.setProgress(newProgression, true);
+                        } else {
+                            progressBar.setProgress(newProgression);
+                        }
+                        }
+                    });
+                    lastProgress = newProgression;
+                }
+            }
+            return !canceled.get();
+        }
 
+        @Override
+        public void onDeleteCursor() {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    progressView.setVisibility(View.GONE);
+                }
+            });
         }
     }
 }

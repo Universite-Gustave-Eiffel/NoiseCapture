@@ -73,8 +73,6 @@ public class Start extends Activity {
         LOGGER.error(ex.getLocalizedMessage(), ex);
     }
 
-    final Start myActivity = this;
-
     thread=  new Thread(){
         @Override
         public void run(){
@@ -86,9 +84,16 @@ public class Start extends Activity {
             catch(InterruptedException ex){
             }
 
-            Intent i = new Intent(getApplicationContext(),MeasurementActivity.class);
-            startActivity(i);
-            finish();
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(Start.this);
+            if(sharedPref.getBoolean(PrivacyPolicyActivity.PROP_POLICY_AGREED, false)) {
+                Intent i = new Intent(getApplicationContext(), MeasurementActivity.class);
+                startActivity(i);
+                finish();
+            } else {
+                Intent i = new Intent(getApplicationContext(), PrivacyPolicyActivity.class);
+                startActivity(i);
+                finish();
+            }
         }
     };
 

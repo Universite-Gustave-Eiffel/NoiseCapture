@@ -195,7 +195,7 @@ public class Spectrogram extends View {
                 while(timePos > 0) {
                     timePos = (float)((canvasWidth - legendWidth) - ticWidth * (timeCursor / timeStep));
                     timeLegendCanvas.drawLine(timePos, 0, timePos, TIME_LEGEND_TIC_HEIGHT, paint);
-                    if(ticPrinted % stepByPrintLabels == 0) {
+                    if(stepByPrintLabels > 0 && ticPrinted % stepByPrintLabels == 0) {
                         String text = String.format("+%.1f", timeCursor);
                         paint.getTextBounds(text, 0, text.length(), bounds);
                         float textX = timePos - (bounds.width() / 2);

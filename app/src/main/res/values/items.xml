@@ -28,7 +28,7 @@
 
 <resources xmlns:tools="http://schemas.android.com/tools" tools:ignore="MissingTranslation">
     <string-array name="output_mode">
-        <!-- DO no localize -->
+        <!-- DO not localize -->
         <item>STREAM_VOICE_CALL</item>
         <item>STREAM_SYSTEM</item>
         <item>STREAM_RING</item>
@@ -36,5 +36,10 @@
         <item>STREAM_ALARM</item>
         <item>STREAM_NOTIFICATION</item>
         <item>STREAM_DTMF</item>
+    </string-array>
+    <string-array name="settings_display_measurement_window">
+        <!-- DO not localize -->
+        <item>RECTANGULAR</item>
+        <item>HANN</item>
     </string-array>
 </resources>

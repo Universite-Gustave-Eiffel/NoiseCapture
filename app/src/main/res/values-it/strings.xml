@@ -157,6 +157,16 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
         <item>Lavori</item>
         <item>Traffico aereo</item>
         <item>Intrattenimenti</item>
+        <item>Bambini</item>
+        <item>Musica</item>
+        <item>Traffico</item>
+        <item>Traffico ferroviario</item>
+        <item>Traffico marittimo</item>
+        <item>Allarmi</item>
+        <item>Industriale</item>
+        <item>Acqua</item>
+        <item>Animali</item>
+        <item>Vegetazione</item>
     </string-array>
     <string name="title_activity_main">MainActivity</string>
 
@@ -174,7 +184,7 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
     <string name="upload_progress_title">Caricamento in corso&#8230;</string>
     <string name="upload_progress_message">Caricamento misurazione in corso</string>
 
-    <string name="history_length">Durata: %d secondi</string>
+    <string name="history_length">%d s</string>
     <string name="history_date">Data: %s</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Carica</string>
@@ -244,6 +254,8 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
         <item>16 kHz</item>
     </string-array>
     <string name="share_message">Sto misurando %.01f dB(A) con #NoiseCapture @Noise_Planet</string>
+    <string name="summary_settings_measurement_display_window">Funzione finestra per misurazione in tempo reale (non utilizzata per il risultato finale)</string>
+    <string name="title_settings_measurement_display_window">Finestra in tempo reale</string>
 
     <string-array name="output_mode_labels">
         <item>Chiamata vocale</item>
@@ -254,4 +266,23 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
         <item>Notifica</item>
         <item>DTMF</item>
     </string-array>
+    <string-array name="settings_display_measurement_window_labels">
+        <item>Rettangolare</item>
+        <item>Hann</item>
+    </string-array>
+    <string name="measurement_tab_map">Mappa</string>
+    <string name="measurement_tab_spectrogram">Spettrogramma</string>
+    <string name="measurement_tab_spectrum">Spettro</string>
+    <string name="title_settings_map_maxmarker" >Limiti di misura visualizzati</string>
+    <string name="summary_settings_map_maxmarker" >Limite di visualizzazione dei conteggi di misura sulla mappa (0 per nessun limite)</string>
+    <string name="map_title_progress_loading" >Caricamento delle posizioni delle misurazioni</string>
+    <string name="policy_legal_age">Ho l\'età legale (definita dalla legge del mio paese) per l\'utilizzo di questo software</string>
+    <string name="policy_agree_statement">Ho letto e accetto l\'informativa sulla privacy</string>
+    <string name="policy_button_continue">Continuare</string>
+    <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
+    <string name="privacy_policy_title">Informativa sulla privacy</string>
+    <string name="calibration_warning">The calibration procedure requires the use of a calibrated reference device such as a sonometer or calibrated smartphone. For more information, refer to the <a href="org.noise_planet.noisecapture://help.html#calibration">help page</a> of the application\"</string>
+    <string name="notification_record_content">Misura in corso .. %1$.1f dB(A)</string>
+    <string name="result_title_progress_loading">Caricamento delle misure</string>
+    <string name="userinfo_tags_measurement_conditions">Condizioni di misura</string>
 </resources>

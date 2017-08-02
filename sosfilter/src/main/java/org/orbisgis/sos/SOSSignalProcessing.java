@@ -49,6 +49,7 @@ public class SOSSignalProcessing {
     private double[] sampleBuffer;
     private ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands;
     double[] standardFrequencies;
+    boolean Aweighting = true;
 
     public SOSSignalProcessing(int samplingRate, ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands) {
         this.frequencyBands = frequencyBands;
@@ -59,6 +60,14 @@ public class SOSSignalProcessing {
         this.sampleBuffer = new double[(int) (samplingRate * ThirdOctaveBandsFiltering.getSampleBufferDuration(frequencyBands))];
         this.standardFrequencies = ThirdOctaveBandsFiltering.getStandardFrequencies(frequencyBands);
         Arrays.fill(sampleBuffer, 0);
+    }
+
+    public boolean isAweighting() {
+        return Aweighting;
+    }
+
+    public void setAweighting(boolean aweighting) {
+        Aweighting = aweighting;
     }
 
     /**
@@ -101,20 +110,29 @@ public class SOSSignalProcessing {
      * @return double array of shape [frequency x time] A-weighted and third octave bands filtered time signals for each
      * nominal center frequency
      */
-    public static double[][] filterSignal(double[] signal, int samplingRate, ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands) {
+    public static double[][] filterSignal(boolean Aweigthing, double[] signal, int samplingRate, ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands) {
 
         /**
          * Apply the A-weighting filter to the input signal
          */
-        double[] aWeightedSignal = AWeighting.aWeightingSignal(signal);
+        if(Aweigthing) {
+            signal = AWeighting.aWeightingSignal(signal);
+        }
 
         /**
          * Third octave bands filtering of the A-weighted signal
          */
         ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, frequencyBands);
-        double[][] filteredSignal = thirdOctaveBandsFiltering.thirdOctaveFiltering(aWeightedSignal);
 
-        return filteredSignal;
+        return thirdOctaveBandsFiltering.thirdOctaveFiltering(signal);
+    }
+
+    public static double[] convertShortToDouble(short[] samplesShort) {
+        double[] samples = new double[samplesShort.length];
+        for (int i = 0; i < samplesShort.length; i++) {
+            samples[i] = samplesShort[i];
+        }
+        return samples;
     }
 
     /**
@@ -124,16 +142,7 @@ public class SOSSignalProcessing {
      * @return Processed
      */
     public static double[] convertBytesToDouble(byte[] buffer, int length, ByteOrder byteOrder) {
-        short[] samplesShort = convertBytesToShort(buffer, length, byteOrder);
-        double[] samples = new double[samplesShort.length];
-        for (int i = 0; i < samplesShort.length; i++) {
-            if (samplesShort[i] > 0) {
-                samples[i] = Math.min(1, samplesShort[i] / ((double) Short.MAX_VALUE));
-            } else {
-                samples[i] = Math.max(-1, samplesShort[i] / (-(double) Short.MIN_VALUE));
-            }
-        }
-        return samples;
+        return convertShortToDouble(convertBytesToShort(buffer, length, byteOrder));
     }
 
     public static short[] loadShortStream(InputStream inputStream, ByteOrder byteOrder) throws IOException {
@@ -219,7 +228,7 @@ public class SOSSignalProcessing {
         /*
         A-weighting and third octave bands filtering
          */
-        filteredSignals = filterSignal(sampleBuffer, samplingRate, frequencyBands);
+        filteredSignals = filterSignal(isAweighting(), sampleBuffer, samplingRate, frequencyBands);
 
         /*
         Calculation of the equivalent sound pressure level per third octave bands

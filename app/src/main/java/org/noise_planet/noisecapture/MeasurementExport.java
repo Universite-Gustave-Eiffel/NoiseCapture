@@ -79,6 +79,88 @@ public class MeasurementExport {
         this.context = context;
     }
 
+
+    public static String getColorFromLevel(double spl) {
+        if(spl <35) {
+            return "#82A6AD";
+        }else if(spl <40) {
+            return "#A0BABF";
+        }else if(spl <45) {
+            return "#B8D6D1";
+        }else if(spl <50) {
+            return "#CEE4CC";
+        }else if(spl <55) {
+            return "#E2F2BF";
+        }else if(spl <60) {
+            return "#F3C683";
+        }else if(spl <65) {
+            return "#E87E4D";
+        }else if(spl <70) {
+            return "#CD463E";
+        }else if(spl <75) {
+            return "#A11A4D";
+        }else if(spl <80) {
+            return "#75085C";
+        } else {
+            return "#430A4A";
+        }
+    }
+    /**
+     * Convert list of measurements into GeoJSON feature array
+     * @param records Measurements array
+     * @param outputNullGeometry If true empty geometry are exported (accuracy <= 0)
+     * @param fullProperties If false only the mean LAeq are written, otherwise all available data are written.
+     * @return An array of GeoJSON feature objects.
+     * @throws JSONException
+     */
+    public static JSONArray recordsToGeoJSON(List<MeasurementManager.LeqBatch> records, boolean outputNullGeometry, boolean fullProperties) throws JSONException {
+        List<JSONObject> features = new ArrayList<>(records.size());
+        for (MeasurementManager.LeqBatch entry : records) {
+            Storage.Leq leq = entry.getLeq();
+            if(!outputNullGeometry && !(leq.getAccuracy() > 0)) {
+                continue;
+            }
+            JSONObject feature = new JSONObject();
+            feature.put("type", "Feature");
+
+            if (leq.getAccuracy() > 0) {
+                // Add coordinate
+                JSONObject point = new JSONObject();
+                point.put("type", "Point");
+                point.put("coordinates", new JSONArray(Arrays.asList(
+                        leq.getLongitude(), leq.getLatitude(), leq.getAltitude())));
+                feature.put("geometry", point);
+            } else {
+                feature.put("geometry", JSONObject.NULL);
+            }
+
+            // Add properties
+            JSONObject featureProperties = new JSONObject();
+            double lAeq = entry.computeGlobalLeq();
+            featureProperties.put(Storage.Record.COLUMN_LEQ_MEAN, lAeq);
+            //marker-color tag for geojson.io and leaflet map
+            featureProperties.put("marker-color", getColorFromLevel(lAeq));
+            if(fullProperties) {
+                featureProperties.put(Storage.Leq.COLUMN_ACCURACY, leq.getAccuracy());
+                featureProperties.put(Storage.Leq.COLUMN_LOCATION_UTC, leq.getLocationUTC());
+                featureProperties.put(Storage.Leq.COLUMN_LEQ_UTC, leq.getLeqUtc());
+                featureProperties.put(Storage.Leq.COLUMN_LEQ_ID, leq.getLeqId());
+                if (leq.getBearing() != null) {
+                    featureProperties.put(Storage.Leq.COLUMN_BEARING, leq.getBearing());
+                }
+                if (leq.getSpeed() != null) {
+                    featureProperties.put(Storage.Leq.COLUMN_SPEED, leq.getSpeed());
+                }
+                for (Storage.LeqValue leqValue : entry.getLeqValues()) {
+                    featureProperties.put("leq_" + leqValue.getFrequency(), leqValue.getSpl());
+                }
+            }
+            feature.put("properties", featureProperties);
+            features.add(feature);
+        }
+        return new JSONArray(features);
+    }
+
     /**
      * Dump measurement into the specified writer
      * @param recordId Record identifier
@@ -139,46 +221,7 @@ public class MeasurementExport {
 
             // Add measures
             main.put("type", "FeatureCollection");
-            List<JSONObject> features = new ArrayList<>(records.size());
-            for (MeasurementManager.LeqBatch entry : records) {
-                Storage.Leq leq = entry.getLeq();
-                JSONObject feature = new JSONObject();
-                feature.put("type", "Feature");
-
-                if(leq.getAccuracy() > 0) {
-                    // Add coordinate
-                    JSONObject point = new JSONObject();
-                    point.put("type", "Point");
-                    point.put("coordinates", new JSONArray(Arrays.asList(
-                            leq.getLongitude(), leq.getLatitude(), leq.getAltitude())));
-                    feature.put("geometry", point);
-                } else {
-                    feature.put("geometry", JSONObject.NULL);
-                }
-
-                // Add properties
-                JSONObject featureProperties = new JSONObject();
-                featureProperties.put(Storage.Record.COLUMN_LEQ_MEAN ,entry.computeGlobalLeq());
-                featureProperties.put(Storage.Leq.COLUMN_ACCURACY, leq.getAccuracy());
-                featureProperties.put(Storage.Leq.COLUMN_LOCATION_UTC, leq.getLocationUTC());
-                featureProperties.put(Storage.Leq.COLUMN_LEQ_UTC, leq.getLeqUtc());
-                featureProperties.put(Storage.Leq.COLUMN_LEQ_ID, leq.getLeqId());
-                //marker-color tag for geojson.io
-                featureProperties.put("marker-color", String.format("#%06X",
-                        (0xFFFFFF & Spectrogram.getColor((float)entry.computeGlobalLeq(), 45, 100))));
-                if(leq.getBearing() != null) {
-                    featureProperties.put(Storage.Leq.COLUMN_BEARING, leq.getBearing());
-                }
-                if(leq.getSpeed() != null) {
-                    featureProperties.put(Storage.Leq.COLUMN_SPEED, leq.getSpeed());
-                }
-                for(Storage.LeqValue leqValue : entry.getLeqValues()) {
-                    featureProperties.put("leq_"+leqValue.getFrequency(), leqValue.getSpl());
-                }
-                feature.put("properties", featureProperties);
-                features.add(feature);
-            }
-            main.put("features", new JSONArray(features));
+            main.put("features", recordsToGeoJSON(records, true, true));
             zipOutputStream.putNextEntry(new ZipEntry(GEOJSON_FILENAME));
             Writer writer = new OutputStreamWriter(zipOutputStream);
             writer.write(main.toString(2));

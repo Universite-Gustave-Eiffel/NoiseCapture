@@ -148,13 +148,23 @@
         <item>Vent</item>
         <item>Interieur</item>
         <item>Pas</item>
-        <item>Bavardage</item>
+        <item>Voix</item>
         <item>Naturel</item>
         <item>Mécanique</item>
         <item>Humain</item>
         <item>Travaux</item>
-        <item>Trafic aérien</item>
+        <item>T. aérien</item>
         <item>Loisirs</item>
+        <item>Enfants</item>
+        <item>Musique</item>
+        <item>T. routier</item>
+        <item>T. ferré</item>
+        <item>T. maritime</item>
+        <item>Alarmes</item>
+        <item>Industriel</item>
+        <item>Eau</item>
+        <item>Animaux</item>
+        <item>Végétation</item>
     </string-array>
     <string name="title_activity_main">MainActivity</string>
 
@@ -172,7 +182,7 @@
     <string name="upload_progress_title">Transfert&#8230;</string>
     <string name="upload_progress_message">Transfert de la mesure</string>
 
-    <string name="history_length">Durée : %d secondes</string>
+    <string name="history_length">%d s</string>
     <string name="history_date">Date : %s</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Transfert</string>
@@ -242,6 +252,8 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
         <item>16 kHz</item>
     </string-array>
     <string name="share_message">J\'ai mesuré %.01f dB(A) avec #NoiseCapture @Noise_Planet</string>
+    <string name="summary_settings_measurement_display_window">Fenêtrage de la mesure temps réel (n\'affecte pas le résultat final)</string>
+    <string name="title_settings_measurement_display_window">Fenêtrage</string>
 
     <string-array name="output_mode_labels">
         <item>Appel téléphonique</item>
@@ -252,4 +264,23 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
         <item>Notification</item>
         <item>DTMF</item>
     </string-array>
+    <string-array name="settings_display_measurement_window_labels">
+        <item>Rectangulaire</item>
+        <item>Hann</item>
+    </string-array>
+    <string name="measurement_tab_spectrogram">Spectrogramme</string>
+    <string name="measurement_tab_spectrum">Spectre</string>
+    <string name="measurement_tab_map">Carte</string>
+    <string name="title_settings_map_maxmarker" >Limites de mesure affichées</string>
+    <string name="summary_settings_map_maxmarker" >Nombre maximal de mesures affichées sur une carte (0 pour toute les mesures)</string>
+    <string name="map_title_progress_loading" >Chargement des données</string>
+    <string name="policy_legal_age">J\'ai l\'âge légal (défini par la loi de mon pays) pour l\'utilisation de ce logiciel</string>
+    <string name="policy_agree_statement">J\'ai lu et j\'accepte la politique de confidentialité</string>
+    <string name="policy_button_continue">Suivant</string>
+    <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
+    <string name="privacy_policy_title">Politique de confidentialité</string>
+    <string name="calibration_warning">La procédure d\'étalonnage nécessite l\'utilisation d\'un dispositif de référence calibré tel qu\'un sonomètre ou un smartphone calibré. Pour plus d\'informations, reportez-vous à <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">la page d\'aide</a> de la demande</string>
+    <string name="notification_record_content">Mesure en cours.. %1$.1f dB(A)</string>
+    <string name="result_title_progress_loading">Chargement de la mesure</string>
+    <string name="userinfo_tags_measurement_conditions">Conditions de mesures</string>
 </resources>

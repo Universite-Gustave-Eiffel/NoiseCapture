@@ -29,63 +29,71 @@
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:weightSum="1"
             android:gravity="center_horizontal" >
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/measurement_dba_min"
                 android:gravity="center_horizontal"
                 android:paddingLeft="5dp"
                 android:paddingRight="5dp"
+                android:layout_weight="0.2"
                 android:textSize="15sp" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/measurement_dba_la90"
                 android:gravity="center_horizontal"
                 android:paddingLeft="5dp"
                 android:paddingRight="5dp"
+                android:layout_weight="0.2"
                 android:textSize="15sp" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/measurement_dba_la50"
                 android:gravity="center_horizontal"
                 android:paddingLeft="5dp"
                 android:paddingRight="5dp"
+                android:layout_weight="0.2"
                 android:textSize="15sp" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/measurement_dba_la10"
                 android:gravity="center_horizontal"
                 android:paddingLeft="5dp"
                 android:paddingRight="5dp"
+                android:layout_weight="0.2"
                 android:textSize="15sp" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/measurement_dba_max"
                 android:gravity="center_horizontal"
                 android:paddingLeft="5dp"
                 android:paddingRight="5dp"
+                android:layout_weight="0.2"
                 android:textSize="15sp" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
+            android:orientation="horizontal"
             android:weightSum="1"
             android:gravity="center_horizontal" >
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
+                android:layout_weight="0.2"
                 android:layout_height="4dp"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:id="@+id/textView_color_Min_SL"
@@ -96,7 +104,8 @@
                 android:background="@color/R5_SL_level"/>
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
+                android:layout_weight="0.2"
                 android:layout_height="4dp"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:id="@+id/textView_color_LA90"
@@ -107,8 +116,9 @@
                 android:background="@color/R4_SL_level" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
                 android:layout_height="4dp"
+                android:layout_weight="0.2"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:id="@+id/textView_color_LA50"
                 android:gravity="center_horizontal"
@@ -118,8 +128,9 @@
                 android:background="@color/R3_SL_level" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
                 android:layout_height="4dp"
+                android:layout_weight="0.2"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:id="@+id/textView_color_LA10"
                 android:gravity="center_horizontal"
@@ -129,8 +140,9 @@
                 android:background="@color/R2_SL_level"/>
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
                 android:layout_height="4dp"
+                android:layout_weight="0.2"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:id="@+id/textView_color_Max_SL"
                 android:gravity="center_horizontal"
@@ -147,8 +159,9 @@
             android:orientation="horizontal">
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.2"
                 android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_Min_SL"
                 android:gravity="center_horizontal"
@@ -158,8 +171,9 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.2"
                 android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_LA90"
                 android:gravity="center_horizontal"
@@ -169,8 +183,9 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.2"
                 android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_LA50"
                 android:gravity="center_horizontal"
@@ -180,8 +195,9 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.2"
                 android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_LA10"
                 android:gravity="center_horizontal"
@@ -191,8 +207,9 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:layout_width="70dp"
+                android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
+                android:layout_weight="0.2"
                 android:text="@string/no_valid_dba_value"
                 android:id="@+id/textView_value_Max_SL"
                 android:gravity="center_horizontal"
@@ -257,6 +274,42 @@
 
     </LinearLayout>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:id="@+id/result_progress_layout"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@drawable/round_corner"
+        android:gravity="end|center_horizontal"
+        android:layout_centerInParent="true"
+        android:layout_margin="10dp"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:gravity="center"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            style="@style/Base.TextAppearance.AppCompat.Title"
+            android:text="@string/result_title_progress_loading"/>
+
+        <ProgressBar
+            style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+            android:id="@+id/result_progress_control"
+            android:layout_width="match_parent"
+            android:progress="25"
+            android:layout_margin="5dp"
+            android:layout_weight="1"
+            android:layout_height="0dp" />
+
+
+        <android.support.v7.widget.AppCompatButton
+            android:id="@+id/result_progress_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/comment_cancel_change"/>
+
+    </LinearLayout>
 </RelativeLayout>
 
     <com.nhaarman.supertooltips.ToolTipRelativeLayout

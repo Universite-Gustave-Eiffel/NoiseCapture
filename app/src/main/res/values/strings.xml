@@ -196,7 +196,7 @@
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Upload</string>
     <string name="map_marker_label">%1$.01f dB(A) Precision: %2$s m</string>
-    <string name="history_uploadeddescr">Is this result has been uploaded to community map server</string>
+    <string name="history_uploadeddescr">Has this result been uploaded to community database?</string>
 
     <string name="measurement_processlastsamples">Processing remaining %d samples&#8230;</string>
     <string name="history_item_choice_title">Measurement %s</string>

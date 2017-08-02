@@ -127,15 +127,15 @@ public class TestDB {
 
         // Check update user input
         measurementManager.updateRecordUserInput(recordId, "This is a description",
-                (short)2,new String[]{Storage.TAGS[0], Storage.TAGS[4]},
+                (short)2,new String[]{Storage.TAGS_INFO[0].name, Storage.TAGS_INFO[4].name},
                 Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())));
         Storage.Record record = measurementManager.getRecord(recordId);
         assertEquals(Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())),
                 record.getPhotoUri());
 
         List<String> selectedTags = measurementManager.getTags(recordId);
-        assertEquals(Storage.TAGS[0], selectedTags.get(0));
-        assertEquals(Storage.TAGS[4], selectedTags.get(1));
+        assertEquals(Storage.TAGS_INFO[0].name, selectedTags.get(0));
+        assertEquals(Storage.TAGS_INFO[4].name, selectedTags.get(1));
 
     }
 
@@ -217,7 +217,7 @@ public class TestDB {
 
         measurementManager.updateRecordFinal(recordId, (float)leqBatch.computeGlobalLeq(), 2, -4.76f);
         measurementManager.updateRecordUserInput(recordId, "This is a description",
-                (short)2,new String[]{Storage.TAGS[0], Storage.TAGS[4]},
+                (short)2,new String[]{Storage.TAGS_INFO[0].name, Storage.TAGS_INFO[4].name},
                 Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())));
 
         // Export to zip file

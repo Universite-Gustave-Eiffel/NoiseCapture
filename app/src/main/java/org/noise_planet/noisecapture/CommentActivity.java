@@ -256,11 +256,13 @@ public class CommentActivity extends MainActivity {
     private void addTag(String tagName, int id, ViewGroup column, int color) {
         ToggleButton tagButton = new ToggleButton(this);
         if(color != -1) {
-            final float tagPaddingDp = 1;
             LinearLayout colorBox = new LinearLayout(this);
             // Convert the dps to pixels, based on density scale
             final int tagPaddingPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
-                    tagPaddingDp, getResources().getDisplayMetrics());
+                    1, getResources().getDisplayMetrics());
+            final int tagPaddingPxBottom = (int) TypedValue.applyDimension(TypedValue
+                    .COMPLEX_UNIT_DIP,
+                    3, getResources().getDisplayMetrics());
             //use a GradientDrawable with only one color set, to make it a solid color
             colorBox.setBackgroundResource(R.drawable.tag_round_corner);
             GradientDrawable gradientDrawable = (GradientDrawable) colorBox.getBackground();
@@ -268,7 +270,7 @@ public class CommentActivity extends MainActivity {
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams
                     .MATCH_PARENT,
                     ViewGroup.LayoutParams.WRAP_CONTENT);
-            params.setMargins(tagPaddingPx,tagPaddingPx,tagPaddingPx,tagPaddingPx);
+            params.setMargins(tagPaddingPx,tagPaddingPx,tagPaddingPx,tagPaddingPxBottom);
             colorBox.setLayoutParams(params);
             colorBox.addView(tagButton);
             column.addView(colorBox);

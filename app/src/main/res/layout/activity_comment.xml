@@ -166,6 +166,12 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"/>
+
+                        <LinearLayout
+                            android:id="@+id/tags_predominant_sound_sources_col4"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"/>
                     </LinearLayout>
                 </LinearLayout>
             </LinearLayout>

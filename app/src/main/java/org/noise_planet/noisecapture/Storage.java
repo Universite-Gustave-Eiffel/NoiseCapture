@@ -54,16 +54,17 @@ public class Storage extends SQLiteOpenHelper {
             "children", R.id.tags_predominant_sound_sources_col1, R.color.tag_group_human), t(4,
             "footsteps", R.id.tags_predominant_sound_sources_col1, R.color.tag_group_human), t
             (13, "music", R.id.tags_predominant_sound_sources_col1, R.color.tag_group_human), t
-            (19, "water", R.id.tags_predominant_sound_sources_col1, R.color.tag_group_natural), t
-            (14, "road", R.id.tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t(15, "rail", R.id
-            .tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t(10, "air_traffic", R.id
-            .tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t(16, "marine_traffic", R.id
-            .tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t(20, "animals", R.id
-            .tags_predominant_sound_sources_col2, R.color.tag_group_natural), t(9, "works", R.id
-            .tags_predominant_sound_sources_col3, R.color.tag_group_work), t(17, "alarms", R.id
-            .tags_predominant_sound_sources_col3, R.color.tag_group_work), t(18, "industrial", R.id
-            .tags_predominant_sound_sources_col3, R.color.tag_group_work), t(21, "vegetation", R.id
-            .tags_predominant_sound_sources_col3, R.color.tag_group_natural)};
+            (14, "road", R.id.tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t
+            (15, "rail", R.id.tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t
+            (10, "air_traffic", R.id.tags_predominant_sound_sources_col2, R.color
+                    .tag_group_traffic), t(16, "marine_traffic", R.id
+            .tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t(19, "water", R.id
+            .tags_predominant_sound_sources_col3, R.color.tag_group_natural), t(20, "animals", R
+            .id.tags_predominant_sound_sources_col3, R.color.tag_group_natural), t(21,
+            "vegetation", R.id.tags_predominant_sound_sources_col3, R.color.tag_group_natural), t(9, "works", R.id
+            .tags_predominant_sound_sources_col4, R.color.tag_group_work), t(17, "alarms", R.id
+            .tags_predominant_sound_sources_col4, R.color.tag_group_work), t(18, "industrial", R
+            .id.tags_predominant_sound_sources_col4, R.color.tag_group_work)};
 
     private static TagInfo t(int id, String name, @IdRes int location, @ColorRes int color) {
         return new TagInfo(id, name, location, color);

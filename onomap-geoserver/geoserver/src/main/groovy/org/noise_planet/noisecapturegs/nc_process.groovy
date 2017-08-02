@@ -258,7 +258,11 @@ def process(Connection connection, float precisionFilter) {
                         [cell_level : hexExponent[i], cell_q : entry.key.q, cell_r : entry.key.r])
                 if(res != null) {
                     // Already an hexagon in the database
-                    sql.executeUpdate("UPDATE NOISECAPTURE_AREA_CLUSTER SET MEASURE_COUNT = :measure_count WHERE CELL_LEVEL = :cell_level AND CELL_Q = :cell_q AND CELL_R = :cell_r", [])
+                    sql.executeUpdate("UPDATE NOISECAPTURE_AREA_CLUSTER SET MEASURE_COUNT = :measure_count WHERE CELL_LEVEL = :cell_level AND CELL_Q = :cell_q AND CELL_R = :cell_r", [cell_level : hexExponent[i], cell_q : entry.key.q, cell_r : entry.key.r, measure_count : res.measure_count + entry.getValue()])
+                } else {
+                    // New hexagon
+                    def scaledHex = new Hex(q:entry.key.q, r:entry.key.r, size:hexSize * Math.pow(3, hexExponent[i]))
+                    sql.executeInsert("INSERT INTO NOISECAPTURE_AREA_CLUSTER(CELL_LEVEL, CELL_Q, CELL_R,THE_GEOM, MEASURE_COUNT) VALUES (:cell_level, :cell_q, :cell_r,:the_geom, :measure_count) ", [cell_level : hexExponent[i], cell_q : entry.key.q, cell_r : entry.key.r,the_geom : scaledHex.toWKT(1.0), measure_count : entry.getValue()])
                 }
             }
         }

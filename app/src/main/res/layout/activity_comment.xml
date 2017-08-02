@@ -85,15 +85,13 @@
                 android:text="@string/userinfo_pleasant"
                 android:textSize="15sp" />
         </LinearLayout>
-
         <SeekBar
             android:id="@+id/pleasantness_slider"
-            android:layout_width="match_parent"
+            style="@style/Widget.AppCompat.SeekBar.Discrete"
+            android:max="4"
+            android:progress="2"
             android:layout_height="wrap_content"
-            android:progress="50"
-            android:max="100"
-            android:progressDrawable="@drawable/seekguess_scrubber_progress_horizontal_holo_dark"
-            />
+            android:layout_width="match_parent"/>
 
 
         <ScrollView

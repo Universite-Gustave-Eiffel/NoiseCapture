@@ -34,8 +34,13 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.LinearGradient;
+import android.graphics.Shader;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
+import android.graphics.drawable.ShapeDrawable;
+import android.graphics.drawable.shapes.RectShape;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -151,7 +156,7 @@ public class CommentActivity extends MainActivity {
             }
             Integer pleasantness = record.getPleasantness();
             if(pleasantness != null) {
-                seekBar.setProgress(pleasantness);
+                seekBar.setProgress((int)(Math.round((pleasantness / 100.0) * seekBar.getMax())));
                 seekBar.setThumb(seekBar.getResources().getDrawable(
                         R.drawable.seekguess_scrubber_control_normal_holo));
                 userInputSeekBar.set(true);
@@ -241,7 +246,8 @@ public class CommentActivity extends MainActivity {
                 }
             }
             measurementManager.updateRecordUserInput(record.getId(), description.getText()
-                    .toString(), userInputSeekBar.get() ? (short) seekBar.getProgress() : null,
+                    .toString(), userInputSeekBar.get() ? (short)((seekBar.getProgress() /
+                    (double)seekBar.getMax()) * 100) : null,
                     tags.toArray(new String[tags.size()]), photo_uri);
         }
     }

@@ -30,16 +30,22 @@ package org.noise_planet.noisecapture;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.ColorRes;
 import android.support.annotation.Dimension;
 import android.support.v4.content.FileProvider;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -166,12 +172,14 @@ public class CommentActivity extends MainActivity {
 
         seekBar.setOnSeekBarChangeListener(new OnSeekBarUserInput(userInputSeekBar));
         // Fill tags grid
-        String[] tags = getResources().getStringArray(R.array.tags);
+        Resources r = getResources();
+        String[] tags = r.getStringArray(R.array.tags);
         // Append tags items
         for(Storage.TagInfo tagInfo : Storage.TAGS_INFO) {
             ViewGroup tagContainer = (ViewGroup) findViewById(tagInfo.location);
             if(tagContainer != null && tagInfo.id < tags.length) {
-                addTag(tags[tagInfo.id], tagInfo.id, tagContainer);
+                addTag(tags[tagInfo.id], tagInfo.id, tagContainer, tagInfo.color != -1 ? r.getColor
+                        (tagInfo.color) : -1);
             }
         }
     }
@@ -238,9 +246,35 @@ public class CommentActivity extends MainActivity {
         }
     }
 
-    private void addTag(String tagName, int id, ViewGroup column) {
+    static int darker(int color) {
+        float[] hsv = new float[3];
+        Color.colorToHSV(color, hsv);
+        hsv[2] = 1.0f - 0.4f * (1.0f - hsv[2]);
+        return Color.HSVToColor(hsv);
+    }
+
+    private void addTag(String tagName, int id, ViewGroup column, int color) {
         ToggleButton tagButton = new ToggleButton(this);
-        column.addView(tagButton);
+        if(color != -1) {
+            final float tagPaddingDp = 1;
+            LinearLayout colorBox = new LinearLayout(this);
+            // Convert the dps to pixels, based on density scale
+            final int tagPaddingPx = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,
+                    tagPaddingDp, getResources().getDisplayMetrics());
+            //use a GradientDrawable with only one color set, to make it a solid color
+            colorBox.setBackgroundResource(R.drawable.tag_round_corner);
+            GradientDrawable gradientDrawable = (GradientDrawable) colorBox.getBackground();
+            gradientDrawable.setColor(color);
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewGroup.LayoutParams
+                    .MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT);
+            params.setMargins(tagPaddingPx,tagPaddingPx,tagPaddingPx,tagPaddingPx);
+            colorBox.setLayoutParams(params);
+            colorBox.addView(tagButton);
+            column.addView(colorBox);
+        } else {
+            column.addView(tagButton);
+        }
         tagButton.setTextOff(tagName);
         tagButton.setTextOn(tagName);
         boolean isChecked = checkedTags.contains(id);
@@ -250,9 +284,7 @@ public class CommentActivity extends MainActivity {
         }
         tagButton.setOnCheckedChangeListener(new TagStateListener(id, checkedTags));
         tagButton.setMinHeight(0);
-        tagButton.setMinWidth(0);
         tagButton.setMinimumHeight(0);
-        tagButton.setMinimumWidth(0);
         tagButton.setTextSize(Dimension.SP, 12);
         tagButton.setEnabled(record == null || record.getUploadId().isEmpty());
         tagButton.setLayoutParams(new LinearLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,

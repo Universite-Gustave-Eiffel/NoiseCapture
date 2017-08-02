@@ -35,6 +35,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.annotation.ColorRes;
 import android.support.annotation.IdRes;
 import android.text.TextUtils;
 
@@ -49,25 +50,28 @@ public class Storage extends SQLiteOpenHelper {
     public static final TagInfo[] TAGS_INFO = {t(0, "test", R.id.tags_measurement_conditions), t
             (3, "indoor", R.id.tags_measurement_conditions), t(1, "rain", R.id
             .tags_measurement_conditions), t(2, "wind", R.id.tags_measurement_conditions), t(5,
-            "chatting", R.id.tags_predominant_sound_sources_col1), t(12, "children", R.id
-            .tags_predominant_sound_sources_col1), t(4, "footsteps", R.id
-            .tags_predominant_sound_sources_col1), t(13, "music", R.id
-            .tags_predominant_sound_sources_col1), t(14, "road", R.id
-            .tags_predominant_sound_sources_col2), t(15, "rail", R.id
-            .tags_predominant_sound_sources_col2), t(10, "air_traffic", R.id
-            .tags_predominant_sound_sources_col2), t(16, "marine_traffic", R.id
-            .tags_predominant_sound_sources_col2), t(9, "works", R.id
-            .tags_predominant_sound_sources_col3), t(17, "alarms", R.id
-            .tags_predominant_sound_sources_col3), t(18, "industrial", R.id
-            .tags_predominant_sound_sources_col3), t(19, "water", R.id
-            .tags_predominant_sound_sources_end_row), t(20, "animals", R.id
-            .tags_predominant_sound_sources_end_row), t(21, "vegetation", R.id
-            .tags_predominant_sound_sources_end_row)};
+            "chatting", R.id.tags_predominant_sound_sources_col1, R.color.tag_group_human), t(12,
+            "children", R.id.tags_predominant_sound_sources_col1, R.color.tag_group_human), t(4,
+            "footsteps", R.id.tags_predominant_sound_sources_col1, R.color.tag_group_human), t
+            (13, "music", R.id.tags_predominant_sound_sources_col1, R.color.tag_group_human), t
+            (19, "water", R.id.tags_predominant_sound_sources_col1, R.color.tag_group_natural), t
+            (14, "road", R.id.tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t(15, "rail", R.id
+            .tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t(10, "air_traffic", R.id
+            .tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t(16, "marine_traffic", R.id
+            .tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t(20, "animals", R.id
+            .tags_predominant_sound_sources_col2, R.color.tag_group_natural), t(9, "works", R.id
+            .tags_predominant_sound_sources_col3, R.color.tag_group_work), t(17, "alarms", R.id
+            .tags_predominant_sound_sources_col3, R.color.tag_group_work), t(18, "industrial", R.id
+            .tags_predominant_sound_sources_col3, R.color.tag_group_work), t(21, "vegetation", R.id
+            .tags_predominant_sound_sources_col3, R.color.tag_group_natural)};
 
-    private static TagInfo t(int id, String name, @IdRes int location) {
-        return new TagInfo(id, name, location);
+    private static TagInfo t(int id, String name, @IdRes int location, @ColorRes int color) {
+        return new TagInfo(id, name, location, color);
     }
 
+    private static TagInfo t(int id, String name, @IdRes int location) {
+        return new TagInfo(id, name, location, -1);
+    }
     public static final class TagInfo {
         // Id to peek into string.xml used when translation must be done
         public final int id;
@@ -76,11 +80,15 @@ public class Storage extends SQLiteOpenHelper {
         public final
         @IdRes
         int location;
+        public final
+        @ColorRes
+        int color;
 
-        public TagInfo(int id, String name, @IdRes int location) {
+        public TagInfo(int id, String name, int location, int color) {
             this.id = id;
             this.name = name;
             this.location = location;
+            this.color = color;
         }
     }
     // If you change the database schema, you must increment the database version.

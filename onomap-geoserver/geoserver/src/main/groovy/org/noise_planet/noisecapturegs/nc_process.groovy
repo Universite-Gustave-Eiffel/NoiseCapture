@@ -198,7 +198,7 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
 
 def process(Connection connection, float precisionFilter) {
     Logger logger = LoggerFactory.getLogger("nc_process")
-    float hexSize = 15.0
+    def hexSize = 15.0
     float hexRange = 15.0
     connection.setAutoCommit(false)
     int processed = 0
@@ -207,6 +207,9 @@ def process(Connection connection, float precisionFilter) {
         // Count what to add for each hexagons q,r,level
         int[] hexExponent = [3, 4, 5, 6, 7, 8, 9, 10 ,11];
         List<Map<Hex, Integer>> hexagonalClustersDiff = new ArrayList<>()
+        for(int i=0; i<hexExponent.length;i++) {
+            hexagonalClustersDiff.add(new HashMap<Hex, Integer>());
+        }
         // List the area identifier using the new measures coordinates
         def sql = new Sql(connection)
         sql.eachRow("SELECT ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY FROM" +
@@ -215,6 +218,16 @@ def process(Connection connection, float precisionFilter) {
                 [precision: precisionFilter]) { row ->
             def hex = new Pos(x: row.PTX, y: row.PTY).toHex(hexSize)
             areaIndex.add(hex)
+            // Populate scaled hexagons for clustering
+            for(int i=0; i<hexExponent.length;i++) {
+                def scaledHex = new Pos(x: row.PTX, y: row.PTY).toHex(hexSize * Math.pow(3, hexExponent[i]))
+                Integer oldValue = hexagonalClustersDiff[i].get(scaledHex)
+                if(oldValue == null) {
+                    hexagonalClustersDiff[i].put(scaledHex, 1)
+                } else {
+                    hexagonalClustersDiff[i].put(scaledHex, oldValue + 1 )
+                }
+            }
             // use hexRange by navigating from hex to neighbors
             def centerCube = hex.toCube()
             def final int n = (int) Math.ceil(hexRange / hexSize) - 1
@@ -234,6 +247,19 @@ def process(Connection connection, float precisionFilter) {
                 processed++
                 // Accept changes
                 connection.commit();
+            }
+        }
+
+        // Feed hexagonal clusters (scaled hexagons)
+
+        for(int i=0; i<hexExponent.length;i++) {
+            hexagonalClustersDiff[i].entrySet().each { Map.Entry<Hex, Integer> entry ->
+                def res = sql.firstRow("SELECT MEASURE_COUNT FROM NOISECAPTURE_AREA_CLUSTER WHERE CELL_LEVEL = :cell_level AND CELL_Q = :cell_q AND CELL_R = :cell_r",
+                        [cell_level : hexExponent[i], cell_q : entry.key.q, cell_r : entry.key.r])
+                if(res != null) {
+                    // Already an hexagon in the database
+                    sql.executeUpdate("UPDATE NOISECAPTURE_AREA_CLUSTER SET MEASURE_COUNT = :measure_count WHERE CELL_LEVEL = :cell_level AND CELL_Q = :cell_q AND CELL_R = :cell_r", [])
+                }
             }
         }
 
@@ -283,7 +309,7 @@ def run(input) {
 class Pos {
     double x
     double y
-    def toHex(float size) {
+    def toHex(double size) {
         def q = (x * Math.sqrt(3.0)/3.0 - y / 3.0) / size;
         def r = y * 2.0/3.0 / size;
         return new Hex(q:q, r:r, size:size).round();

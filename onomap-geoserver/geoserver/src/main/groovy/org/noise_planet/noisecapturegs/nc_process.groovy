@@ -99,7 +99,7 @@ class Record{
  */
 def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     // A ratio < 1 add blank area between hexagons
-    float hexSizeRatio = 1.0;
+    def hexSizeRatio = 1.0;
     def Pos center = hex.toMeter()
     def Coordinate centerCoord = center.toCoordinate();
     def geom = "POINT( " + center.x + " " + center.y + ")"
@@ -262,7 +262,7 @@ def process(Connection connection, float precisionFilter) {
                 } else {
                     // New hexagon
                     def scaledHex = new Hex(q:entry.key.q, r:entry.key.r, size:hexSize * Math.pow(3, hexExponent[i]))
-                    sql.executeInsert("INSERT INTO NOISECAPTURE_AREA_CLUSTER(CELL_LEVEL, CELL_Q, CELL_R,THE_GEOM, MEASURE_COUNT) VALUES (:cell_level, :cell_q, :cell_r,:the_geom, :measure_count) ", [cell_level : hexExponent[i], cell_q : entry.key.q, cell_r : entry.key.r,the_geom : scaledHex.toWKT(1.0), measure_count : entry.getValue()])
+                    sql.executeInsert("INSERT INTO NOISECAPTURE_AREA_CLUSTER(CELL_LEVEL, CELL_Q, CELL_R,THE_GEOM, MEASURE_COUNT) VALUES (:cell_level, :cell_q, :cell_r,ST_Transform(ST_GeomFromText(:the_geom,3857),4326), :measure_count) ", [cell_level : hexExponent[i], cell_q : entry.key.q, cell_r : entry.key.r,the_geom : scaledHex.toWKT(1.0f), measure_count : entry.getValue()])
                 }
             }
         }
@@ -325,15 +325,28 @@ class Pos {
 }
 
 class Hex {
-    long q
-    long r
-    float size
+    double q
+    double r
+    double size
 
-    String toWKT(float hexSizeRatio = 1.0) {
+    boolean equals(o) {
+        if (this.is(o)) return true
+        if (getClass() != o.class) return false
+
+        Hex hex = (Hex) o
+
+        if (Double.compare(hex.q, q) != 0) return false
+        if (Double.compare(hex.r, r) != 0) return false
+        if (Double.compare(hex.size, size) != 0) return false
+
+        return true
+    }
+
+    String toWKT(double hexSizeRatio = 1.0) {
         def center = toMeter()
         def hexaGeom = new StringBuilder()
-        for(int i=0; i<6 ; i++) {
-            if(hexaGeom.length() != 0) {
+        for (int i = 0; i < 6; i++) {
+            if (hexaGeom.length() != 0) {
                 hexaGeom.append(", ")
             } else {
                 hexaGeom.append("POLYGON((")
@@ -352,9 +365,21 @@ class Hex {
         return hexaGeom
     }
 
+    int hashCode() {
+        int result
+        long temp
+        temp = q != +0.0d ? Double.doubleToLongBits(q) : 0L
+        result = (int) (temp ^ (temp >>> 32))
+        temp = r != +0.0d ? Double.doubleToLongBits(r) : 0L
+        result = 31 * result + (int) (temp ^ (temp >>> 32))
+        temp = size != +0.0d ? Double.doubleToLongBits(size) : 0L
+        result = 31 * result + (int) (temp ^ (temp >>> 32))
+        return result
+    }
+
     static final def directions = [
-    new Hex(q:+1,  r:0), new Hex(q:+1, r:-1), new Hex(q:0, r:-1),
-    new Hex(q:-1,  r:0), new Hex(q:-1, r:+1),new Hex(q:0, r:+1)
+            new Hex(q:+1,  r:0), new Hex(q:+1, r:-1), new Hex(q:0, r:-1),
+            new Hex(q:-1,  r:0), new Hex(q:-1, r:+1),new Hex(q:0, r:+1)
     ]
 
     def neighbor(hex, int direction) {
@@ -362,39 +387,19 @@ class Hex {
         return new Hex(q:hex.q + dir.q, r:hex.r + dir.r, size:size)
     }
 
-    boolean equals(o) {
-        if (this.is(o)) return true
-        if (getClass() != o.class) return false
-
-        Hex hex = (Hex) o
-
-        if (q != hex.q) return false
-        if (r != hex.r) return false
-        if (Float.compare(hex.size, size) != 0) return false
-
-        return true
-    }
-
-    int hashCode() {
-        int result
-        result = (int) (q ^ (q >>> 32))
-        result = 31 * result + (int) (r ^ (r >>> 32))
-        result = 31 * result + (size != +0.0f ? Float.floatToIntBits(size) : 0)
-        return result
-    }
-/**
+    /**
      * @return Local coordinate of hexagon index
      */
     def Pos toMeter() {
-            def x = size * Math.sqrt(3.0) * (q + r/2.0);
-            def y = size * 3.0/2.0 * r;
-            return new Pos(x:x, y:y);
+        def x = size * Math.sqrt(3.0) * (q + r/2.0);
+        def y = size * 3.0/2.0 * r;
+        return new Pos(x:x, y:y);
     }
     /**
      * @param i Vertex [0-5]
      * @return Vertex coordinate
      */
-    def hex_corner(Pos center, int i, float ratio = 1.0) {
+    def hex_corner(Pos center, int i, double ratio = 1.0) {
         def angle_deg = 60.0 * i   + 30.0;
         def angle_rad = Math.PI / 180.0 * angle_deg;
         return new Pos(x:center.x + (size * ratio) * Math.cos(angle_rad), y:center.y + (size * ratio) * Math.sin(angle_rad));
@@ -416,10 +421,10 @@ class Hex {
 }
 
 class Cube {
-    float x
-    float y
-    float z
-    float size
+    double x
+    double y
+    double z
+    double size
 
     def toHex() {
         return new Hex(q:x, r: z, size:size);

@@ -135,6 +135,15 @@ class TestNoiseCaptureProcess extends GroovyTestCase {
                 0.01d)
         assertEquals(72.0d, (Double)sql.firstRow("SELECT LA50 FROM NOISECAPTURE_AREA_PROFILE WHERE HOUR = 16").get("LA50"),
                 0.01d)
+
+        Set<Integer> levels = new TreeSet<>();
+        // Check scaled hexagons
+        int[] hexExponent = [3, 4, 5, 6, 7, 8, 9, 10 ,11];
+        sql.eachRow("SELECT * FROM NOISECAPTURE_AREA_CLUSTER") { row ->
+            levels.add(row.CELL_LEVEL)
+        }
+        assertEquals(hexExponent.length, levels.size())
+
     }
 
     void testLA50() {

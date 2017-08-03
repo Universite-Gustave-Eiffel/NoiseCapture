@@ -86,9 +86,9 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         // Fetch data
         def arrayData = new nc_get_area_info().getAreaInfo(connection, -139656, 265210)
         assertFalse(arrayData.isEmpty())
-        assertEquals(55.96, (double)(arrayData.la50), 0.1)
+        assertEquals(62.37, (double)(arrayData.la50), 0.1)
         assertEquals(69, (double)(arrayData.mean_pleasantness), 0.01)
-        assertEquals(40, (int)(arrayData.measure_count))
+        assertEquals(30, (int)(arrayData.measure_count))
         assertEquals("2016-06-09T14:17:25+02:00", arrayData.first_measure)
         assertEquals("2016-06-09T14:18:02+02:00", arrayData.last_measure)
 

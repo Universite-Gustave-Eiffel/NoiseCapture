@@ -97,7 +97,7 @@ class Record{
  * @param precisionFiler GPS location greater than this value are ignored
  * @param sql
  */
-def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
+def processArea(Hex hex,float precisionFiler, Sql sql) {
     // A ratio < 1 add blank area between hexagons
     def hexSizeRatio = 1.0;
     def Pos center = hex.toMeter()
@@ -117,10 +117,11 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
     def hexaRecord = new Record()
     sql.eachRow("SELECT p.pk_track, ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY, p.noise_level," +
             " t.pleasantness,time_date FROM noisecapture_point p, noisecapture_track t WHERE p.pk_track = t.pk_track AND p.accuracy < :precision AND " +
-            "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom ORDER BY p.pk_track, time_date", [geom: geom.toString(), range: range, precision : precisionFiler])
+            "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom ORDER BY p.pk_track, time_date", [geom: geom.toString(), range: hex.size, precision : precisionFiler])
             { row ->
                 Pos pos = new Pos(x: row.PTX, y: row.PTY)
-                if (pos.toCoordinate().distance(centerCoord) < range) {
+                def hexOfMeasure = pos.toHex(hex.size)
+                if (hexOfMeasure == hex) {
                     ZonedDateTime zonedDateTime = ((Timestamp)row.time_date).toInstant().atZone(tz.toZoneId())
                     int hour = 0
                     if(zonedDateTime.dayOfWeek == DayOfWeek.SUNDAY) {
@@ -199,7 +200,6 @@ def processArea(Hex hex, float range,float precisionFiler, Sql sql) {
 def process(Connection connection, float precisionFilter) {
     Logger logger = LoggerFactory.getLogger("nc_process")
     def hexSize = 15.0
-    float hexRange = 15.0
     connection.setAutoCommit(false)
     int processed = 0
     try {
@@ -228,22 +228,11 @@ def process(Connection connection, float precisionFilter) {
                     hexagonalClustersDiff[i].put(scaledHex, oldValue + 1 )
                 }
             }
-            // use hexRange by navigating from hex to neighbors
-            def centerCube = hex.toCube()
-            def final int n = (int) Math.ceil(hexRange / hexSize) - 1
-            for (int dx = -n; dx <= n; dx++) {
-                for (int dy = Math.max(-n, -dx - n); dy <= Math.min(n, -dx + n); dy++) {
-                    def dz = -dx - dy
-                    if(dx != 0 || dy != 0 || dz != 0) {
-                        areaIndex.add(new Cube(x: dx + centerCube.x, y: dy + centerCube.y, z: dz + centerCube.z, size: hexSize).toHex())
-                    }
-                }
-            }
         }
 
         // Process areas
         for (Hex hex : areaIndex) {
-            if(processArea(hex, hexRange, precisionFilter, sql)) {
+            if(processArea(hex, precisionFilter, sql)) {
                 processed++
                 // Accept changes
                 connection.commit();

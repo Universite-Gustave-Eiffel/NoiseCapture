@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="css/leaflet-sidebar.css" />
     <link rel="stylesheet" href="css/languages.min.css" />
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/cluster.css" />
     <link href="css/leaflet-search.min.css" rel="stylesheet" />
     <link href="css/L.Control.MousePosition.css" rel="stylesheet" />
     <link href="css/time_donut.css" rel="stylesheet">
@@ -321,13 +322,19 @@ The authors are not responsible for the direct or indirect consequences of the u
 
         var onomap_cluster_polygons = new L.GeoJSON(null,  {
             onEachFeature: function(feature, layer) {
-              var label = L.marker(layer.getBounds().getCenter(), {
-                icon: L.divIcon({
-                  className: 'label',
-                  html: feature.properties.measure_count,
-                  iconSize: [100, 40]
-                })
-              });
+              var count = feature.properties.measure_count;
+              var size =
+              count < 100 ? 'small' :
+              count < 1000 ? 'medium' : 'large';
+              var abbrev = count >= 10000 ? Math.round(count / 1000) + 'k' :
+                count >= 1000 ? (Math.round(count / 100) / 10) + 'k' : count;
+              var icon = L.divIcon({
+              html: '<div><span>' + abbrev + '</span></div>',
+              className: 'marker-cluster marker-cluster-' + size,
+              iconSize: L.point(40, 40)
+            });
+
+              var label = L.marker(layer.getBounds().getCenter(), { icon: icon });
               onomap_cluster_labels.addLayer(label);
             }
 
@@ -379,7 +386,7 @@ The authors are not responsible for the direct or indirect consequences of the u
                 outputFormat: 'application/json'
                 };
 
-            var zoom_lvl_to_cell_lvl = [11, 11, 11, 10, 9, 8, 8, 7, 6, 6, 6, 4, 4, 3]
+            var zoom_lvl_to_cell_lvl = [11, 11, 11, 10, 9, 8, 8, 7, 6, 6, 6, 5, 4, 3]
             var bbox = map.getBounds();
             var customParams = {
                 CQL_FILTER: 'BBOX(the_geom, '+bbox.toBBoxString()+') AND "cell_level"=' + zoom_lvl_to_cell_lvl[map.getZoom()]

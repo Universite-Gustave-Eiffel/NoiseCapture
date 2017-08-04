@@ -386,7 +386,7 @@ The authors are not responsible for the direct or indirect consequences of the u
         function update() {
 
            if(map.getZoom() < 15){
-              var geoJsonUrl ='http://127.0.0.1:8085/geoserver/noisecapture/ows';
+              var geoJsonUrl ='http://onomap-gs.noise-planet.org/geoserver/ows';
               var defaultParameters = {
                   service: 'WFS',
                   version: '1.0.0',
@@ -396,7 +396,7 @@ The authors are not responsible for the direct or indirect consequences of the u
                   outputFormat: 'application/json'
                   };
 
-              var zoom_lvl_to_cell_lvl = [11, 11, 10, 10, 9, 8, 8, 7, 7, 6, 6, 5, 4, 3, 3];
+              var zoom_lvl_to_cell_lvl = [10, 10, 10, 10, 9, 8, 8, 7, 7, 6, 6, 5, 4, 3, 3];
               var bbox = map.getBounds();
               var customParams = {
                   CQL_FILTER: 'BBOX(the_geom, '+bbox.toBBoxString()+') AND "cell_level"=' + zoom_lvl_to_cell_lvl[map.getZoom()]

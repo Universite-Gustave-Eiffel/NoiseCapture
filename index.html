@@ -333,14 +333,16 @@ The authors are not responsible for the direct or indirect consequences of the u
               iconSize: L.point(40, 40)
             });
 
-              var label = L.marker(layer.getBounds().getCenter(), { icon: icon });
+              var label = L.marker(layer.getBounds().getCenter(), { icon: icon, keyboard: false , interactive: false});
               onomap_cluster_labels.addLayer(label);
             },
             style: function (geoJsonFeature) {
                       var count = geoJsonFeature.properties.measure_count;
                       return { stroke : true,
+                              interactive: false,
                               weight: 0.4,
                               color: "#ffffff",
+                              bubblingMouseEvents: false,
                               fillOpacity: 0.6,
                               fillColor: count < 100 ? "rgb(220, 220, 220)" :
                               count < 1000 ? "rgb(189, 189, 189)" : "rgb(99, 99, 99)"}
@@ -382,7 +384,7 @@ The authors are not responsible for the direct or indirect consequences of the u
         };
 
         map.on('moveend', function(){
-         if(map.getZoom() < 14){
+         if(map.getZoom() < 15){
             var geoJsonUrl ='http://127.0.0.1:8085/geoserver/noisecapture/ows';
             var defaultParameters = {
                 service: 'WFS',
@@ -393,7 +395,7 @@ The authors are not responsible for the direct or indirect consequences of the u
                 outputFormat: 'application/json'
                 };
 
-            var zoom_lvl_to_cell_lvl = [11, 11, 11, 10, 9, 8, 8, 7, 7, 6, 6, 5, 4, 3]
+            var zoom_lvl_to_cell_lvl = [11, 11, 11, 10, 9, 8, 8, 7, 7, 6, 6, 5, 4, 3, 3]
             var bbox = map.getBounds();
             var customParams = {
                 CQL_FILTER: 'BBOX(the_geom, '+bbox.toBBoxString()+') AND "cell_level"=' + zoom_lvl_to_cell_lvl[map.getZoom()]

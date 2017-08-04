@@ -323,21 +323,26 @@ The authors are not responsible for the direct or indirect consequences of the u
         var onomap_cluster_polygons = new L.GeoJSON(null,  {
             onEachFeature: function(feature, layer) {
               var count = feature.properties.measure_count;
-              var size =
-              count < 100 ? 'small' :
-              count < 1000 ? 'medium' : 'large';
               var abbrev = count >= 10000 ? Math.round(count / 1000) + 'k' :
                 count >= 1000 ? (Math.round(count / 100) / 10) + 'k' : count;
               var icon = L.divIcon({
               html: '<div><span>' + abbrev + '</span></div>',
-              className: 'marker-cluster marker-cluster-' + size,
+              className: 'marker-cluster',
               iconSize: L.point(40, 40)
             });
 
               var label = L.marker(layer.getBounds().getCenter(), { icon: icon });
               onomap_cluster_labels.addLayer(label);
-            }
-
+            },
+            style: function (geoJsonFeature) {
+                      var count = geoJsonFeature.properties.measure_count;
+                      return { stroke : true,
+                              weight: 0.4,
+                              color: "#ffffff",
+                              fillOpacity: 0.6,
+                              fillColor: count < 100 ? "rgb(110, 204, 57)" :
+                              count < 1000 ? "rgb(241, 211, 87)" : "rgb(253, 156, 115)"}
+                  }
         });
 
         var onomap_cluster_labels = L.featureGroup([]);
@@ -369,12 +374,12 @@ The authors are not responsible for the direct or indirect consequences of the u
         map.addLayer(onomap_cluster_layer)
 
         function loadGeoJson(data) {
+          onomap_cluster_labels.clearLayers();
+          onomap_cluster_polygons.clearLayers();
           onomap_cluster_polygons.addData(data);
         };
 
         map.on('moveend', function(){
-         onomap_cluster_labels.clearLayers();
-         onomap_cluster_polygons.clearLayers();
          if(map.getZoom() < 14){
             var geoJsonUrl ='http://127.0.0.1:8085/geoserver/noisecapture/ows';
             var defaultParameters = {
@@ -386,7 +391,7 @@ The authors are not responsible for the direct or indirect consequences of the u
                 outputFormat: 'application/json'
                 };
 
-            var zoom_lvl_to_cell_lvl = [11, 11, 11, 10, 9, 8, 8, 7, 6, 6, 6, 5, 4, 3]
+            var zoom_lvl_to_cell_lvl = [11, 11, 11, 10, 9, 9, 8, 7, 7, 6, 6, 5, 4, 3]
             var bbox = map.getBounds();
             var customParams = {
                 CQL_FILTER: 'BBOX(the_geom, '+bbox.toBBoxString()+') AND "cell_level"=' + zoom_lvl_to_cell_lvl[map.getZoom()]

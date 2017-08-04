@@ -301,7 +301,7 @@ The authors are not responsible for the direct or indirect consequences of the u
         var osm = L.tileLayer('http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
             attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
         });
-        
+
         var esriworldimagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
 	    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
         });
@@ -317,18 +317,25 @@ The authors are not responsible for the direct or indirect consequences of the u
             tms: true,
             minZoom: 14
         });
-        var onomap_heat = L.WMS.source(
-            "http://onomap-gs.noise-planet.org:80/geoserver/noisecapture/wms", {
-                "format": "image/png",
-                "transparent": "true",
-                "attribution": "<a href='http://onomap-gs.noise-planet.org'>OnoMap server</a>",
-                "tiled": false,
-                "identifyLayers": [],
-                "maxZoom": 13
+
+
+        var onomap_cluster_polygons = new L.GeoJSON(null,  {
+            onEachFeature: function(feature, layer) {
+              var label = L.marker(layer.getBounds().getCenter(), {
+                icon: L.divIcon({
+                  className: 'label',
+                  html: feature.properties.measure_count,
+                  iconSize: [100, 40]
+                })
+              });
+              onomap_cluster_labels.addLayer(label);
             }
-        );
-        var onomap_heat_layer = onomap_heat.getLayer("noisecapture:heatmap_raw_points_density");
-        //onomap_heat_layer.setOpacity(0.7);
+
+        });
+
+        var onomap_cluster_labels = L.featureGroup([]);
+
+        var onomap_cluster_layer = L.featureGroup([onomap_cluster_polygons, onomap_cluster_labels])
 
         L.control.scale({
             'position': 'bottomright',
@@ -352,7 +359,41 @@ The authors are not responsible for the direct or indirect consequences of the u
 
         map.addLayer(osm)
         map.addLayer(onomap)
-        map.addLayer(onomap_heat_layer)
+        map.addLayer(onomap_cluster_layer)
+
+        function loadGeoJson(data) {
+          onomap_cluster_polygons.addData(data);
+        };
+
+        map.on('moveend', function(){
+         onomap_cluster_labels.clearLayers();
+         onomap_cluster_polygons.clearLayers();
+         if(map.getZoom() < 14){
+            var geoJsonUrl ='http://127.0.0.1:8085/geoserver/noisecapture/ows';
+            var defaultParameters = {
+                service: 'WFS',
+                version: '1.0.0',
+                request: 'getFeature',
+                typeName: 'noisecapture:noisecapture_area_cluster',
+                maxFeatures: 3000,
+                outputFormat: 'application/json'
+                };
+
+            var zoom_lvl_to_cell_lvl = [11, 11, 11, 10, 9, 8, 8, 7, 6, 6, 6, 4, 4, 3]
+            var bbox = map.getBounds();
+            var customParams = {
+                CQL_FILTER: 'BBOX(the_geom, '+bbox.toBBoxString()+') AND "cell_level"=' + zoom_lvl_to_cell_lvl[map.getZoom()]
+                };
+            var parameters = L.Util.extend(defaultParameters, customParams);
+
+            $.ajax({
+                url: geoJsonUrl + L.Util.getParamString(parameters),
+                datatype: 'json',
+                jsonCallback: 'getJson',
+                success: loadGeoJson
+                });
+            }
+        });
 
         var baseLayers = {
             "OpenStreetMap": osm,
@@ -361,7 +402,7 @@ The authors are not responsible for the direct or indirect consequences of the u
 
         L.control.layers(baseLayers, {
             "Sound level (LA50)": onomap,
-            "Density of measures": onomap_heat_layer,
+            "Density of measures": onomap_cluster_layer,
             "Location of measures": onomap_pt
         }).addTo(map);
 

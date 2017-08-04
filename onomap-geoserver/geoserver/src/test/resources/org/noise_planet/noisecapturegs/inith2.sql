@@ -188,4 +188,4 @@ CREATE INDEX fki_noisecapture_freq_pk_point_fk
 -- SELECT UpdateGeometrySRID('noisecapture_dump_track_envelope','the_geom',4326);
 -- SELECT UpdateGeometrySRID('noisecapture_area','the_geom',4326);
 -- SELECT UpdateGeometrySRID('noisecapture_point','the_geom',4326);
--- SELECT UpdateGeometrySRID('u','the_geom',4326);
+-- SELECT UpdateGeometrySRID('noisecapture_area_cluster','the_geom',4326);

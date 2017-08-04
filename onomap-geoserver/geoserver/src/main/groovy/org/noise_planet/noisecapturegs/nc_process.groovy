@@ -205,7 +205,7 @@ def process(Connection connection, float precisionFilter) {
     try {
         Set<Hex> areaIndex = new HashSet()
         // Count what to add for each hexagons q,r,level
-        int[] hexExponent = [3, 4, 5, 6, 7, 8, 9, 10 ,11];
+        int[] hexExponent = [3, 4, 5, 6, 7, 8, 9, 10, 11];
         List<Map<Hex, Integer>> hexagonalClustersDiff = new ArrayList<>()
         for(int i=0; i<hexExponent.length;i++) {
             hexagonalClustersDiff.add(new HashMap<Hex, Integer>());

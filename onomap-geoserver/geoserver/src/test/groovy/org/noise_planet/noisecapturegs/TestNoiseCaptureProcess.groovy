@@ -138,7 +138,7 @@ class TestNoiseCaptureProcess extends GroovyTestCase {
 
         Set<Integer> levels = new TreeSet<>();
         // Check scaled hexagons
-        int[] hexExponent = [3, 4, 5, 6, 7, 8, 9, 10 ,11];
+        int[] hexExponent = [3, 4, 5, 6, 7, 8, 9, 10, 11];
         sql.eachRow("SELECT * FROM NOISECAPTURE_AREA_CLUSTER") { row ->
             levels.add(row.CELL_LEVEL)
         }

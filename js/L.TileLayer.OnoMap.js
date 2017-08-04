@@ -133,6 +133,12 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
 	 *	Mousemove callback function updating labels and input elements
 	 */
 	updateHexOverlay : function (evt) {
+    if(map.getZoom() < 15 ) {
+      if(this.hexOverlay != null) {
+        this.hexOverlay.removeFrom(map);
+      }
+      return;
+    }
 		var pos = evt.latlng,
 			opts = this.options;
 		if (pos) {

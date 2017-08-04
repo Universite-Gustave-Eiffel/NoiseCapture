@@ -383,36 +383,39 @@ The authors are not responsible for the direct or indirect consequences of the u
           onomap_cluster_polygons.addData(data);
         };
 
-        map.on('moveend', function(){
-         if(map.getZoom() < 15){
-            var geoJsonUrl ='http://127.0.0.1:8085/geoserver/noisecapture/ows';
-            var defaultParameters = {
-                service: 'WFS',
-                version: '1.0.0',
-                request: 'getFeature',
-                typeName: 'noisecapture:noisecapture_area_cluster',
-                maxFeatures: 3000,
-                outputFormat: 'application/json'
-                };
+        function update() {
 
-            var zoom_lvl_to_cell_lvl = [11, 11, 11, 10, 9, 8, 8, 7, 7, 6, 6, 5, 4, 3, 3]
-            var bbox = map.getBounds();
-            var customParams = {
-                CQL_FILTER: 'BBOX(the_geom, '+bbox.toBBoxString()+') AND "cell_level"=' + zoom_lvl_to_cell_lvl[map.getZoom()]
-                };
-            var parameters = L.Util.extend(defaultParameters, customParams);
+           if(map.getZoom() < 15){
+              var geoJsonUrl ='http://127.0.0.1:8085/geoserver/noisecapture/ows';
+              var defaultParameters = {
+                  service: 'WFS',
+                  version: '1.0.0',
+                  request: 'getFeature',
+                  typeName: 'noisecapture:noisecapture_area_cluster',
+                  maxFeatures: 3000,
+                  outputFormat: 'application/json'
+                  };
 
-            $.ajax({
-                url: geoJsonUrl + L.Util.getParamString(parameters),
-                datatype: 'json',
-                jsonCallback: 'getJson',
-                success: loadGeoJson
-                });
-            } else {
-                onomap_cluster_labels.clearLayers();
-                onomap_cluster_polygons.clearLayers();
-            }
-        });
+              var zoom_lvl_to_cell_lvl = [11, 11, 10, 10, 9, 8, 8, 7, 7, 6, 6, 5, 4, 3, 3];
+              var bbox = map.getBounds();
+              var customParams = {
+                  CQL_FILTER: 'BBOX(the_geom, '+bbox.toBBoxString()+') AND "cell_level"=' + zoom_lvl_to_cell_lvl[map.getZoom()]
+                  };
+              var parameters = L.Util.extend(defaultParameters, customParams);
+
+              $.ajax({
+                  url: geoJsonUrl + L.Util.getParamString(parameters),
+                  datatype: 'json',
+                  jsonCallback: 'getJson',
+                  success: loadGeoJson
+                  });
+              } else {
+                  onomap_cluster_labels.clearLayers();
+                  onomap_cluster_polygons.clearLayers();
+              }
+          };
+
+        map.on('moveend', update);
 
         var baseLayers = {
             "OpenStreetMap": osm,
@@ -437,6 +440,7 @@ The authors are not responsible for the direct or indirect consequences of the u
         function doHistoRefresh() {
             onomap.getHistory();
         }
+        update();
     </script>
 </body>
 

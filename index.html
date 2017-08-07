@@ -288,6 +288,7 @@ The authors are not responsible for the direct or indirect consequences of the u
     <script src="js/L.TileLayer.OnoMap.js"></script>
     <script src="js/leaflet-hash.js"></script>
     <script src="js/leaflet-sidebar.js"></script>
+    <script src="js/cluster.js"></script>
     <script src="js/leaflet.wms.js"></script>
     <script src="js/leaflet-search.min.js"></script>
     <script src="js/moment-with-locales.min.js"></script>
@@ -320,38 +321,7 @@ The authors are not responsible for the direct or indirect consequences of the u
         });
 
 
-        var onomap_cluster_polygons = new L.GeoJSON(null,  {
-            onEachFeature: function(feature, layer) {
-              var count = feature.properties.measure_count;
-              var abbrev = count >= 10000 ? Math.round(count / 1000) + 'k' :
-                count >= 1000 ? (Math.round(count / 100) / 10) + 'k' : count;
-              var size =
-                  count < 100 ? 'small' : count < 1000 ? 'medium' : 'large';
-              var icon = L.divIcon({
-              html: '<div><span>' + abbrev + '</span></div>',
-              className: 'marker-cluster marker-cluster-' + size,
-              iconSize: L.point(40, 40)
-            });
-
-              var label = L.marker(layer.getBounds().getCenter(), { icon: icon, keyboard: false , interactive: false});
-              onomap_cluster_labels.addLayer(label);
-            },
-            style: function (geoJsonFeature) {
-                      var count = geoJsonFeature.properties.measure_count;
-                      return { stroke : true,
-                              interactive: false,
-                              weight: 0.4,
-                              color: "#ffffff",
-                              bubblingMouseEvents: false,
-                              fillOpacity: 0.6,
-                              fillColor: count < 100 ? "rgb(220, 220, 220)" :
-                              count < 1000 ? "rgb(189, 189, 189)" : "rgb(99, 99, 99)"}
-                  }
-        });
-
-        var onomap_cluster_labels = L.featureGroup([]);
-
-        var onomap_cluster_layer = L.featureGroup([onomap_cluster_polygons, onomap_cluster_labels])
+        var onomap_cluster_layer = L.geoJSON.OnoMap('http://onomap-gs.noise-planet.org/geoserver/ows');
 
         L.control.scale({
             'position': 'bottomright',
@@ -377,46 +347,6 @@ The authors are not responsible for the direct or indirect consequences of the u
         map.addLayer(onomap)
         map.addLayer(onomap_cluster_layer)
 
-        function loadGeoJson(data) {
-          onomap_cluster_labels.clearLayers();
-          onomap_cluster_polygons.clearLayers();
-          onomap_cluster_polygons.addData(data);
-        };
-
-        function update() {
-
-           if(map.getZoom() < 15){
-              var geoJsonUrl ='http://onomap-gs.noise-planet.org/geoserver/ows';
-              var defaultParameters = {
-                  service: 'WFS',
-                  version: '1.0.0',
-                  request: 'getFeature',
-                  typeName: 'noisecapture:noisecapture_area_cluster',
-                  maxFeatures: 3000,
-                  outputFormat: 'application/json'
-                  };
-
-              var zoom_lvl_to_cell_lvl = [10, 10, 10, 10, 9, 8, 8, 7, 7, 6, 6, 5, 4, 3, 3];
-              var bbox = map.getBounds();
-              var customParams = {
-                  CQL_FILTER: 'BBOX(the_geom, '+bbox.toBBoxString()+') AND "cell_level"=' + zoom_lvl_to_cell_lvl[map.getZoom()]
-                  };
-              var parameters = L.Util.extend(defaultParameters, customParams);
-
-              $.ajax({
-                  url: geoJsonUrl + L.Util.getParamString(parameters),
-                  datatype: 'json',
-                  jsonCallback: 'getJson',
-                  success: loadGeoJson
-                  });
-              } else {
-                  onomap_cluster_labels.clearLayers();
-                  onomap_cluster_polygons.clearLayers();
-              }
-          };
-
-        map.on('moveend', update);
-
         var baseLayers = {
             "OpenStreetMap": osm,
              "Images satellites": esriworldimagery
@@ -440,7 +370,6 @@ The authors are not responsible for the direct or indirect consequences of the u
         function doHistoRefresh() {
             onomap.getHistory();
         }
-        update();
     </script>
 </body>
 

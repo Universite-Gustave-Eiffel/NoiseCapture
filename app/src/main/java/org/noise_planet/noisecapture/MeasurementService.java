@@ -171,8 +171,13 @@ public class MeasurementService extends Service {
         this.measurementManager = new MeasurementManager(getApplicationContext());
         // Display a notification about us starting.  We put an icon in the status bar.
         showNotification();
-        AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-        mgr.setStreamMute(AudioManager.STREAM_SYSTEM, true);
+        // Mute NoiseCapture while measuring (do not capture android sounds)
+        try {
+            AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+            mgr.setStreamMute(AudioManager.STREAM_SYSTEM, true);
+        } catch (SecurityException ex) {
+            // Ignore
+        }
     }
 
     /**
@@ -197,8 +202,12 @@ public class MeasurementService extends Service {
         if(isRecording()) {
             cancel();
         }
-        AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
-        mgr.setStreamMute(AudioManager.STREAM_SYSTEM, false);
+        try {
+            AudioManager mgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            mgr.setStreamMute(AudioManager.STREAM_SYSTEM, false);
+        } catch (SecurityException ex) {
+            // Ignore
+        }
     }
 
     /***

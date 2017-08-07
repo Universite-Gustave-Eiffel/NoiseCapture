@@ -70,17 +70,26 @@ function addMeasurementPoints(GeoJSONFeatures) {
 
 userMeasurementPoints.addTo(map);
 
-var onomap = L.tileLayer('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_area_laeq@EPSG:900913@png/{z}/{x}/{y}.png', {
+var onomap_tiles = L.tileLayer('http://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_area_laeq@EPSG:900913@png/{z}/{x}/{y}.png', {
 tms: true,
 zIndex: 2,
 maxZoom: 19,
 minZoom: 14
 });
 
+var onomap_cluster = L.geoJSON.OnoMap('http://onomap-gs.noise-planet.org/geoserver/ows');
+
+var onomap = L.featureGroup([onomap_tiles, onomap_cluster])
+
 var osm = L.tileLayer('http://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
     attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19,
     zIndex: 1
+});
+
+var esriworldimagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+    maxZoom: 19,
 });
 
 var legend = L.control({position: 'bottomleft'});
@@ -97,11 +106,12 @@ legend.addTo(map);
 osm.addTo(map);
 
 var baseLayers = {
-"OpenStreetMap": osm
+"OpenStreetMap": osm,
+"Satellite imagery": esriworldimagery
 };
 
 var community_layer_name = "Community sound level (LAeq)"
-var all_measurements_layer_name = "All measurements"
+var all_measurements_layer_name = "All your measurements"
 var measurements_layer_name = "Selected measurement";
 
 var overlays = {};

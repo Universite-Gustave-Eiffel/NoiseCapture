@@ -78,6 +78,8 @@ public class MapFragment extends Fragment {
             // Inflate the layout for this fragment
             view = inflater.inflate(R.layout.fragment_measurement_map, container, false);
             leaflet = (WebView) view.findViewById(R.id.measurement_webmapview);
+            leaflet.clearCache(true);
+            leaflet.clearHistory();
             WebSettings webSettings = leaflet.getSettings();
             webSettings.setJavaScriptEnabled(true);
             WebSettings settings = leaflet.getSettings();
@@ -165,6 +167,9 @@ public class MapFragment extends Fragment {
         }
     }
 
+    public void cleanMeasurementPoints() {
+        runJs("userMeasurementPoints.clearLayers()");
+    }
     public void removeLocationMarker() {
         runJs("userLocationLayer.removeFrom(map)");
     }

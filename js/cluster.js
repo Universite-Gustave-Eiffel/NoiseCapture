@@ -42,7 +42,7 @@ GeoJSONCluster = L.GeoJSON.extend({
               count < 100 ? 'small' : count < 1000 ? 'medium' : 'large';
             var icon = L.divIcon({
             html: '<div><span>' + abbrev + '</span></div>',
-            className: 'marker-cluster marker-cluster-' + size,
+            className: 'hexagon-cluster hexagon-cluster-' + size,
             iconSize: L.point(40, 40)
             });
 

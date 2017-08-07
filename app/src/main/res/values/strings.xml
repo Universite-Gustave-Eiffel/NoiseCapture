@@ -192,7 +192,7 @@
     <string name="upload_progress_message">Uploading measurement</string>
 
     <string name="history_length">%d s</string>
-    <string name="history_date">Date: %s</string>
+    <string name="history_date">- %s</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Upload</string>
     <string name="map_marker_label">%1$.01f dB(A) Precision: %2$s m</string>

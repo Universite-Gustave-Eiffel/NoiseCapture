@@ -31,6 +31,7 @@ package org.noise_planet.noisecapturegs
 import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import groovy.sql.Sql
 import org.geotools.jdbc.JDBCDataStore
 
@@ -66,9 +67,7 @@ def getStats(Connection connection) {
     try {
         // List the 10 last measurements, with aggregation of points
         def sql = new Sql(connection)
-        sql.eachRow("select t.pk_track, time_length, record_utc, st_astext(ST_Centroid(ST_EXTENT(the_geom))) env" +
-                " from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track and p.accuracy > 0 and p.accuracy < 15 GROUP BY" +
-                " t.pk_track order by t.record_utc DESC LIMIT 10;") {
+        sql.eachRow("select * from NOISECAPTURE_STATS_LAST_TRACKS") {
             record_row ->
                 // Fetch the timezone of this point
                 def res = sql.firstRow("SELECT TZID FROM tz_world WHERE " +
@@ -85,8 +84,11 @@ def getStats(Connection connection) {
                 def center = decodeLatLongFromString(record_row.env)
                 def longitude = center != null ? center[0] : null
                 def latitude = center != null ? center[1] : null
+                def the_geom = new JsonSlurper().parseText(record_row.the_geom)
+                def start = new JsonSlurper().parseText(record_row.start_pt)
+                def stop = new JsonSlurper().parseText(record_row.stop_pt)
                 data.add([time_length : record_row.time_length as Integer, record_utc : record_utc,
-                          zoom_level : 18, lat : latitude, long : longitude])
+                          zoom_level : 18, lat : latitude, long : longitude, bounds : the_geom, start : start, stop : stop, geocode : record_row.geocode])
         }
     } catch (SQLException ex) {
         throw ex

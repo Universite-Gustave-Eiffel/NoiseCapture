@@ -63,6 +63,9 @@ class TestNoiseCaptureHisto extends GroovyTestCase {
         // Load timezone file
         st.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
         st.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
+        // ut_deps has been derived from https://www.data.gouv.fr/fr/datasets/contours-des-departements-francais-issus-d-openstreetmap/ (c) osm
+        // See ut_deps.txt for more details
+        st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
     }
 
     @After
@@ -75,13 +78,21 @@ class TestNoiseCaptureHisto extends GroovyTestCase {
     void testGetAreaProfile() {
         Sql.LOG.level = java.util.logging.Level.SEVERE
         Sql sql = new Sql(connection)
-        // Insert measure data
-        // insert records
-        TestNoiseCaptureProcess.addTestRecord(sql, "2016-09-07T13:43:13Z", "POINT(-1.6453827 47.1540574)", [70, 75, 72])
-        TestNoiseCaptureProcess.addTestRecord(sql, "2016-09-04T18:43:13Z", "POINT(-1.6453827 47.1540574)", [60, 61, 58])
-        TestNoiseCaptureProcess.addTestRecord(sql, "2016-09-03T16:43:13Z", "POINT(-1.6453827 47.1540574)", [65, 68, 64])
+        // Parse file to database
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_a23261b3-b569-4363-95be-e5578d694238.zip").file))
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_f720018a-a5db-4859-bd7d-377d29356c6f.zip").file))
+        new nc_parse().buildStatistics(connection)
         // Fetch data
         def arrayData = new nc_last_measures().getStats(connection)
-        JsonOutput.toJson(arrayData);
+        assertEquals(3, arrayData.size())
+        assertEquals("France_Poitou-Charentes_Charente-Maritime", arrayData[0].geocode)
+        assertEquals("Italy_Umbria_Perugia", arrayData[1].geocode)
+        assertEquals("France_Pays de la Loire_Loire-Atlantique", arrayData[2].geocode)
+        // Check conversion to json
+        def jsonData = JsonOutput.toJson(arrayData);
     }
 }

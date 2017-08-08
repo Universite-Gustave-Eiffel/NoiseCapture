@@ -12,10 +12,10 @@ xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.
 			<sld:Title>Noise classification by levels</sld:Title>
 			<Abstract>To be complete</Abstract>
 			<sld:FeatureTypeStyle>
-					<sld:Rule>
-					<sld:Name>30 - 35 dB(A)</sld:Name>
+								<sld:Rule>
+					<sld:Name>30 - 35</sld:Name>
 					<sld:Description>
-						<sld:Title>30 - 35 dB(A)</sld:Title>
+						<sld:Title>30 - 35</sld:Title>
 					</sld:Description>
 					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
 						<ogc:And>
@@ -35,18 +35,12 @@ xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.
 							<CssParameter name="fill-opacity">0.7</CssParameter>
 							<sld:CssParameter name="fill">#82a6ad</sld:CssParameter>
 						</sld:Fill>
-
-                        <sld:Stroke>
-                          <sld:CssParameter name="stroke">#82a6ad</sld:CssParameter>
-                          <sld:CssParameter name="stroke-opacity">0.7</sld:CssParameter>
-                          <sld:CssParameter name="stroke-width">1.0</sld:CssParameter>
-                        </sld:Stroke>
 					</sld:PolygonSymbolizer>
 				</sld:Rule>
 				<sld:Rule>
-					<sld:Name>35 - 40 dB(A)</sld:Name>
+					<sld:Name>35 - 40</sld:Name>
 					<sld:Description>
-						<sld:Title>35 - 40 dB(A)</sld:Title>
+						<sld:Title>35 - 40</sld:Title>
 					</sld:Description>
 					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
 						<ogc:And>
@@ -67,17 +61,12 @@ xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.
 							<CssParameter name="fill-opacity">0.7</CssParameter>
 							<sld:CssParameter name="fill">#a0babf</sld:CssParameter>
 						</sld:Fill>
- <sld:Stroke>
-                          <sld:CssParameter name="stroke">#a0babf</sld:CssParameter>
-                          <sld:CssParameter name="stroke-opacity">0.7</sld:CssParameter>
-                          <sld:CssParameter name="stroke-width">1.0</sld:CssParameter>
-                        </sld:Stroke>
 					</sld:PolygonSymbolizer>
 				</sld:Rule>
 				<sld:Rule>
-					<sld:Name>40 - 45  dB(A)</sld:Name>
+					<sld:Name>40 - 45</sld:Name>
 					<sld:Description>
-						<sld:Title>40 - 45  dB(A)</sld:Title>
+						<sld:Title>40 - 45</sld:Title>
 					</sld:Description>
 					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
 						<ogc:And>
@@ -98,17 +87,12 @@ xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.
 							<CssParameter name="fill-opacity">0.7</CssParameter>
 							<sld:CssParameter name="fill">#b8d6d1</sld:CssParameter>
 						</sld:Fill>
- <sld:Stroke>
-                          <sld:CssParameter name="stroke">#b8d6d1</sld:CssParameter>
-                          <sld:CssParameter name="stroke-opacity">0.7</sld:CssParameter>
-                          <sld:CssParameter name="stroke-width">1.0</sld:CssParameter>
-                        </sld:Stroke>
 					</sld:PolygonSymbolizer>
 				</sld:Rule>
 				<sld:Rule>
-					<sld:Name>45 - 50 dB(A)</sld:Name>
+					<sld:Name>45 - 50</sld:Name>
 					<sld:Description>
-						<sld:Title>45 - 50 dB(A)</sld:Title>
+						<sld:Title>45 - 50</sld:Title>
 					</sld:Description>
 					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
 						<ogc:And>
@@ -129,17 +113,12 @@ xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.
 							<CssParameter name="fill-opacity">0.7</CssParameter>
 							<sld:CssParameter name="fill">#cee4cc</sld:CssParameter>
 						</sld:Fill>
-<sld:Stroke>
-                          <sld:CssParameter name="stroke">#cee4cc</sld:CssParameter>
-                          <sld:CssParameter name="stroke-opacity">0.7</sld:CssParameter>
-                          <sld:CssParameter name="stroke-width">1.0</sld:CssParameter>
-                        </sld:Stroke>
 					</sld:PolygonSymbolizer>
 				</sld:Rule>
 				<sld:Rule>
-					<sld:Name>50 - 55 dB(A)</sld:Name>
+					<sld:Name>50 - 55</sld:Name>
 					<sld:Description>
-						<sld:Title>50 - 55 dB(A)</sld:Title>
+						<sld:Title>50 - 55</sld:Title>
 					</sld:Description>
 					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
 						<ogc:And>
@@ -160,17 +139,12 @@ xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.
 							<CssParameter name="fill-opacity">0.7</CssParameter>
 							<sld:CssParameter name="fill">#e2f2bf</sld:CssParameter>
 						</sld:Fill>
-<sld:Stroke>
-                          <sld:CssParameter name="stroke">#e2f2bf</sld:CssParameter>
-                          <sld:CssParameter name="stroke-opacity">0.7</sld:CssParameter>
-                          <sld:CssParameter name="stroke-width">1.0</sld:CssParameter>
-                        </sld:Stroke>
 					</sld:PolygonSymbolizer>
 				</sld:Rule>
 				<sld:Rule>
-					<sld:Name>55 - 60 dB(A)</sld:Name>
+					<sld:Name>55 - 60</sld:Name>
 					<sld:Description>
-						<sld:Title>55 - 60 dB(A)</sld:Title>
+						<sld:Title>55 - 60</sld:Title>
 					</sld:Description>
 					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
 						<ogc:And>
@@ -191,17 +165,12 @@ xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.
 							<CssParameter name="fill-opacity">0.7</CssParameter>
 							<sld:CssParameter name="fill">#f3c683</sld:CssParameter>
 						</sld:Fill>
-<sld:Stroke>
-                          <sld:CssParameter name="stroke">#f3c683</sld:CssParameter>
-                          <sld:CssParameter name="stroke-opacity">0.7</sld:CssParameter>
-                          <sld:CssParameter name="stroke-width">1.0</sld:CssParameter>
-                        </sld:Stroke>
 					</sld:PolygonSymbolizer>
 				</sld:Rule>
 				<sld:Rule>
-					<sld:Name>60 - 65 dB(A)</sld:Name>
+					<sld:Name>60 - 65</sld:Name>
 					<sld:Description>
-						<sld:Title>60 - 65 dB(A)</sld:Title>
+						<sld:Title>60 - 65</sld:Title>
 					</sld:Description>
 					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
 						<ogc:And>
@@ -222,17 +191,12 @@ xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.
 							<CssParameter name="fill-opacity">0.7</CssParameter>
 							<sld:CssParameter name="fill">#e87e4d</sld:CssParameter>
 						</sld:Fill>
-<sld:Stroke>
-                          <sld:CssParameter name="stroke">#e87e4d</sld:CssParameter>
-                          <sld:CssParameter name="stroke-opacity">0.7</sld:CssParameter>
-                          <sld:CssParameter name="stroke-width">1.0</sld:CssParameter>
-                        </sld:Stroke>
 					</sld:PolygonSymbolizer>
 				</sld:Rule>
 				<sld:Rule>
-					<sld:Name>65 - 70 dB(A)</sld:Name>
+					<sld:Name>65 - 70</sld:Name>
 					<sld:Description>
-						<sld:Title>65 - 70 dB(A)</sld:Title>
+						<sld:Title>65 - 70</sld:Title>
 					</sld:Description>
 					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
 						<ogc:And>
@@ -253,17 +217,12 @@ xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.
 							<CssParameter name="fill-opacity">0.7</CssParameter>
 							<sld:CssParameter name="fill">#cd463e</sld:CssParameter>
 						</sld:Fill>
-<sld:Stroke>
-                          <sld:CssParameter name="stroke">#cd463e</sld:CssParameter>
-                          <sld:CssParameter name="stroke-opacity">0.7</sld:CssParameter>
-                          <sld:CssParameter name="stroke-width">1.0</sld:CssParameter>
-                        </sld:Stroke>
 					</sld:PolygonSymbolizer>
 				</sld:Rule>
 				<sld:Rule>
-					<sld:Name>70 - 75 dB(A)</sld:Name>
+					<sld:Name>70 - 75</sld:Name>
 					<sld:Description>
-						<sld:Title>70 - 75 dB(A)</sld:Title>
+						<sld:Title>70 - 75</sld:Title>
 					</sld:Description>
 					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
 						<ogc:And>
@@ -284,17 +243,12 @@ xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.
 							<CssParameter name="fill-opacity">0.7</CssParameter>
 							<sld:CssParameter name="fill">#a11a4d</sld:CssParameter>
 						</sld:Fill>
-<sld:Stroke>
-                          <sld:CssParameter name="stroke">#a11a4d</sld:CssParameter>
-                          <sld:CssParameter name="stroke-opacity">0.7</sld:CssParameter>
-                          <sld:CssParameter name="stroke-width">1.0</sld:CssParameter>
-                        </sld:Stroke>
 					</sld:PolygonSymbolizer>
 				</sld:Rule>
 				<sld:Rule>
-					<sld:Name>75 - 80 dB(A)</sld:Name>
+					<sld:Name>75 - 80</sld:Name>
 					<sld:Description>
-						<sld:Title>75 - 80 dB(A)</sld:Title>
+						<sld:Title>75 - 80</sld:Title>
 					</sld:Description>
 					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
 						<ogc:And>
@@ -315,17 +269,12 @@ xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.
 							<CssParameter name="fill-opacity">0.7</CssParameter>
 							<sld:CssParameter name="fill">#75085c</sld:CssParameter>
 						</sld:Fill>
-<sld:Stroke>
-                          <sld:CssParameter name="stroke">#75085c</sld:CssParameter>
-                          <sld:CssParameter name="stroke-opacity">0.7</sld:CssParameter>
-                          <sld:CssParameter name="stroke-width">1.0</sld:CssParameter>
-                        </sld:Stroke>
 					</sld:PolygonSymbolizer>
 				</sld:Rule>
 				<sld:Rule>
-					<sld:Name>> 80 dB(A)</sld:Name>
+					<sld:Name>&gt; 80 dB(A)</sld:Name>
 					<sld:Description>
-						<sld:Title>> 80 dB(A)</sld:Title>
+						<sld:Title>&gt; 80 dB(A)</sld:Title>
 					</sld:Description>
 					<ogc:Filter xmlns:ogc="http://www.opengis.net/ogc">
 						<ogc:And>
@@ -346,11 +295,6 @@ xsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.
 							<CssParameter name="fill-opacity">0.7</CssParameter>
 							<sld:CssParameter name="fill">#430a4a</sld:CssParameter>
 						</sld:Fill>
-<sld:Stroke>
-                          <sld:CssParameter name="stroke">#430a4a</sld:CssParameter>
-                          <sld:CssParameter name="stroke-opacity">0.7</sld:CssParameter>
-                          <sld:CssParameter name="stroke-width">1.0</sld:CssParameter>
-                        </sld:Stroke>
 					</sld:PolygonSymbolizer>
 				</sld:Rule>
 			</sld:FeatureTypeStyle>

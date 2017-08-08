@@ -210,7 +210,7 @@ public class Results extends MainActivity {
         exportComment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Results.this.doTransferRecords();
+                runOnUiThread(new SendResults(Results.this, record.getId()));
             }
         });
 

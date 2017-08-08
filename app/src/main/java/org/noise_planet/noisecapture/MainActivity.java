@@ -65,6 +65,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -472,7 +473,7 @@ public class MainActivity extends AppCompatActivity {
      * Transfer provided records
      */
     protected void doTransferRecords(List<Integer> selectedRecordIds) {
-        runOnUiThread(new SendResults(this, selectedRecordIds, progress));
+        runOnUiThread(new SendResults(this, selectedRecordIds));
     }
 
     /**
@@ -500,9 +501,14 @@ public class MainActivity extends AppCompatActivity {
         private MainActivity mainActivity;
         private List<Integer> recordsToTransfer;
 
-        public SendResults(MainActivity mainActivity, List<Integer> recordsToTransfer, ProgressDialog progress) {
+        public SendResults(MainActivity mainActivity, List<Integer> recordsToTransfer) {
             this.mainActivity = mainActivity;
             this.recordsToTransfer = recordsToTransfer;
+        }
+
+        public SendResults(MainActivity mainActivity, Integer... recordsToTransfer) {
+            this.mainActivity = mainActivity;
+            this.recordsToTransfer = Arrays.asList(recordsToTransfer);
         }
 
         @Override

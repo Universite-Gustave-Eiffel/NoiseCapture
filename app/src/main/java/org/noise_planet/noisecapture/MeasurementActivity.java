@@ -76,6 +76,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MeasurementActivity extends MainActivity implements
@@ -96,6 +97,8 @@ public class MeasurementActivity extends MainActivity implements
     private static final int PAGE_MAP = 2;
     // From this accuracy the location hint color is orange
     private static final float APROXIMATE_LOCATION_ACCURACY = 10.f;
+    private static final double MINIMAL_DISTANCE_RESTORE_MAP = 3.f;
+    private static final int MAX_LOCATIONS_RESTORE_MAP = 500;
 
     // Other resources
     private boolean mIsBound = false;
@@ -563,6 +566,23 @@ public class MeasurementActivity extends MainActivity implements
 
             // Start chronometer
             chronometerWaitingToStart.set(true);
+
+            MeasurementManager measurementManager = new MeasurementManager(this);
+
+            MapFragment mapFragment = getMapControler();
+            if(mapFragment != null) {
+                List<MeasurementManager.LeqBatch> locations = measurementManager
+                        .getRecordLocations(measurementService.getRecordId(), true, MAX_LOCATIONS_RESTORE_MAP, null,
+                                MINIMAL_DISTANCE_RESTORE_MAP);
+                mapFragment.cleanMeasurementPoints();
+                for(MeasurementManager.LeqBatch location : locations) {
+                    Storage.Leq leq = location.getLeq();
+                    String htmlColor = MeasurementExport.getColorFromLevel
+                            (location.computeGlobalLeq());
+                    mapFragment.addMeasurement(new MapFragment.LatLng(leq.getLatitude(), leq
+                            .getLongitude()), htmlColor);
+                }
+            }
         }
         else
         {

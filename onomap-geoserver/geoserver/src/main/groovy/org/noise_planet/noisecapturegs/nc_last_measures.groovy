@@ -88,7 +88,8 @@ def getStats(Connection connection) {
                 def start = new JsonSlurper().parseText(record_row.start_pt)
                 def stop = new JsonSlurper().parseText(record_row.stop_pt)
                 data.add([time_length : record_row.time_length as Integer, record_utc : record_utc,
-                          zoom_level : 18, lat : latitude, long : longitude, bounds : the_geom, start : start, stop : stop, geocode : record_row.geocode])
+                          zoom_level : 18, lat : latitude, long : longitude, bounds : the_geom, start : start,
+                          stop : stop, country : record_row.name_0, name_1 : record_row.name_1, name_2 : record_row.name_2])
         }
     } catch (SQLException ex) {
         throw ex

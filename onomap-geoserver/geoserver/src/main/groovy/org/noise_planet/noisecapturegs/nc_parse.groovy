@@ -254,6 +254,16 @@ def static Connection openPostgreSQLDataStoreConnection() {
     return jdbcDataStore.getDataSource().getConnection()
 }
 
+def static void buildStatistics(Connection connection) {
+    def sql = new Sql(connection)
+    connection.setAutoCommit(false)
+    sql.execute("DROP TABLE IF EXISTS NOISECAPTURE_STATS_LAST_TRACKS")
+    sql.execute("CREATE TABLE NOISECAPTURE_STATS_LAST_TRACKS AS select t.pk_track, time_length, record_utc,ST_AsGeoJson(t.env) the_geom, st_astext(ST_Centroid(t.env)) env,start_pt, stop_pt, name_0, name_1,(CASE WHEN (name_3 IS NULL OR name_3 = '') THEN name_2 ELSE name_3 END) name_3 from (select t.pk_track,time_length, record_utc, ST_EXTENT(p.the_geom) env,  ST_AsGeoJson(ST_GeometryN(St_Collect(p.the_geom), 1)) start_pt,  ST_AsGeoJson(ST_GeometryN(St_Collect(p.the_geom), ST_NumGeometries(St_Collect(p.the_geom)))) stop_pt from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track and p.accuracy > 0 and p.accuracy < 15 GROUP BY t.pk_track order by t.record_utc DESC LIMIT 30) t, gadm28\n" +
+            "where gadm28.the_geom && t.env AND ST_CONTAINS(gadm28.the_geom, ST_SetSRID(ST_Centroid(t.env),4326)) ")
+    sql.commit()
+    connection.setAutoCommit(true)
+}
+
 def run(input) {
     Logger logger = LoggerFactory.getLogger("logger_nc_parse")
     File dataDir = new File("data_dir/onomap_uploading");
@@ -301,6 +311,8 @@ def run(input) {
                     }
                     processed++
                 }
+                // Feed last measures table
+                buildStatistics(connection)
             } finally {
                 connection.close()
             }

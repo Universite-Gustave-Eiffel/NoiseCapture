@@ -44,6 +44,8 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
   data:null,
   // Last history data
   data_histo:null,
+  // Start stop marker of selected history
+  start_stop_layer:null,
 
 	/**
 	 * @param hex Hex index
@@ -235,7 +237,7 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
             // User want to see in local time
             time_record = moment(row.record_utc).format('LLL');
           }
-          var location_title = row.name_2+", "+row.name_1+", "+row.country;
+          var location_title = row.name_3+", "+row.name_1+", "+row.country;
           html_cont += "<tr><td><a data-placement=\"right\"  style=\"cursor: pointer;\" data-toggle=\"tooltip\" title=\""+location_title+"\" onclick=\"onomap.goToHistory("+i+")\"><span class=\"flag-icon flag-icon-"+this.countries[row.country].toLowerCase()+"\"></span></a></td><td>"+time_record+"</td><td>"+row.time_length+" s</td></tr>";
         }
         html_cont += "</tbody></table>";
@@ -246,11 +248,37 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
 
   goToHistory: function (historyId) {
     var row = this.data_histo[historyId];
-    var bounds = row.bounds.coordinates[0];
-    map.fitBounds([
-    [bounds[0][1], bounds[0][0]],
-    [bounds[2][1], bounds[2][0]]
-    ]);
+    if(row.bounds.type=='Point') {
+      var bounds = row.bounds.coordinates;
+      map.setView([bounds[1], bounds[0]], 18);
+    } else {
+      var bounds = row.bounds.coordinates[0];
+      map.fitBounds([
+      [bounds[0][1], bounds[0][0]],
+      [bounds[2][1], bounds[2][0]]
+      ]);
+    }
+    // Add start stop layer
+    if(this.start_stop_layer) {
+      this.start_stop_layer.clearLayers();
+    } else {
+      this.start_stop_layer = L.featureGroup([]);
+      this.start_stop_layer.addTo(map);
+    }
+    var startFlag = row.start.coordinates;
+    var stopFlag = row.stop.coordinates;
+    this.start_stop_layer.addLayer(L.marker([startFlag[1], startFlag[0]], {icon: L.AwesomeMarkers.icon({
+      icon: 'flag-o',
+      prefix: 'fa',
+      markerColor: 'green',
+      iconColor: 'black'
+    })}));
+    this.start_stop_layer.addLayer(L.marker([stopFlag[1], stopFlag[0]], {icon: L.AwesomeMarkers.icon({
+      icon: 'flag-checkered',
+      prefix: 'fa',
+      markerColor: 'black',
+      iconColor: 'white'
+    })}));
   },
 
   getHistory: function() {
@@ -276,7 +304,10 @@ L.TileLayer.OnoMap = L.TileLayer.extend({
         showResults(error);
       }
     });
-
+    // Clean markers
+    if(this.start_stop_layer) {
+      this.start_stop_layer.clearLayers();
+    }
   },
 
   getFeatureInfo: function (evt) {

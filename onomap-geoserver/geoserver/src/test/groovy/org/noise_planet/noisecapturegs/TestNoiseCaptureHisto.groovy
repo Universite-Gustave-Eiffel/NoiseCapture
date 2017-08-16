@@ -75,7 +75,7 @@ class TestNoiseCaptureHisto extends GroovyTestCase {
     }
 
 
-    void testGetAreaProfile() {
+    void testGetLastMeasures() {
         Sql.LOG.level = java.util.logging.Level.SEVERE
         // Parse file to database
         new nc_parse().processFile(connection,
@@ -90,13 +90,13 @@ class TestNoiseCaptureHisto extends GroovyTestCase {
         assertEquals(3, arrayData.size())
         assertEquals("France", arrayData[0].country)
         assertEquals("Poitou-Charentes", arrayData[0].name_1)
-        assertEquals("Charente-Maritime", arrayData[0].name_2)
+        assertEquals("Charente-Maritime", arrayData[0].name_3)
         assertEquals("Italy", arrayData[1].country)
         assertEquals("Umbria", arrayData[1].name_1)
-        assertEquals("Perugia", arrayData[1].name_2)
+        assertEquals("Perugia", arrayData[1].name_3)
         assertEquals("France", arrayData[2].country)
         assertEquals("Pays de la Loire", arrayData[2].name_1)
-        assertEquals("Loire-Atlantique", arrayData[2].name_2)
+        assertEquals("Loire-Atlantique", arrayData[2].name_3)
         // Check conversion to json
         def jsonData = JsonOutput.toJson(arrayData);
     }

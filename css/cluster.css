@@ -1,20 +1,20 @@
-.marker-cluster-small {
+.hexagon-cluster-small {
 	color : rgba(0, 0, 0, 1);
 	}
 
-.marker-cluster-medium {
+.hexagon-cluster-medium {
 	color : rgba(255, 255, 255, 1);
 	}
 
-.marker-cluster-large {
+.hexagon-cluster-large {
 	color : rgba(255, 255, 255, 1);
 	}
 
-.marker-cluster {
+.hexagon-cluster {
 	background-clip: padding-box;
 	border-radius: 20px;
 	}
-.marker-cluster div {
+.hexagon-cluster div {
 	width: 30px;
 	height: 30px;
 	margin-left: 5px;
@@ -24,6 +24,6 @@
 	border-radius: 15px;
 	font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
 	}
-.marker-cluster span {
+.hexagon-cluster span {
 	line-height: 30px;
 	}

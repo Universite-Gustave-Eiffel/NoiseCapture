@@ -39,9 +39,11 @@ import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Timestamp
+import java.time.DateTimeException
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.zone.ZoneRulesException
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import java.util.zip.ZipEntry
@@ -68,8 +70,16 @@ outputs = [
  * @param epochMillisec
  * @return
  */
-static def epochToRFCTime(epochMillisec, zone) {
-    return Instant.ofEpochMilli(epochMillisec).atZone(ZoneId.of(zone)).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+static def epochToRFCTime(long epochMillisec, String zone) {
+    ZoneId zoneId = ZoneId.systemDefault();
+    try {
+        zoneId = ZoneId.of(zone)
+    } catch (DateTimeException ex) {
+        // skip
+    } catch (ZoneRulesException ex) {
+        // skip
+    }
+    return Instant.ofEpochMilli(epochMillisec).atZone(zoneId).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 }
 
 

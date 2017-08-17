@@ -273,6 +273,8 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="notification_goto_community_map_title">Mesures communautaires</string>
     <string name="notification_goto_community_map">Visitez http://noise-planet.org, naviguez sur la carte de toutes les mesures effectuées par la communauté</string>
     <string name="url_noiseplanet_map">http://noise-planet.org/fr/map.html</string>
+    <string name="title_settings_notification_links">Notification</string>
+    <string name="summary_settings_notification_links">Sélectionner cette option pour afficher la notification du lien vers le site Noise-Planet</string>
 
     <string-array name="output_mode_labels">
         <item>Appel téléphonique</item>

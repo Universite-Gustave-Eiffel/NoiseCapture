@@ -29,6 +29,7 @@ package org.noise_planet.noisecapture;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -60,10 +61,11 @@ public class MeasurementSpectrogramFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View createdView = inflater.inflate(R.layout.fragment_measurement_spectrogram, container, false);
-        SharedPreferences sharedPref = getActivity().getPreferences(MODE_PRIVATE);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(container.getContext());
         Spectrogram spectrogram = (Spectrogram) createdView.findViewById(R.id.spectrogram_view);
-        spectrogram.setScaleMode(sharedPref.getBoolean("settings_spectrogram_logscalemode", true) ?
-                Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR);
+        Spectrogram.SCALE_MODE scaleMode = sharedPref.getBoolean("settings_spectrogram_logscalemode", true) ?
+                Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR;
+        spectrogram.setScaleMode(scaleMode);
         return createdView;
     }
 }

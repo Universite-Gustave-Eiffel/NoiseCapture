@@ -272,6 +272,9 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="notification_record_content">Misura in corso .. %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Caricamento delle misure</string>
     <string name="userinfo_tags_measurement_conditions">Condizioni di misura</string>
+    <string name="notification_goto_community_map_title">Misure comunitarie</string>
+    <string name="notification_goto_community_map">Visita http://noise-planet.org, sfoglia la mappa di tutte le misurazioni fatte dalla comunità</string>
+    <string name="url_noiseplanet_map">http://noise-planet.org/en/map.html</string>
 
     <string-array name="output_mode_labels">
         <item>Chiamata vocale</item>

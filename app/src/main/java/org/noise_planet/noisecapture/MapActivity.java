@@ -81,7 +81,10 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         MapFragment mapFragment = getMapControler();
         mapFragment.setMapFragmentAvailableListener(this);
         onMapFragmentAvailable(mapFragment);
-
+        if(CheckNbRun("NbRunMaxNoisePlanetUrl", getResources().getInteger(R.integer
+                .NbRunMaxNoisePlanetUrl))) {
+            displayCommunityMapNotification();
+        }
     }
 
     private MapFragment getMapControler() {

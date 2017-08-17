@@ -238,10 +238,8 @@ public class MeasurementActivity extends MainActivity implements
         hasMaximalMeasurementTime = sharedPref.getBoolean(HAS_MAXIMAL_MEASURE_TIME_SETTING,
                 false);
         maximalMeasurementTime = getInteger(sharedPref, MAXIMAL_MEASURE_TIME_SETTING, DEFAULT_MAXIMAL_MEASURE_TIME_SETTING);
-        if (CheckNbRun() & CheckNbRunSettings) {
-
-            // show dialog
-            // TODO : verify calibration mode and inform user
+        if (CheckNbRunSettings && CheckNbRun("NbRunMaxCaution", getResources().getInteger(R.integer
+                .NbRunMaxCaution))) {
             new AlertDialog.Builder(this).setTitle(R.string.title_caution)
                     .setMessage(R.string.text_caution)
                     .setNeutralButton(R.string.text_OK, null)
@@ -372,33 +370,6 @@ public class MeasurementActivity extends MainActivity implements
         //return true;
     }
 
-    /***
-     * Checks that application runs first time and write flags at SharedPreferences
-     * Need further codes for enhancing conditions
-     * @return true if 1st time
-     * see : http://stackoverflow.com/questions/9806791/showing-a-message-dialog-only-once-when-application-is-launched-for-the-first
-     * see also for checking version (later) : http://stackoverflow.com/questions/7562786/android-first-run-popup-dialog
-     * Can be used for checking new version
-     */
-    private boolean CheckNbRun() {
-        Resources res = getResources();
-        Integer NbRunMaxCaution = res.getInteger(R.integer.NbRunMaxCaution);
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-                Integer NbRun = preferences.getInt("NbRun", 1);
-        if (NbRun > NbRunMaxCaution) {
-            NbRun=1;
-            editor.putInt("NbRun", NbRun+1);
-            editor.apply();
-        }
-        else
-        {
-            editor.putInt("NbRun", NbRun+1);
-            editor.apply();
-            //AlreadyRanBefore = preferences.getBoolean("AlreadyRanBefore", false);
-        }
-        return (NbRun==1);
-    }
 
     // Fix the format of the dB Axis of the vumeter
     public class dBValueFormatter implements YAxisValueFormatter {

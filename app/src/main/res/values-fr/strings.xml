@@ -270,6 +270,9 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="notification_record_content">Mesure en cours.. %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Chargement de la mesure</string>
     <string name="userinfo_tags_measurement_conditions">Conditions de mesures</string>
+    <string name="notification_goto_community_map_title">Mesures communautaires</string>
+    <string name="notification_goto_community_map">Visitez http://noise-planet.org, naviguez sur la carte de toutes les mesures effectuées par la communauté</string>
+    <string name="url_noiseplanet_map">http://noise-planet.org/fr/map.html</string>
 
     <string-array name="output_mode_labels">
         <item>Appel téléphonique</item>

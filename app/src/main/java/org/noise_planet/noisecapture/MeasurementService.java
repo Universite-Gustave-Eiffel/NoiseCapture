@@ -252,7 +252,7 @@ public class MeasurementService extends Service {
     // RemoteService for a more complete example.
     private final IBinder mBinder = new LocalBinder();
 
-    private int getNotificationIcon() {
+    public static int getNotificationIcon() {
         boolean useWhiteIcon = (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP);
         return useWhiteIcon ? R.drawable.ic_measure_notification : R.mipmap.ic_launcher;
     }
@@ -261,6 +261,8 @@ public class MeasurementService extends Service {
      * Show a notification while this service is running.
      */
     private void showNotification() {
+        // Do not stack notifications
+        mNM.cancelAll();
         // Text for the ticker
         CharSequence text = isStoring() ? getString(R.string.notification_record_content,
                 audioProcess.getLeq()) :

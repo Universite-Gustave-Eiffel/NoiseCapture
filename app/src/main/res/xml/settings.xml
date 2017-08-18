@@ -11,6 +11,11 @@
          android:title="@string/title_settings_caution"
          android:summary="@string/summary_settings_caution"
          android:defaultValue="true" />
+     <CheckBoxPreference
+         android:key="settings_notification_links"
+         android:title="@string/title_settings_notification_links"
+         android:summary="@string/summary_settings_notification_links"
+         android:defaultValue="true" />
     <CheckBoxPreference
         android:key="settings_data_transfer"
         android:title="@string/title_settings_data_transfer"

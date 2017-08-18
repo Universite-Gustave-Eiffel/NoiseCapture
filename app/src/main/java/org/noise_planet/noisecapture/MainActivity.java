@@ -30,6 +30,8 @@ package org.noise_planet.noisecapture;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -37,12 +39,15 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -78,6 +83,7 @@ public class MainActivity extends AppCompatActivity {
     // Color for noise exposition representation
     public int[] NE_COLORS;
     protected static final Logger MAINLOGGER = LoggerFactory.getLogger(MainActivity.class);
+    private static final int NOTIFICATION_MAP = R.string.notification_goto_community_map_title;
 
     // For the list view
     public ListView mDrawerList;
@@ -539,6 +545,49 @@ public class MainActivity extends AppCompatActivity {
     protected void onTransferRecord() {
         // Nothing to do
     }
+
+
+    /***
+     * Checks that application runs first time and write flags at SharedPreferences
+     * Need further codes for enhancing conditions
+     * @return true if 1st time
+     * see : http://stackoverflow.com/questions/9806791/showing-a-message-dialog-only-once-when-application-is-launched-for-the-first
+     * see also for checking version (later) : http://stackoverflow.com/questions/7562786/android-first-run-popup-dialog
+     * Can be used for checking new version
+     */
+    protected boolean CheckNbRun(String preferenceName, int maxCount) {
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        Integer NbRun = preferences.getInt(preferenceName, 1);
+        if (NbRun > maxCount) {
+            NbRun=1;
+        }
+        editor.putInt(preferenceName, NbRun+1);
+        editor.apply();
+        return (NbRun==1);
+    }
+
+    protected void displayCommunityMapNotification() {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                .setSmallIcon(MeasurementService.getNotificationIcon())
+                .setContentTitle(getString(R.string.notification_goto_community_map_title))
+                .setContentText(getString(R.string.notification_goto_community_map))
+                .setAutoCancel(true);
+        NotificationCompat.BigTextStyle bigTextStyle =
+                new NotificationCompat.BigTextStyle();
+        bigTextStyle.setBigContentTitle(getString(R.string.notification_goto_community_map_title));
+        bigTextStyle.bigText(getString(R.string.notification_goto_community_map));
+        builder.setStyle(bigTextStyle);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse(getText(R.string.url_noiseplanet_map).toString()));
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(this);
+        stackBuilder.addNextIntent(intent);
+        builder.setContentIntent(stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT));
+        NotificationManager mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        mNM.notify(NOTIFICATION_MAP, builder.build());
+    }
+
 
 
     @Override

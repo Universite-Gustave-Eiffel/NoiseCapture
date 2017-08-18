@@ -4,4 +4,7 @@
     <!-- Number of applications launch before displaying the Caution message !-->
     <integer name="NbRunMaxCaution">10</integer>
 
+    <!-- Number of map activity launch before displaying the community map notification !-->
+    <integer name="NbRunMaxNoisePlanetUrl">10</integer>
+
 </resources>

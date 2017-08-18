@@ -110,10 +110,14 @@ public class TestDB {
         assertEquals(15, checkLeq.getLeq().getLongitude(), 0.01);
         assertEquals(12, checkLeq.getLeq().getLatitude(), 0.01);
         assertEquals(50, checkLeq.getLeq().getAltitude(), 0.01);
+        assertEquals(15.f, checkLeq.getLeq().getSpeed(), 0.01);
+        assertEquals(4.f, checkLeq.getLeq().getBearing(), 0.01);
         checkLeq = storedLeq.remove(0);
         assertEquals(15.02, checkLeq.getLeq().getLongitude(), 0.01);
         assertEquals(12.01, checkLeq.getLeq().getLatitude(), 0.01);
         assertEquals(51, checkLeq.getLeq().getAltitude(), 0.01);
+        assertEquals(12.f, checkLeq.getLeq().getSpeed(), 0.01);
+        assertEquals(3.02f, checkLeq.getLeq().getBearing(), 0.01);
 
         // Check update ending measure
 

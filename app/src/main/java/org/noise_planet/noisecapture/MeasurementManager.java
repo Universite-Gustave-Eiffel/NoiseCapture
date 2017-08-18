@@ -484,8 +484,8 @@ public class MeasurementManager {
                             Storage.Leq.COLUMN_ALTITUDE  + "," +
                             Storage.Leq.COLUMN_ACCURACY  + "," +
                             Storage.Leq.COLUMN_LOCATION_UTC + "," +
-                            Storage.Leq.COLUMN_BEARING + "," +
-                            Storage.Leq.COLUMN_SPEED +
+                            Storage.Leq.COLUMN_SPEED + "," +
+                            Storage.Leq.COLUMN_BEARING +
                             ") VALUES (?, ?,?,?,?,?,?,?,?)");
             SQLiteStatement leqValueStatement = database.compileStatement("INSERT INTO " +
                     Storage.LeqValue.TABLE_NAME + " VALUES (?,?,?)");

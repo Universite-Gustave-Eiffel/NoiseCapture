@@ -86,7 +86,7 @@ TimeDonut.prototype.hover = function(element) {
       var value = this.levels[hour][id_cat];
       var centercircle = document.getElementById(full_id+"_centercircletext");
       var centercircletextunit = document.getElementById(full_id+"_centercircletextunit");
-      centercircle.innerHTML = Math.round(value);
+      centercircle.innerHTML = value.toFixed(1);
       centercircle.style.color = this.getcolor(value);
       centercircletextunit.innerHTML = "dB(A)";
     }

@@ -113,6 +113,8 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
         throw new InvalidParameterException("Wrong pleasantness \"" + meta.getProperty("pleasantness") + "\"")
     }
 
+    def noisecaptureVersion = Integer.valueOf(meta.getProperty("version_number"));
+
     // Fetch or insert user
     GroovyRowResult res = sql.firstRow("SELECT * FROM noisecapture_user WHERE user_uuid=:uuid",
             [uuid: meta.getProperty("uuid")])
@@ -199,6 +201,14 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
             }
         }
         def p = feature.properties
+        if(noisecaptureVersion <= 27) {
+            // Issue #197
+            // Bearing and speed are swapped in the NoiseCapture app.
+            def speed = p.bearing;
+            def bearing = p.speed;
+            p.speed = speed;
+            p.bearing = bearing;
+        }
         def fields = [the_geom     : theGeom,
                       pk_track     : recordId,
                       noise_level  : p.leq_mean as Double,

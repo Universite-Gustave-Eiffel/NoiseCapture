@@ -317,6 +317,7 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             assertEquals(72, result.features[0].properties.leq_profile.size());
             assertEquals(69.0, (Double)result.features[0].properties.mean_pleasantness, 0.01);
             assertEquals(30, result.features[0].properties.measure_count);
+            assertEquals(69.7, (double)result.features[0].properties.leq_profile[14], 0.1);
         }
         new ZipInputStream(new FileInputStream(createdFiles.get(1))).withStream { zipInputStream ->
             assertEquals("Italy_Umbria_Perugia.areas.geojson", zipInputStream.getNextEntry().getName())

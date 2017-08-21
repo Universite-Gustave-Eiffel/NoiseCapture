@@ -81,11 +81,25 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         MapFragment mapFragment = getMapControler();
         mapFragment.setMapFragmentAvailableListener(this);
         onMapFragmentAvailable(mapFragment);
-
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        boolean displayNotification = sharedPref.getBoolean("settings_notification_links", true);
+        if (displayNotification && CheckNbRun("NbRunMaxNoisePlanetUrl", getResources().getInteger
+                (R.integer.NbRunMaxNoisePlanetUrl))) {
+            displayCommunityMapNotification();
+        }
     }
 
     private MapFragment getMapControler() {
         return (MapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        // Cancel loading if the UI is about to be destroyed
+        if(webViewContent != null) {
+            webViewContent.canceled.set(true);
+        }
     }
 
     // Disable warning as the injected object cannot communicate with the NoiseCapture application
@@ -130,6 +144,7 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         private MeasurementManager measurementManager;
         private int measureLimitation;
         private double ignoreNewPointDistanceDelta = 1;
+        private AtomicBoolean canceled = new AtomicBoolean(false);
 
         public WebViewContent(AppCompatActivity activity, MeasurementManager measurementManager) {
             this.activity = activity;
@@ -146,10 +161,12 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
 
         @JavascriptInterface
         public String getSelectedMeasurementData() {
+            canceled.set(false);
             long beginLoadContent = System.currentTimeMillis();
             List<MeasurementManager.LeqBatch> measurements = measurementManager
                     .getRecordLocations(selectedMeasurementRecordId, true, measureLimitation,
-                            new ReadRecordsProgression(activity), ignoreNewPointDistanceDelta);
+                            new ReadRecordsProgression(activity, canceled),
+                            ignoreNewPointDistanceDelta);
             if (measurements.isEmpty()) {
                 Toast.makeText(activity, activity.getText(R.string.no_gps_results), Toast
                         .LENGTH_LONG).show();
@@ -170,10 +187,11 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
 
         @JavascriptInterface
         public String getAllMeasurementData() {
-
+            canceled.set(false);
             long beginLoadContent = System.currentTimeMillis();
             List<MeasurementManager.LeqBatch> measurements = measurementManager
-                    .getRecordLocations(-1 , true, measureLimitation, new ReadRecordsProgression(activity),
+                    .getRecordLocations(-1 , true, measureLimitation, new ReadRecordsProgression
+                            (activity, canceled),
                             ignoreNewPointDistanceDelta);
             if(BuildConfig.DEBUG) {
                 System.out.println("Read data from db in "+(System.currentTimeMillis() - beginLoadContent)+" ms");
@@ -192,7 +210,7 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
     private static final class ReadRecordsProgression implements MeasurementManager
             .ProgressionCallBack, View.OnClickListener {
         private AppCompatActivity activity;
-        AtomicBoolean canceled = new AtomicBoolean(false);
+        AtomicBoolean canceled;
         int recordCount = 0;
         int record = 0;
         int lastProgress = 0;
@@ -202,8 +220,9 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         ProgressBar progressBar;
         Button button;
 
-        public ReadRecordsProgression(AppCompatActivity activity) {
+        public ReadRecordsProgression(AppCompatActivity activity, AtomicBoolean canceled) {
             this.activity = activity;
+            this.canceled = canceled;
             progressView = activity.findViewById(R.id
                     .map_progress_layout);
             progressBar = (ProgressBar) activity.findViewById(R.id

@@ -113,6 +113,8 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
         throw new InvalidParameterException("Wrong pleasantness \"" + meta.getProperty("pleasantness") + "\"")
     }
 
+    def noisecaptureVersion = Integer.valueOf(meta.getProperty("version_number"));
+
     // Fetch or insert user
     GroovyRowResult res = sql.firstRow("SELECT * FROM noisecapture_user WHERE user_uuid=:uuid",
             [uuid: meta.getProperty("uuid")])
@@ -199,6 +201,14 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
             }
         }
         def p = feature.properties
+        if(noisecaptureVersion <= 27) {
+            // Issue #197
+            // Bearing and speed are swapped in the NoiseCapture app.
+            def speed = p.bearing;
+            def bearing = p.speed;
+            p.speed = speed;
+            p.bearing = bearing;
+        }
         def fields = [the_geom     : theGeom,
                       pk_track     : recordId,
                       noise_level  : p.leq_mean as Double,
@@ -258,8 +268,7 @@ def static void buildStatistics(Connection connection) {
     def sql = new Sql(connection)
     connection.setAutoCommit(false)
     sql.execute("DROP TABLE IF EXISTS NOISECAPTURE_STATS_LAST_TRACKS")
-    sql.execute("CREATE TABLE NOISECAPTURE_STATS_LAST_TRACKS AS select t.pk_track, time_length, record_utc,ST_AsGeoJson(t.env) the_geom, st_astext(ST_Centroid(t.env)) env,start_pt, stop_pt, name_0, name_1,(CASE WHEN (name_3 IS NULL OR name_3 = '') THEN name_2 ELSE name_3 END) name_3 from (select t.pk_track,time_length, record_utc, ST_EXTENT(p.the_geom) env,  ST_AsGeoJson(ST_GeometryN(St_Collect(p.the_geom), 1)) start_pt,  ST_AsGeoJson(ST_GeometryN(St_Collect(p.the_geom), ST_NumGeometries(St_Collect(p.the_geom)))) stop_pt from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track and p.accuracy > 0 and p.accuracy < 15 GROUP BY t.pk_track order by t.record_utc DESC LIMIT 30) t, gadm28\n" +
-            "where gadm28.the_geom && t.env AND ST_CONTAINS(gadm28.the_geom, ST_SetSRID(ST_Centroid(t.env),4326)) ")
+    sql.execute("CREATE TABLE NOISECAPTURE_STATS_LAST_TRACKS AS select t.pk_track, time_length, record_utc,ST_AsGeoJson(t.env) the_geom, st_astext(ST_Centroid(t.env)) env,ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_start WHERE np_start.pk_track = t.pk_track ORDER BY time_date ASC LIMIT 1)) start_pt,  ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_stop WHERE np_stop.pk_track = t.pk_track ORDER BY time_date DESC LIMIT 1)) stop_pt, name_0, name_1,(CASE WHEN (name_3 IS NULL OR name_3 = '') THEN name_2 ELSE name_3 END) name_3 from (select t.pk_track,time_length, record_utc, ST_EXTENT(p.the_geom) env from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track and p.accuracy > 0 and p.accuracy < 15 GROUP BY t.pk_track order by t.record_utc DESC LIMIT 30) t, gadm28 where gadm28.the_geom && t.env AND ST_CONTAINS(gadm28.the_geom, ST_SetSRID(ST_Centroid(t.env),4326))")
     sql.commit()
     connection.setAutoCommit(true)
 }

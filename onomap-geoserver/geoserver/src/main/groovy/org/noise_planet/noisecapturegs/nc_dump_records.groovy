@@ -39,9 +39,11 @@ import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
 import java.sql.Timestamp
+import java.time.DateTimeException
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.time.zone.ZoneRulesException
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import java.util.zip.ZipEntry
@@ -68,8 +70,16 @@ outputs = [
  * @param epochMillisec
  * @return
  */
-static def epochToRFCTime(epochMillisec, zone) {
-    return Instant.ofEpochMilli(epochMillisec).atZone(ZoneId.of(zone)).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+static def epochToRFCTime(long epochMillisec, String zone) {
+    ZoneId zoneId = ZoneId.systemDefault();
+    try {
+        zoneId = ZoneId.of(zone)
+    } catch (DateTimeException ex) {
+        // skip
+    } catch (ZoneRulesException ex) {
+        // skip
+    }
+    return Instant.ofEpochMilli(epochMillisec).atZone(zoneId).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 }
 
 
@@ -77,7 +87,7 @@ static def epochToRFCTime(epochMillisec, zone) {
 static
 def getDump(Connection connection, File outPath, boolean exportTracks, boolean exportMeasures, boolean exportAreas) {
     // gzip then base64 the content (http://www.txtwizard.net/compression)
-    final String README_CONTENT = "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"
+    final String README_CONTENT = "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"
 
 
     def createdFiles = new ArrayList<String>()
@@ -215,7 +225,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
             lastFileJsonWriter = null
             if (exportAreas) {
                 // Export track file
-                sql.eachRow("SELECT name_0, name_1, name_2,ST_AsGeoJson(na.the_geom) the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure, string_agg(to_char(nap.laeq, 'FM999'), '_') leq_profile, string_agg(to_char(hour, '999'), '_') hour_profile FROM noisecapture_area na, gadm28 ga, (select pk_area, nap.laeq, hour from noisecapture_area_profile nap  order by hour) nap  where ST_Centroid(na.the_geom) && ga.the_geom and st_contains(ga.the_geom, ST_centroid(na.the_geom)) and nap.pk_area = na.pk_area group by name_0, name_1, name_2,na.the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure order by name_0, name_1, name_2, cell_q, cell_r;") {
+                sql.eachRow("SELECT name_0, name_1, name_2,ST_AsGeoJson(na.the_geom) the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure, string_agg(to_char(nap.laeq, 'FM999.9'), '_') leq_profile, string_agg(to_char(hour, '999'), '_') hour_profile FROM noisecapture_area na, gadm28 ga, (select pk_area, nap.laeq, hour from noisecapture_area_profile nap  order by hour) nap  where ST_Centroid(na.the_geom) && ga.the_geom and st_contains(ga.the_geom, ST_centroid(na.the_geom)) and nap.pk_area = na.pk_area group by name_0, name_1, name_2,na.the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure order by name_0, name_1, name_2, cell_q, cell_r;") {
                     track_row ->
                         def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                         if (thisFileParams != lastFileParams) {
@@ -248,7 +258,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                         def the_geom = new JsonSlurper().parseText(track_row.the_geom)
 
                         def leq_keys= track_row.hour_profile.tokenize('_')*.toInteger()
-                        def leq_values= track_row.leq_profile.tokenize('_')*.toInteger()
+                        def leq_values= track_row.leq_profile.tokenize('_')*.toFloat()
                         def leq_array = new Object[72]
                         [leq_keys, leq_values].transpose().each {leq_array[it[0]] = it[1]}
                         def track = [type: "Feature", geometry: [type: "Polygon", coordinates: the_geom.coordinates], properties: [cell_q                : track_row.cell_q,

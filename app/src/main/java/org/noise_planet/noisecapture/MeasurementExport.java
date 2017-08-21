@@ -137,11 +137,12 @@ public class MeasurementExport {
             // Add properties
             JSONObject featureProperties = new JSONObject();
             double lAeq = entry.computeGlobalLeq();
-            featureProperties.put(Storage.Record.COLUMN_LEQ_MEAN, lAeq);
+            featureProperties.put(Storage.Record.COLUMN_LEQ_MEAN, Float.valueOf((float) lAeq));
             //marker-color tag for geojson.io and leaflet map
             featureProperties.put("marker-color", getColorFromLevel(lAeq));
-            if(fullProperties) {
-                featureProperties.put(Storage.Leq.COLUMN_ACCURACY, leq.getAccuracy());
+            if (fullProperties) {
+                featureProperties.put(Storage.Leq.COLUMN_ACCURACY, Float.valueOf(leq.getAccuracy
+                        ()));
                 featureProperties.put(Storage.Leq.COLUMN_LOCATION_UTC, leq.getLocationUTC());
                 featureProperties.put(Storage.Leq.COLUMN_LEQ_UTC, leq.getLeqUtc());
                 featureProperties.put(Storage.Leq.COLUMN_LEQ_ID, leq.getLeqId());
@@ -152,7 +153,8 @@ public class MeasurementExport {
                     featureProperties.put(Storage.Leq.COLUMN_SPEED, leq.getSpeed());
                 }
                 for (Storage.LeqValue leqValue : entry.getLeqValues()) {
-                    featureProperties.put("leq_" + leqValue.getFrequency(), leqValue.getSpl());
+                    featureProperties.put("leq_" + leqValue.getFrequency(), Float.valueOf
+                            (leqValue.getSpl()));
                 }
             }
             feature.put("properties", featureProperties);

@@ -93,7 +93,7 @@ public class Storage extends SQLiteOpenHelper {
         }
     }
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 7;
+    public static final int DATABASE_VERSION = 8;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -163,6 +163,13 @@ public class Storage extends SQLiteOpenHelper {
                 db.execSQL("ALTER TABLE record ADD COLUMN calibration_gain FLOAT DEFAULT 0");
             }
             oldVersion = 7;
+        }
+        if(oldVersion == 7) {
+            if(!db.isReadOnly()) {
+                // Up to version 7, there was a swapping of speed and bearing
+                db.execSQL("UPDATE leq SET bearing=speed, speed=bearing;");
+            }
+            oldVersion = 8;
         }
     }
 

@@ -11,6 +11,11 @@
          android:title="@string/title_settings_caution"
          android:summary="@string/summary_settings_caution"
          android:defaultValue="true" />
+     <CheckBoxPreference
+         android:key="settings_notification_links"
+         android:title="@string/title_settings_notification_links"
+         android:summary="@string/summary_settings_notification_links"
+         android:defaultValue="true" />
     <CheckBoxPreference
         android:key="settings_data_transfer"
         android:title="@string/title_settings_data_transfer"
@@ -45,12 +50,6 @@
         android:summary="@string/summary_settings_recording_duration"
         android:dependency="settings_recording"
         android:inputType="numberDecimal"/>
-        <EditTextPreference
-            android:defaultValue="0"
-            android:key="settings_recording_gain"
-            android:title="@string/title_settings_recording_gain"
-            android:summary="@string/summary_settings_recording_gain"
-            android:inputType="numberDecimal|numberSigned"/>
     <CheckBoxPreference
         android:key="settings_spectrogram_logscalemode"
         android:title="@string/title_settings_spectrogram_logscalemode"
@@ -64,6 +63,12 @@
         android:inputType="number"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/setting_calibration_group">
+        <EditTextPreference
+            android:defaultValue="0"
+            android:key="settings_recording_gain"
+            android:title="@string/title_settings_recording_gain"
+            android:summary="@string/summary_settings_recording_gain"
+            android:inputType="numberDecimal|numberSigned"/>
         <EditTextPreference
             android:defaultValue="4"
             android:key="settings_calibration_warmup_time"

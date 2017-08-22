@@ -73,6 +73,7 @@ public class MeasurementExport {
     public static final String PROP_VERSION_NAME  = "version_name";
     public static final String PROP_BUILD_TIME  = "build_date";
     public static final String PROP_VERSION_INT  = "version_number";
+    public static final String PROP_USER_PROFILE  = "user_profile";
 
     public MeasurementExport(Context context) {
         this.measurementManager = new MeasurementManager(context);
@@ -199,6 +200,8 @@ public class MeasurementExport {
         if(record.getPleasantness() != null) {
             properties.setProperty(Storage.Record.COLUMN_PLEASANTNESS, String.valueOf(record.getPleasantness()));
         }
+        properties.setProperty(PROP_USER_PROFILE, sharedPref.getString
+                ("settings_user_noise_knowledge", "NONE"));
         List<String> tags = measurementManager.getTags(recordId);
         StringBuilder tagsString = new StringBuilder();
         for(String tag : tags) {

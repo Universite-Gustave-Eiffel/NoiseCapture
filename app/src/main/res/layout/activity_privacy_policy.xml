@@ -62,6 +62,12 @@
         android:layout_height="wrap_content"
         android:id="@+id/policy_agree_checkbox"
         android:text="@string/policy_agree_statement"/>
+    <Spinner
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/policy_user_profile_spinner"
+        android:entries="@array/knowledge"
+        />
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

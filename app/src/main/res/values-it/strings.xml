@@ -277,6 +277,9 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="url_noiseplanet_map">http://noise-planet.org/en/map.html</string>
     <string name="title_settings_notification_links">Notifica</string>
     <string name="summary_settings_notification_links">Controlla per visualizzare il link di notifica al sito Noise-Planet</string>
+    <string name="settings_category_profile">Profilo utente</string>
+    <string name="title_settings_user_noise_knowledge">Protocollo di misura</string>
+    <string name="settings_user_noise_knowledge_description">"Come valuta la tua conoscenza di ambienti sonori ? "</string>
 
     <string-array name="output_mode_labels">
         <item>Chiamata vocale</item>
@@ -290,5 +293,10 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string-array name="settings_display_measurement_window_labels">
         <item>Rettangolare</item>
         <item>Hann</item>
+    </string-array>
+    <string-array name="knowledge">
+        <item>Non ho conoscenza nel campo del rumore</item>
+        <item>Ho qualche conoscenza nel campo del rumore</item>
+        <item>Sono un esperto / pro nel campo del rumore</item>
     </string-array>
 </resources>

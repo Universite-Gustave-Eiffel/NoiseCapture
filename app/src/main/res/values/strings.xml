@@ -267,7 +267,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="title_settings_map_maxmarker">Displayed measurement limits</string>
     <string name="summary_settings_map_maxmarker">Maximum number of measurements displayed on the map (0 for all measurements)</string>
     <string name="map_title_progress_loading">Loading of measurements locations</string>
-    <string name="policy_legal_age">I have the legal age (defined by the law of my country) for using this application</string>
+    <string name="policy_legal_age">I have the legal age for using this app</string>
     <string name="policy_agree_statement">I agree with The NoiseCapture Policy Privacy</string>
     <string name="policy_button_continue">Continue</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
@@ -295,4 +295,12 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="url_noiseplanet_map">http://noise-planet.org/en/map.html</string>
     <string name="title_settings_notification_links">Notification</string>
     <string name="summary_settings_notification_links">Check to display the notification link to Noise-Planet website</string>
+    <string name="settings_category_profile">User profile</string>
+    <string name="title_settings_user_noise_knowledge">Measurement protocol</string>
+    <string name="settings_user_noise_knowledge_description">How do you evaluate your knowledge about sound environments ?</string>
+    <string-array name="knowledge">
+        <item>I have no knowledge in the field of noise</item>
+        <item>I have some knowledge in the field of noise</item>
+        <item>I am a expert/pro in the field of noise</item>
+    </string-array>
 </resources>

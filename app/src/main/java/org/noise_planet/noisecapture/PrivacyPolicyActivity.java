@@ -38,6 +38,7 @@ import android.webkit.WebView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
+import android.widget.Spinner;
 
 import java.util.UUID;
 
@@ -90,10 +91,13 @@ public class PrivacyPolicyActivity extends AppCompatActivity implements View.OnC
     @Override
     public void onClick(View v) {
         // User click on Continue
+        Spinner spinner = (Spinner) findViewById(R.id.policy_user_profile_spinner);
         // Save policy state
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putBoolean(PROP_POLICY_AGREED, checkedAgree && checkedLegalAge);
+        String[] spinnerValues = getResources().getStringArray(R.array.knowledge_values);
+        editor.putString("settings_user_noise_knowledge", spinnerValues[spinner.getSelectedItemPosition()]);
         editor.apply();
         // Start measurement activity
         Intent i = new Intent(getApplicationContext(), MeasurementActivity.class);

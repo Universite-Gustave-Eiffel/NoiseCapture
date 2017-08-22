@@ -27,9 +27,11 @@
 
 package org.noise_planet.noisecapture;
 
+import android.content.SharedPreferences;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
+import android.preference.PreferenceManager;
 import android.util.JsonReader;
 import android.util.JsonToken;
 
@@ -199,6 +201,9 @@ public class TestDB {
         MeasurementManager measurementManager =
                 new MeasurementManager(RuntimeEnvironment.application);
 
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.application);
+        assertTrue(sharedPref.edit().putString("settings_user_noise_knowledge", "NOVICE").commit());
+
         int recordId = measurementManager.addRecord();
         Storage.Leq leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), 12, 15, 50.d,
                 15.f, 4.f, 4.5f,System.currentTimeMillis());
@@ -261,6 +266,7 @@ public class TestDB {
         assertTrue(foundJson);
         assertNotNull(meta);
         assertNotNull(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION));
+        Assert.assertEquals("NOVICE", meta.getProperty(MeasurementExport.PROP_USER_PROFILE));
         assertEquals(-4.76f, Float.valueOf(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
         assertEquals((float)leqBatch.computeGlobalLeq(),
                 Float.valueOf(meta.getProperty(Storage.Record.COLUMN_LEQ_MEAN)), 0.01f);

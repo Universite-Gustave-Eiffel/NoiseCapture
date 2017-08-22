@@ -278,7 +278,7 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="title_settings_notification_links">Notifica</string>
     <string name="summary_settings_notification_links">Controlla per visualizzare il link di notifica al sito Noise-Planet</string>
     <string name="settings_category_profile">Profilo utente</string>
-    <string name="title_settings_user_noise_knowledge">Protocollo di misura</string>
+    <string name="title_settings_user_noise_knowledge">Profilo utente</string>
     <string name="settings_user_noise_knowledge_description">"Come valuta la tua conoscenza di ambienti sonori ? "</string>
 
     <string-array name="output_mode_labels">

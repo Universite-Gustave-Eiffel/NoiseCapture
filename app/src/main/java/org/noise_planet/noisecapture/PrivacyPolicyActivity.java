@@ -27,9 +27,11 @@
 
 package org.noise_planet.noisecapture;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.TypedValue;
@@ -39,6 +41,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 import java.util.UUID;
 
@@ -90,18 +93,35 @@ public class PrivacyPolicyActivity extends AppCompatActivity implements View.OnC
 
     @Override
     public void onClick(View v) {
-        // User click on Continue
-        Spinner spinner = (Spinner) findViewById(R.id.policy_user_profile_spinner);
-        // Save policy state
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor editor = sharedPref.edit();
-        editor.putBoolean(PROP_POLICY_AGREED, checkedAgree && checkedLegalAge);
-        String[] spinnerValues = getResources().getStringArray(R.array.knowledge_values);
-        editor.putString("settings_user_noise_knowledge", spinnerValues[spinner.getSelectedItemPosition()]);
-        editor.apply();
-        // Start measurement activity
-        Intent i = new Intent(getApplicationContext(), MeasurementActivity.class);
-        startActivity(i);
-        finish();
+        // Ask the user to define is profile
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.title_settings_user_noise_knowledge);
+        CharSequence[] options = getResources().getTextArray(R.array.knowledge);
+        builder.setItems(options, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                // Save policy state
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences
+                        (PrivacyPolicyActivity.this);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putBoolean(PROP_POLICY_AGREED, checkedAgree && checkedLegalAge);
+                String[] spinnerValues = getResources().getStringArray(R.array.knowledge_values);
+                editor.putString("settings_user_noise_knowledge",
+                        spinnerValues[which - 1]);
+                editor.apply();
+                // Start measurement activity
+                Intent i = new Intent(getApplicationContext(), MeasurementActivity.class);
+                startActivity(i);
+                finish();
+            }
+        });
+        AlertDialog dialog = builder.create();
+        TextView description = new TextView(this);
+        int padding = obtainStyledAttributes(new int[]{R.attr.dialogPreferredPadding})
+                .getDimensionPixelSize(0, 1);
+        description.setPadding(padding,padding,padding,padding);
+        description.setText(R.string.settings_user_noise_knowledge_description);
+        dialog.getListView().addHeaderView(description);
+        dialog.show();
     }
 }

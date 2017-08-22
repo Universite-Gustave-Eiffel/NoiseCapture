@@ -481,7 +481,7 @@ public class MeasurementActivity extends MainActivity implements
                     @Override
                     public void run() {
                         Intent ir = new Intent(activity.getApplicationContext(), CommentActivity.class);
-                        ir.putExtra(Results.RESULTS_RECORD_ID,
+                        ir.putExtra(MainActivity.RESULTS_RECORD_ID,
                                 activity.measurementService.getRecordId());
                         ir.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         activity.startActivity(ir);

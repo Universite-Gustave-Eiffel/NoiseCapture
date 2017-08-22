@@ -270,14 +270,14 @@ public class History extends MainActivity {
 
         private void launchResult() {
             Intent ir = new Intent(historyActivity.getApplicationContext(), Results.class);
-            ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
+            ir.putExtra(RESULTS_RECORD_ID, recordId);
             historyActivity.finish();
             historyActivity.startActivity(ir);
         }
 
         private void launchMap() {
             Intent ir = new Intent(historyActivity.getApplicationContext(), MapActivity.class);
-            ir.putExtra(MapActivity.RESULTS_RECORD_ID, recordId);
+            ir.putExtra(RESULTS_RECORD_ID, recordId);
             historyActivity.finish();
             historyActivity.startActivity(ir);
         }

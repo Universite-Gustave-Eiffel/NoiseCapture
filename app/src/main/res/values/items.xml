@@ -42,4 +42,10 @@
         <item>RECTANGULAR</item>
         <item>HANN</item>
     </string-array>
+    <string-array name="knowledge_values">
+        <!-- DO not localize -->
+        <item>NONE</item>
+        <item>NOVICE</item>
+        <item>EXPERT</item>
+    </string-array>
 </resources>

@@ -28,7 +28,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 24
         versionCode 28
-        versionName "0.5.2 (Beta)"
+        versionName "1.0.0"
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""

@@ -275,6 +275,9 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="url_noiseplanet_map">http://noise-planet.org/fr/map.html</string>
     <string name="title_settings_notification_links">Notification</string>
     <string name="summary_settings_notification_links">Sélectionner cette option pour afficher la notification du lien vers le site Noise-Planet</string>
+    <string name="settings_category_profile">Profil de l\'utilisateur</string>
+    <string name="title_settings_user_noise_knowledge">Profil de l\'utilisateur</string>
+    <string name="settings_user_noise_knowledge_description">Comment évaluez-vous vos connaissances sur les environnements sonores ?</string>
 
     <string-array name="output_mode_labels">
         <item>Appel téléphonique</item>
@@ -288,5 +291,10 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string-array name="settings_display_measurement_window_labels">
         <item>Rectangulaire</item>
         <item>Hann</item>
+    </string-array>
+    <string-array name="knowledge">
+        <item>Je n\'ai aucune connaissance dans le domaine du bruit</item>
+        <item>J\'ai quelques connaissances dans le domaine du bruit</item>
+        <item>Je suis expert / pro dans le domaine du bruit</item>
     </string-array>
 </resources>

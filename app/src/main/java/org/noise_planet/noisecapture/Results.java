@@ -83,7 +83,6 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Results extends MainActivity {
-    public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
     private static final Logger LOGGER = LoggerFactory.getLogger(Results.class);
     private MeasurementManager measurementManager;
     private Storage.Record record;
@@ -197,7 +196,7 @@ public class Results extends MainActivity {
             public void onClick(View view) {
                 // Go to map page
                 Intent a = new Intent(getApplicationContext(), MapActivity.class);
-                a.putExtra(MapActivity.RESULTS_RECORD_ID, record.getId());
+                a.putExtra(RESULTS_RECORD_ID, record.getId());
                 startActivity(a);
                 finish();
             }

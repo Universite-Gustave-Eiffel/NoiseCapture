@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/settings_category_profile">
+
+        <ListPreference
+            android:key="settings_user_noise_knowledge"
+            android:title="@string/title_settings_user_noise_knowledge"
+            android:defaultValue="NONE"
+            android:summary="@string/settings_user_noise_knowledge_description"
+            android:entryValues="@array/knowledge_values"
+            android:entries="@array/knowledge"
+            />
+    </PreferenceCategory>
  <PreferenceCategory android:title="@string/setting_general_group">
      <CheckBoxPreference
          android:key="settings_tooltip"

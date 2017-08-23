@@ -82,6 +82,7 @@ public class MainActivity extends AppCompatActivity {
     }
     // Color for noise exposition representation
     public int[] NE_COLORS;
+    public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
     protected static final Logger MAINLOGGER = LoggerFactory.getLogger(MainActivity.class);
     private static final int NOTIFICATION_MAP = R.string.notification_goto_community_map_title;
 
@@ -305,7 +306,7 @@ public class MainActivity extends AppCompatActivity {
                     // Results
                     ir = new Intent(getApplicationContext(), Results.class);
                     if(recordId != null && recordId >= 0) {
-                        ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
+                        ir.putExtra(RESULTS_RECORD_ID, recordId);
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ir);

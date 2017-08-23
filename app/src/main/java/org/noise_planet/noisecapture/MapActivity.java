@@ -51,7 +51,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class MapActivity extends MainActivity implements MapFragment.MapFragmentAvailableListener {
-    public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
     private Storage.Record record;
     private WebViewContent webViewContent;
     private long beginLoadPage = 0;

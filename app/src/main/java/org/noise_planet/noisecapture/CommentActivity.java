@@ -409,7 +409,7 @@ public class CommentActivity extends MainActivity {
         public void onClick(View v) {
             //Open result page
             Intent ir = new Intent(activity, Results.class);
-            ir.putExtra(Results.RESULTS_RECORD_ID, activity.record.getId());
+            ir.putExtra(MainActivity.RESULTS_RECORD_ID, activity.record.getId());
             ir.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             activity.startActivity(ir);
         }

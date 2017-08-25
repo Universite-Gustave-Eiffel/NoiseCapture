@@ -33,6 +33,7 @@ import geoserver.catalog.Store
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.sql.Sql
+import groovy.time.TimeCategory
 import org.geotools.jdbc.JDBCDataStore
 import org.springframework.security.core.context.SecurityContextHolder
 
@@ -63,6 +64,9 @@ outputs = [
 
 static
 def getStatistics(Connection connection) {
+    def colorSet = ["#a6cee3", "#1f78b4" , "#b2df8a" , "#fb9a99" , "#fdbf6f" , "#ff7f00" , "#cab2d6" , "#6a3d9a"
+                    , "#ffff99" , "#b15928"]
+
     def sql = new Sql(connection)
 
     def statistics = [:];
@@ -128,18 +132,35 @@ def getStatistics(Connection connection) {
 
     statistics["tags_per_track"] = [tag_count : tag_count, track_count : track_tag_count];
 
+    // Compute last x weeks names
     def week_tracks_date = []
-    def week_tracks_count = []
-    def week_track_length = []
-
-    sql.eachRow("select to_char(record_utc, 'YYYY-WW') year_week, count(*) nb_tracks, sum(time_length) sum_length from noisecapture_track group by  year_week order by year_week desc limit 7") {
-        record ->
-            week_tracks_date.add(record.year_week as String)
-            week_tracks_count.add(record.nb_tracks as Long)
-            week_track_length.add(record.sum_length as Long)
+    for(int i=7; i >= 0; i--) {
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
+        use(TimeCategory) {
+            calendar.setTime(new Date() - i.week);
+        }
+        week_tracks_date.add(calendar.get(Calendar.YEAR) + "-" + calendar.get(Calendar.WEEK_OF_YEAR))
     }
 
-    statistics["week_tracks"] = [week_tracks_date : week_tracks_date, week_tracks_count : week_tracks_count, week_track_length:week_track_length];
+    def countries_dict = [:]
+
+    sql.eachRow("select name_0, to_char(record_utc, 'YYYY-WW') year_week, count(t.*) nb_tracks, sum(t.time_length) total_length  from GADM28 ga, (SELECT nt.pk_track, ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom, time_length, record_utc from noisecapture_point np, noisecapture_track nt where  extract(epoch from record_utc) > extract(epoch from CURRENT_DATE) - 3600 * 24 * 7 * 7 and not ST_ISEMPTY(the_geom) and nt.pk_track = np.pk_track  group by nt.pk_track, nt.time_length) t where t.the_geom && ga.the_geom and st_intersects(st_centroid(t.the_geom), ga.the_geom) group by name_0, year_week order by name_0 asc, year_week desc") {
+        record ->
+            if(!countries_dict.containsKey(record.name_0)) {
+                // Init country
+                countries_dict[record.name_0] = [ nb_tracks : new long[week_tracks_date.size()], sum_length : new long[week_tracks_date.size()]]
+            }
+            int index = week_tracks_date.indexOf(record.year_week as String)
+            if(index >= 0) {
+                countries_dict[record.name_0].nb_tracks[index] = record.nb_tracks as Long
+                countries_dict[record.name_0].sum_length[index] = record.total_length as Long
+            }
+    }
+    def countries = []
+    countries_dict.each { k, v ->
+        countries.add([label: k, backgroundColor: colorSet[countries.size() % colorSet.size()], data : v.nb_tracks])
+    }
+    statistics["week_tracks"] = [labels : week_tracks_date, datasets : countries];
 
     //TODO contributions dernieres semaines (manque le where)
     // select name_0, to_char(record_utc, 'YYYY-WW') year_week, count(t.*) nb_track, sum(t.time_length) total_length  from GADM28 ga, (SELECT nt.pk_track, ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom, time_length, record_utc from noisecapture_point np, noisecapture_track nt where  extract(epoch from record_utc) > extract(epoch from now()) - 3600 * 24 * 7 * 7 and not ST_ISEMPTY(the_geom) and nt.pk_track = np.pk_track  group by nt.pk_track, nt.time_length) t where t.the_geom && ga.the_geom and st_intersects(st_centroid(t.the_geom), ga.the_geom) group by name_0, year_week order by name_0 asc, year_week desc;

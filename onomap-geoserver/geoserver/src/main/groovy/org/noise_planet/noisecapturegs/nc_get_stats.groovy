@@ -134,7 +134,7 @@ def getStatistics(Connection connection) {
 
     // Compute last x weeks names
     def week_tracks_date = []
-    for(int i=7; i >= 0; i--) {
+    for(int i=6; i >= 0; i--) {
         Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
         use(TimeCategory) {
             calendar.setTime(new Date() - i.week);
@@ -143,7 +143,7 @@ def getStatistics(Connection connection) {
     }
 
     def countries_dict = [:]
-
+    def LIMIT_STATS_COUNTRY = 6
     sql.eachRow("select name_0, to_char(record_utc, 'YYYY-WW') year_week, count(t.*) nb_tracks, sum(t.time_length) total_length  from GADM28 ga, (SELECT nt.pk_track, ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom, time_length, record_utc from noisecapture_point np, noisecapture_track nt where  extract(epoch from record_utc) > extract(epoch from CURRENT_DATE) - 3600 * 24 * 7 * 7 and not ST_ISEMPTY(the_geom) and nt.pk_track = np.pk_track  group by nt.pk_track, nt.time_length) t where t.the_geom && ga.the_geom and st_intersects(st_centroid(t.the_geom), ga.the_geom) group by name_0, year_week order by name_0 asc, year_week desc") {
         record ->
             if(!countries_dict.containsKey(record.name_0)) {
@@ -158,12 +158,15 @@ def getStatistics(Connection connection) {
     }
     def countries = []
     countries_dict.each { k, v ->
-        countries.add([label: k, backgroundColor: colorSet[countries.size() % colorSet.size()], data : v.nb_tracks])
+        countries.add([label: k, data : v.nb_tracks])
+    }
+    countries.sort{-it.data.sum()}
+    countries = countries.subList(0, Math.min(countries.size(), LIMIT_STATS_COUNTRY))
+    def idColor = 0
+    countries.each {
+        it["backgroundColor"] = colorSet[idColor++ % colorSet.size()]
     }
     statistics["week_tracks"] = [labels : week_tracks_date, datasets : countries];
-
-    //TODO contributions dernieres semaines (manque le where)
-    // select name_0, to_char(record_utc, 'YYYY-WW') year_week, count(t.*) nb_track, sum(t.time_length) total_length  from GADM28 ga, (SELECT nt.pk_track, ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom, time_length, record_utc from noisecapture_point np, noisecapture_track nt where  extract(epoch from record_utc) > extract(epoch from now()) - 3600 * 24 * 7 * 7 and not ST_ISEMPTY(the_geom) and nt.pk_track = np.pk_track  group by nt.pk_track, nt.time_length) t where t.the_geom && ga.the_geom and st_intersects(st_centroid(t.the_geom), ga.the_geom) group by name_0, year_week order by name_0 asc, year_week desc;
 
     return statistics;
 }

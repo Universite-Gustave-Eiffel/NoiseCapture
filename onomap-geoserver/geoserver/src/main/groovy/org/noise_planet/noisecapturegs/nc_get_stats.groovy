@@ -143,7 +143,7 @@ def getStatistics(Connection connection) {
     }
 
     def countries_dict = [:]
-    def LIMIT_STATS_COUNTRY = 6
+    def LIMIT_STATS_COUNTRY = 5
     sql.eachRow("select name_0, to_char(record_utc, 'YYYY-WW') year_week, count(t.*) nb_tracks, sum(t.time_length) total_length  from GADM28 ga, (SELECT nt.pk_track, ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom, time_length, record_utc from noisecapture_point np, noisecapture_track nt where  extract(epoch from record_utc) > extract(epoch from CURRENT_DATE) - 3600 * 24 * 7 * 7 and not ST_ISEMPTY(the_geom) and nt.pk_track = np.pk_track  group by nt.pk_track, nt.time_length) t where t.the_geom && ga.the_geom and st_intersects(st_centroid(t.the_geom), ga.the_geom) group by name_0, year_week order by name_0 asc, year_week desc") {
         record ->
             if(!countries_dict.containsKey(record.name_0)) {
@@ -161,7 +161,15 @@ def getStatistics(Connection connection) {
         countries.add([label: k, data : v.nb_tracks])
     }
     countries.sort{-it.data.sum()}
+    // Merge of other countries
+    def others_countries = [label : "Others", data : new long[week_tracks_date.size()]]
+    countries.subList(Math.min(countries.size(), LIMIT_STATS_COUNTRY), countries.size()).each { it ->
+        others_countries.data = [others_countries.data, it.data].transpose()*.sum()
+    }
+
     countries = countries.subList(0, Math.min(countries.size(), LIMIT_STATS_COUNTRY))
+    countries.add(others_countries)
+
     def idColor = 0
     countries.each {
         it["backgroundColor"] = colorSet[idColor++ % colorSet.size()]

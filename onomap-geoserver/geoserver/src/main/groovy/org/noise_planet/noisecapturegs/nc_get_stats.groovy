@@ -64,7 +64,7 @@ outputs = [
 
 static
 def getStatistics(Connection connection) {
-    def colorSet = ["#a6cee3", "#1f78b4" , "#b2df8a" , "#fb9a99" , "#fdbf6f" , "#ff7f00" , "#cab2d6" , "#6a3d9a"
+    def colorSet = ["#a6cee3", "#ffffbf" , "#b2df8a" , "#fb9a99" , "#fdbf6f" , "#ff7f00" , "#cab2d6" , "#6a3d9a"
                     , "#ffff99" , "#b15928"]
 
     def sql = new Sql(connection)
@@ -73,13 +73,13 @@ def getStatistics(Connection connection) {
 
     // New contributors since last week:
     statistics["week_new_contributors"] = sql.firstRow("select count(*) cpt from noisecapture_user where" +
-            " extract(epoch from date_creation) > extract(epoch from now()) - 3600 * 24 * 7").cpt as Integer;
+            " date_creation > NOW()::date - 7").cpt as Integer;
     // Number of tracks since last week:
     statistics["week_new_tracks_count"] = sql.firstRow("select count(*) cpt from noisecapture_track where" +
-            " extract(epoch from record_utc) > extract(epoch from now()) - 3600 * 24 * 7").cpt as Integer;
+            " record_utc > NOW()::date - 7").cpt as Integer;
     // Duration (JJ:HH:MM:SS) since last week:
     statistics["week_new_tracks_duration"] = sql.firstRow("select sum(time_length) timelen from noisecapture_track where" +
-            " extract(epoch from record_utc) > extract(epoch from now()) - 3600 * 24 * 7").timelen as Integer;
+            " record_utc > NOW()::date - 7").timelen as Integer;
 
     // Approximate number of contributors
     statistics["total_contributors"] = sql.firstRow("select count(*) cpt from noisecapture_user").cpt as Integer;
@@ -124,7 +124,7 @@ def getStatistics(Connection connection) {
     def tag_count = []
     def track_tag_count = []
 
-    sql.eachRow("select cpt_tags, count(*) nb_track from (SELECT nt.pk_track, count(pk_tag) cpt_tags FROM noisecapture_track nt LEFT JOIN noisecapture_track_tag ntt USING(pk_track) group by pk_track) track_tag group by cpt_tags order by cpt_tags") {
+    sql.eachRow("select cpt_tags, count(*) nb_track from (SELECT nt.pk_track, count(pk_tag) cpt_tags FROM noisecapture_track nt LEFT JOIN noisecapture_track_tag ntt ON (nt.pk_track = ntt.pk_track) group by nt.pk_track) track_tag group by cpt_tags order by cpt_tags") {
         record ->
             tag_count.add(record.cpt_tags as Integer)
             track_tag_count.add(record.nb_track as Long)
@@ -144,7 +144,7 @@ def getStatistics(Connection connection) {
 
     def countries_dict = [:]
     def LIMIT_STATS_COUNTRY = 5
-    sql.eachRow("select name_0, to_char(record_utc, 'YYYY-WW') year_week, count(t.*) nb_tracks, sum(t.time_length) total_length  from GADM28 ga, (SELECT nt.pk_track, ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom, time_length, record_utc from noisecapture_point np, noisecapture_track nt where  extract(epoch from record_utc) > extract(epoch from CURRENT_DATE) - 3600 * 24 * 7 * 7 and not ST_ISEMPTY(the_geom) and nt.pk_track = np.pk_track  group by nt.pk_track, nt.time_length) t where t.the_geom && ga.the_geom and st_intersects(st_centroid(t.the_geom), ga.the_geom) group by name_0, year_week order by name_0 asc, year_week desc") {
+    sql.eachRow("select name_0, to_char(record_utc, 'YYYY-WW') year_week, count(t.*) nb_tracks, sum(t.time_length) total_length  from GADM28 ga, (SELECT nt.pk_track, ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom, time_length, record_utc from noisecapture_point np, noisecapture_track nt where record_utc > NOW()::date - 7 * 7 and not ST_ISEMPTY(the_geom) and nt.pk_track = np.pk_track  group by nt.pk_track, nt.time_length) t where t.the_geom && ga.the_geom and st_intersects(st_centroid(t.the_geom), ga.the_geom) group by name_0, year_week order by name_0 asc, year_week desc") {
         record ->
             if(!countries_dict.containsKey(record.name_0)) {
                 // Init country
@@ -158,7 +158,7 @@ def getStatistics(Connection connection) {
     }
     def countries = []
     countries_dict.each { k, v ->
-        countries.add([label: k, data : v.nb_tracks])
+        countries.add([label: k, data : v.sum_length])
     }
     countries.sort{-it.data.sum()}
     // Merge of other countries

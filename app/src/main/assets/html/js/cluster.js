@@ -65,7 +65,7 @@ GeoJSONCluster = L.GeoJSON.extend({
     },
     
     update: function (data) {        
-       if(this.ready && this._map.getZoom() < 15) {
+       if(this._map && this.ready && this._map.getZoom() < 15) {
           var _this = this;
           var geoJsonUrl = this.options.wfs_url;
           var defaultParameters = {

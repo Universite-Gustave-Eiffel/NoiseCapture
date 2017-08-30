@@ -580,7 +580,7 @@ public class MainActivity extends AppCompatActivity {
         bigTextStyle.bigText(getString(R.string.notification_goto_community_map));
         builder.setStyle(bigTextStyle);
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse(getText(R.string.url_noiseplanet_map).toString()));
+        intent.setData(Uri.parse("http://noise-planet.org/map_noisecapture"));
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(this);
         stackBuilder.addNextIntent(intent);

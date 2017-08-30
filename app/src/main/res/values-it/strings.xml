@@ -269,17 +269,10 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Informativa sulla privacy</string>
     <string name="calibration_warning">The calibration procedure requires the use of a calibrated reference device such as a sonometer or calibrated smartphone. For more information, refer to the <a href="org.noise_planet.noisecapture://help.html#calibration">help page</a> of the application\"</string>
-    <string name="notification_record_content">Misura in corso .. %1$.1f dB(A)</string>
+    <string name="notification_record_content">Misura in corso... %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Caricamento delle misure</string>
     <string name="userinfo_tags_measurement_conditions">Condizioni di misura</string>
     <string name="notification_goto_community_map_title">Misure comunitarie</string>
-    <string name="notification_goto_community_map">Visita http://noise-planet.org, sfoglia la mappa di tutte le misurazioni fatte dalla comunità</string>
-    <string name="url_noiseplanet_map">http://noise-planet.org/en/map.html</string>
-    <string name="title_settings_notification_links">Notifica</string>
-    <string name="summary_settings_notification_links">Controlla per visualizzare il link di notifica al sito Noise-Planet</string>
-    <string name="settings_category_profile">Profilo utente</string>
-    <string name="title_settings_user_noise_knowledge">Profilo utente</string>
-    <string name="settings_user_noise_knowledge_description">"Come valuta la tua conoscenza di ambienti sonori ? "</string>
 
     <string-array name="output_mode_labels">
         <item>Chiamata vocale</item>
@@ -294,6 +287,12 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
         <item>Rettangolare</item>
         <item>Hann</item>
     </string-array>
+    <string name="notification_goto_community_map">Visita http://noise-planet.org, sfoglia la mappa di tutte le misurazioni fatte dalla comunità</string>
+    <string name="title_settings_notification_links">Notifica</string>
+    <string name="summary_settings_notification_links">Controlla per visualizzare il link di notifica al sito Noise-Planet</string>
+    <string name="settings_category_profile">Profilo utente</string>
+    <string name="title_settings_user_noise_knowledge">Profilo utente</string>
+    <string name="settings_user_noise_knowledge_description">"Come valuta la tua conoscenza di ambienti sonori ? "</string>
     <string-array name="knowledge">
         <item>Non ho conoscenza nel campo del rumore</item>
         <item>Ho qualche conoscenza nel campo del rumore</item>

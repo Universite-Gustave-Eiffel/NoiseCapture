@@ -292,7 +292,6 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>Hann</item>
     </string-array>
     <string name="notification_goto_community_map">Visit http://noise-planet.org, browse the map of all the measurements made by the community</string>
-    <string name="url_noiseplanet_map">http://noise-planet.org/en/map.html</string>
     <string name="title_settings_notification_links">Notification</string>
     <string name="summary_settings_notification_links">Check to display the notification link to Noise-Planet website</string>
     <string name="settings_category_profile">User profile</string>

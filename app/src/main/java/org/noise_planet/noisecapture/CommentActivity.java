@@ -34,20 +34,12 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.LinearGradient;
-import android.graphics.Shader;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.InsetDrawable;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.RectShape;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.annotation.ColorRes;
 import android.support.annotation.Dimension;
 import android.support.v4.content.FileProvider;
 import android.util.TypedValue;
@@ -79,6 +71,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
+
 
 public class CommentActivity extends MainActivity {
     private AtomicBoolean userInputSeekBar = new AtomicBoolean(false);
@@ -536,7 +529,11 @@ public class CommentActivity extends MainActivity {
         public void onClick(View v) {
             if(activity.photo_uri != null) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setDataAndType(activity.photo_uri,"image/*");
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                Uri uriForIntent = FileProvider.getUriForFile(activity,
+                        "org.noise_planet.noisecapture.fileprovider",
+                       new File(activity.photo_uri.getPath()));
+                intent.setDataAndType(uriForIntent,"image/*");
                 activity.startActivity(intent);
             }
         }

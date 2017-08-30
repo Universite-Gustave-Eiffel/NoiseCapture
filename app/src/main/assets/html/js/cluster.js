@@ -108,7 +108,7 @@ L.geoJSON.OnoMap = function (url) {
                   color: "#ffffff",
                   bubblingMouseEvents: false,
                   fillOpacity: 0.6,
-                  fillColor: count < 100 ? "rgb(220, 220, 220)" :
-                  count < 1000 ? "rgb(189, 189, 189)" : "rgb(99, 99, 99)"}
+                  fillColor: count < 100 ? "rgb(210,223,255)" :
+                  count < 1000 ? "rgb(176,201,255)" : "rgb(73,155,255)"}
       }});
 };

@@ -106,8 +106,9 @@ public class PrivacyPolicyActivity extends AppCompatActivity implements View.OnC
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putBoolean(PROP_POLICY_AGREED, checkedAgree && checkedLegalAge);
                 String[] spinnerValues = getResources().getStringArray(R.array.knowledge_values);
-                editor.putString("settings_user_noise_knowledge",
-                        spinnerValues[which - 1]);
+                if(which > 0 && which <= spinnerValues.length) {
+                    editor.putString("settings_user_noise_knowledge", spinnerValues[which - 1]);
+                }
                 editor.apply();
                 // Start measurement activity
                 Intent i = new Intent(getApplicationContext(), MeasurementActivity.class);
@@ -121,7 +122,7 @@ public class PrivacyPolicyActivity extends AppCompatActivity implements View.OnC
                 .getDimensionPixelSize(0, 1);
         description.setPadding(padding,padding,padding,padding);
         description.setText(R.string.settings_user_noise_knowledge_description);
-        dialog.getListView().addHeaderView(description);
+        dialog.getListView().addHeaderView(description, null, false);
         dialog.show();
     }
 }

@@ -31,26 +31,11 @@ package org.noise_planet.noisecapturegs
 import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 import groovy.sql.Sql
 import groovy.time.TimeCategory
 import org.geotools.jdbc.JDBCDataStore
-import org.springframework.security.core.context.SecurityContextHolder
 
 import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.SQLException
-import java.sql.Timestamp
-import java.time.DateTimeException
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.time.zone.ZoneRulesException
-import java.util.concurrent.TimeUnit
-import java.util.zip.GZIPInputStream
-import java.util.zip.GZIPOutputStream
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
 
 title = 'nc_gt_stats'
 description = 'Build statistics from database'

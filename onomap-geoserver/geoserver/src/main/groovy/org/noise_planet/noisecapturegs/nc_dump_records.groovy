@@ -306,41 +306,6 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
     return createdFiles
 }
 
-
-static
-def getStatistics(Connection connection) {
-    def sql = new Sql(connection)
-
-    def statistics = {};
-    // New contributors since last week:
-    statistics["week_new_contributors"] = sql.firstRow("select count(*) cpt from noisecapture_user where" +
-            " extract(epoch from date_creation) > extract(epoch from now()) - 3600 * 24 * 7").cpt as Integer;
-    // Number of tracks since last week:
-    statistics["week_new_tracks_count"] = sql.firstRow("select count(*) cpt from noisecapture_track where" +
-            " extract(epoch from record_utc) > extract(epoch from now()) - 3600 * 24 * 7").cpt as Integer;
-    // Duration (JJ:HH:MM:SS) since last week:
-    statistics["week_new_tracks_duration"] = sql.firstRow("select sum(time_length) timelen from noisecapture_track where" +
-            " extract(epoch from record_utc) > extract(epoch from now()) - 3600 * 24 * 7").timelen as Integer;
-
-    // Approximate number of contributors
-    statistics["total_contributors"] = sql.firstRow("select count(*) cpt from noisecapture_user").cpt as Integer;
-    // Total number of tracks
-    statistics["total_tracks"] = sql.firstRow("select count(*) cpt from noisecapture_track").cpt as Integer;
-    // Duration (JJ:HH:MM:SS)
-    statistics["total_tracks_duration"] = sql.firstRow("select sum(time_length) timelen from noisecapture_track").timelen as Long;
-
-    // Tags
-    def tags = {};
-    sql.eachRow("select tag_name, count(*) cpt from noisecapture_tag t, noisecapture_track_tag tt where t.pk_tag = tt.pk_tag group by tag_name order by cpt desc;") {
-        record ->
-            tags[record.tag_name] = record.cpt as Integer;
-    }
-    statistics["tags"] = tags;
-
-    // Countries
-
-}
-
 static def Connection openPostgreSQLDataStoreConnection() {
     Store store = new GeoServer().catalog.getStore("postgis")
     JDBCDataStore jdbcDataStore = (JDBCDataStore) store.getDataStoreInfo().getDataStore(null)

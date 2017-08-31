@@ -81,6 +81,17 @@ def getStatistics(Connection connection) {
     statistics["week_new_tracks_duration"] = sql.firstRow("select sum(time_length) timelen from noisecapture_track where" +
             " record_utc > NOW()::date - 7").timelen as Integer;
 
+
+    // New contributors since 7 weeks:
+    statistics["7weeks_new_contributors"] = sql.firstRow("select count(*) cpt from noisecapture_user where" +
+            " date_creation > NOW()::date - 7 * 7").cpt as Integer;
+    // Number of tracks since last week:
+    statistics["7weeks_new_tracks_count"] = sql.firstRow("select count(*) cpt from noisecapture_track where" +
+            " record_utc > NOW()::date - 7 * 7").cpt as Integer;
+    // Duration (JJ:HH:MM:SS) since last week:
+    statistics["7weeks_new_tracks_duration"] = sql.firstRow("select sum(time_length) timelen from noisecapture_track where" +
+            " record_utc > NOW()::date - 7 * 7").timelen as Integer;
+
     // Approximate number of contributors
     statistics["total_contributors"] = sql.firstRow("select count(*) cpt from noisecapture_user").cpt as Integer;
     // Total number of tracks

@@ -65,7 +65,10 @@ public class MeasurementManager {
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
             Cursor cursor = database.rawQuery("SELECT * FROM "+Storage.Record.TABLE_NAME +
-                    " ORDER BY " + Storage.Record.COLUMN_UTC + " DESC", null);
+                    " WHERE "+ Storage.Record.COLUMN_TIME_LENGTH + " > 0 ORDER BY " + Storage.Record
+                    .COLUMN_UTC + " " +
+                    "DESC",
+                    null);
             try {
                 while (cursor.moveToNext()) {
                     records.add(new Storage.Record(cursor));

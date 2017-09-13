@@ -50,6 +50,14 @@ public class LeqStats {
     public LeqStats() {
     }
 
+    public LeqStats(LeqStats copyFrom) {
+        leqMin = copyFrom.leqMin;
+        leqMax = copyFrom.leqMax;
+        rmsSum = copyFrom.rmsSum;
+        rmsSumCount = copyFrom.rmsSumCount;
+        leqClass = new TreeMap<>(copyFrom.leqClass);
+    }
+
     public void addLeq(double leq) {
         leqMin = Math.min(leqMin, leq);
         leqMax = Math.max(leqMax, leq);

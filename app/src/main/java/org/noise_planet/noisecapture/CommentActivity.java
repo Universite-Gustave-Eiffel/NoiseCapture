@@ -185,7 +185,9 @@ public class CommentActivity extends MainActivity {
     @Override
     public void onBackPressed() {
         // Ask user if he want to keep modified data
-        validateCancel();
+        if(record != null) {
+            validateCancel();
+        }
     }
     private void validateCancel() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -422,9 +424,11 @@ public class CommentActivity extends MainActivity {
             // Add the buttons
             builder.setPositiveButton(R.string.comment_delete_record, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
-                    // Delete record
-                    activity.measurementManager.deleteRecord(activity.record.getId());
-                    activity.record = null;
+                    if(activity.record != null) {
+                        // Delete record
+                        activity.measurementManager.deleteRecord(activity.record.getId());
+                        activity.record = null;
+                    }
                     // Open measurement page
                     Intent ir = new Intent(activity, MeasurementActivity.class);
                     ir.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

@@ -34,8 +34,11 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
+import java.util.TreeSet;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -130,7 +133,6 @@ public class History extends MainActivity {
             for (int i = (selected.size() - 1); i >= 0; i--) {
                 if (selected.valueAt(i)) {
                     selectedRecordIds.add((int)history.historyListAdapter.getItemId(selected.keyAt(i)));
-
                 }
             }
             switch (item.getItemId()) {
@@ -143,7 +145,18 @@ public class History extends MainActivity {
                     mode.finish();
                     return true;
                 case R.id.publish:
+                    boolean deleted = false;
                     if(!selectedRecordIds.isEmpty()) {
+                        for(Integer recordId : new ArrayList<Integer>(selectedRecordIds)) {
+                            Storage.Record record = history.measurementManager.getRecord(recordId);
+                            if (!record.getUploadId().isEmpty()) {
+                                selectedRecordIds.remove(recordId);
+                                deleted = true;
+                            }
+                        }
+                        if(deleted) {
+                            Toast.makeText(history, history.getString(R.string.history_already_uploaded), Toast.LENGTH_LONG).show();
+                        }
                         // publish selected items following the ids
                         history.doTransferRecords(selectedRecordIds);
                     }
@@ -228,9 +241,15 @@ public class History extends MainActivity {
         }
 
         private void launchUpload() {
-            historyActivity.progress = ProgressDialog.show(historyActivity, historyActivity.getText(R.string.upload_progress_title),
-                    historyActivity.getText(R.string.upload_progress_message), true);
-            new Thread(new SendZipToServer(historyActivity, recordId, historyActivity.progress, new RefreshListener(historyActivity.historyListAdapter))).start();
+            Storage.Record record = historyActivity.measurementManager.getRecord(recordId);
+            if(record.getUploadId().isEmpty()) {
+                historyActivity.progress = ProgressDialog.show(historyActivity, historyActivity.getText(R.string.upload_progress_title), historyActivity.getText(R.string.upload_progress_message), true);
+                new Thread(new SendZipToServer(historyActivity, recordId, historyActivity.progress, new RefreshListener(historyActivity.historyListAdapter))).start();
+            } else {
+                Toast.makeText(historyActivity,
+                        historyActivity.getString(R.string.history_already_uploaded), Toast.LENGTH_LONG).show();
+
+            }
         }
 
         private File getSharedFile() {

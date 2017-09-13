@@ -423,8 +423,8 @@ public class MeasurementService extends Service {
                 newLeqStats.addLeq(10 * Math.log10(rms));
             }
             leqStats = newLeqStats;
-        }
-        if(newState && recordId > -1) {
+            leqStatsFast = new LeqStats(newLeqStats);
+        } else if(newState && recordId > -1) {
             leqStatsFast = new LeqStats();
         }
     }

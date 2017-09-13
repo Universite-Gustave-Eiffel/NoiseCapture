@@ -185,7 +185,7 @@ public class CommentActivity extends MainActivity {
     @Override
     public void onBackPressed() {
         // Ask user if he want to keep modified data
-        if(record) {
+        if(record != null) {
             validateCancel();
         }
     }
@@ -424,7 +424,7 @@ public class CommentActivity extends MainActivity {
             // Add the buttons
             builder.setPositiveButton(R.string.comment_delete_record, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
-                    if(activity.record) {
+                    if(activity.record != null) {
                         // Delete record
                         activity.measurementManager.deleteRecord(activity.record.getId());
                         activity.record = null;

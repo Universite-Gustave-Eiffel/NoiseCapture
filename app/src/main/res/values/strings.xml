@@ -100,7 +100,8 @@
 
     <!--  Ressources for the spinner map !-->
 
-    <!--  Ressources for the spinner history !-->
+    <!--  Ressources for the spinner history
+          History:HistoryItemListener:onItemClick remove the first entry (upload) !-->
     <string-array name="choice_user_history">
         <item>Upload to community</item>
         <item>Export result</item>

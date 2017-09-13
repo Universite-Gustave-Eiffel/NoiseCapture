@@ -27,20 +27,6 @@
 
 package org.noise_planet.noisecapture;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Date;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import java.util.TreeSet;
-
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -50,8 +36,6 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.content.FileProvider;
-import android.support.v4.view.MenuItemCompat;
-import android.support.v7.widget.ShareActionProvider;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -62,7 +46,6 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -71,6 +54,17 @@ import android.widget.Toast;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.List;
+import java.util.Locale;
 
 
 /* Source for example:
@@ -204,10 +198,15 @@ public class History extends MainActivity {
             AlertDialog.Builder builder = new AlertDialog.Builder(historyActivity);
             builder.setTitle(String.format(historyActivity.getText(R.string.history_item_choice_title).toString(),
                     historyActivity.historyListAdapter.getInformationHistory(position).getUtcDate()));
-            ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(historyActivity,
-                    R.array.choice_user_history, android.R.layout.simple_selectable_list_item);
-            builder.setAdapter(adapter,
-                    new ItemActionOnClickListener(historyActivity, (int) id));
+            String[] menuEntries = historyActivity.getResources().getStringArray(R
+                    .array.choice_user_history);
+            Storage.Record record = historyActivity.measurementManager.getRecord((int)id);
+            if(record!= null && !record.getUploadId().isEmpty()) {
+                // If already uploaded remove entry
+                menuEntries = Arrays.copyOfRange(menuEntries, 1, menuEntries.length);
+            }
+            builder.setItems(menuEntries, new ItemActionOnClickListener(historyActivity, (int)
+                    id));
             builder.show();
         }
     }

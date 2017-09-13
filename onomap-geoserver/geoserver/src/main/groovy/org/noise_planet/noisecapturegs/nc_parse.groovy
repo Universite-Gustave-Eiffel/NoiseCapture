@@ -121,10 +121,14 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
     def idUser
     if (res == null) {
         // Create user
-        idUser = sql.executeInsert("INSERT INTO noisecapture_user(user_uuid, date_creation) VALUES (:uuid, current_date)",
-                [uuid: meta.getProperty("uuid")])[0][0]
+        idUser = sql.executeInsert("INSERT INTO noisecapture_user(user_uuid, date_creation, profile) VALUES (:uuid, current_date, :profile)",
+                [uuid: meta.getProperty("uuid"), profile: meta.getProperty("user_profile", "")])[0][0]
     } else {
         idUser = res.get("pk_user")
+        if(meta.hasProperty("user_profile") && res.profile as String != meta.getProperty("user_profile")) {
+            // Update account information
+            sql.executeUpdate("UPDATE noisecapture_user set profile = :profile where user_uuid = :uuid", [profile: meta.getProperty("user_profile"), uuid : meta.getProperty("uuid")])
+        }
     }
     // Check if this measurement has not been already uploaded
     def oldTrackCount = sql.firstRow("SELECT count(*) cpt FROM  noisecapture_track where record_utc=:recordutc::timestamptz and pk_user=:userid",

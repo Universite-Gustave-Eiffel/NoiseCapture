@@ -174,4 +174,20 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
             assertEquals(0.077723056,sql.firstRow("SELECT speed FROM noisecapture_point where time_date = :lequtc::timestamptz", [lequtc : new nc_parse().epochToRFCTime(1465474658594)]).get("speed"), 1e-6)
         }
     }
+
+    void testParseProfile() {
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_e0f5dd71-75f9-44b2-a106-98712a826719.zip").file))
+        // Read db; check content
+        Sql sql = new Sql(connection)
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals("NONE", sql.firstRow("SELECT * FROM  noisecapture_user").profile)
+        // Check records
+        assertEquals(107, sql.firstRow("SELECT ORIENTATION FROM  noisecapture_point where time_date=:time_date",
+                [time_date: new nc_parse().epochToRFCTime(1504245786780)]).orientation)
+        assertEquals(1.83, sql.firstRow("SELECT SPEED FROM  noisecapture_point where time_date=:time_date",
+                [time_date: new nc_parse().epochToRFCTime(1504245786780)]).speed)
+
+
+    }
 }

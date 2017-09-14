@@ -130,11 +130,13 @@ public class TestDB {
         assertNull(incompleteRecord.getPleasantness());
         assertEquals((float)leqBatch.computeGlobalLeq(), incompleteRecord.getLeqMean(), 0.01);
         assertEquals(2.31f, incompleteRecord.getCalibrationGain(), 0.01);
+        Assert.assertNull(incompleteRecord.getNoisePartyTag());
 
         // Check update user input
         measurementManager.updateRecordUserInput(recordId, "This is a description",
                 (short)2,new String[]{Storage.TAGS_INFO[0].name, Storage.TAGS_INFO[4].name},
-                Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())));
+                Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())),
+                "OGRS2018");
         Storage.Record record = measurementManager.getRecord(recordId);
         assertEquals(Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())),
                 record.getPhotoUri());
@@ -142,6 +144,7 @@ public class TestDB {
         List<String> selectedTags = measurementManager.getTags(recordId);
         assertEquals(Storage.TAGS_INFO[0].name, selectedTags.get(0));
         assertEquals(Storage.TAGS_INFO[4].name, selectedTags.get(1));
+        assertEquals("OGRS2018", record.getNoisePartyTag());
 
     }
 
@@ -227,7 +230,8 @@ public class TestDB {
         measurementManager.updateRecordFinal(recordId, (float)leqBatch.computeGlobalLeq(), 2, -4.76f);
         measurementManager.updateRecordUserInput(recordId, "This is a description",
                 (short)2,new String[]{Storage.TAGS_INFO[0].name, Storage.TAGS_INFO[4].name},
-                Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())));
+                Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())),
+                "OGRS2018");
 
         // Export to zip file
         File testFile = folder.newFile("testexport.zip");
@@ -267,6 +271,7 @@ public class TestDB {
         assertNotNull(meta);
         assertNotNull(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION));
         Assert.assertEquals("NOVICE", meta.getProperty(MeasurementExport.PROP_USER_PROFILE));
+        Assert.assertEquals("OGRS2018", meta.getProperty(Storage.Record.COLUMN_NOISEPARTY_TAG));
         assertEquals(-4.76f, Float.valueOf(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
         assertEquals((float)leqBatch.computeGlobalLeq(),
                 Float.valueOf(meta.getProperty(Storage.Record.COLUMN_LEQ_MEAN)), 0.01f);

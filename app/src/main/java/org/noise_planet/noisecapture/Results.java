@@ -282,7 +282,9 @@ public class Results extends MainActivity {
                 hashtags.append(localeStringArray[tagInfo.id].replace(" ",""));
             }
         }
-
+        if(!record.getNoisePartyTag().isEmpty()) {
+            hashtags.append(record.getNoisePartyTag());
+        }
         //@see https://dev.twitter.com/web/tweet-button/web-intent
         String url = "http://www.twitter.com/intent/tweet?via=Noise_Planet&hashtags="+hashtags.toString() +
                 "&text=" + Uri.encode(getString(R.string.share_message, record.getLeqMean()));

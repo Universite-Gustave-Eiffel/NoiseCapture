@@ -299,6 +299,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="settings_category_profile">User profile</string>
     <string name="title_settings_user_noise_knowledge">User profile</string>
     <string name="settings_user_noise_knowledge_description">How do you evaluate your knowledge about sound environments ?</string>
+    <string name="hint_userinput_noiseparty_tag">NoiseCapture Party code</string>
     <string-array name="knowledge">
         <item>I have no knowledge in the field of noise</item>
         <item>I have some knowledge in the field of noise</item>

@@ -220,7 +220,9 @@ meta.properties file are general info on device and record:\n
 - record_utc Record time in epoch millisecond\n
 - device_manufacturer device_model device_product Generic Hardware information of measure device\n
 - pleasantness User input pleasantness 1-100\n
-- tags Comma separated values of user selected tags (english only)\n\n
+- tags Comma separated values of user selected tags (english only)\n
+- user_profile User knowledge in acoustics NONE, NOVICE, EXPERT\n
+- noiseparty_tag Record NoiseParty identifier\n\n
 
 track.geojson 1s samples of measures. Using the geojson format (http://geojson.io)\n
 - leq_mean 1s mean equivalent sound level in dB(A)\n

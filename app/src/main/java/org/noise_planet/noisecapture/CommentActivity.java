@@ -126,6 +126,7 @@ public class CommentActivity extends MainActivity {
             View deleteBts = findViewById(R.id.deleteBtn);
             deleteBts.setOnClickListener(new OnDeleteMeasurement(this));
             TextView noisePartyTag = (TextView) findViewById(R.id.edit_noiseparty_tag);
+            noisePartyTag.setEnabled(record.getUploadId().isEmpty());
             noisePartyTag.setFilters(new InputFilter[]{new InputFilter.AllCaps(),new InputFilter() {
                 @Override
                 public CharSequence filter(CharSequence source, int start, int end, Spanned dest,

@@ -138,6 +138,16 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
                 [recordutc: epochToRFCTime(Long.valueOf(meta.getProperty("record_utc"))), userid: idUser])
         throw new InvalidParameterException("User tried to reupload " + previousTrack.get("track_uuid"))
     }
+    Integer idParty = null;
+    String party_tag = meta.getProperty("noiseparty_tag")
+    if(party_tag != null && !party_tag.isEmpty()) {
+        // Fetch noise party id
+        def result = sql.firstRow("SELECT pk_party FROM  noisecapture_party where tag=:tag",
+                [tag: party_tag])
+        if(result != null) {
+            idParty = result.pk_party as Integer
+        }
+    }
     // insert record
     Map record = [track_uuid         : recordUUID,
                   pk_user            : idUser,
@@ -149,11 +159,12 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
                   device_manufacturer: meta.get("device_manufacturer"),
                   noise_level        : Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")),
                   time_length        : meta.get("time_length") as int,
-                  gain_calibration   : Double.valueOf(meta.getProperty("gain_calibration", "0").replace(",", "."))]
+                  gain_calibration   : Double.valueOf(meta.getProperty("gain_calibration", "0").replace(",", ".")),
+                  noiseparty_id      : idParty]
     def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
-            " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration) VALUES (" +
+            " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration, pk_party) VALUES (" +
             ":track_uuid, :pk_user, :version_number,:record_utc::timestamptz, :pleasantness, :device_product, :device_model," +
-            " :device_manufacturer, :noise_level, :time_length, :gain_calibration)", record)[0][0] as Integer
+            " :device_manufacturer, :noise_level, :time_length, :gain_calibration, :noiseparty_id)", record)[0][0] as Integer
     // insert tags
     String tags = meta.getProperty("tags", "")
     if (!tags.isEmpty()) {
@@ -279,6 +290,7 @@ def static void buildStatistics(Connection connection) {
 
 def run(input) {
     Logger logger = LoggerFactory.getLogger("logger_nc_parse")
+    int processFileLimit = input["processFileLimit"] as Integer;
     File dataDir = new File("data_dir/onomap_uploading");
     int processed = 0
     if (dataDir.exists()) {
@@ -323,6 +335,9 @@ def run(input) {
                         connection.rollback();
                     }
                     processed++
+                    if(processFileLimit > 0 && processed > processFileLimit) {
+                        break;
+                    }
                 }
                 // Feed last measures table
                 buildStatistics(connection)

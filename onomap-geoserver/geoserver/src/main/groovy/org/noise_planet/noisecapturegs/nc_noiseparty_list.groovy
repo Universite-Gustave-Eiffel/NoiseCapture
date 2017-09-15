@@ -39,31 +39,17 @@ import java.sql.Connection
 import java.sql.SQLException
 import java.time.format.DateTimeFormatter
 
-title = 'nc_last_measures'
-description = 'Fetch last measures'
+title = 'nc_noiseparty_list'
+description = 'Fetch all Noise Party'
 
-inputs = [noiseparty: [name: 'noiseparty', title: 'NoiseParty tag',
-                   type: String.class, min : 0, max : 1]]
+inputs = [:]
 
 
 outputs = [
-        result: [name: 'result', title: 'Last measures as JSON', type: String.class]
+        result: [name: 'result', title: 'NoiseParty list as JSON', type: String.class]
 ]
 
-/**
- * @param latlong WKT point
- * @return Extracted lat long
- */
-def decodeLatLongFromString(latlong) {
-    def wktPattern = ~/^POINT\s?\((-?\d+(\.\d+)?)\s*(-?\d+(\.\d+)?)\)$/
-    def wktMatch = latlong =~ wktPattern
-    if(wktMatch) {
-        return [wktMatch.group(1) as Double, wktMatch.group(3) as Double]
-    }
-    return null
-}
-
-def getStats(Connection connection, String noise_party_tag) {
+def getNoiseParty(Connection connection) {
     def data = []
     try {
         // List the 10 last measurements, with aggregation of points
@@ -71,29 +57,10 @@ def getStats(Connection connection, String noise_party_tag) {
             noise_party_tag = ""
         }
         def sql = new Sql(connection)
-        sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T LEFT JOIN noisecapture_party P on (T.pk_party = P.pk_party) where P.tag = :noise_party_tag or :noise_party_tag = ''", [noise_party_tag : noise_party_tag as String]) {
+        sql.eachRow("select * from noisecapture_party order by pk_party desc") {
             record_row ->
-                // Fetch the timezone of this point
-                def res = sql.firstRow("SELECT TZID FROM tz_world WHERE " +
-                        "ST_GeomFromText(:geom,4326) && the_geom AND" +
-                        " ST_Intersects(ST_GeomFromText(:geom,4326), the_geom) LIMIT 1", [geom: record_row.env])
-                TimeZone tz = res == null ? TimeZone.default : TimeZone.getTimeZone(res.TZID);
-                def formater = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-                def record_utc;
-                if(res) {
-                    record_utc = record_row.record_utc.toInstant().atZone(tz.toZoneId()).format(formater);
-                } else {
-                    record_utc = record_row.record_utc
-                }
-                def center = decodeLatLongFromString(record_row.env)
-                def longitude = center != null ? center[0] : null
-                def latitude = center != null ? center[1] : null
-                def the_geom = new JsonSlurper().parseText(record_row.the_geom)
-                def start = new JsonSlurper().parseText(record_row.start_pt)
-                def stop = new JsonSlurper().parseText(record_row.stop_pt)
-                data.add([time_length : record_row.time_length as Integer, record_utc : record_utc,
-                          zoom_level : 18, lat : latitude, long : longitude, bounds : the_geom, start : start,
-                          stop : stop, country : record_row.name_0, name_1 : record_row.name_1, name_3 : record_row.name_3])
+                data.add([title : record_row.title as String, tag : record_row.tag as String,
+                          description : record_row.description as String])
         }
     } catch (SQLException ex) {
         throw ex

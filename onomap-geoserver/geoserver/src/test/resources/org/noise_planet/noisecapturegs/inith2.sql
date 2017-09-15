@@ -22,6 +22,7 @@ COMMENT ON COLUMN NOISECAPTURE_USER.PROFILE IS 'User acoustic knowledge, one of 
 -- Table: NOISECAPTURE_PARTY
 CREATE TABLE NOISECAPTURE_PARTY (
     PK_PARTY serial NOT NULL,
+    THE_GEOM geometry NOT NULL,
     title varchar NOT NULL,
     tag varchar UNIQUE NOT NULL,
     description varchar NOT NULL,
@@ -31,6 +32,7 @@ CREATE TABLE NOISECAPTURE_PARTY (
 COMMENT ON COLUMN NOISECAPTURE_PARTY.title IS 'Short NoiseParty title';
 COMMENT ON COLUMN NOISECAPTURE_PARTY.description IS 'Long description of the NoiseParty';
 COMMENT ON COLUMN NOISECAPTURE_PARTY.tag IS 'Tag typed by users';
+COMMENT ON COLUMN NOISECAPTURE_PARTY.geometry IS 'NoiseParty location';
 
 -- Table: NOISECAPTURE_TRACK
 CREATE TABLE NOISECAPTURE_TRACK (

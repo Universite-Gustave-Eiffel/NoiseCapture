@@ -157,4 +157,38 @@ class TestNoiseCaptureProcess extends GroovyTestCase {
         assertEquals(66, noiseRecord.getLA50())
     }
 
+    void testProcessParty() {
+        Sql.LOG.level = java.util.logging.Level.SEVERE
+        Sql sql = new Sql(connection)
+        // Load timezone file
+        sql.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
+        sql.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
+        new nc_feed_stats().processInput(connection,
+                TestNoiseCaptureProcess.getResource("gevfit_of_stations.txt").toURI(), "stations")
+        new nc_feed_stats().processInput(connection,
+                TestNoiseCaptureProcess.getResource("delta_matrix_mu.txt").toURI(), "time_matrix_mu")
+        new nc_feed_stats().processInput(connection,
+                TestNoiseCaptureProcess.getResource("delta_matrix_sigma.txt").toURI(), "time_matrix_sigma")
+        // Insert measure data
+        // insert records
+        // Create party before parsing party measurement
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(title, tag, description) VALUES ('OGRS 2018 event','OGRS_2018'," +
+                "'Open Geospatial consortium 2018');")
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file))
+
+        def processed = new nc_process().process(connection, 50)
+        // Two area processed (same place, but one for party area)
+        assertEquals(2, processed)
+        // Read db; check content
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area where pk_party = 1").get("cpt"))
+        assertEquals(54.9d, (Double)sql.firstRow("SELECT AP.LAEQ FROM NOISECAPTURE_AREA_PROFILE AP,NOISECAPTURE_AREA A WHERE A.pk_area = ap.pk_area and HOUR = 10 and pk_party = 1").get("LAEQ"),
+                0.1d)
+        assertEquals(51.8d, (Double)sql.firstRow("SELECT AP.LA50 FROM NOISECAPTURE_AREA_PROFILE AP,NOISECAPTURE_AREA A WHERE A.pk_area = ap.pk_area and HOUR = 10 and pk_party = 1").get("LA50"),
+                0.1d)
+        assertEquals(54.9d, (Double)sql.firstRow("SELECT AP.LAEQ FROM NOISECAPTURE_AREA_PROFILE AP,NOISECAPTURE_AREA A WHERE A.pk_area = ap.pk_area and HOUR = 10 and pk_party is null").get("LAEQ"),
+                0.1d)
+        assertEquals(51.8d, (Double)sql.firstRow("SELECT AP.LA50 FROM NOISECAPTURE_AREA_PROFILE AP,NOISECAPTURE_AREA A WHERE A.pk_area = ap.pk_area and HOUR = 10 and pk_party is null").get("LA50"),
+                0.1d)
+    }
 }

@@ -60,7 +60,7 @@ def getAreaInfo(Connection connection, long qIndex, long rIndex) {
         // List the area identifier using the new measures coordinates
         def sql = new Sql(connection)
         def row = sql.firstRow("SELECT * FROM noisecapture_area a " +
-                "WHERE CELL_Q = :qIndex and CELL_R = :rIndex",
+                "WHERE CELL_Q = :qIndex and CELL_R = :rIndex and pk_party is null",
                 [qIndex: qIndex, rIndex: rIndex])
         if(row) {
             def time_zone = TimeZone.getTimeZone(row.tzid as String).toZoneId();

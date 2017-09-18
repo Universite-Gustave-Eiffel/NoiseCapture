@@ -84,7 +84,7 @@ class TestNoiseCaptureHisto extends GroovyTestCase {
                 new File(TestNoiseCaptureDumpRecords.getResource("track_a23261b3-b569-4363-95be-e5578d694238.zip").file))
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureDumpRecords.getResource("track_f720018a-a5db-4859-bd7d-377d29356c6f.zip").file))
-        new nc_parse().buildStatistics(connection)
+        new nc_parse().buildStatistics(connection, null)
         // Fetch data
         def arrayData = new nc_last_measures().getStats(connection, "")
         assertEquals(3, arrayData.size())

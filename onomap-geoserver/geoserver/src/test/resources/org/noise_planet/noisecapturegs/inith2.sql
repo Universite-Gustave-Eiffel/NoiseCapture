@@ -174,6 +174,22 @@ CREATE TABLE NOISECAPTURE_DUMP_TRACK_ENVELOPE(
     THE_GEOM geometry,
     measure_count bigint);
 
+-- Statistics cache table
+
+CREATE TABLE noisecapture_stats_last_tracks (
+    pk_track integer,
+    time_length double precision,
+    record_utc timestamptz,
+    the_geom varchar,
+    env varchar,
+    start_pt varchar,
+    stop_pt varchar,
+    name_0 varchar,
+    name_1 varchar,
+    name_3 varchar,
+    pk_party integer
+);
+
 --- Add index
 
 CREATE INDEX ki_noisecapture_area_cellq

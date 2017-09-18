@@ -52,10 +52,6 @@ outputs = [
 def getNoiseParty(Connection connection) {
     def data = []
     try {
-        // List the 10 last measurements, with aggregation of points
-        if(noise_party_tag == null) {
-            noise_party_tag = ""
-        }
         def sql = new Sql(connection)
         sql.eachRow("select title, tag, description, ST_AsGeoJSON(the_geom) the_geom, layer_name from noisecapture_party order by pk_party desc") {
             record_row ->

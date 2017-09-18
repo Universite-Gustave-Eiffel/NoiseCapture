@@ -253,6 +253,8 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
 
     // Accept changes
     connection.commit();
+
+    return idParty
 }
 
 def Connection openPostgreSQLConnection() {
@@ -279,11 +281,11 @@ def static Connection openPostgreSQLDataStoreConnection() {
     return jdbcDataStore.getDataSource().getConnection()
 }
 
-def static void buildStatistics(Connection connection) {
+def static void buildStatistics(Connection connection, Integer pkParty) {
     def sql = new Sql(connection)
     connection.setAutoCommit(false)
-    sql.execute("DROP TABLE IF EXISTS NOISECAPTURE_STATS_LAST_TRACKS")
-    sql.execute("CREATE TABLE NOISECAPTURE_STATS_LAST_TRACKS AS select t.pk_track, time_length, record_utc,ST_AsGeoJson(t.env) the_geom, st_astext(ST_Centroid(t.env)) env,ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_start WHERE np_start.pk_track = t.pk_track AND NOT ST_ISEMPTY(np_start.THE_GEOM) AND accuracy < 15 ORDER BY time_date ASC LIMIT 1)) start_pt,  ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_stop WHERE np_stop.pk_track = t.pk_track AND NOT ST_ISEMPTY(np_stop.THE_GEOM) AND accuracy < 15 ORDER BY time_date DESC LIMIT 1)) stop_pt, name_0, name_1,(CASE WHEN (name_3 IS NULL OR name_3 = '') THEN name_2 ELSE name_3 END) name_3, pk_party from (select t.pk_track,time_length, record_utc, ST_EXTENT(p.the_geom) env, pk_party from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track and p.accuracy > 0 and p.accuracy < 15 GROUP BY t.pk_track order by t.record_utc DESC LIMIT 30) t, gadm28 where gadm28.the_geom && t.env AND ST_CONTAINS(gadm28.the_geom, ST_SetSRID(ST_Centroid(t.env),4326))")
+    sql.execute("DELETE FROM NOISECAPTURE_STATS_LAST_TRACKS WHERE (pk_party = :pk_party OR (:pk_party is null and pk_party is null))", [pk_party : pkParty])
+    sql.execute("INSERT INTO NOISECAPTURE_STATS_LAST_TRACKS select t.pk_track, time_length, record_utc,ST_AsGeoJson(t.env) the_geom, st_astext(ST_Centroid(t.env)) env,ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_start WHERE np_start.pk_track = t.pk_track AND NOT ST_ISEMPTY(np_start.THE_GEOM) AND accuracy < 15 ORDER BY time_date ASC LIMIT 1)) start_pt,  ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_stop WHERE np_stop.pk_track = t.pk_track AND NOT ST_ISEMPTY(np_stop.THE_GEOM) AND accuracy < 15 ORDER BY time_date DESC LIMIT 1)) stop_pt, name_0, name_1,(CASE WHEN (name_3 IS NULL OR name_3 = '') THEN name_2 ELSE name_3 END) name_3, :pk_party from (select t.pk_track,time_length, record_utc, ST_EXTENT(p.the_geom) env, pk_party from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track and p.accuracy > 0 and p.accuracy < 15 and (pk_party = :pk_party OR :pk_party is null) GROUP BY t.pk_track order by t.record_utc DESC LIMIT 30) t, gadm28 where gadm28.the_geom && t.env AND ST_CONTAINS(gadm28.the_geom, ST_SetSRID(ST_Centroid(t.env),4326))", [pk_party : pkParty])
     sql.commit()
     connection.setAutoCommit(true)
 }
@@ -295,13 +297,14 @@ def run(input) {
     int processed = 0
     if (dataDir.exists()) {
         File[] files = dataDir.listFiles(new ZipFileFilter())
+        Set<Integer> partyIds = new HashSet<>();
         if (files.length != 0) {
             // Open PostgreSQL connection
             Connection connection = openPostgreSQLDataStoreConnection()
             try {
                 for (File zipFile : files) {
                     try {
-                        processFile(connection, zipFile, false)
+                        partyIds.add(processFile(connection, zipFile, false))
                         // Move file to processed folder
                         File processedDir = new File("data_dir/onomap_archive");
                         if (!processedDir.exists()) {
@@ -339,8 +342,11 @@ def run(input) {
                         break;
                     }
                 }
-                // Feed last measures table
-                buildStatistics(connection)
+                // Add null party id in order to be sure to rebuild global history
+                partyIds.add(null)
+                // Build x lasts measurements history for each NoiseParty (id!=null) and for the global histry (id=null)
+                partyIds.each { partyId -> buildStatistics(connection, partyId)}
+
             } finally {
                 connection.close()
             }

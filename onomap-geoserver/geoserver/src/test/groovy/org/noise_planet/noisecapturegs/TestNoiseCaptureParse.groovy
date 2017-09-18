@@ -195,8 +195,8 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
     // Test parse with a party tag that does not exists in database
     void testParseInvalidNoiseParty() {
         Sql sql = new Sql(connection)
-        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description) VALUES ('POINT(2.38817 48.89540)','ANQES 2017 event','ANQES2017'," +
-                "'8es Assises nationales de la qualité de l''environnement sonore');")
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name) VALUES ('POINT(2.38817 48.89540)','ANQES 2017 event','ANQES2017'," +
+                "'8es Assises nationales de la qualité de l''environnement sonore','noisecapture_area_anqes2017');")
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file))
         // Read db; check content
@@ -208,8 +208,8 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
     // Test parse with a party tag that does not exists in database
     void testParseNoiseParty() {
         Sql sql = new Sql(connection)
-        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description) VALUES ('POINT(-1.64566 47.15374)','OGRS 2018 event','OGRS_2018'," +
-                "'Open Geospatial consortium 2018');")
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name) VALUES ('POINT(-1.64566 47.15374)','OGRS 2018 event','OGRS_2018'," +
+                "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018');")
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file))
         // Read db; check content

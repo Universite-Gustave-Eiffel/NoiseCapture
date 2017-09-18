@@ -50,7 +50,7 @@ outputs = [
 ]
 
 def getNoiseParty(Connection connection) {
-    def data = []+-
+    def data = []
     try {
         // List the 10 last measurements, with aggregation of points
         if(noise_party_tag == null) {

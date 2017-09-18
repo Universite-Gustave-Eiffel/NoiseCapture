@@ -172,8 +172,8 @@ class TestNoiseCaptureProcess extends GroovyTestCase {
         // Insert measure data
         // insert records
         // Create party before parsing party measurement
-        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description) VALUES ('POINT(-1.64566 47.15374)','OGRS 2018 event','OGRS_2018'," +
-                "'Open Geospatial consortium 2018');")
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name) VALUES ('POINT(-1.64566 47.15374)','OGRS 2018 event','OGRS_2018'," +
+                "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018');")
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file))
 

@@ -42,7 +42,8 @@ import java.time.format.DateTimeFormatter
 title = 'nc_last_measures'
 description = 'Fetch last measures'
 
-inputs = [:]
+inputs = [noiseparty: [name: 'noiseparty', title: 'NoiseParty tag',
+                   type: String.class, min : 0, max : 1]]
 
 
 outputs = [
@@ -62,12 +63,15 @@ def decodeLatLongFromString(latlong) {
     return null
 }
 
-def getStats(Connection connection) {
+def getStats(Connection connection, String noise_party_tag) {
     def data = []
     try {
         // List the 10 last measurements, with aggregation of points
+        if(noise_party_tag == null) {
+            noise_party_tag = ""
+        }
         def sql = new Sql(connection)
-        sql.eachRow("select * from NOISECAPTURE_STATS_LAST_TRACKS") {
+        sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T LEFT JOIN noisecapture_party P on (T.pk_party = P.pk_party) where P.tag = :noise_party_tag or :noise_party_tag = ''", [noise_party_tag : noise_party_tag as String]) {
             record_row ->
                 // Fetch the timezone of this point
                 def res = sql.firstRow("SELECT TZID FROM tz_world WHERE " +
@@ -107,7 +111,7 @@ def run(input) {
     // Open PostgreSQL connection
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : JsonOutput.toJson(getStats(connection))]
+        return [result : JsonOutput.toJson(getStats(connection, input["noiseparty"] as String))]
     } finally {
         connection.close()
     }

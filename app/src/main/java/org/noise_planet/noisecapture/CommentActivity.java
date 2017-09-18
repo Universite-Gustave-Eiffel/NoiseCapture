@@ -42,6 +42,10 @@ import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.Dimension;
 import android.support.v4.content.FileProvider;
+import android.text.InputFilter;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -100,11 +104,11 @@ public class CommentActivity extends MainActivity {
         // Use last record of no parameter provided
         this.measurementManager = new MeasurementManager(this);
         Intent intent = getIntent();
+        // Read the last stored record
+        List<Storage.Record> recordList = measurementManager.getRecords();
         if(intent != null && intent.hasExtra(COMMENT_RECORD_ID)) {
             record = measurementManager.getRecord(intent.getIntExtra(COMMENT_RECORD_ID, -1));
         } else {
-            // Read the last stored record
-            List<Storage.Record> recordList = measurementManager.getRecords();
             if(!recordList.isEmpty()) {
                 record = recordList.get(0);
             } else {
@@ -121,6 +125,39 @@ public class CommentActivity extends MainActivity {
             resultsBtn.setOnClickListener(new OnGoToResultPage(this));
             View deleteBts = findViewById(R.id.deleteBtn);
             deleteBts.setOnClickListener(new OnDeleteMeasurement(this));
+            TextView noisePartyTag = (TextView) findViewById(R.id.edit_noiseparty_tag);
+            noisePartyTag.setEnabled(record.getUploadId().isEmpty());
+            noisePartyTag.setFilters(new InputFilter[]{new InputFilter.AllCaps(),new InputFilter() {
+                @Override
+                public CharSequence filter(CharSequence source, int start, int end, Spanned dest,
+                                           int dstart, int dend) {
+                    // [^A-Za-z0-9_]
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (int i = start; i < end; i++) {
+                        char c = source.charAt(i);
+                        if (Character.isLetterOrDigit(c) || c=='_') {
+                            stringBuilder.append(c);
+                        }
+                    }
+
+                    // keep original if unchanged or return swapped chars
+                    boolean modified = (stringBuilder.length() == end - start);
+                    return modified ? null : stringBuilder.toString();
+                }
+            }});
+            if(record.getNoisePartyTag() == null) {
+                // Read last stored NoiseParty id
+                for (Storage.Record recordItem : recordList) {
+                    if (recordItem.getId() != record.getId()) {
+                        if(recordItem.getNoisePartyTag() != null) {
+                            noisePartyTag.setText(recordItem.getNoisePartyTag());
+                        }
+                        break;
+                    }
+                }
+            } else {
+                noisePartyTag.setText(record.getNoisePartyTag());
+            }
         }
         initDrawer(record != null ? record.getId() : null);
         SeekBar seekBar = (SeekBar) findViewById(R.id.pleasantness_slider);
@@ -233,6 +270,7 @@ public class CommentActivity extends MainActivity {
     private void saveChanges() {
         if (record != null) {
             TextView description = (TextView) findViewById(R.id.edit_description);
+            TextView noisePartyTag = (TextView) findViewById(R.id.edit_noiseparty_tag);
             SeekBar seekBar = (SeekBar) findViewById(R.id.pleasantness_slider);
             List<String> tags = new ArrayList<>(checkedTags.size());
             for (Storage.TagInfo sysTag : Storage.TAGS_INFO) {
@@ -243,15 +281,9 @@ public class CommentActivity extends MainActivity {
             measurementManager.updateRecordUserInput(record.getId(), description.getText()
                     .toString(), userInputSeekBar.get() ? (short)((seekBar.getProgress() /
                     (double)seekBar.getMax()) * 100) : null,
-                    tags.toArray(new String[tags.size()]), photo_uri);
+                    tags.toArray(new String[tags.size()]), photo_uri, noisePartyTag.getText()
+                            .toString().trim().replaceAll("[^A-Za-z0-9_]", ""));
         }
-    }
-
-    static int darker(int color) {
-        float[] hsv = new float[3];
-        Color.colorToHSV(color, hsv);
-        hsv[2] = 1.0f - 0.4f * (1.0f - hsv[2]);
-        return Color.HSVToColor(hsv);
     }
 
     private void addTag(String tagName, int id, ViewGroup column, int color) {

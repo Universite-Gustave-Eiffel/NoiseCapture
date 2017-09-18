@@ -28,60 +28,40 @@
 
 package org.noise_planet.noisecapturegs
 
-import com.vividsolutions.jts.geom.Coordinate
 import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import groovy.sql.Sql
 import org.geotools.jdbc.JDBCDataStore
 
 import java.sql.Connection
 import java.sql.SQLException
-import java.sql.Timestamp
 import java.time.format.DateTimeFormatter
 
+title = 'nc_noiseparty_list'
+description = 'Fetch all Noise Party'
 
-title = 'nc_get_area_info'
-description = 'Fetch informations about an area given its index'
+inputs = [:]
 
-inputs = [
-        qIndex: [name: 'qIndex', title: 'Area Q index',
-                 type: Long.class],
-        rIndex: [name: 'rIndex', title: 'Area R index',
-                 type: Long.class]]
 
 outputs = [
-        result: [name: 'result', title: 'Area info as JSON', type: String.class]
+        result: [name: 'result', title: 'NoiseParty list as JSON', type: String.class]
 ]
 
-def getAreaInfo(Connection connection, long qIndex, long rIndex) {
-    def data = [:]
+def getNoiseParty(Connection connection) {
+    def data = []
     try {
-        // List the area identifier using the new measures coordinates
+        // List the 10 last measurements, with aggregation of points
+        if(noise_party_tag == null) {
+            noise_party_tag = ""
+        }
         def sql = new Sql(connection)
-        def row = sql.firstRow("SELECT * FROM noisecapture_area a " +
-                "WHERE CELL_Q = :qIndex and CELL_R = :rIndex and pk_party is null",
-                [qIndex: qIndex, rIndex: rIndex])
-        if(row) {
-            def time_zone = TimeZone.getTimeZone(row.tzid as String).toZoneId();
-            def firstMeasure = row.first_measure.toInstant().atZone(time_zone).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-            def lastMeasure = row.last_measure.toInstant().atZone(time_zone).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-            data = [laeq              : row.laeq,
-                    la50              : row.la50,
-                    lden              : row.lden,
-                    mean_pleasantness: row.mean_pleasantness instanceof Number &&
-                            !row.mean_pleasantness.isNaN() ? row.mean_pleasantness : null,
-                    first_measure    : firstMeasure,
-                    last_measure     : lastMeasure,
-                    measure_count    : row.measure_count,
-                    time_zone        : row.tzid]
-            // Query hours profile for this area
-            def profile = new Object[72]
-            sql.eachRow("SELECT * FROM NOISECAPTURE_AREA_PROFILE WHERE PK_AREA = :pk_area", [pk_area:row.pk_area]) {
-                hour_row ->
-                profile[hour_row.hour as Integer] = [laeq : hour_row.laeq as Double, la50 : hour_row.la50 as Double, uncertainty : hour_row.uncertainty as Integer]
-            }
-            data["profile"] = profile
+        sql.eachRow("select title, tag, description, ST_AsGeoJSON(the_geom) the_geom, layer_name from noisecapture_party order by pk_party desc") {
+            record_row ->
+                def the_geom = new JsonSlurper().parseText(record_row.the_geom as String)
+                data.add([title : record_row.title as String, tag : record_row.tag as String,
+                          description : record_row.description as String, geometry : the_geom, layer_name : record_row.layer_name])
         }
     } catch (SQLException ex) {
         throw ex
@@ -99,7 +79,7 @@ def run(input) {
     // Open PostgreSQL connection
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : JsonOutput.toJson(getAreaInfo(connection, input["qIndex"],input["rIndex"]))]
+        return [result : JsonOutput.toJson(getNoiseParty(connection))]
     } finally {
         connection.close()
     }

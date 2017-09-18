@@ -200,6 +200,9 @@ public class MeasurementExport {
         if(record.getPleasantness() != null) {
             properties.setProperty(Storage.Record.COLUMN_PLEASANTNESS, String.valueOf(record.getPleasantness()));
         }
+        if(record.getNoisePartyTag() != null && !record.getNoisePartyTag().isEmpty()) {
+            properties.setProperty(Storage.Record.COLUMN_NOISEPARTY_TAG, record.getNoisePartyTag());
+        }
         properties.setProperty(PROP_USER_PROFILE, sharedPref.getString
                 ("settings_user_noise_knowledge", "NONE"));
         List<String> tags = measurementManager.getTags(recordId);

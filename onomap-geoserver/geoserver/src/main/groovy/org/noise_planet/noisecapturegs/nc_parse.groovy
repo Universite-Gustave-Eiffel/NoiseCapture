@@ -138,6 +138,16 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
                 [recordutc: epochToRFCTime(Long.valueOf(meta.getProperty("record_utc"))), userid: idUser])
         throw new InvalidParameterException("User tried to reupload " + previousTrack.get("track_uuid"))
     }
+    Integer idParty = null;
+    String party_tag = meta.getProperty("noiseparty_tag")
+    if(party_tag != null && !party_tag.isEmpty()) {
+        // Fetch noise party id
+        def result = sql.firstRow("SELECT pk_party FROM  noisecapture_party where tag=:tag",
+                [tag: party_tag])
+        if(result != null) {
+            idParty = result.pk_party as Integer
+        }
+    }
     // insert record
     Map record = [track_uuid         : recordUUID,
                   pk_user            : idUser,
@@ -149,11 +159,12 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
                   device_manufacturer: meta.get("device_manufacturer"),
                   noise_level        : Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")),
                   time_length        : meta.get("time_length") as int,
-                  gain_calibration   : Double.valueOf(meta.getProperty("gain_calibration", "0").replace(",", "."))]
+                  gain_calibration   : Double.valueOf(meta.getProperty("gain_calibration", "0").replace(",", ".")),
+                  noiseparty_id      : idParty]
     def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
-            " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration) VALUES (" +
+            " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration, pk_party) VALUES (" +
             ":track_uuid, :pk_user, :version_number,:record_utc::timestamptz, :pleasantness, :device_product, :device_model," +
-            " :device_manufacturer, :noise_level, :time_length, :gain_calibration)", record)[0][0] as Integer
+            " :device_manufacturer, :noise_level, :time_length, :gain_calibration, :noiseparty_id)", record)[0][0] as Integer
     // insert tags
     String tags = meta.getProperty("tags", "")
     if (!tags.isEmpty()) {
@@ -272,13 +283,14 @@ def static void buildStatistics(Connection connection) {
     def sql = new Sql(connection)
     connection.setAutoCommit(false)
     sql.execute("DROP TABLE IF EXISTS NOISECAPTURE_STATS_LAST_TRACKS")
-    sql.execute("CREATE TABLE NOISECAPTURE_STATS_LAST_TRACKS AS select t.pk_track, time_length, record_utc,ST_AsGeoJson(t.env) the_geom, st_astext(ST_Centroid(t.env)) env,ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_start WHERE np_start.pk_track = t.pk_track AND NOT ST_ISEMPTY(np_start.THE_GEOM) AND accuracy < 15 ORDER BY time_date ASC LIMIT 1)) start_pt,  ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_stop WHERE np_stop.pk_track = t.pk_track AND NOT ST_ISEMPTY(np_stop.THE_GEOM) AND accuracy < 15 ORDER BY time_date DESC LIMIT 1)) stop_pt, name_0, name_1,(CASE WHEN (name_3 IS NULL OR name_3 = '') THEN name_2 ELSE name_3 END) name_3 from (select t.pk_track,time_length, record_utc, ST_EXTENT(p.the_geom) env from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track and p.accuracy > 0 and p.accuracy < 15 GROUP BY t.pk_track order by t.record_utc DESC LIMIT 30) t, gadm28 where gadm28.the_geom && t.env AND ST_CONTAINS(gadm28.the_geom, ST_SetSRID(ST_Centroid(t.env),4326))")
+    sql.execute("CREATE TABLE NOISECAPTURE_STATS_LAST_TRACKS AS select t.pk_track, time_length, record_utc,ST_AsGeoJson(t.env) the_geom, st_astext(ST_Centroid(t.env)) env,ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_start WHERE np_start.pk_track = t.pk_track AND NOT ST_ISEMPTY(np_start.THE_GEOM) AND accuracy < 15 ORDER BY time_date ASC LIMIT 1)) start_pt,  ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_stop WHERE np_stop.pk_track = t.pk_track AND NOT ST_ISEMPTY(np_stop.THE_GEOM) AND accuracy < 15 ORDER BY time_date DESC LIMIT 1)) stop_pt, name_0, name_1,(CASE WHEN (name_3 IS NULL OR name_3 = '') THEN name_2 ELSE name_3 END) name_3, pk_party from (select t.pk_track,time_length, record_utc, ST_EXTENT(p.the_geom) env, pk_party from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track and p.accuracy > 0 and p.accuracy < 15 GROUP BY t.pk_track order by t.record_utc DESC LIMIT 30) t, gadm28 where gadm28.the_geom && t.env AND ST_CONTAINS(gadm28.the_geom, ST_SetSRID(ST_Centroid(t.env),4326))")
     sql.commit()
     connection.setAutoCommit(true)
 }
 
 def run(input) {
     Logger logger = LoggerFactory.getLogger("logger_nc_parse")
+    int processFileLimit = input["processFileLimit"] as Integer;
     File dataDir = new File("data_dir/onomap_uploading");
     int processed = 0
     if (dataDir.exists()) {
@@ -323,6 +335,9 @@ def run(input) {
                         connection.rollback();
                     }
                     processed++
+                    if(processFileLimit > 0 && processed > processFileLimit) {
+                        break;
+                    }
                 }
                 // Feed last measures table
                 buildStatistics(connection)

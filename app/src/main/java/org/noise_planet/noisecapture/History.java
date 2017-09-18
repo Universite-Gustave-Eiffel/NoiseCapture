@@ -202,21 +202,8 @@ public class History extends MainActivity {
                     historyActivity.historyListAdapter.getInformationHistory(position).getUtcDate()));
             String[] menuEntries = historyActivity.getResources().getStringArray(R
                     .array.choice_user_history);
-            Storage.Record record = historyActivity.measurementManager.getRecord((int)id);
-            if(record!= null && !record.getUploadId().isEmpty()) {
-                // If already uploaded remove entry
-                builder.setAdapter(new ArrayAdapter<String>(historyActivity, android.R.layout.simple_list_item_1, menuEntries) {
-                    @Override
-                    public boolean isEnabled(int position) {
-                        return position != 0;
-                    }
-
-                }, new ItemActionOnClickListener(historyActivity, (int)
-                        id));
-            } else {
-                builder.setItems(menuEntries, new ItemActionOnClickListener(historyActivity, (int)
-                        id));
-            }
+            builder.setItems(menuEntries, new ItemActionOnClickListener(historyActivity, (int)
+                    id));
             builder.show();
         }
     }

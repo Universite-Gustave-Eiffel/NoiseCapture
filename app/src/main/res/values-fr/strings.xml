@@ -209,16 +209,17 @@ meta.properties file are general info on device and record:\n
 - build_date: Date du build de l\'application\n
 - version_number: Numero de la version (entier)\n
 - time_length: Durée de l\'enregistrement en secondes\n
-- uuid: Identifiant aléatoire au lancement de l\'applicationn
+- uuid: Identifiant aléatoire au lancement de l\'application
 - leq_mean: Moyenne du Leq (niveau sonore équivalent) sur la durée de l\'enregistrement\n
 - record_utc: Durée de l\'enregistrement en milliseconde (epoch)\n
-- device_manufacturer device_model device_product: Information sur le matériel\n
+- device_manufacturer device_model\n
+- device_product: Information sur le matériel\n
 - pleasantness: Pourcentage d\'agrément (0-100)\n
 - tags: Liste des tags séparés par une virgule (english only)\n
-- user_profile Connaissance de l'utilisateur vis à vis de l'acoustique NONE, NOVICE, EXPERT\n
+- user_profile Connaissance de l\'utilisateur vis à vis de l\'acoustique NONE, NOVICE, EXPERT\n
 - noiseparty_tag Identifiant de la NoiseParty\n\n
 track.geojson échantillons mesurés chaque seconde au format geojson (http://geojson.io)\n
-- leq_mean: Niveau sonore équivatent 1s en dB(A)\n
+- leq_mean: Niveau sonore équivalent 1s en dB(A)\n
 - accuracy: Précision de la localisation GPS en m (valeur fournie par le GPS, le réseau ou le GSM)\n
 - location_utc: référence UTC en milliseconde (epoch)\n
 - leq_utc: Heure de la mesure en milliseconde (epoch)\n

@@ -205,6 +205,29 @@ LA90 es un descriptor útil para la cuantificación del nivel de ruido de fondo<
     <string name="delete">Borrar</string>
     <string name="hint_userinput">Pulse aquí para escribir una descripción</string>
     <string name="no_data_text_description">Para empezar, presiona el boton de grabación</string>
+    <string name="export_zip_info">Descripción del archivo de exportación\n\n
+El fichero «meta.properties» contiene información general de la grabación y del dispositivo:\n
+- version_number: versión de la aplicación (mayor, menor y revisión)\n
+- build_date: fecha de compilación de la aplicación\n
+- version_number: versión de la aplicación (número entero)\n
+- time_length: duración de la grabación en segundos\n
+- uuid: identificador aleatorio generado al iniciar la aplicación\n
+- leq_mean: nivel de sonido medio equivalente en dB(A) de la medición\n
+- record_utc: hora de la grabación en milisegundos (epoch)\n
+- device_manufacturer device_model device_product: información general del dispositivo de medida\n
+- pleasantness: nivel de agardo percibido por el usuario (1-100)\n
+- tags: etiquetas seleccionadas por el usuario, separadas por comas (solo inglés)\n\n
+
+track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojson.io)\n
+- leq_mean: nivel sonoro equivalente 1s en dB(A)\n
+- accuracy: precisión de la localización establecida en m (proporcionada por GPS, red de telefonía o GSM)\n
+- location_utc: referncia UTC en milisegundos (epoch)\n
+- leq_utc: Hora de la medición en milisegundos (epoch)\n
+- leq_id: identificador único de la grabación\n
+- marker_color: color utilizado por geojson.io\n
+- bearing: orientación horizontal del teléfono. Ver https://developer.android.com/reference/android/location/Location.html#getBearing()\n
+- speed: velocidad estimada del dispositivo en m/s\n
+- leq_frequency: nivel de sonido equivalente 1s en dB(A) para la frecuencia especificada\n</string>
     <string name="title_activity_comment">Descripción</string>
     <string name="userinfo_unpleasant">Desagradable</string>
     <string name="userinfo_pleasant">Agradable</string>
@@ -247,7 +270,6 @@ LA90 es un descriptor útil para la cuantificación del nivel de ruido de fondo<
     <string name="policy_button_continue">Siguiente</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Política de privacidad</string>
-    <string name="calibration_warning">El proceso de calibración requiere del uso de un dispositivo calibrado de referencia tal como un sonómetro o un teléfono calibrado. Para más información, dirígete a la <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">página de ayuda</a> de la aplicación</string>
     <string name="notification_record_content">Medición en progreso... %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Cargando mediciones</string>
     <string name="userinfo_tags_measurement_conditions">Condiciones de medición</string>
@@ -278,5 +300,4 @@ LA90 es un descriptor útil para la cuantificación del nivel de ruido de fondo<
         <item>Tengo algún conocimiento en el dominio del ruido</item>
         <item>Soy un experto o un profesional en el dominio del ruido</item>
     </string-array>
-    <string name="export_zip_info">Descrption du contenu de l\\\'archive\\n\\n meta.properties file are general info on device and record:\\n - Numéro de version de l\\\'application: version_name Majeur, mineur et revision\\n - build_date: Date du build de l\\\'application\\n - version_number: Numero de la version (entier)\\n - time_length: Durée de l\\\'enregistrement en secondes\\n - uuid: Identifiant aléatoire au lancement de l\\\'applicationn - leq_mean: Moyenne du Leq (niveau sonore équivalent) sur la durée de l\\\'enregistrement\\n - record_utc: Durée de l\\\'enregistrement en milliseconde (epoch)\\n - device_manufacturer device_model device_product: Information sur le matériel\\n - pleasantness: Pourcentage d\\\'agrément (0-100)\\n - tags: Liste des tags séparés par une virgule (english only)\\n\\n track.geojson échantillons mesurés chaque seconde au format geojson (http://geojson.io)\\n - leq_mean: Niveau sonore équivatent 1s en dB(A)\\n - accuracy: Précision de la localisation GPS en m (valeur fournie par le GPS, le réseau ou le GSM)\\n - location_utc: référence UTC en milliseconde (epoch)\\n - leq_utc: Heure de la mesure en milliseconde (epoch)\\n - leq_id: Identifiant unique de la mesure\\n - marker_color: Couleur utilisée par geojson.io\\n - bearing: Orientation horizontale du téléphone. Voir https://developer.android.com/reference/android/location/Location.html#getBearing()\\n - speed: Estimation de la vitesse en m/s\\n - leq_frequency: Leq 1s par fréquence\\n</string>
 </resources>

@@ -162,9 +162,9 @@
         <item>Loisirs</item>
         <item>Enfants</item>
         <item>Musique</item>
-        <item>T. routier</item>
-        <item>T. ferré</item>
-        <item>T. maritime</item>
+        <item>Routier</item>
+        <item>Ferré</item>
+        <item>Maritime</item>
         <item>Alarmes</item>
         <item>Industriel</item>
         <item>Eau</item>
@@ -189,6 +189,7 @@
 
     <string name="history_length">%d s</string>
     <string name="history_date">- %s</string>
+    <string name="history_already_uploaded">Cette mesure a déjà été transférée</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Transfert</string>
     <string name="map_marker_label">%1$.01f dB(A) Précision : %2$s m</string>
@@ -270,6 +271,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="policy_button_continue">Suivant</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy_FR.html</string>
     <string name="privacy_policy_title">Politique de confidentialité</string>
+    <string name="calibration_warning">La procédure de calibrage nécessite l\'utilisation d\'un dispositif de référence calibré tel qu\'un sonomètre ou un smartphone calibré. Pour plus d\'informations, reportez-vous à <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">la page d\'aide</a> de la demande</string>
     <string name="notification_record_content">Mesure en cours... %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Chargement de la mesure</string>
     <string name="userinfo_tags_measurement_conditions">Conditions de mesure</string>

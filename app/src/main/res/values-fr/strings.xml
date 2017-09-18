@@ -203,6 +203,30 @@
     <string name="delete">Effacer</string>
     <string name="hint_userinput">Insérer une description ici</string>
     <string name="no_data_text_description">Lancer la mesure en appuyant sur le bouton enregistrement</string>
+    <string name="export_zip_info">Descrption du contenu de l\'archive\n\n
+meta.properties file are general info on device and record:\n
+- Numéro de version de l\'application: version_name Majeur, mineur et revision\n
+- build_date: Date du build de l\'application\n
+- version_number: Numero de la version (entier)\n
+- time_length: Durée de l\'enregistrement en secondes\n
+- uuid: Identifiant aléatoire au lancement de l\'applicationn
+- leq_mean: Moyenne du Leq (niveau sonore équivalent) sur la durée de l\'enregistrement\n
+- record_utc: Durée de l\'enregistrement en milliseconde (epoch)\n
+- device_manufacturer device_model device_product: Information sur le matériel\n
+- pleasantness: Pourcentage d\'agrément (0-100)\n
+- tags: Liste des tags séparés par une virgule (english only)\n
+- user_profile Connaissance de l'utilisateur vis à vis de l'acoustique NONE, NOVICE, EXPERT\n
+- noiseparty_tag Identifiant de la NoiseParty\n\n
+track.geojson échantillons mesurés chaque seconde au format geojson (http://geojson.io)\n
+- leq_mean: Niveau sonore équivatent 1s en dB(A)\n
+- accuracy: Précision de la localisation GPS en m (valeur fournie par le GPS, le réseau ou le GSM)\n
+- location_utc: référence UTC en milliseconde (epoch)\n
+- leq_utc: Heure de la mesure en milliseconde (epoch)\n
+- leq_id: Identifiant unique de la mesure\n
+- marker_color: Couleur utilisée par geojson.io\n
+- bearing: Orientation horizontale du téléphone. Voir https://developer.android.com/reference/android/location/Location.html#getBearing()\n
+- speed: Estimation de la vitesse en m/s\n
+- leq_frequency: Leq 1s par fréquence\n</string>
     <string name="title_activity_comment">Description</string>
     <string name="userinfo_unpleasant">Désagréable</string>
     <string name="userinfo_pleasant">Agréable</string>
@@ -245,7 +269,6 @@
     <string name="policy_button_continue">Suivant</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy_FR.html</string>
     <string name="privacy_policy_title">Politique de confidentialité</string>
-    <string name="calibration_warning">La procédure de calibrage nécessite l\'utilisation d\'un dispositif de référence calibré tel qu\'un sonomètre ou un smartphone calibré. Pour plus d\'informations, reportez-vous à <a href=\"org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration\">la page d\'aide</a> de la demande</string>
     <string name="notification_record_content">Mesure en cours... %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Chargement de la mesure</string>
     <string name="userinfo_tags_measurement_conditions">Conditions de mesure</string>

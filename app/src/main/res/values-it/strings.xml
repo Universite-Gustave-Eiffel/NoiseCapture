@@ -205,6 +205,30 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
     <string name="delete">Cancella</string>
     <string name="hint_userinput">Tocca qui per aggiungere una descrizione</string>
     <string name="no_data_text_description">Inizia toccando l\'icona del microfono</string>
+    <string name="export_zip_info">Esporta la descrizione dell\'archivio\n\n
+i file meta.properties contengono informazioni generali sul dispositivo:\n
+- version_name Versione (Major, minor e revision)\n
+- build_date Data dell\'assemblaggio dell\'APK\n
+- version_number Numero intero con la versione dell\'applicazione\n
+- time_length Durata dei record in secondi\n
+- uuid Identificatore casuale fissato al primo avvio dell\'applicazione\n
+- leq_mean Livello di rumore equivalente medio in dB(A) della misurazione\n
+- record_utc Ora del record in millisecondi dall\'epoca\n
+- device_manufacturer device_model device_product Generiche informazioni hardware sul dispositivo di misura\n
+- pleasantness Piacevolezza dell\'input utente 1-100\n
+- tags Valori separati da virgole dei tag selezionati dall\'utente (solo in inglese)\n
+- user_profile Conoscenza dell\'utente in acustica NONE, NOVICE, EXPERT\n
+- noiseparty_tag l\'identificatore NoiseParty\n\n
+track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http://geojson.io)\n
+- leq_mean Livello di rumore equivalente medio a 1 secondo in dB(A)\n
+- accuracy Precisione della localizzazione in metri (fornita da gps, rete o gsm)\n
+- location_utc Ora della localizzazione in millisecondi dall\'epoca\n
+- leq_utc Ora della misurazione in millisecondi dall\'epoca\n
+- leq_id Identificatore univoco del record\n
+- marker_color Colore usato da geojson.io\n
+- bearing Orientazione del movimento. Vedi https://developer.android.com/reference/android/location/Location.html#getBearing()\n
+- speed Velocità del dispositivo stimata in m/s\n
+- leq_frequency Livello di rumore equivalente medio a 1 secondo in dB(A) per la frequenza specificata\n</string>
     <string name="title_activity_comment">Descrizione</string>
     <string name="userinfo_unpleasant">Fastidioso</string>
     <string name="userinfo_pleasant">Piacevole</string>
@@ -247,7 +271,6 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
     <string name="policy_button_continue">Continuare</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Informativa sulla privacy</string>
-    <string name="calibration_warning">The calibration procedure requires the use of a calibrated reference device such as a sonometer or calibrated smartphone. For more information, refer to the <a href="org.noise_planet.noisecapture://help.html#calibration">help page</a> of the application\"</string>
     <string name="notification_record_content">Misura in corso... %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Caricamento delle misure</string>
     <string name="userinfo_tags_measurement_conditions">Condizioni di misura</string>

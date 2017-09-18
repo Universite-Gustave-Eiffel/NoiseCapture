@@ -11,9 +11,9 @@
     <string name="history_title_delete">Supprimer la sélection ?</string>
 
     <string name="record_message">Appuyer sur le bouton d\'enregistrement pour commencer</string>
-    <string name="calibrate_done">Calibration réalisée, le gain est fixé à %1$.1f dB</string>
+    <string name="calibrate_done">Calibrage réalisé, le gain est fixé à %1$.1f dB</string>
     <string name="calibration_out_bounds_title">Niveau sonore trop faible</string>
-    <string name="calibration_out_bounds">Le niveau sonore de calibration n\'est pas compatible avec les specifications matérielles. Il doit être compris entre %1$.0f dB et %2$.0f dB</string>
+    <string name="calibration_out_bounds">Le niveau sonore de calibrage n\'est pas compatible avec les specifications matérielles. Il doit être compris entre %1$.0f dB et %2$.0f dB</string>
     <string name="calibration_save_change">Ignorer et appliquer</string>
     <string name="calibration_cancel_change">Annuler</string>
     <string name="fail_share">La génération du fichier de données a échoué</string>
@@ -50,14 +50,14 @@
 
     <string name="hello_world">Hello world!</string>
     <string name="title_settings_calibration_warmup_time">Durée du compte-à-rebours</string>
-    <string name="title_settings_calibration_warmup_time_description">Durée du compte-à-rebours avant la calibration (en secondes)</string>
-    <string name="title_settings_calibration_time">Durée de la calibration</string>
-    <string name="title_settings_calibration_time_description">Durée de la calibration en secondes</string>
+    <string name="title_settings_calibration_warmup_time_description">Durée du compte-à-rebours avant le calibrage (en secondes)</string>
+    <string name="title_settings_calibration_time">Durée du calibrage</string>
+    <string name="title_settings_calibration_time_description">Durée du calibrage en secondes</string>
     <string name="title_settings_calibration_linear_title">Sortie Audio</string>
     <string name="title_settings_calibration_linear_description">Choix de la sortie Audio pour le test de linéarité</string>
     <string name="setting_general_group">Général</string>
     <string name="setting_measurement_group">Mesure</string>
-    <string name="setting_calibration_group">Calibration</string>
+    <string name="setting_calibration_group">Calibrage</string>
     <string name="title_settings_data_transfer">Transfert de données</string>
     <string name="summary_settings_data_transfer">Transfert automatique des mesures</string>
     <string name="title_settings_transfer_wifi_only">Wifi uniquement</string>
@@ -72,7 +72,7 @@
 
 
     <string name="title_settings_recording_gain">Gain du signal</string>
-    <string name="summary_settings_recording_gain">Fixe le gain du signal après calibration (en dB)</string>
+    <string name="summary_settings_recording_gain">Fixe le gain du signal après calibrage (en dB)</string>
 
     <string name="title_settings_spectrogram_logscalemode">Affichage du spectrogramme</string>
     <string name="title_settings_delete_leq_on_pause">Mode Pause</string>
@@ -99,7 +99,8 @@
 
     <!--  Ressources for the spinner map !-->
 
-    <!--  Ressources for the spinner history !-->
+    <!--  Ressources for the spinner history
+          History:HistoryItemListener:onItemClick remove the first entry (upload) !-->
     <string-array name="choice_user_history">
         <item>Transférer vers la communauté</item>
         <item>Exporter le résultat</item>
@@ -116,7 +117,7 @@
         <item>Résultats</item>
         <item>Historique</item>
         <item>Carte</item>
-        <item>Calibration</item>
+        <item>Calibrage</item>
         <item>Aide</item>
         <item>À propos</item>
     </string-array>
@@ -161,9 +162,9 @@
         <item>Loisirs</item>
         <item>Enfants</item>
         <item>Musique</item>
-        <item>T. routier</item>
-        <item>T. ferré</item>
-        <item>T. maritime</item>
+        <item>Routier</item>
+        <item>Ferré</item>
+        <item>Maritime</item>
         <item>Alarmes</item>
         <item>Industriel</item>
         <item>Eau</item>
@@ -176,7 +177,7 @@
     <string name="title_activity_settings">Paramètres</string>
     <string name="title_activity_map">Carte</string>
     <string name="title_activity_start">Noise Capture</string>
-    <string name="title_activity_calibration_start">Calibration</string>
+    <string name="title_activity_calibration_start">Calibrage</string>
     <string name="title_activity_calibration_linearity">Test de linéarité</string>
 
     <string name="start_text_title">NoiseCapture</string>
@@ -188,6 +189,7 @@
 
     <string name="history_length">%d s</string>
     <string name="history_date">- %s</string>
+    <string name="history_already_uploaded">Cette mesure a déjà été transférée</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Transfert</string>
     <string name="map_marker_label">%1$.01f dB(A) Précision : %2$s m</string>
@@ -208,14 +210,17 @@ meta.properties file are general info on device and record:\n
 - build_date: Date du build de l\'application\n
 - version_number: Numero de la version (entier)\n
 - time_length: Durée de l\'enregistrement en secondes\n
-- uuid: Identifiant aléatoire au lancement de l\'applicationn
+- uuid: Identifiant aléatoire au lancement de l\'application
 - leq_mean: Moyenne du Leq (niveau sonore équivalent) sur la durée de l\'enregistrement\n
 - record_utc: Durée de l\'enregistrement en milliseconde (epoch)\n
-- device_manufacturer device_model device_product: Information sur le matériel\n
+- device_manufacturer device_model\n
+- device_product: Information sur le matériel\n
 - pleasantness: Pourcentage d\'agrément (0-100)\n
-- tags: Liste des tags séparés par une virgule (english only)\n\n
+- tags: Liste des tags séparés par une virgule (english only)\n
+- user_profile Connaissance de l\'utilisateur vis à vis de l\'acoustique NONE, NOVICE, EXPERT\n
+- noiseparty_tag Identifiant de la NoiseParty\n\n
 track.geojson échantillons mesurés chaque seconde au format geojson (http://geojson.io)\n
-- leq_mean: Niveau sonore équivatent 1s en dB(A)\n
+- leq_mean: Niveau sonore équivalent 1s en dB(A)\n
 - accuracy: Précision de la localisation GPS en m (valeur fournie par le GPS, le réseau ou le GSM)\n
 - location_utc: référence UTC en milliseconde (epoch)\n
 - leq_utc: Heure de la mesure en milliseconde (epoch)\n
@@ -228,14 +233,14 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="userinfo_unpleasant">Désagréable</string>
     <string name="userinfo_pleasant">Agréable</string>
     <string name="userinfo_pleasantness">Agrément sonore</string>
-    <string name="calibration_status_waiting_for_user_start">En attente du début de la calibration&#8230;</string>
-    <string name="calibration_status_waiting_for_start_timer">La calibration est sur le point de commencer&#8230;</string>
+    <string name="calibration_status_waiting_for_user_start">En attente du début du calibrage&#8230;</string>
+    <string name="calibration_status_waiting_for_start_timer">Le calibrage est sur le point de commencer&#8230;</string>
     <string name="userinfo_button_measure">Mesure</string>
     <string name="userinfo_button_results">Valider</string>
     <string name="userinfo_tags">Sources prédominantes</string>
-    <string name="calibration_status_on">Calibration&#8230;</string>
-    <string name="calibration_linear_status_on">Calibration à %1$.0f dB</string>
-    <string name="calibration_status_end">Calibration terminée</string>
+    <string name="calibration_status_on">Calibrage&#8230;</string>
+    <string name="calibration_linear_status_on">Calibrage à %1$.0f dB</string>
+    <string name="calibration_status_end">Calibrage terminée</string>
     <string name="calibration_status_background_noise">Mesure du bruit de fond</string>
     <string name="calibration_button_start">Démarrer</string>
     <string name="calibration_button_cancel">Annuler</string>
@@ -244,7 +249,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="calibration_button_apply">Appliquer</string>
     <string name="calibration_button_reset">Réinitialiser</string>
     <string name="calibration_test_gain_checkbox">Test du gain</string>
-    <string name="calibration_mode">Type de calibration</string>
+    <string name="calibration_mode">Type de calibrage</string>
     <string-array name="calibrate_type_list_array">
         <item>Global</item>
         <item>125 Hz</item>
@@ -264,9 +269,9 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="policy_legal_age">J\'ai l\'âge légal (défini par la loi de mon pays) pour l\'utilisation de ce logiciel</string>
     <string name="policy_agree_statement">J\'ai lu et j\'accepte la politique de confidentialité</string>
     <string name="policy_button_continue">Suivant</string>
-    <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
+    <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy_FR.html</string>
     <string name="privacy_policy_title">Politique de confidentialité</string>
-    <string name="calibration_warning">La procédure d\'étalonnage nécessite l\'utilisation d\'un dispositif de référence calibré tel qu\'un sonomètre ou un smartphone calibré. Pour plus d\'informations, reportez-vous à <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">la page d\'aide</a> de la demande</string>
+    <string name="calibration_warning">La procédure de calibrage nécessite l\'utilisation d\'un dispositif de référence calibré tel qu\'un sonomètre ou un smartphone calibré. Pour plus d\'informations, reportez-vous à <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">la page d\'aide</a> de la demande</string>
     <string name="notification_record_content">Mesure en cours... %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Chargement de la mesure</string>
     <string name="userinfo_tags_measurement_conditions">Conditions de mesure</string>
@@ -285,13 +290,13 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
         <item>Rectangulaire</item>
         <item>Hann</item>
     </string-array>
-    <string name="notification_goto_community_map">Visitez http://noise-planet.org, naviguez sur la carte de toutes les mesures effectuées par la communauté</string>
+    <string name="notification_goto_community_map">Visitez http://noise-planet.org, naviguez sur la carte avec toutes les mesures effectuées par la communauté</string>
     <string name="title_settings_notification_links">Notification</string>
     <string name="summary_settings_notification_links">Sélectionner cette option pour afficher la notification du lien vers le site Noise-Planet</string>
     <string name="settings_category_profile">Profil de l\'utilisateur</string>
     <string name="title_settings_user_noise_knowledge">Profil de l\'utilisateur</string>
     <string name="settings_user_noise_knowledge_description">Comment évaluez-vous vos connaissances sur les environnements sonores ?</string>
-    <string name="hint_userinput_noiseparty_tag"/>
+    <string name="hint_userinput_noiseparty_tag">Code NoiseParty</string>
     <string-array name="knowledge">
         <item>Je n\'ai aucune connaissance dans le domaine du bruit</item>
         <item>J\'ai quelques connaissances dans le domaine du bruit</item>

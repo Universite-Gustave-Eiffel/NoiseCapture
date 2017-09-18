@@ -50,17 +50,18 @@ outputs = [
 ]
 
 def getNoiseParty(Connection connection) {
-    def data = []
+    def data = []+-
     try {
         // List the 10 last measurements, with aggregation of points
         if(noise_party_tag == null) {
             noise_party_tag = ""
         }
         def sql = new Sql(connection)
-        sql.eachRow("select * from noisecapture_party order by pk_party desc") {
+        sql.eachRow("select title, tag, description, ST_AsGeoJSON(the_geom) the_geom, layer_name from noisecapture_party order by pk_party desc") {
             record_row ->
+                def the_geom = new JsonSlurper().parseText(record_row.the_geom as String)
                 data.add([title : record_row.title as String, tag : record_row.tag as String,
-                          description : record_row.description as String])
+                          description : record_row.description as String, geometry : the_geom, layer_name : record_row.layer_name])
         }
     } catch (SQLException ex) {
         throw ex
@@ -78,7 +79,7 @@ def run(input) {
     // Open PostgreSQL connection
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : JsonOutput.toJson(getStats(connection, input["noiseparty"] as String))]
+        return [result : JsonOutput.toJson(getNoiseParty(connection))]
     } finally {
         connection.close()
     }

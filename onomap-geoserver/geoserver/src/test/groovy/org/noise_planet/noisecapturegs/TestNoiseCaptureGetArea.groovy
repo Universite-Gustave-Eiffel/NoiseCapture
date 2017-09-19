@@ -84,7 +84,7 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         // convert to hexagons
         new nc_process().process(connection, 10)
         // Fetch data
-        def arrayData = new nc_get_area_info().getAreaInfo(connection, -139656, 265210)
+        def arrayData = new nc_get_area_info().getAreaInfo(connection, -139656, 265210, null)
         assertFalse(arrayData.isEmpty())
         assertEquals(62.37, (double)(arrayData.la50), 0.1)
         assertEquals(69, (double)(arrayData.mean_pleasantness), 0.01)
@@ -110,7 +110,7 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
                 "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :laeq, :la50,:lden," +
                 " :mean_pleasantness, :measure_count, :first_measure, :last_measure, :tzid)", fields)
         // Fetch data
-        arrayData = new nc_get_area_info().getAreaInfo(connection, 5, 10)
+        arrayData = new nc_get_area_info().getAreaInfo(connection, 5, 10, null)
         assertNull(arrayData.mean_pleasantness)
         JsonOutput.toJson(arrayData);
 
@@ -129,7 +129,7 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         assertEquals(1, processed)
         // Read db; check content
         def row = sql.firstRow("SELECT cell_q, cell_r FROM  noisecapture_area")
-        def arrayData = new nc_get_area_info().getAreaInfo(connection, row.cell_q, row.cell_r)
+        def arrayData = new nc_get_area_info().getAreaInfo(connection, row.cell_q, row.cell_r, null)
         assertNotNull(arrayData)
         assertEquals(72, arrayData["profile"].size())
         assertNull(arrayData["profile"][0])

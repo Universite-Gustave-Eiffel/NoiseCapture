@@ -46,8 +46,10 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -200,11 +202,6 @@ public class History extends MainActivity {
                     historyActivity.historyListAdapter.getInformationHistory(position).getUtcDate()));
             String[] menuEntries = historyActivity.getResources().getStringArray(R
                     .array.choice_user_history);
-            Storage.Record record = historyActivity.measurementManager.getRecord((int)id);
-            if(record!= null && !record.getUploadId().isEmpty()) {
-                // If already uploaded remove entry
-                menuEntries = Arrays.copyOfRange(menuEntries, 1, menuEntries.length);
-            }
             builder.setItems(menuEntries, new ItemActionOnClickListener(historyActivity, (int)
                     id));
             builder.show();

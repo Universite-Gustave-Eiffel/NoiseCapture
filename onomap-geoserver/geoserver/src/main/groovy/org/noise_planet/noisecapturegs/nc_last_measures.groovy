@@ -71,7 +71,7 @@ def getStats(Connection connection, String noise_party_tag) {
             noise_party_tag = ""
         }
         def sql = new Sql(connection)
-        sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T LEFT JOIN noisecapture_party P on (T.pk_party = P.pk_party) where P.tag = :noise_party_tag or :noise_party_tag = ''", [noise_party_tag : noise_party_tag as String]) {
+        sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T LEFT JOIN noisecapture_party P on (T.pk_party = P.pk_party) where P.tag = :noise_party_tag or :noise_party_tag = '' order by record_utc desc", [noise_party_tag : noise_party_tag as String]) {
             record_row ->
                 // Fetch the timezone of this point
                 def res = sql.firstRow("SELECT TZID FROM tz_world WHERE " +

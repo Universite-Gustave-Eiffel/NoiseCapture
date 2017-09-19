@@ -31,51 +31,52 @@ package org.noise_planet.noisecapturegs
 import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 import groovy.sql.Sql
+import groovy.time.TimeCategory
 import org.geotools.jdbc.JDBCDataStore
 
 import java.sql.Connection
-import java.sql.SQLException
-import java.time.format.DateTimeFormatter
 
-title = 'nc_noiseparty_list'
-description = 'Fetch all Noise Party'
+title = 'nc_party_gt_stats'
+description = 'Build statistics from database for a specific NoiseCapture party'
 
-inputs = [:]
-
+inputs = [noiseparty: [name: 'noiseparty', title: 'NoiseParty id',
+                       type: Integer.class]]
 
 outputs = [
-        result: [name: 'result', title: 'NoiseParty list as JSON', type: String.class]
+        result: [name: 'result', title: 'Statistics as JSON', type: String.class]
 ]
 
-def getNoiseParty(Connection connection) {
-    def data = []
-    try {
-        def sql = new Sql(connection)
-        sql.eachRow("select pk_party, title, tag, description, ST_AsGeoJSON(the_geom) the_geom, layer_name from noisecapture_party order by pk_party desc") {
-            record_row ->
-                def the_geom = new JsonSlurper().parseText(record_row.the_geom as String)
-                data.add([pk_party:record_row.pk_party, title : record_row.title as String, tag : record_row.tag as String,
-                          description : record_row.description as String, geometry : the_geom, layer_name : record_row.layer_name])
-        }
-    } catch (SQLException ex) {
-        throw ex
-    }
-    return data;
+
+static
+def getStatistics(Connection connection, Integer pk_party) {
+
+    def sql = new Sql(connection)
+
+    def statistics = [:];
+
+    // Approximate number of contributors
+    statistics["total_contributors"] = sql.firstRow("select count(*) user_count from (select pk_user from noisecapture_track where pk_party = :pk_party group by pk_user) track_users", [pk_party : pk_party]).user_count as Integer;
+    // Total number of tracks
+    statistics["total_tracks"] = sql.firstRow("select count(*) cpt from noisecapture_track where pk_party = :pk_party", [pk_party : pk_party]).cpt as Integer;
+    // Duration (JJ:HH:MM:SS)
+    statistics["total_tracks_duration"] = sql.firstRow("select sum(time_length) timelen from noisecapture_track where pk_party = :pk_party", [pk_party : pk_party]).timelen as Long;
+
+    return statistics;
 }
 
-def Connection openPostgreSQLDataStoreConnection() {
+static def Connection openPostgreSQLDataStoreConnection() {
     Store store = new GeoServer().catalog.getStore("postgis")
-    JDBCDataStore jdbcDataStore = (JDBCDataStore)store.getDataStoreInfo().getDataStore(null)
+    JDBCDataStore jdbcDataStore = (JDBCDataStore) store.getDataStoreInfo().getDataStore(null)
     return jdbcDataStore.getDataSource().getConnection()
 }
 
 def run(input) {
     // Open PostgreSQL connection
+    // Create dump folder
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : JsonOutput.toJson(getNoiseParty(connection))]
+        return [result: JsonOutput.toJson(getStatistics(connection, input["noiseparty"] as Integer))]
     } finally {
         connection.close()
     }

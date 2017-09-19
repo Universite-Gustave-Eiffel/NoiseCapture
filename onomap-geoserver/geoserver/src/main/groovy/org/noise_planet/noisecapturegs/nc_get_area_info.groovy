@@ -48,20 +48,22 @@ inputs = [
         qIndex: [name: 'qIndex', title: 'Area Q index',
                  type: Long.class],
         rIndex: [name: 'rIndex', title: 'Area R index',
-                 type: Long.class]]
+                 type: Long.class],
+        noiseparty: [name: 'noiseparty', title: 'NoiseParty id',
+                     type: Integer.class, min : 0, max : 1]]
 
 outputs = [
         result: [name: 'result', title: 'Area info as JSON', type: String.class]
 ]
 
-def getAreaInfo(Connection connection, long qIndex, long rIndex) {
+def getAreaInfo(Connection connection, long qIndex, long rIndex, Integer noiseParty) {
     def data = [:]
     try {
         // List the area identifier using the new measures coordinates
         def sql = new Sql(connection)
         def row = sql.firstRow("SELECT * FROM noisecapture_area a " +
-                "WHERE CELL_Q = :qIndex and CELL_R = :rIndex and pk_party is null",
-                [qIndex: qIndex, rIndex: rIndex])
+                "WHERE CELL_Q = :qIndex and CELL_R = :rIndex and (pk_party = :pk_party::int or (:pk_party::int is null and pk_party is null))",
+                [qIndex: qIndex, rIndex: rIndex, pk_party: noiseParty])
         if(row) {
             def time_zone = TimeZone.getTimeZone(row.tzid as String).toZoneId();
             def firstMeasure = row.first_measure.toInstant().atZone(time_zone).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
@@ -99,7 +101,7 @@ def run(input) {
     // Open PostgreSQL connection
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : JsonOutput.toJson(getAreaInfo(connection, input["qIndex"],input["rIndex"]))]
+        return [result : JsonOutput.toJson(getAreaInfo(connection, input["qIndex"] as Long,input["rIndex"] as Long,"noiseparty" in input ? input["noiseparty"] as Integer : null ))]
     } finally {
         connection.close()
     }

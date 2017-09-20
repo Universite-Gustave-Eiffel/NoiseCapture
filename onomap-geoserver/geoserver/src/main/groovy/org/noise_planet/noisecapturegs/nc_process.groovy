@@ -152,7 +152,11 @@ def processArea(Hex hex,float precisionFiler, Sql sql, Integer partyPk) {
                 }
             }
     // Delete old cell
-    sql.execute("DELETE FROM noisecapture_area a WHERE a.cell_q = :cellq and a.cell_r = :cellr and a.pk_party = :pk_party", [cellq:hex.q, cellr:hex.r, pk_party: partyPk])
+    if(partyPk != null) {
+        sql.execute("DELETE FROM noisecapture_area a WHERE a.cell_q = :cellq and a.cell_r = :cellr and a.pk_party = :pk_party", [cellq: hex.q, cellr: hex.r, pk_party: partyPk])
+    } else {
+        sql.execute("DELETE FROM noisecapture_area a WHERE a.cell_q = :cellq and a.cell_r = :cellr and a.pk_party is null", [cellq: hex.q, cellr: hex.r])
+    }
 
     if(pointCount == 0) {
         return false;
@@ -205,7 +209,7 @@ def process(Connection connection, float precisionFilter) {
     int processed = 0
     try {
         Set<Hex> areaIndex = new HashSet()
-        Map<Integer, Hex> areaNoisePartyIndex = new HashMap<>()
+        Map<Integer, Set<Hex>> areaNoisePartyIndex = new HashMap<>()
         // Count what to add for each hexagons q,r,level
         int[] hexExponent = [3, 4, 5, 6, 7, 8, 9, 10, 11];
         List<Map<Hex, Integer>> hexagonalClustersDiff = new ArrayList<>()
@@ -221,7 +225,10 @@ def process(Connection connection, float precisionFilter) {
             def hex = new Pos(x: row.PTX, y: row.PTY).toHex(hexSize)
             areaIndex.add(hex)
             if(row.pk_party != null) {
-                areaNoisePartyIndex.put(row.pk_party as Integer, hex)
+                if (!areaNoisePartyIndex.containsKey(row.pk_party)) {
+                    areaNoisePartyIndex[row.pk_party as Integer] = new HashSet<>()
+                }
+                areaNoisePartyIndex[row.pk_party as Integer].add(hex)
             }
             // Populate scaled hexagons for clustering
             for(int i=0; i<hexExponent.length;i++) {
@@ -245,11 +252,13 @@ def process(Connection connection, float precisionFilter) {
         }
 
         // Process party areas
-        areaNoisePartyIndex.each { partyPk, hex ->
-            if(processArea(hex, precisionFilter, sql, partyPk)) {
-                processed++
-                // Accept changes
-                connection.commit();
+        areaNoisePartyIndex.each { partyPk, hexSet ->
+            hexSet.each { hex ->
+                if (processArea(hex, precisionFilter, sql, partyPk)) {
+                    processed++
+                    // Accept changes
+                    connection.commit();
+                }
             }
         }
 

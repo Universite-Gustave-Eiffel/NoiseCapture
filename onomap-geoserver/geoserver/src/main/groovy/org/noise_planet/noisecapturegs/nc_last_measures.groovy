@@ -72,12 +72,14 @@ def getStats(Connection connection, String noise_party_tag) {
         }
         def sql = new Sql(connection)
         def query
+        def params = [:]
         if(noise_party_tag == null || noise_party_tag.isEmpty()) {
             query = "select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party is null"
         } else {
             query = "select T.* from NOISECAPTURE_STATS_LAST_TRACKS T , noisecapture_party P where P.tag = :noise_party_tag and T.pk_party = P.pk_party"
+            params = [noise_party_tag : noise_party_tag as String]
         }
-        sql.eachRow(query, [noise_party_tag : noise_party_tag as String]) {
+        sql.eachRow(query, params) {
             record_row ->
                 // Fetch the timezone of this point
                 def res = sql.firstRow("SELECT TZID FROM tz_world WHERE " +

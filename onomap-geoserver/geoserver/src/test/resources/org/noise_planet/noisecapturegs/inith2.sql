@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS NOISECAPTURE_FREQ, NOISECAPTURE_POINT, NOISECAPTURE_TRACK, NOISECAPTURE_USER,
  NOISECAPTURE_CALIBRATE, NOISECAPTURE_TAG, NOISECAPTURE_TRACK_TAG, NOISECAPTURE_AREA, NOISECAPTURE_PROCESS_QUEUE,
-  NOISECAPTURE_AREA_PROFILE, NOISECAPTURE_AREA_CLUSTER, NOISECAPTURE_PARTY;
+  NOISECAPTURE_AREA_PROFILE, NOISECAPTURE_AREA_CLUSTER, NOISECAPTURE_PARTY, NOISECAPTURE_STATS_LAST_TRACKS;
 
  -- H2 Only
  CREATE DOMAIN IF NOT EXISTS TIMESTAMPTZ AS TIMESTAMP;
@@ -173,6 +173,22 @@ CREATE TABLE NOISECAPTURE_DUMP_TRACK_ENVELOPE(
     PK_TRACK int NOT NULL REFERENCES NOISECAPTURE_TRACK (PK_TRACK) ON DELETE CASCADE ON UPDATE CASCADE,
     THE_GEOM geometry,
     measure_count bigint);
+
+-- Statistics cache table
+
+CREATE TABLE noisecapture_stats_last_tracks (
+    pk_track integer,
+    time_length double precision,
+    record_utc timestamptz,
+    the_geom varchar,
+    env varchar,
+    start_pt varchar,
+    stop_pt varchar,
+    name_0 varchar,
+    name_1 varchar,
+    name_3 varchar,
+    pk_party integer
+);
 
 --- Add index
 

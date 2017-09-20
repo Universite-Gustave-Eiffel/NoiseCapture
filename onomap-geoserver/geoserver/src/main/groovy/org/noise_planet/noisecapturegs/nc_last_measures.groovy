@@ -71,7 +71,13 @@ def getStats(Connection connection, String noise_party_tag) {
             noise_party_tag = ""
         }
         def sql = new Sql(connection)
-        sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T LEFT JOIN noisecapture_party P on (T.pk_party = P.pk_party) where P.tag = :noise_party_tag or :noise_party_tag = ''", [noise_party_tag : noise_party_tag as String]) {
+        def query
+        if(noise_party_tag == null || noise_party_tag.isEmpty()) {
+            query = "select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party is null"
+        } else {
+            query = "select T.* from NOISECAPTURE_STATS_LAST_TRACKS T , noisecapture_party P where P.tag = :noise_party_tag and T.pk_party = P.pk_party"
+        }
+        sql.eachRow(query, [noise_party_tag : noise_party_tag as String]) {
             record_row ->
                 // Fetch the timezone of this point
                 def res = sql.firstRow("SELECT TZID FROM tz_world WHERE " +

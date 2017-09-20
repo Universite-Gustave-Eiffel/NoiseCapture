@@ -63,6 +63,30 @@ def decodeLatLongFromString(latlong) {
     return null
 }
 
+def processRow(sql, record_row) {
+    // Fetch the timezone of this point
+    def res = sql.firstRow("SELECT TZID FROM tz_world WHERE " +
+            "ST_GeomFromText(:geom,4326) && the_geom AND" +
+            " ST_Intersects(ST_GeomFromText(:geom,4326), the_geom) LIMIT 1", [geom: record_row.env])
+    TimeZone tz = res == null ? TimeZone.default : TimeZone.getTimeZone(res.TZID);
+    def formater = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    def record_utc;
+    if(res) {
+        record_utc = record_row.record_utc.toInstant().atZone(tz.toZoneId()).format(formater);
+    } else {
+        record_utc = record_row.record_utc
+    }
+    def center = decodeLatLongFromString(record_row.env)
+    def longitude = center != null ? center[0] : null
+    def latitude = center != null ? center[1] : null
+    def the_geom = new JsonSlurper().parseText(record_row.the_geom)
+    def start = new JsonSlurper().parseText(record_row.start_pt)
+    def stop = new JsonSlurper().parseText(record_row.stop_pt)
+    return [time_length : record_row.time_length as Integer, record_utc : record_utc,
+              zoom_level : 18, lat : latitude, long : longitude, bounds : the_geom, start : start,
+              stop : stop, country : record_row.name_0, name_1 : record_row.name_1, name_3 : record_row.name_3];
+}
+
 def getStats(Connection connection, String noise_party_tag) {
     def data = []
     try {
@@ -71,37 +95,14 @@ def getStats(Connection connection, String noise_party_tag) {
             noise_party_tag = ""
         }
         def sql = new Sql(connection)
-        def query
-        def params = [:]
         if(noise_party_tag == null || noise_party_tag.isEmpty()) {
-            query = "select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party is null"
+            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party is null") {
+                record_row -> data.add(processRow(sql, record_row))
+            }
         } else {
-            query = "select T.* from NOISECAPTURE_STATS_LAST_TRACKS T , noisecapture_party P where P.tag = :noise_party_tag and T.pk_party = P.pk_party"
-            params = [noise_party_tag : noise_party_tag as String]
-        }
-        sql.eachRow(query, params) {
-            record_row ->
-                // Fetch the timezone of this point
-                def res = sql.firstRow("SELECT TZID FROM tz_world WHERE " +
-                        "ST_GeomFromText(:geom,4326) && the_geom AND" +
-                        " ST_Intersects(ST_GeomFromText(:geom,4326), the_geom) LIMIT 1", [geom: record_row.env])
-                TimeZone tz = res == null ? TimeZone.default : TimeZone.getTimeZone(res.TZID);
-                def formater = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-                def record_utc;
-                if(res) {
-                    record_utc = record_row.record_utc.toInstant().atZone(tz.toZoneId()).format(formater);
-                } else {
-                    record_utc = record_row.record_utc
-                }
-                def center = decodeLatLongFromString(record_row.env)
-                def longitude = center != null ? center[0] : null
-                def latitude = center != null ? center[1] : null
-                def the_geom = new JsonSlurper().parseText(record_row.the_geom)
-                def start = new JsonSlurper().parseText(record_row.start_pt)
-                def stop = new JsonSlurper().parseText(record_row.stop_pt)
-                data.add([time_length : record_row.time_length as Integer, record_utc : record_utc,
-                          zoom_level : 18, lat : latitude, long : longitude, bounds : the_geom, start : start,
-                          stop : stop, country : record_row.name_0, name_1 : record_row.name_1, name_3 : record_row.name_3])
+            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T , noisecapture_party P where P.tag = :noise_party_tag and T.pk_party = P.pk_party", ["noise_party_tag" : noise_party_tag as String]) {
+                record_row -> data.add(processRow(sql, record_row))
+            }
         }
     } catch (SQLException ex) {
         throw ex

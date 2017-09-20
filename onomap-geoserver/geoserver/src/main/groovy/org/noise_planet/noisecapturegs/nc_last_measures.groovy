@@ -96,11 +96,11 @@ def getStats(Connection connection, String noise_party_tag) {
         }
         def sql = new Sql(connection)
         if(noise_party_tag == null || noise_party_tag.isEmpty()) {
-            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party is null") {
+            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party is null order by record_utc desc") {
                 record_row -> data.add(processRow(sql, record_row))
             }
         } else {
-            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T , noisecapture_party P where P.tag = :noise_party_tag and T.pk_party = P.pk_party", ["noise_party_tag" : noise_party_tag as String]) {
+            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T , noisecapture_party P where P.tag = :noise_party_tag and T.pk_party = P.pk_party order by record_utc desc", ["noise_party_tag" : noise_party_tag as String]) {
                 record_row -> data.add(processRow(sql, record_row))
             }
         }

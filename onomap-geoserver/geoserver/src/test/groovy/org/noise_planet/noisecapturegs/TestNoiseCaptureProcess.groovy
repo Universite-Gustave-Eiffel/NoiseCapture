@@ -191,4 +191,25 @@ class TestNoiseCaptureProcess extends GroovyTestCase {
         assertEquals(51.8d, (Double)sql.firstRow("SELECT AP.LA50 FROM NOISECAPTURE_AREA_PROFILE AP,NOISECAPTURE_AREA A WHERE A.pk_area = ap.pk_area and HOUR = 10 and pk_party is null").get("LA50"),
                 0.1d)
     }
+
+
+    void testProcessParty2() {
+        Sql.LOG.level = java.util.logging.Level.SEVERE
+        Sql sql = new Sql(connection)
+        // Load timezone file
+        sql.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
+        sql.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
+        // Insert measure data
+        // insert records
+        // Create party before parsing party measurement
+        sql.execute("INSERT INTO noisecapture_party (the_geom, layer_name, title, tag, description) VALUES ('POLYGON((-2.34041 47.25688,-2.34041 47.26488,-2.33241 47.26488,-2.33241 47.25688,-2.34041 47.25688))'::geometry, 'noisecapture:noisecapture_area_dw2017', 'Digital Week 2017 Pornichet', 'SNDIGITALWEEK', '<p>La Ville de Pornichet s''associe à la Saint-Nazaire Digital Week le mercredi 20 septembre, et propose de nombreuses animations gratuites et ouvertes à tous dédiées au numérique à l''hippodrome.</p><p>Venez contribuer à la création d''une carte du bruit participative, en temps réel sur les territoires de la CARENE / CAP ATLANTIQUE grâce à l''utilisation d''une application smartphone : Noise Capture.</p>');")
+        // Parse Gwendall measurement
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_07efe9f7-bda1-4e49-8514-f3a2a1fc576d.zip").file))
+
+        def processed = new nc_process().process(connection, 50)
+        assertEquals(16, processed);
+        assertEquals(8, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area where pk_party = 1").get("cpt"))
+        assertEquals(8, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area where pk_party is null").get("cpt"))
+    }
 }

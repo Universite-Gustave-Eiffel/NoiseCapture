@@ -282,7 +282,7 @@ public class Results extends MainActivity {
                 hashtags.append(localeStringArray[tagInfo.id].replace(" ",""));
             }
         }
-        if(!record.getNoisePartyTag().isEmpty()) {
+        if(record.getNoisePartyTag() != null && !record.getNoisePartyTag().isEmpty()) {
             hashtags.append(record.getNoisePartyTag());
         }
         //@see https://dev.twitter.com/web/tweet-button/web-intent

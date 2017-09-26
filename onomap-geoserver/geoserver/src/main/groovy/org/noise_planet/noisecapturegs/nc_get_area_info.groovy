@@ -84,6 +84,12 @@ def getAreaInfo(Connection connection, long qIndex, long rIndex, Integer noisePa
                 profile[hour_row.hour as Integer] = [laeq : hour_row.laeq as Double, la50 : hour_row.la50 as Double, uncertainty : hour_row.uncertainty as Integer]
             }
             data["profile"] = profile
+            // Fetch tags of tracks in this area
+            def tags = []
+            sql.eachRow("SELECT tag_name::varchar tag_name, count(*) nb_tag FROM noisecapture_area a, noisecapture_track_tag nt, noisecapture_point np, noisecapture_tag nt_t WHERE pk_area = :pk_area and a.the_geom && np.the_geom and np.pk_track = nt.pk_track and nt_t.pk_tag = nt.pk_tag group by tag_name", [pk_area : row.pk_area]) {
+              rowTag -> tags.add([text:rowTag.tag_name as String, weight : rowTag.nb_tag as Integer])
+            }
+            data["tags"] = tags
         }
     } catch (SQLException ex) {
         throw ex

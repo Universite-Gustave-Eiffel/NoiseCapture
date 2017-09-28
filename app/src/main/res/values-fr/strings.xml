@@ -158,7 +158,7 @@
         <item>Mécanique</item>
         <item>Humain</item>
         <item>Travaux</item>
-        <item>T. aérien</item>
+        <item>Aérien</item>
         <item>Loisirs</item>
         <item>Enfants</item>
         <item>Musique</item>
@@ -204,7 +204,7 @@
     <string name="delete">Effacer</string>
     <string name="hint_userinput">Insérer une description ici</string>
     <string name="no_data_text_description">Lancer la mesure en appuyant sur le bouton enregistrement</string>
-    <string name="export_zip_info">Descrption du contenu de l\'archive\n\n
+    <string name="export_zip_info">Description du contenu de l\'archive\n\n
 meta.properties file are general info on device and record:\n
 - Numéro de version de l\'application: version_name Majeur, mineur et revision\n
 - build_date: Date du build de l\'application\n
@@ -296,7 +296,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="settings_category_profile">Profil de l\'utilisateur</string>
     <string name="title_settings_user_noise_knowledge">Profil de l\'utilisateur</string>
     <string name="settings_user_noise_knowledge_description">Comment évaluez-vous vos connaissances sur les environnements sonores ?</string>
-    <string name="hint_userinput_noiseparty_tag">Code NoiseParty</string>
+    <string name="hint_userinput_noiseparty_tag">Code NoiseCapture Party</string>
     <string-array name="knowledge">
         <item>Je n\'ai aucune connaissance dans le domaine du bruit</item>
         <item>J\'ai quelques connaissances dans le domaine du bruit</item>

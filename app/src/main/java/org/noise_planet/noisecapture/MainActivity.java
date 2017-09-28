@@ -495,7 +495,10 @@ public class MainActivity extends AppCompatActivity {
         List<Storage.Record> records = measurementManager.getRecords();
         final List<Integer> recordsToTransfer = new ArrayList<>();
         for(Storage.Record record : records) {
-            if(record.getUploadId().isEmpty() && record.getTimeLength() > 0) {
+            // Auto send records only if the record is not in progress and if the user have
+            // validated the Description activity
+            if(record.getUploadId().isEmpty() && record.getTimeLength() > 0 && record
+                    .getNoisePartyTag() != null) {
                 recordsToTransfer.add(record.getId());
             }
         }

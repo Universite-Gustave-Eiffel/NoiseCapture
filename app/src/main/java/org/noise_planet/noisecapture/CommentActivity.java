@@ -231,6 +231,7 @@ public class CommentActivity extends MainActivity {
         // Add the buttons
         builder.setPositiveButton(R.string.comment_save_change, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
+                saveChanges();
                 CommentActivity.super.onBackPressed();
             }
         });
@@ -254,8 +255,6 @@ public class CommentActivity extends MainActivity {
             thumbnail.setImageResource(android.R.color.transparent);
             thumbnailBitmap.recycle();
         }
-        // Save content
-        saveChanges();
     }
 
     @Override
@@ -418,13 +417,6 @@ public class CommentActivity extends MainActivity {
         }
     }
 
-    @Override
-    public void startActivity(Intent intent) {
-        // Save content
-        saveChanges();
-        super.startActivity(intent);
-    }
-
     private static final class OnGoToResultPage implements View.OnClickListener {
         private CommentActivity activity;
 
@@ -434,6 +426,8 @@ public class CommentActivity extends MainActivity {
 
         @Override
         public void onClick(View v) {
+            // Save changes
+            activity.saveChanges();
             //Open result page
             Intent ir = new Intent(activity, Results.class);
             if(activity.record != null) {

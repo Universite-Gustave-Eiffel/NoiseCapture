@@ -161,31 +161,43 @@ public class Results extends MainActivity {
         TextView minText = (TextView) findViewById(R.id.textView_value_Min_SL);
         minText.setText(R.string.no_valid_dba_value);
         if(showTooltip) {
-            minText.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_minsl));
+            ToolTipListener touchListener = new ToolTipListener(this, R.string
+                    .result_tooltip_minsl);
+            minText.setOnTouchListener(touchListener);
+            findViewById(R.id.textView_label_Min_SL).setOnTouchListener(touchListener);
         }
 
         TextView maxText = (TextView) findViewById(R.id.textView_value_Max_SL);
         maxText.setText(R.string.no_valid_dba_value);
         if(showTooltip) {
-            maxText.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_maxsl));
+            ToolTipListener touchListener = new ToolTipListener(this, R.string
+                    .result_tooltip_maxsl);
+            maxText.setOnTouchListener(touchListener);
+            findViewById(R.id.textView_label_Max_SL).setOnTouchListener(touchListener);
         }
 
         TextView la10Text = (TextView) findViewById(R.id.textView_value_LA10);
         la10Text.setText(R.string.no_valid_dba_value);
         if(showTooltip) {
-            la10Text.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_la10));
+            ToolTipListener touchListener = new ToolTipListener(this, R.string.result_tooltip_la10);
+            la10Text.setOnTouchListener(touchListener);
+            findViewById(R.id.textView_label_la10_SL).setOnTouchListener(touchListener);
         }
 
         TextView la50Text = (TextView) findViewById(R.id.textView_value_LA50);
         la50Text.setText(R.string.no_valid_dba_value);
         if(showTooltip) {
-            la50Text.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_la50));
+            ToolTipListener touchListener = new ToolTipListener(this, R.string.result_tooltip_la50);
+            la50Text.setOnTouchListener(touchListener);
+            findViewById(R.id.textView_label_la50_SL).setOnTouchListener(touchListener);
         }
 
         TextView la90Text = (TextView) findViewById(R.id.textView_value_LA90);
         la90Text.setText(R.string.no_valid_dba_value);
         if(showTooltip) {
-            la90Text.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_la90));
+            ToolTipListener touchListener = new ToolTipListener(this, R.string.result_tooltip_la90);
+            la90Text.setOnTouchListener(touchListener);
+            findViewById(R.id.textView_label_la90_SL).setOnTouchListener(touchListener);
         }
 
         // Action on Map button
@@ -282,7 +294,7 @@ public class Results extends MainActivity {
                 hashtags.append(localeStringArray[tagInfo.id].replace(" ",""));
             }
         }
-        if(!record.getNoisePartyTag().isEmpty()) {
+        if(record.getNoisePartyTag() != null && !record.getNoisePartyTag().isEmpty()) {
             hashtags.append(record.getNoisePartyTag());
         }
         //@see https://dev.twitter.com/web/tweet-button/web-intent

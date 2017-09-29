@@ -253,7 +253,8 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
 
     // Remove pk_party if the track is out of bounds
     if(idParty != null && startLocation != null) {
-        if(!sql.firstRow("SELECT ST_CONTAINS(THE_GEOM, :geom::geometry) ISCONTAINS FROM noisecapture_party WHERE pk_party = :pkparty", [pkparty: idParty, geom : startLocation]).iscontains) {
+        def queryParty = sql.firstRow("SELECT ST_CONTAINS(THE_GEOM, :geom::geometry) ISCONTAINS, filter_area FROM noisecapture_party WHERE pk_party = :pkparty", [pkparty: idParty, geom : startLocation])
+        if(queryParty.filter_area && !queryParty.iscontains) {
             sql.execute("UPDATE NOISECAPTURE_TRACK SET PK_PARTY = NULL WHERE PK_TRACK = :pktrack", [pktrack:recordId])
             idParty = null;
         }

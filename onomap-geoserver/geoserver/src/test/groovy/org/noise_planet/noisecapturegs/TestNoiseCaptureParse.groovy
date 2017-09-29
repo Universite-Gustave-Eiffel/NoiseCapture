@@ -205,11 +205,55 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
     }
 
 
-    // Test parse with a party tag that does not exists in database
+    // Test parse with a party tag that exist in database
     void testParseNoiseParty() {
         Sql sql = new Sql(connection)
         sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
                 "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018');")
+        assertEquals(1, new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
+        // Read db; check content
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals(1, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
+    }
+
+    void testOutdatedNoiseParty() {
+        Sql sql = new Sql(connection)
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, start_time, end_time, filter_time) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
+                "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018',:begintime::timestamptz,:endtime::timestamptz,true);", [begintime: "2017-09-13T01:00:00Z", endtime:"2017-09-13T23:59:59Z"])
+        assertEquals(null, new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
+        // Read db; check content
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals(null, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
+    }
+
+    void testTimeFilteredNoiseParty() {
+        Sql sql = new Sql(connection)
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, start_time, end_time, filter_time) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
+                "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018',:begintime::timestamptz,:endtime::timestamptz,true);", [begintime: "2017-09-14T01:00:00Z", endtime:"2017-09-14T23:59:59Z"])
+        assertEquals(1, new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
+        // Read db; check content
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals(1, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
+    }
+
+    void testOutOfBoundsNoiseParty() {
+        Sql sql = new Sql(connection)
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, filter_area) VALUES ('POLYGON((2.38717 48.8944,2.38717 48.8964,2.38917 48.8964,2.38917 48.8944,2.38717 48.8944))','OGRS 2018 event','OGRS_2018'," +
+                "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018', true);")
+        assertEquals(null, new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
+        // Read db; check content
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals(null, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
+    }
+
+    void testInBoundsNoiseParty() {
+        Sql sql = new Sql(connection)
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, filter_area) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
+                "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018', true);")
         assertEquals(1, new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
         // Read db; check content

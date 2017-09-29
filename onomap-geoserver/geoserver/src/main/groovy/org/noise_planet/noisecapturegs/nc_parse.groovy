@@ -142,8 +142,8 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
     String party_tag = meta.getProperty("noiseparty_tag")
     if(party_tag != null && !party_tag.isEmpty()) {
         // Fetch noise party id
-        def result = sql.firstRow("SELECT pk_party FROM  noisecapture_party where tag=:tag",
-                [tag: party_tag])
+        def result = sql.firstRow("SELECT pk_party FROM  noisecapture_party where tag=:tag and (NOT filter_time OR (start_time <= :record_utc::timestamptz AND  end_time >= :record_utc::timestamptz))",
+                [tag: party_tag, record_utc : epochToRFCTime(Long.valueOf(meta.getProperty("record_utc")))])
         if(result != null) {
             idParty = result.pk_party as Integer
         }
@@ -204,6 +204,7 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
         throw new InvalidParameterException("No track.geojson file")
     }
 
+    def startLocation = null
     jsonRoot.features.each() { feature ->
         def theGeom = "GEOMETRYCOLLECTION EMPTY"
         if (feature.geometry != null) {
@@ -213,6 +214,9 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
             } else {
                 // The_geom column are 3d forced, so, must set a Z value
                 theGeom = "POINT($x $y)" as String
+            }
+            if(startLocation == null) {
+                startLocation = theGeom
             }
         }
         def p = feature.properties
@@ -244,6 +248,14 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
                 }
                 batch.executeBatch()
             }
+        }
+    }
+
+    // Remove pk_party if the track is out of bounds
+    if(idParty != null && startLocation != null) {
+        if(!sql.firstRow("SELECT ST_CONTAINS(THE_GEOM, :geom::geometry) ISCONTAINS FROM noisecapture_party WHERE pk_party = :pkparty", [pkparty: idParty, geom : startLocation]).iscontains) {
+            sql.execute("UPDATE NOISECAPTURE_TRACK SET PK_PARTY = NULL WHERE PK_TRACK = :pktrack", [pktrack:recordId])
+            idParty = null;
         }
     }
 

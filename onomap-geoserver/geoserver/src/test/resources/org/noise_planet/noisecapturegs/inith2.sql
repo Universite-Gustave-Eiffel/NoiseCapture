@@ -23,9 +23,9 @@ COMMENT ON COLUMN NOISECAPTURE_USER.PROFILE IS 'User acoustic knowledge, one of 
 CREATE TABLE NOISECAPTURE_PARTY (
     PK_PARTY serial NOT NULL,
     THE_GEOM geometry NOT NULL,
-    LAYER_NAME varchar NOT NULL,
+    LAYER_NAME varchar UNIQUE NOT NULL,
     TITLE varchar NOT NULL,
-    TAG varchar UNIQUE NOT NULL,
+    TAG varchar NOT NULL,
     DESCRIPTION varchar NOT NULL,
     START_TIME TIMESTAMPTZ,
     END_TIME TIMESTAMPTZ,
@@ -38,7 +38,7 @@ COMMENT ON COLUMN NOISECAPTURE_PARTY.title IS 'Short NoiseParty title';
 COMMENT ON COLUMN NOISECAPTURE_PARTY.description IS 'Long description of the NoiseParty';
 COMMENT ON COLUMN NOISECAPTURE_PARTY.tag IS 'Tag typed by users';
 COMMENT ON COLUMN NOISECAPTURE_PARTY.the_geom IS 'NoiseParty location';
-COMMENT ON COLUMN NOISECAPTURE_PARTY.layer_name IS 'Geoserver layer name';
+COMMENT ON COLUMN NOISECAPTURE_PARTY.layer_name IS 'Layer name in leaflet url, must be unique';
 
 -- Table: NOISECAPTURE_TRACK
 CREATE TABLE NOISECAPTURE_TRACK (

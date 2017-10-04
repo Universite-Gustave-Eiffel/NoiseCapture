@@ -76,7 +76,7 @@ static def epochToRFCTime(epochMillisec) {
     return Instant.ofEpochMilli(epochMillisec).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))
 }
 
-def processFile(Connection connection, File zipFile, boolean storeFrequencyLevels = true) throws Exception {
+def static Integer processFile(Connection connection, File zipFile, boolean storeFrequencyLevels = true) throws Exception {
     def zipFileName = zipFile.getName()
     def recordUUID = zipFileName.substring("track_".length(), zipFileName.length() - ".zip".length())
     connection.setAutoCommit(false)
@@ -243,7 +243,7 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
             // Insert frequency
             sql.withBatch("INSERT INTO noisecapture_freq VALUES (:pkpoint, :freq, :noiselvl)") { batch ->
                 p.findAll { it.key ==~ 'leq_[0-9]{3,5}' }.each { key, spl ->
-                    freq = key.substring("leq_".length()) as Integer
+                    def freq = key.substring("leq_".length()) as Integer
                     batch.addBatch([pkpoint: ptId, freq: freq, noiselvl: spl as Double])
                 }
                 batch.executeBatch()
@@ -303,63 +303,72 @@ def static void buildStatistics(Connection connection, Integer pkParty) {
     connection.setAutoCommit(true)
 }
 
-def run(input) {
+def static int processFiles(Connection connection, File[] files, int processFileLimit, boolean moveFiles) {
     Logger logger = LoggerFactory.getLogger("logger_nc_parse")
+    int processed = 0
+    Set<Integer> partyIds = new HashSet<>();
+    for (File zipFile : files) {
+        try {
+            partyIds.add(processFile(connection, zipFile, false))
+            // Move file to processed folder
+            File processedDir = new File("data_dir/onomap_archive");
+            if (!processedDir.exists() && moveFiles) {
+                processedDir.mkdirs()
+            }
+            if(moveFiles) {
+                zipFile.renameTo(new File(processedDir, zipFile.getName()))
+            }
+        } catch (SQLException|InvalidParameterException ex) {
+            if(moveFiles) {
+                // Move file to error folder
+                File errorDir = new File("data_dir/onomap_archive_error");
+                if (!errorDir.exists()) {
+                    errorDir.mkdirs()
+                }
+                zipFile.renameTo(new File(errorDir, zipFile.getName()))
+            }
+            // Log error
+            logger.error(zipFile.getName() + " Message: " + ex.getMessage());
+
+            if(ex instanceof SQLException) {
+                logger.error("SQLState: " +
+                        ex.getSQLState());
+
+                logger.error("Error Code: " +
+                        ex.getErrorCode());
+
+                Throwable t = ex.getCause();
+                while (t != null) {
+                    logger.error("Cause: " + t);
+                    t = t.getCause();
+                }
+            }
+            connection.rollback();
+        }
+        processed++
+        if(processFileLimit > 0 && processed > processFileLimit) {
+            break;
+        }
+    }
+    // Add null party id in order to be sure to rebuild global history
+    partyIds.add(null)
+    // Build x lasts measurements history for each NoiseParty (id!=null) and for the global histry (id=null)
+    partyIds.each { partyId -> buildStatistics(connection, partyId)}
+
+    return processed
+}
+
+def run(input) {
     int processFileLimit = input["processFileLimit"] as Integer;
     File dataDir = new File("data_dir/onomap_uploading");
     int processed = 0
     if (dataDir.exists()) {
         File[] files = dataDir.listFiles(new ZipFileFilter())
-        Set<Integer> partyIds = new HashSet<>();
         if (files.length != 0) {
             // Open PostgreSQL connection
             Connection connection = openPostgreSQLDataStoreConnection()
             try {
-                for (File zipFile : files) {
-                    try {
-                        partyIds.add(processFile(connection, zipFile, false))
-                        // Move file to processed folder
-                        File processedDir = new File("data_dir/onomap_archive");
-                        if (!processedDir.exists()) {
-                            processedDir.mkdirs()
-                        }
-                        zipFile.renameTo(new File(processedDir, zipFile.getName()))
-                    } catch (SQLException|InvalidParameterException ex) {
-                        // Move file to error folder
-                        File errorDir = new File("data_dir/onomap_archive_error");
-                        if (!errorDir.exists()) {
-                            errorDir.mkdirs()
-                        }
-                        zipFile.renameTo(new File(errorDir, zipFile.getName()))
-
-                        // Log error
-                        logger.error(zipFile.getName() + " Message: " + ex.getMessage());
-
-                        if(ex instanceof SQLException) {
-                            logger.error("SQLState: " +
-                                    ex.getSQLState());
-
-                            logger.error("Error Code: " +
-                                    ex.getErrorCode());
-
-                            Throwable t = ex.getCause();
-                            while (t != null) {
-                                logger.error("Cause: " + t);
-                                t = t.getCause();
-                            }
-                        }
-                        connection.rollback();
-                    }
-                    processed++
-                    if(processFileLimit > 0 && processed > processFileLimit) {
-                        break;
-                    }
-                }
-                // Add null party id in order to be sure to rebuild global history
-                partyIds.add(null)
-                // Build x lasts measurements history for each NoiseParty (id!=null) and for the global histry (id=null)
-                partyIds.each { partyId -> buildStatistics(connection, partyId)}
-
+                processed = processFiles(connection, files, processFileLimit, true)
             } finally {
                 connection.close()
             }

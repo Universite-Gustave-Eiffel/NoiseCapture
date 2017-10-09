@@ -42,8 +42,8 @@ import java.time.format.DateTimeFormatter
 title = 'nc_last_measures'
 description = 'Fetch last measures'
 
-inputs = [noiseparty: [name: 'noiseparty', title: 'NoiseParty tag',
-                   type: String.class, min : 0, max : 1]]
+inputs = [noiseparty: [name: 'noiseparty', title: 'NoiseParty id',
+                       type: Integer.class, min : 0, max : 1]]
 
 
 outputs = [
@@ -87,20 +87,17 @@ def processRow(sql, record_row) {
               stop : stop, country : record_row.name_0, name_1 : record_row.name_1, name_3 : record_row.name_3];
 }
 
-def getStats(Connection connection, String noise_party_tag) {
+def getStats(Connection connection, Integer noise_party_id) {
     def data = []
     try {
         // List the 10 last measurements, with aggregation of points
-        if(noise_party_tag == null) {
-            noise_party_tag = ""
-        }
         def sql = new Sql(connection)
-        if(noise_party_tag == null || noise_party_tag.isEmpty()) {
+        if(noise_party_id == null) {
             sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party is null order by record_utc desc") {
                 record_row -> data.add(processRow(sql, record_row))
             }
         } else {
-            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T , noisecapture_party P where P.tag = :noise_party_tag and T.pk_party = P.pk_party order by record_utc desc", ["noise_party_tag" : noise_party_tag as String]) {
+            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party = :noise_party_id order by record_utc desc", ["noise_party_id" : noise_party_id]) {
                 record_row -> data.add(processRow(sql, record_row))
             }
         }
@@ -120,7 +117,7 @@ def run(input) {
     // Open PostgreSQL connection
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : JsonOutput.toJson(getStats(connection, input["noiseparty"] as String))]
+        return [result : JsonOutput.toJson(getStats(connection, input["noiseparty"] as Integer))]
     } finally {
         connection.close()
     }

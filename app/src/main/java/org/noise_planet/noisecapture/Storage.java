@@ -93,7 +93,7 @@ public class Storage extends SQLiteOpenHelper {
         }
     }
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 8;
+    public static final int DATABASE_VERSION = 9;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -170,6 +170,12 @@ public class Storage extends SQLiteOpenHelper {
                 db.execSQL("UPDATE leq SET bearing=speed, speed=bearing;");
             }
             oldVersion = 8;
+        }
+        if(oldVersion == 8) {
+            if(!db.isReadOnly()) {
+                db.execSQL("ALTER TABLE record add column "+Record.COLUMN_NOISEPARTY_TAG + " TEXT");
+            }
+            oldVersion = 9;
         }
     }
 
@@ -274,6 +280,7 @@ public class Storage extends SQLiteOpenHelper {
         public static final String COLUMN_PLEASANTNESS = "pleasantness";
         public static final String COLUMN_PHOTO_URI = "photo_uri";
         public static final String COLUMN_CALIBRATION_GAIN = "calibration_gain";
+        public static final String COLUMN_NOISEPARTY_TAG = "noiseparty_tag";
 
         private int id;
         private long utc;
@@ -284,6 +291,7 @@ public class Storage extends SQLiteOpenHelper {
         private Integer pleasantness;
         private Uri photoUri;
         private float calibrationGain;
+        private String noisePartyTag;
 
         public Record(Cursor cursor) {
             this(cursor.getInt(cursor.getColumnIndex(COLUMN_ID)),
@@ -292,6 +300,7 @@ public class Storage extends SQLiteOpenHelper {
                     cursor.getFloat(cursor.getColumnIndex(COLUMN_LEQ_MEAN)),
                     cursor.getInt(cursor.getColumnIndex(COLUMN_TIME_LENGTH)),
                     cursor.getFloat(cursor.getColumnIndex(COLUMN_CALIBRATION_GAIN)));
+            noisePartyTag = getString(cursor, COLUMN_NOISEPARTY_TAG);
             description = getString(cursor, COLUMN_DESCRIPTION);
             String uriString = getString(cursor, COLUMN_PHOTO_URI);
             if(uriString != null && !uriString.isEmpty()) {
@@ -308,6 +317,17 @@ public class Storage extends SQLiteOpenHelper {
             this.leqMean = leqMean;
             this.timeLength = timeLength;
             this.calibrationGain = calibrationGain;
+        }
+
+        /**
+         * @return The NoiseParty identifier for this measurement
+         */
+        public String getNoisePartyTag() {
+            return noisePartyTag;
+        }
+
+        public void setNoisePartyTag(String noisePartyTag) {
+            this.noisePartyTag = noisePartyTag;
         }
 
         public String getDescription() {
@@ -375,7 +395,8 @@ public class Storage extends SQLiteOpenHelper {
             Record.COLUMN_DESCRIPTION + " TEXT, " +
             Record.COLUMN_PHOTO_URI + " TEXT, " +
             Record.COLUMN_PLEASANTNESS + " SMALLINT," +
-            Record.COLUMN_CALIBRATION_GAIN + " FLOAT DEFAULT 0" +
+            Record.COLUMN_CALIBRATION_GAIN + " FLOAT DEFAULT 0," +
+            Record.COLUMN_NOISEPARTY_TAG + " TEXT" +
             ")";
 
 

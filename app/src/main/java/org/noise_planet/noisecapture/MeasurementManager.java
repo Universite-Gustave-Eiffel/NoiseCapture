@@ -65,7 +65,10 @@ public class MeasurementManager {
         SQLiteDatabase database = storage.getReadableDatabase();
         try {
             Cursor cursor = database.rawQuery("SELECT * FROM "+Storage.Record.TABLE_NAME +
-                    " ORDER BY " + Storage.Record.COLUMN_UTC + " DESC", null);
+                    " WHERE "+ Storage.Record.COLUMN_TIME_LENGTH + " > 0 ORDER BY " + Storage.Record
+                    .COLUMN_UTC + " " +
+                    "DESC",
+                    null);
             try {
                 while (cursor.moveToNext()) {
                     records.add(new Storage.Record(cursor));
@@ -530,7 +533,7 @@ public class MeasurementManager {
     }
 
     public void updateRecordUserInput(int recordId, String description, Short pleasantness,
-                                      String[] tags, Uri photo_uri) {
+                                      String[] tags, Uri photo_uri, String noisePartyTag) {
 
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
@@ -539,7 +542,8 @@ public class MeasurementManager {
                     "UPDATE " + Storage.Record.TABLE_NAME +
                             " SET "+ Storage.Record.COLUMN_DESCRIPTION + " = ?, " +
                             Storage.Record.COLUMN_PLEASANTNESS + " = ?, " +
-                            Storage.Record.COLUMN_PHOTO_URI + " = ?" +
+                            Storage.Record.COLUMN_PHOTO_URI + " = ?, " +
+                            Storage.Record.COLUMN_NOISEPARTY_TAG + " = ?" +
                             " WHERE " + Storage.Record.COLUMN_ID + " = ?");
             recordStatement.clearBindings();
             recordStatement.bindString(1, description);
@@ -549,7 +553,8 @@ public class MeasurementManager {
                 recordStatement.bindNull(2);
             }
             recordStatement.bindString(3, photo_uri != null ? photo_uri.toString() : "");
-            recordStatement.bindLong(4, recordId);
+            recordStatement.bindString(4, noisePartyTag);
+            recordStatement.bindLong(5, recordId);
             recordStatement.executeUpdateDelete();
             database.delete(Storage.RecordTag.TABLE_NAME,
                     Storage.RecordTag.COLUMN_RECORD_ID + " = ?" +

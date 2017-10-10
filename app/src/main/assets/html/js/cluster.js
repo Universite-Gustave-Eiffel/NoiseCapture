@@ -65,7 +65,7 @@ GeoJSONCluster = L.GeoJSON.extend({
     },
     
     update: function (data) {        
-       if(this.ready && this._map.getZoom() < 15) {
+       if(this._map && this.ready && this._map.getZoom() < 15) {
           var _this = this;
           var geoJsonUrl = this.options.wfs_url;
           var defaultParameters = {
@@ -108,7 +108,7 @@ L.geoJSON.OnoMap = function (url) {
                   color: "#ffffff",
                   bubblingMouseEvents: false,
                   fillOpacity: 0.6,
-                  fillColor: count < 100 ? "rgb(220, 220, 220)" :
-                  count < 1000 ? "rgb(189, 189, 189)" : "rgb(99, 99, 99)"}
+                  fillColor: count < 100 ? "rgb(210,223,255)" :
+                  count < 1000 ? "rgb(176,201,255)" : "rgb(73,155,255)"}
       }});
 };

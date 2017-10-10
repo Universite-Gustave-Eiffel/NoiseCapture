@@ -48,20 +48,22 @@ inputs = [
         qIndex: [name: 'qIndex', title: 'Area Q index',
                  type: Long.class],
         rIndex: [name: 'rIndex', title: 'Area R index',
-                 type: Long.class]]
+                 type: Long.class],
+        noiseparty: [name: 'noiseparty', title: 'NoiseParty id',
+                     type: Integer.class, min : 0, max : 1]]
 
 outputs = [
         result: [name: 'result', title: 'Area info as JSON', type: String.class]
 ]
 
-def getAreaInfo(Connection connection, long qIndex, long rIndex) {
+def getAreaInfo(Connection connection, long qIndex, long rIndex, Integer noiseParty) {
     def data = [:]
     try {
         // List the area identifier using the new measures coordinates
         def sql = new Sql(connection)
         def row = sql.firstRow("SELECT * FROM noisecapture_area a " +
-                "WHERE CELL_Q = :qIndex and CELL_R = :rIndex",
-                [qIndex: qIndex, rIndex: rIndex])
+                "WHERE CELL_Q = :qIndex and CELL_R = :rIndex and (pk_party = :pk_party::int or (:pk_party::int is null and pk_party is null))",
+                [qIndex: qIndex, rIndex: rIndex, pk_party: noiseParty])
         if(row) {
             def time_zone = TimeZone.getTimeZone(row.tzid as String).toZoneId();
             def firstMeasure = row.first_measure.toInstant().atZone(time_zone).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
@@ -82,6 +84,12 @@ def getAreaInfo(Connection connection, long qIndex, long rIndex) {
                 profile[hour_row.hour as Integer] = [laeq : hour_row.laeq as Double, la50 : hour_row.la50 as Double, uncertainty : hour_row.uncertainty as Integer]
             }
             data["profile"] = profile
+            // Fetch tags of tracks in this area
+            def tags = []
+            sql.eachRow("SELECT tag_name::varchar tag_name, count(*) nb_tag FROM noisecapture_area a, noisecapture_track_tag nt, noisecapture_point np, noisecapture_tag nt_t WHERE pk_area = :pk_area and a.the_geom && np.the_geom and np.pk_track = nt.pk_track and nt_t.pk_tag = nt.pk_tag group by tag_name", [pk_area : row.pk_area]) {
+              rowTag -> tags.add([text:rowTag.tag_name as String, weight : rowTag.nb_tag as Integer])
+            }
+            data["tags"] = tags
         }
     } catch (SQLException ex) {
         throw ex
@@ -99,7 +107,7 @@ def run(input) {
     // Open PostgreSQL connection
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : JsonOutput.toJson(getAreaInfo(connection, input["qIndex"],input["rIndex"]))]
+        return [result : JsonOutput.toJson(getAreaInfo(connection, input["qIndex"] as Long,input["rIndex"] as Long,"noiseparty" in input ? input["noiseparty"] as Integer : null ))]
     } finally {
         connection.close()
     }

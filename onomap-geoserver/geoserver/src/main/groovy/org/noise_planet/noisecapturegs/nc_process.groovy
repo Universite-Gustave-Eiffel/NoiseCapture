@@ -97,7 +97,7 @@ class Record{
  * @param precisionFiler GPS location greater than this value are ignored
  * @param sql
  */
-def processArea(Hex hex,float precisionFiler, Sql sql) {
+def processArea(Hex hex,float precisionFiler, Sql sql, Integer partyPk) {
     // A ratio < 1 add blank area between hexagons
     def hexSizeRatio = 1.0;
     def Pos center = hex.toMeter()
@@ -117,7 +117,7 @@ def processArea(Hex hex,float precisionFiler, Sql sql) {
     def hexaRecord = new Record()
     sql.eachRow("SELECT p.pk_track, ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY, p.noise_level," +
             " t.pleasantness,time_date FROM noisecapture_point p, noisecapture_track t WHERE p.pk_track = t.pk_track AND p.accuracy < :precision AND " +
-            "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom ORDER BY p.pk_track, time_date", [geom: geom.toString(), range: hex.size, precision : precisionFiler])
+            "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom AND (pk_party = :pk_party::int OR :pk_party::int is NULL) ORDER BY p.pk_track, time_date", [geom: geom.toString(), range: hex.size, precision : precisionFiler, pk_party : partyPk])
             { row ->
                 Pos pos = new Pos(x: row.PTX, y: row.PTY)
                 def hexOfMeasure = pos.toHex(hex.size)
@@ -152,7 +152,11 @@ def processArea(Hex hex,float precisionFiler, Sql sql) {
                 }
             }
     // Delete old cell
-    sql.execute("DELETE FROM noisecapture_area a WHERE a.cell_q = :cellq and a.cell_r = :cellr", [cellq:hex.q, cellr:hex.r])
+    if(partyPk != null) {
+        sql.execute("DELETE FROM noisecapture_area a WHERE a.cell_q = :cellq and a.cell_r = :cellr and a.pk_party = :pk_party", [cellq: hex.q, cellr: hex.r, pk_party: partyPk])
+    } else {
+        sql.execute("DELETE FROM noisecapture_area a WHERE a.cell_q = :cellq and a.cell_r = :cellr and a.pk_party is null", [cellq: hex.q, cellr: hex.r])
+    }
 
     if(pointCount == 0) {
         return false;
@@ -175,11 +179,12 @@ def processArea(Hex hex,float precisionFiler, Sql sql) {
                   mean_pleasantness: sumPleasantness / pleasantnessCount,
                   measure_count    : pointCount,
                   first_measure    : firstUtc,
-                  last_measure     : lastUtc]
+                  last_measure     : lastUtc,
+                  pk_party: partyPk]
     def pkArea = sql.executeInsert("INSERT INTO noisecapture_area(cell_q, cell_r, tzid, the_geom, laeq,la50,lden, mean_pleasantness," +
-            " measure_count, first_measure, last_measure) VALUES (:cell_q, :cell_r, :tzid, " +
+            " measure_count, first_measure, last_measure, pk_party) VALUES (:cell_q, :cell_r, :tzid, " +
             "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :laeq, :la50,:lden ," +
-            " :mean_pleasantness, :measure_count, :first_measure, :last_measure)", fields)[0][0] as Integer
+            " :mean_pleasantness, :measure_count, :first_measure, :last_measure, :pk_party)", fields)[0][0] as Integer
     // Add profile
     sql.withBatch("INSERT INTO NOISECAPTURE_AREA_PROFILE(PK_AREA, HOUR, LAEQ, LA50) VALUES (:pkarea, :hour, :laeq, :la50)") { batch ->
         records.each{ k, v ->
@@ -204,6 +209,7 @@ def process(Connection connection, float precisionFilter) {
     int processed = 0
     try {
         Set<Hex> areaIndex = new HashSet()
+        Map<Integer, Set<Hex>> areaNoisePartyIndex = new HashMap<>()
         // Count what to add for each hexagons q,r,level
         int[] hexExponent = [3, 4, 5, 6, 7, 8, 9, 10, 11];
         List<Map<Hex, Integer>> hexagonalClustersDiff = new ArrayList<>()
@@ -212,12 +218,18 @@ def process(Connection connection, float precisionFilter) {
         }
         // List the area identifier using the new measures coordinates
         def sql = new Sql(connection)
-        sql.eachRow("SELECT ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY FROM" +
-                " noisecapture_process_queue q, noisecapture_point p " +
-                "WHERE q.pk_track = p.pk_track and p.accuracy < :precision and NOT ST_ISEMPTY(p.the_geom)",
+        sql.eachRow("SELECT ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY, pk_party FROM" +
+                " noisecapture_process_queue q, noisecapture_point p, noisecapture_track t " +
+                "WHERE q.pk_track = p.pk_track and t.pk_track = q.pk_track and p.accuracy < :precision and NOT ST_ISEMPTY(p.the_geom)",
                 [precision: precisionFilter]) { row ->
             def hex = new Pos(x: row.PTX, y: row.PTY).toHex(hexSize)
             areaIndex.add(hex)
+            if(row.pk_party != null) {
+                if (!areaNoisePartyIndex.containsKey(row.pk_party)) {
+                    areaNoisePartyIndex[row.pk_party as Integer] = new HashSet<>()
+                }
+                areaNoisePartyIndex[row.pk_party as Integer].add(hex)
+            }
             // Populate scaled hexagons for clustering
             for(int i=0; i<hexExponent.length;i++) {
                 def scaledHex = new Pos(x: row.PTX, y: row.PTY).toHex(hexSize * Math.pow(3, hexExponent[i]))
@@ -232,10 +244,21 @@ def process(Connection connection, float precisionFilter) {
 
         // Process areas
         for (Hex hex : areaIndex) {
-            if(processArea(hex, precisionFilter, sql)) {
+            if(processArea(hex, precisionFilter, sql, null)) {
                 processed++
                 // Accept changes
                 connection.commit();
+            }
+        }
+
+        // Process party areas
+        areaNoisePartyIndex.each { partyPk, hexSet ->
+            hexSet.each { hex ->
+                if (processArea(hex, precisionFilter, sql, partyPk)) {
+                    processed++
+                    // Accept changes
+                    connection.commit();
+                }
             }
         }
 

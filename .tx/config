@@ -1,0 +1,10 @@
+[main]
+host = https://www.transifex.com
+
+[noisecapture.stringsxml]
+source_file = app/src/main/res/values/strings.xml
+source_lang = en
+type = android
+file_filter = app/src/main/res/values-<lang>/strings.xml
+minimum_perc = 90
+

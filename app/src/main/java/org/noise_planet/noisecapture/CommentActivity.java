@@ -34,22 +34,18 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
-import android.graphics.LinearGradient;
-import android.graphics.Shader;
-import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
-import android.graphics.drawable.InsetDrawable;
-import android.graphics.drawable.ShapeDrawable;
-import android.graphics.drawable.shapes.RectShape;
 import android.net.Uri;
 import android.os.AsyncTask;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
-import android.support.annotation.ColorRes;
 import android.support.annotation.Dimension;
 import android.support.v4.content.FileProvider;
+import android.text.InputFilter;
+import android.text.SpannableString;
+import android.text.Spanned;
+import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
@@ -80,6 +76,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+
 public class CommentActivity extends MainActivity {
     private AtomicBoolean userInputSeekBar = new AtomicBoolean(false);
     public static final String COMMENT_RECORD_ID = "COMMENT_RECORD_ID";
@@ -107,11 +104,11 @@ public class CommentActivity extends MainActivity {
         // Use last record of no parameter provided
         this.measurementManager = new MeasurementManager(this);
         Intent intent = getIntent();
+        // Read the last stored record
+        List<Storage.Record> recordList = measurementManager.getRecords();
         if(intent != null && intent.hasExtra(COMMENT_RECORD_ID)) {
             record = measurementManager.getRecord(intent.getIntExtra(COMMENT_RECORD_ID, -1));
         } else {
-            // Read the last stored record
-            List<Storage.Record> recordList = measurementManager.getRecords();
             if(!recordList.isEmpty()) {
                 record = recordList.get(0);
             } else {
@@ -128,6 +125,39 @@ public class CommentActivity extends MainActivity {
             resultsBtn.setOnClickListener(new OnGoToResultPage(this));
             View deleteBts = findViewById(R.id.deleteBtn);
             deleteBts.setOnClickListener(new OnDeleteMeasurement(this));
+            TextView noisePartyTag = (TextView) findViewById(R.id.edit_noiseparty_tag);
+            noisePartyTag.setEnabled(record.getUploadId().isEmpty());
+            noisePartyTag.setFilters(new InputFilter[]{new InputFilter.AllCaps(),new InputFilter() {
+                @Override
+                public CharSequence filter(CharSequence source, int start, int end, Spanned dest,
+                                           int dstart, int dend) {
+                    // [^A-Za-z0-9_]
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (int i = start; i < end; i++) {
+                        char c = source.charAt(i);
+                        if (Character.isLetterOrDigit(c) || c=='_') {
+                            stringBuilder.append(c);
+                        }
+                    }
+
+                    // keep original if unchanged or return swapped chars
+                    boolean modified = (stringBuilder.length() == end - start);
+                    return modified ? null : stringBuilder.toString();
+                }
+            }});
+            if(record.getNoisePartyTag() == null) {
+                // Read last stored NoiseParty id
+                for (Storage.Record recordItem : recordList) {
+                    if (recordItem.getId() != record.getId()) {
+                        if(recordItem.getNoisePartyTag() != null) {
+                            noisePartyTag.setText(recordItem.getNoisePartyTag());
+                        }
+                        break;
+                    }
+                }
+            } else {
+                noisePartyTag.setText(record.getNoisePartyTag());
+            }
         }
         initDrawer(record != null ? record.getId() : null);
         SeekBar seekBar = (SeekBar) findViewById(R.id.pleasantness_slider);
@@ -192,13 +222,16 @@ public class CommentActivity extends MainActivity {
     @Override
     public void onBackPressed() {
         // Ask user if he want to keep modified data
-        validateCancel();
+        if(record != null) {
+            validateCancel();
+        }
     }
     private void validateCancel() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         // Add the buttons
         builder.setPositiveButton(R.string.comment_save_change, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
+                saveChanges();
                 CommentActivity.super.onBackPressed();
             }
         });
@@ -222,8 +255,6 @@ public class CommentActivity extends MainActivity {
             thumbnail.setImageResource(android.R.color.transparent);
             thumbnailBitmap.recycle();
         }
-        // Save content
-        saveChanges();
     }
 
     @Override
@@ -238,6 +269,7 @@ public class CommentActivity extends MainActivity {
     private void saveChanges() {
         if (record != null) {
             TextView description = (TextView) findViewById(R.id.edit_description);
+            TextView noisePartyTag = (TextView) findViewById(R.id.edit_noiseparty_tag);
             SeekBar seekBar = (SeekBar) findViewById(R.id.pleasantness_slider);
             List<String> tags = new ArrayList<>(checkedTags.size());
             for (Storage.TagInfo sysTag : Storage.TAGS_INFO) {
@@ -248,15 +280,9 @@ public class CommentActivity extends MainActivity {
             measurementManager.updateRecordUserInput(record.getId(), description.getText()
                     .toString(), userInputSeekBar.get() ? (short)((seekBar.getProgress() /
                     (double)seekBar.getMax()) * 100) : null,
-                    tags.toArray(new String[tags.size()]), photo_uri);
+                    tags.toArray(new String[tags.size()]), photo_uri, noisePartyTag.getText()
+                            .toString().trim().replaceAll("[^A-Za-z0-9_]", ""));
         }
-    }
-
-    static int darker(int color) {
-        float[] hsv = new float[3];
-        Color.colorToHSV(color, hsv);
-        hsv[2] = 1.0f - 0.4f * (1.0f - hsv[2]);
-        return Color.HSVToColor(hsv);
     }
 
     private void addTag(String tagName, int id, ViewGroup column, int color) {
@@ -391,13 +417,6 @@ public class CommentActivity extends MainActivity {
         }
     }
 
-    @Override
-    public void startActivity(Intent intent) {
-        // Save content
-        saveChanges();
-        super.startActivity(intent);
-    }
-
     private static final class OnGoToResultPage implements View.OnClickListener {
         private CommentActivity activity;
 
@@ -407,9 +426,13 @@ public class CommentActivity extends MainActivity {
 
         @Override
         public void onClick(View v) {
+            // Save changes
+            activity.saveChanges();
             //Open result page
             Intent ir = new Intent(activity, Results.class);
-            ir.putExtra(MainActivity.RESULTS_RECORD_ID, activity.record.getId());
+            if(activity.record != null) {
+                ir.putExtra(MainActivity.RESULTS_RECORD_ID, activity.record.getId());
+            }
             ir.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
             activity.startActivity(ir);
         }
@@ -429,9 +452,11 @@ public class CommentActivity extends MainActivity {
             // Add the buttons
             builder.setPositiveButton(R.string.comment_delete_record, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
-                    // Delete record
-                    activity.measurementManager.deleteRecord(activity.record.getId());
-                    activity.record = null;
+                    if(activity.record != null) {
+                        // Delete record
+                        activity.measurementManager.deleteRecord(activity.record.getId());
+                        activity.record = null;
+                    }
                     // Open measurement page
                     Intent ir = new Intent(activity, MeasurementActivity.class);
                     ir.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -536,7 +561,11 @@ public class CommentActivity extends MainActivity {
         public void onClick(View v) {
             if(activity.photo_uri != null) {
                 Intent intent = new Intent(Intent.ACTION_VIEW);
-                intent.setDataAndType(activity.photo_uri,"image/*");
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                Uri uriForIntent = FileProvider.getUriForFile(activity,
+                        "org.noise_planet.noisecapture.fileprovider",
+                       new File(activity.photo_uri.getPath()));
+                intent.setDataAndType(uriForIntent,"image/*");
                 activity.startActivity(intent);
             }
         }

@@ -100,7 +100,8 @@
 
     <!--  Ressources for the spinner map !-->
 
-    <!--  Ressources for the spinner history !-->
+    <!--  Ressources for the spinner history
+          History:HistoryItemListener:onItemClick remove the first entry (upload) !-->
     <string-array name="choice_user_history">
         <item>Upload to community</item>
         <item>Export result</item>
@@ -166,9 +167,9 @@
         <item>Entertainment</item>
         <item>Children</item>
         <item>Music</item>
-        <item>Road t.</item>
-        <item>Rail t.</item>
-        <item>Marine t.</item>
+        <item>Road</item>
+        <item>Rail</item>
+        <item>Marine</item>
         <item>Alarms</item>
         <item>Industrial</item>
         <item>Water</item>
@@ -193,6 +194,7 @@
 
     <string name="history_length">%d s</string>
     <string name="history_date">- %s</string>
+    <string name="history_already_uploaded">This measurement is already uploaded</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Upload</string>
     <string name="map_marker_label">%1$.01f dB(A) Precision: %2$s m</string>
@@ -218,7 +220,9 @@ meta.properties file are general info on device and record:\n
 - record_utc Record time in epoch millisecond\n
 - device_manufacturer device_model device_product Generic Hardware information of measure device\n
 - pleasantness User input pleasantness 1-100\n
-- tags Comma separated values of user selected tags (english only)\n\n
+- tags Comma separated values of user selected tags (english only)\n
+- user_profile User knowledge in acoustics NONE, NOVICE, EXPERT\n
+- noiseparty_tag Record NoiseParty identifier\n\n
 
 track.geojson 1s samples of measures. Using the geojson format (http://geojson.io)\n
 - leq_mean 1s mean equivalent sound level in dB(A)\n
@@ -272,7 +276,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="policy_button_continue">Continue</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Privacy Policy</string>
-    <string name="calibration_warning">The calibration procedure requires the use of a calibrated reference device such as a sonometer or calibrated smartphone. For more information, refer to the <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">help page</a> of the application\"</string>
+    <string name="calibration_warning">The calibration procedure requires the use of a calibrated reference device such as a sonometer or calibrated smartphone. For more information, refer to the <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">help page</a> of the application</string>
     <string name="notification_record_content">Measurement in progress... %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Loading of measurements</string>
     <string name="userinfo_tags_measurement_conditions">Measurement conditions</string>
@@ -292,12 +296,12 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>Hann</item>
     </string-array>
     <string name="notification_goto_community_map">Visit http://noise-planet.org, browse the map of all the measurements made by the community</string>
-    <string name="url_noiseplanet_map">http://noise-planet.org/en/map.html</string>
     <string name="title_settings_notification_links">Notification</string>
     <string name="summary_settings_notification_links">Check to display the notification link to Noise-Planet website</string>
     <string name="settings_category_profile">User profile</string>
     <string name="title_settings_user_noise_knowledge">User profile</string>
     <string name="settings_user_noise_knowledge_description">How do you evaluate your knowledge about sound environments ?</string>
+    <string name="hint_userinput_noiseparty_tag">NoiseCapture Party code</string>
     <string-array name="knowledge">
         <item>I have no knowledge in the field of noise</item>
         <item>I have some knowledge in the field of noise</item>

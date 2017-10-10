@@ -42,7 +42,8 @@ import java.time.format.DateTimeFormatter
 title = 'nc_last_measures'
 description = 'Fetch last measures'
 
-inputs = [:]
+inputs = [noiseparty: [name: 'noiseparty', title: 'NoiseParty id',
+                       type: Integer.class, min : 0, max : 1]]
 
 
 outputs = [
@@ -62,34 +63,43 @@ def decodeLatLongFromString(latlong) {
     return null
 }
 
-def getStats(Connection connection) {
+def processRow(sql, record_row) {
+    // Fetch the timezone of this point
+    def res = sql.firstRow("SELECT TZID FROM tz_world WHERE " +
+            "ST_GeomFromText(:geom,4326) && the_geom AND" +
+            " ST_Intersects(ST_GeomFromText(:geom,4326), the_geom) LIMIT 1", [geom: record_row.env])
+    TimeZone tz = res == null ? TimeZone.default : TimeZone.getTimeZone(res.TZID);
+    def formater = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+    def record_utc;
+    if(res) {
+        record_utc = record_row.record_utc.toInstant().atZone(tz.toZoneId()).format(formater);
+    } else {
+        record_utc = record_row.record_utc
+    }
+    def center = decodeLatLongFromString(record_row.env)
+    def longitude = center != null ? center[0] : null
+    def latitude = center != null ? center[1] : null
+    def the_geom = new JsonSlurper().parseText(record_row.the_geom)
+    def start = new JsonSlurper().parseText(record_row.start_pt)
+    def stop = new JsonSlurper().parseText(record_row.stop_pt)
+    return [time_length : record_row.time_length as Integer, record_utc : record_utc,
+              zoom_level : 18, lat : latitude, long : longitude, bounds : the_geom, start : start,
+              stop : stop, country : record_row.name_0, name_1 : record_row.name_1, name_3 : record_row.name_3];
+}
+
+def getStats(Connection connection, Integer noise_party_id) {
     def data = []
     try {
         // List the 10 last measurements, with aggregation of points
         def sql = new Sql(connection)
-        sql.eachRow("select * from NOISECAPTURE_STATS_LAST_TRACKS") {
-            record_row ->
-                // Fetch the timezone of this point
-                def res = sql.firstRow("SELECT TZID FROM tz_world WHERE " +
-                        "ST_GeomFromText(:geom,4326) && the_geom AND" +
-                        " ST_Intersects(ST_GeomFromText(:geom,4326), the_geom) LIMIT 1", [geom: record_row.env])
-                TimeZone tz = res == null ? TimeZone.default : TimeZone.getTimeZone(res.TZID);
-                def formater = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-                def record_utc;
-                if(res) {
-                    record_utc = record_row.record_utc.toInstant().atZone(tz.toZoneId()).format(formater);
-                } else {
-                    record_utc = record_row.record_utc
-                }
-                def center = decodeLatLongFromString(record_row.env)
-                def longitude = center != null ? center[0] : null
-                def latitude = center != null ? center[1] : null
-                def the_geom = new JsonSlurper().parseText(record_row.the_geom)
-                def start = new JsonSlurper().parseText(record_row.start_pt)
-                def stop = new JsonSlurper().parseText(record_row.stop_pt)
-                data.add([time_length : record_row.time_length as Integer, record_utc : record_utc,
-                          zoom_level : 18, lat : latitude, long : longitude, bounds : the_geom, start : start,
-                          stop : stop, country : record_row.name_0, name_1 : record_row.name_1, name_3 : record_row.name_3])
+        if(noise_party_id == null) {
+            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party is null order by record_utc desc") {
+                record_row -> data.add(processRow(sql, record_row))
+            }
+        } else {
+            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party = :noise_party_id order by record_utc desc", ["noise_party_id" : noise_party_id]) {
+                record_row -> data.add(processRow(sql, record_row))
+            }
         }
     } catch (SQLException ex) {
         throw ex
@@ -107,7 +117,7 @@ def run(input) {
     // Open PostgreSQL connection
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : JsonOutput.toJson(getStats(connection))]
+        return [result : JsonOutput.toJson(getStats(connection, input["noiseparty"] as Integer))]
     } finally {
         connection.close()
     }

@@ -84,7 +84,7 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         // convert to hexagons
         new nc_process().process(connection, 10)
         // Fetch data
-        def arrayData = new nc_get_area_info().getAreaInfo(connection, -139656, 265210)
+        def arrayData = new nc_get_area_info().getAreaInfo(connection, -139656, 265210, null)
         assertFalse(arrayData.isEmpty())
         assertEquals(62.37, (double)(arrayData.la50), 0.1)
         assertEquals(69, (double)(arrayData.mean_pleasantness), 0.01)
@@ -110,7 +110,7 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
                 "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :laeq, :la50,:lden," +
                 " :mean_pleasantness, :measure_count, :first_measure, :last_measure, :tzid)", fields)
         // Fetch data
-        arrayData = new nc_get_area_info().getAreaInfo(connection, 5, 10)
+        arrayData = new nc_get_area_info().getAreaInfo(connection, 5, 10, null)
         assertNull(arrayData.mean_pleasantness)
         JsonOutput.toJson(arrayData);
 
@@ -129,7 +129,7 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         assertEquals(1, processed)
         // Read db; check content
         def row = sql.firstRow("SELECT cell_q, cell_r FROM  noisecapture_area")
-        def arrayData = new nc_get_area_info().getAreaInfo(connection, row.cell_q, row.cell_r)
+        def arrayData = new nc_get_area_info().getAreaInfo(connection, row.cell_q, row.cell_r, null)
         assertNotNull(arrayData)
         assertEquals(72, arrayData["profile"].size())
         assertNull(arrayData["profile"][0])
@@ -140,5 +140,33 @@ class TestNoiseCaptureGetArea extends GroovyTestCase {
         assertEquals(65.0d, (Double)arrayData["profile"][43]["la50"], 0.01d)
         assertEquals(60.0d, (Double)arrayData["profile"][69]["la50"], 0.01d)
         JsonOutput.toJson(arrayData); // Check if conversion goes well
+    }
+
+    void testTagExtract() {
+        Sql.LOG.level = java.util.logging.Level.SEVERE
+        Sql sql = new Sql(connection)
+        // Insert measure data
+        // insert records
+        // Create party before parsing party measurement
+        sql.execute("INSERT INTO noisecapture_party (the_geom, layer_name, title, tag, description) VALUES ('POLYGON((-2.34041 47.25688,-2.34041 47.26488,-2.33241 47.26488,-2.33241 47.25688,-2.34041 47.25688))'::geometry, 'noisecapture:noisecapture_area_dw2017', 'Digital Week 2017 Pornichet', 'SNDIGITALWEEK', '<p>La Ville de Pornichet s''associe à la Saint-Nazaire Digital Week le mercredi 20 septembre, et propose de nombreuses animations gratuites et ouvertes à tous dédiées au numérique à l''hippodrome.</p><p>Venez contribuer à la création d''une carte du bruit participative, en temps réel sur les territoires de la CARENE / CAP ATLANTIQUE grâce à l''utilisation d''une application smartphone : Noise Capture.</p>');")
+        // Parse Gwendall measurement
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_07efe9f7-bda1-4e49-8514-f3a2a1fc576d.zip").file))
+
+        def processed = new nc_process().process(connection, 50)
+
+        def row = sql.firstRow("SELECT cell_q, cell_r FROM  noisecapture_area")
+
+        assertNotNull(row);
+
+        def arrayData = new nc_get_area_info().getAreaInfo(connection, row.cell_q, row.cell_r, null)
+        assertNotNull(arrayData)
+
+        assertTrue("tags" in arrayData)
+        assertEquals(1, arrayData["tags"].size())
+        assertEquals("road", arrayData["tags"][0].text)
+        assertEquals(26, arrayData["tags"][0].weight)
+
+
     }
 }

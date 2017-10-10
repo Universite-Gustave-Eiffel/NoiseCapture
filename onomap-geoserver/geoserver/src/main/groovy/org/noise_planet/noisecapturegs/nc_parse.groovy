@@ -76,7 +76,7 @@ static def epochToRFCTime(epochMillisec) {
     return Instant.ofEpochMilli(epochMillisec).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))
 }
 
-def processFile(Connection connection, File zipFile, boolean storeFrequencyLevels = true) throws Exception {
+def static Integer processFile(Connection connection, File zipFile, boolean storeFrequencyLevels = true) throws Exception {
     def zipFileName = zipFile.getName()
     def recordUUID = zipFileName.substring("track_".length(), zipFileName.length() - ".zip".length())
     connection.setAutoCommit(false)
@@ -121,10 +121,14 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
     def idUser
     if (res == null) {
         // Create user
-        idUser = sql.executeInsert("INSERT INTO noisecapture_user(user_uuid, date_creation) VALUES (:uuid, current_date)",
-                [uuid: meta.getProperty("uuid")])[0][0]
+        idUser = sql.executeInsert("INSERT INTO noisecapture_user(user_uuid, date_creation, profile) VALUES (:uuid, current_date, :profile)",
+                [uuid: meta.getProperty("uuid"), profile: meta.getProperty("user_profile", "")])[0][0]
     } else {
         idUser = res.get("pk_user")
+        if(meta.hasProperty("user_profile") && res.profile as String != meta.getProperty("user_profile")) {
+            // Update account information
+            sql.executeUpdate("UPDATE noisecapture_user set profile = :profile where user_uuid = :uuid", [profile: meta.getProperty("user_profile"), uuid : meta.getProperty("uuid")])
+        }
     }
     // Check if this measurement has not been already uploaded
     def oldTrackCount = sql.firstRow("SELECT count(*) cpt FROM  noisecapture_track where record_utc=:recordutc::timestamptz and pk_user=:userid",
@@ -133,6 +137,16 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
         def previousTrack = sql.firstRow("SELECT track_uuid FROM  noisecapture_track where record_utc=:recordutc::timestamptz and pk_user=:userid",
                 [recordutc: epochToRFCTime(Long.valueOf(meta.getProperty("record_utc"))), userid: idUser])
         throw new InvalidParameterException("User tried to reupload " + previousTrack.get("track_uuid"))
+    }
+    Integer idParty = null;
+    String party_tag = meta.getProperty("noiseparty_tag")
+    if(party_tag != null && !party_tag.isEmpty()) {
+        // Fetch noise party id
+        def result = sql.firstRow("SELECT pk_party FROM  noisecapture_party where tag=:tag and (NOT filter_time OR (start_time <= :record_utc::timestamptz AND  end_time >= :record_utc::timestamptz))",
+                [tag: party_tag, record_utc : epochToRFCTime(Long.valueOf(meta.getProperty("record_utc")))])
+        if(result != null) {
+            idParty = result.pk_party as Integer
+        }
     }
     // insert record
     Map record = [track_uuid         : recordUUID,
@@ -145,11 +159,12 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
                   device_manufacturer: meta.get("device_manufacturer"),
                   noise_level        : Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")),
                   time_length        : meta.get("time_length") as int,
-                  gain_calibration   : Double.valueOf(meta.getProperty("gain_calibration", "0").replace(",", "."))]
+                  gain_calibration   : Double.valueOf(meta.getProperty("gain_calibration", "0").replace(",", ".")),
+                  noiseparty_id      : idParty]
     def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
-            " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration) VALUES (" +
+            " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration, pk_party) VALUES (" +
             ":track_uuid, :pk_user, :version_number,:record_utc::timestamptz, :pleasantness, :device_product, :device_model," +
-            " :device_manufacturer, :noise_level, :time_length, :gain_calibration)", record)[0][0] as Integer
+            " :device_manufacturer, :noise_level, :time_length, :gain_calibration, :noiseparty_id)", record)[0][0] as Integer
     // insert tags
     String tags = meta.getProperty("tags", "")
     if (!tags.isEmpty()) {
@@ -189,6 +204,7 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
         throw new InvalidParameterException("No track.geojson file")
     }
 
+    def startLocation = null
     jsonRoot.features.each() { feature ->
         def theGeom = "GEOMETRYCOLLECTION EMPTY"
         if (feature.geometry != null) {
@@ -198,6 +214,9 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
             } else {
                 // The_geom column are 3d forced, so, must set a Z value
                 theGeom = "POINT($x $y)" as String
+            }
+            if(startLocation == null) {
+                startLocation = theGeom
             }
         }
         def p = feature.properties
@@ -224,11 +243,20 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
             // Insert frequency
             sql.withBatch("INSERT INTO noisecapture_freq VALUES (:pkpoint, :freq, :noiselvl)") { batch ->
                 p.findAll { it.key ==~ 'leq_[0-9]{3,5}' }.each { key, spl ->
-                    freq = key.substring("leq_".length()) as Integer
+                    def freq = key.substring("leq_".length()) as Integer
                     batch.addBatch([pkpoint: ptId, freq: freq, noiselvl: spl as Double])
                 }
                 batch.executeBatch()
             }
+        }
+    }
+
+    // Remove pk_party if the track is out of bounds
+    if(idParty != null && startLocation != null) {
+        def queryParty = sql.firstRow("SELECT ST_CONTAINS(THE_GEOM, :geom::geometry) ISCONTAINS, filter_area FROM noisecapture_party WHERE pk_party = :pkparty", [pkparty: idParty, geom : startLocation])
+        if(queryParty.filter_area && !queryParty.iscontains) {
+            sql.execute("UPDATE NOISECAPTURE_TRACK SET PK_PARTY = NULL WHERE PK_TRACK = :pktrack", [pktrack:recordId])
+            idParty = null;
         }
     }
 
@@ -238,6 +266,8 @@ def processFile(Connection connection, File zipFile, boolean storeFrequencyLevel
 
     // Accept changes
     connection.commit();
+
+    return idParty
 }
 
 def Connection openPostgreSQLConnection() {
@@ -264,17 +294,72 @@ def static Connection openPostgreSQLDataStoreConnection() {
     return jdbcDataStore.getDataSource().getConnection()
 }
 
-def static void buildStatistics(Connection connection) {
+def static void buildStatistics(Connection connection, Integer pkParty) {
     def sql = new Sql(connection)
     connection.setAutoCommit(false)
-    sql.execute("DROP TABLE IF EXISTS NOISECAPTURE_STATS_LAST_TRACKS")
-    sql.execute("CREATE TABLE NOISECAPTURE_STATS_LAST_TRACKS AS select t.pk_track, time_length, record_utc,ST_AsGeoJson(t.env) the_geom, st_astext(ST_Centroid(t.env)) env,ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_start WHERE np_start.pk_track = t.pk_track ORDER BY time_date ASC LIMIT 1)) start_pt,  ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_stop WHERE np_stop.pk_track = t.pk_track ORDER BY time_date DESC LIMIT 1)) stop_pt, name_0, name_1,(CASE WHEN (name_3 IS NULL OR name_3 = '') THEN name_2 ELSE name_3 END) name_3 from (select t.pk_track,time_length, record_utc, ST_EXTENT(p.the_geom) env from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track and p.accuracy > 0 and p.accuracy < 15 GROUP BY t.pk_track order by t.record_utc DESC LIMIT 30) t, gadm28 where gadm28.the_geom && t.env AND ST_CONTAINS(gadm28.the_geom, ST_SetSRID(ST_Centroid(t.env),4326))")
+    sql.execute("DELETE FROM NOISECAPTURE_STATS_LAST_TRACKS WHERE (pk_party = :pk_party::int OR (:pk_party::int is null and pk_party is null))", [pk_party : pkParty])
+    sql.execute("INSERT INTO NOISECAPTURE_STATS_LAST_TRACKS select t.pk_track, time_length, record_utc,ST_AsGeoJson(t.env) the_geom, st_astext(ST_Centroid(t.env)) env,ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_start WHERE np_start.pk_track = t.pk_track AND NOT ST_ISEMPTY(np_start.THE_GEOM) AND accuracy < 15 ORDER BY time_date ASC LIMIT 1)) start_pt,  ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_stop WHERE np_stop.pk_track = t.pk_track AND NOT ST_ISEMPTY(np_stop.THE_GEOM) AND accuracy < 15 ORDER BY time_date DESC LIMIT 1)) stop_pt, name_0, name_1,(CASE WHEN (name_3 IS NULL OR name_3 = '') THEN name_2 ELSE name_3 END) name_3, :pk_party::int from (select t.pk_track,time_length, record_utc, ST_EXTENT(p.the_geom) env, pk_party from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track and p.accuracy > 0 and p.accuracy < 15 and (pk_party = :pk_party::int OR :pk_party::int is null) GROUP BY t.pk_track order by t.record_utc DESC LIMIT 30) t, gadm28 where gadm28.the_geom && t.env AND ST_CONTAINS(gadm28.the_geom, ST_SetSRID(ST_Centroid(t.env),4326))", [pk_party : pkParty])
     sql.commit()
     connection.setAutoCommit(true)
 }
 
-def run(input) {
+def static int processFiles(Connection connection, File[] files, int processFileLimit, boolean moveFiles) {
     Logger logger = LoggerFactory.getLogger("logger_nc_parse")
+    int processed = 0
+    Set<Integer> partyIds = new HashSet<>();
+    for (File zipFile : files) {
+        try {
+            partyIds.add(processFile(connection, zipFile, false))
+            // Move file to processed folder
+            File processedDir = new File("data_dir/onomap_archive");
+            if (!processedDir.exists() && moveFiles) {
+                processedDir.mkdirs()
+            }
+            if(moveFiles) {
+                zipFile.renameTo(new File(processedDir, zipFile.getName()))
+            }
+        } catch (SQLException|InvalidParameterException ex) {
+            if(moveFiles) {
+                // Move file to error folder
+                File errorDir = new File("data_dir/onomap_archive_error");
+                if (!errorDir.exists()) {
+                    errorDir.mkdirs()
+                }
+                zipFile.renameTo(new File(errorDir, zipFile.getName()))
+            }
+            // Log error
+            logger.error(zipFile.getName() + " Message: " + ex.getMessage());
+
+            if(ex instanceof SQLException) {
+                logger.error("SQLState: " +
+                        ex.getSQLState());
+
+                logger.error("Error Code: " +
+                        ex.getErrorCode());
+
+                Throwable t = ex.getCause();
+                while (t != null) {
+                    logger.error("Cause: " + t);
+                    t = t.getCause();
+                }
+            }
+            connection.rollback();
+        }
+        processed++
+        if(processFileLimit > 0 && processed > processFileLimit) {
+            break;
+        }
+    }
+    // Add null party id in order to be sure to rebuild global history
+    partyIds.add(null)
+    // Build x lasts measurements history for each NoiseParty (id!=null) and for the global histry (id=null)
+    partyIds.each { partyId -> buildStatistics(connection, partyId)}
+
+    return processed
+}
+
+def run(input) {
+    int processFileLimit = input["processFileLimit"] as Integer;
     File dataDir = new File("data_dir/onomap_uploading");
     int processed = 0
     if (dataDir.exists()) {
@@ -283,45 +368,7 @@ def run(input) {
             // Open PostgreSQL connection
             Connection connection = openPostgreSQLDataStoreConnection()
             try {
-                for (File zipFile : files) {
-                    try {
-                        processFile(connection, zipFile, false)
-                        // Move file to processed folder
-                        File processedDir = new File("data_dir/onomap_archive");
-                        if (!processedDir.exists()) {
-                            processedDir.mkdirs()
-                        }
-                        zipFile.renameTo(new File(processedDir, zipFile.getName()))
-                    } catch (SQLException|InvalidParameterException ex) {
-                        // Move file to error folder
-                        File errorDir = new File("data_dir/onomap_archive_error");
-                        if (!errorDir.exists()) {
-                            errorDir.mkdirs()
-                        }
-                        zipFile.renameTo(new File(errorDir, zipFile.getName()))
-
-                        // Log error
-                        logger.error(zipFile.getName() + " Message: " + ex.getMessage());
-
-                        if(ex instanceof SQLException) {
-                            logger.error("SQLState: " +
-                                    ex.getSQLState());
-
-                            logger.error("Error Code: " +
-                                    ex.getErrorCode());
-
-                            Throwable t = ex.getCause();
-                            while (t != null) {
-                                logger.error("Cause: " + t);
-                                t = t.getCause();
-                            }
-                        }
-                        connection.rollback();
-                    }
-                    processed++
-                }
-                // Feed last measures table
-                buildStatistics(connection)
+                processed = processFiles(connection, files, processFileLimit, true)
             } finally {
                 connection.close()
             }

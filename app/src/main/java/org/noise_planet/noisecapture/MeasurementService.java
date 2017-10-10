@@ -410,13 +410,21 @@ public class MeasurementService extends Service {
             leqAdded.set(Math.max(0, leqAdded.get() - deletedLeq));
             // Recompute LeqStats altered by the removed leq
             LeqStats newLeqStats = new LeqStats();
-            for(MeasurementManager.LeqBatch leq : measurementManager
-                    .getRecordLocations(recordId, false, 0)) {
-                newLeqStats.addLeq(leq.computeGlobalLeq());
+            // Query database
+            List<Integer> frequencies = new ArrayList<Integer>();
+            List<Float[]> leqValues = new ArrayList<Float[]>();
+            measurementManager.getRecordLeqs(recordId, frequencies, leqValues, null);
+            // parse each leq window time
+            for(Float[] leqFreqs : leqValues) {
+                double rms = 0;
+                for(float leqValue : leqFreqs) {
+                    rms += Math.pow(10, leqValue / 10);
+                }
+                newLeqStats.addLeq(10 * Math.log10(rms));
             }
             leqStats = newLeqStats;
-        }
-        if(newState && recordId > -1) {
+            leqStatsFast = new LeqStats(newLeqStats);
+        } else if(newState && recordId > -1) {
             leqStatsFast = new LeqStats();
         }
     }

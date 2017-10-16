@@ -1,0 +1,310 @@
+<resources>
+
+    <string name="app_name">NoiseCapture</string>
+
+    <string name="action_settings">Einstellungen</string>
+    <string name="comment_cancel_change">Abbrechen</string>
+    <string name="comment_save_change">Speichern</string>
+    <string name="comment_delete_record">Löschen</string>
+    <string name="comment_title_save_change">Änderungen speichern?</string>
+    <string name="comment_title_delete">Messung löschen?</string>
+    <string name="history_title_delete">Ausgewählte Messung(en) löschen?</string>
+
+    <string name="record_message">Start drücken um zu starten</string>
+    <string name="calibrate_done">Kalibrierung durchgeführt, Ergebnis wurde auf %1$.1f dB gesetzt</string>
+    <string name="calibration_out_bounds_title">Lärmpegel zu gering</string>
+    <string name="calibration_out_bounds">Der Geräuschpegel der Kalibrierung ist inkompatibel mit den Hardware-Limits, er muss zwischen %1$.0f dB und %2$.0f dB liegen</string>
+    <string name="calibration_save_change">Ignorieren und bestätigen</string>
+    <string name="calibration_cancel_change">Abbrechen</string>
+    <string name="fail_share">Erstellung der Shape-Datei fehlgeschlagen</string>
+    <string name="no_results">Keine Ergebnisse vorhanden. Starten Sie zuerst eine Messung.</string>
+    <string name="no_gps_results">Keine GPS-Koordinaten in dieser Messung vorhanden</string>
+    <string name="no_gps_hint">Kein GPS-Signal</string>
+    <string name="gps_hint_precision">%1$d m</string>
+    <string name="loc_hint">Hinweis zum Standortstatus</string>
+    <string name="permission_explain_audio_record">NoiseCapture benötigt die Erlaubnis \"microphone use\" für Audio-Messungen</string>
+    <string name="permission_explain_gps">NoiseCapture benötigt GPS Ortung um die Ortsbestimmung des Lärmpegels auf der Karte durchführen zu können</string>
+    <string name="permission_explain_access_wifi_state">NoiseCapture benötigt die Erlaubnis, auf den WiFi Status zuzugreifen,
+damit keine Daten übertragen werden, wenn Sie nicht über WiFi verbunden sind.</string>
+
+    <string name="title_menu">Menü</string>
+    <string name="title_service_measurement">Messung</string>
+    <string name="title_activity_measurement">Messung</string>
+    <string name="title_activity_results">Ergebnisse</string>
+    <string name="title_activity_history">Historie</string>
+    <string name="title_activity_about">Info</string>
+    <string name="user_id_activity_about">Benutzer ID</string>
+    <string name="title_activity_help">Hilfe</string>
+    <string name="title_appversion">Version %1$s %2$s r.%3$s</string>
+
+    <!-- Caution dialog box at app launch !-->
+    <string name="text_OK">JA, verstanden</string>
+    <string name="title_caution">Achtung</string>
+    <string name="text_caution">Denken Sie daran, dass dieses Programm niemals ein zertifiziertes und kalibriertes Lärmpegelmessgerät ersetzen kann.</string>
+
+    <!-- Caution dialog box for data transfer !-->
+    <string name="text_CANCEL_data_transfer">Abbrechen</string>
+    <string name="no_valid_dba_value">-</string>
+
+    <string name="SL_dBA">dB(A)</string>
+    <string name="SL_dB">dB</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="title_settings_calibration_warmup_time">Aufwärmzeit der Kalibrierung</string>
+    <string name="title_settings_calibration_warmup_time_description">Wartezeit vor der Kalibrierung in Sekunden</string>
+    <string name="title_settings_calibration_time">Kalibrierungszeit</string>
+    <string name="title_settings_calibration_time_description">Kalibrierungszeit in Sekunden</string>
+    <string name="title_settings_calibration_linear_title">Audioausgabe</string>
+    <string name="title_settings_calibration_linear_description">Geräteausgabe für den Linearitäts-Korrelations-Test</string>
+    <string name="setting_general_group">Allgemein</string>
+    <string name="setting_measurement_group">Messung</string>
+    <string name="setting_calibration_group">Kalibrierung</string>
+    <string name="title_settings_data_transfer">Datentransfer</string>
+    <string name="summary_settings_data_transfer">Automatischer Datentransfer von Messungen</string>
+    <string name="title_settings_transfer_wifi_only">Nur W-LAN</string>
+    <string name="summary_settings_transfer_wifi_only">Automatischer Datentransfer nur mit W-LAN-Verbindung</string>
+    <string name="title_settings_recording">Aufnahme läuft</string>
+    <string name="summary_settings_recording">Maximale Länge der Aufnahme setzen</string>
+    <string name="title_settings_caution">Warnmeldung</string>
+    <string name="summary_settings_tooltip">Auswählen, um Tooltips bei Berührung von Elementen in NoiseCapture anzuzeigen</string>
+    <string name="title_settings_tooltip">Tooltip-Meldung</string>
+    <string name="summary_settings_caution">Auswählen, um die Warnmeldung während des Programmstarts anzuzeigen</string>
+    <string name="title_settings_recording_duration">Dauer der Aufnahme</string>
+
+
+    <string name="title_settings_recording_gain">Signalpegel (Gain)</string>
+    <string name="summary_settings_recording_gain">Kalibrierungssignalpegel (Gain) in dB setzen</string>
+
+    <string name="title_settings_spectrogram_logscalemode">Spektrogrammanzeige</string>
+    <string name="title_settings_delete_leq_on_pause">Leq bei Pause löschen</string>
+    <string name="title_settings_delete_leq_on_pause_description">Bei Pause die letzten aufgenommenen Sekunden löschen</string>
+    <string name="summary_settings_spectrogram_logscalemode">Auswählen für eine logarithmische Frequenzskala, abwählen für eine lineare</string>
+    <string name="summary_settings_recording_duration">Aufnahmedauer setzen (in Sekunden)</string>
+    <string name="measurement_dba_min">Min</string>
+    <string name="measurement_dba_max">Max</string>
+    <string name="measurement_dba_mean">Mittelwert</string>
+    <string name="measurement_dba_la10">LA10</string>
+    <string name="measurement_dba_la50">LA50</string>
+    <string name="measurement_dba_la90">LA90</string>
+    <string name="measurement_tab_spectrum">Spektrum</string>
+    <string name="measurement_tab_spectrogram">Spektogramm</string>
+    <string name="measurement_tab_map">Karte</string>
+
+    <!--  Ressources for the spinner calibration !-->
+    <string name="title_choice_data_map">Daten auswählen:</string>
+    <string-array name="choice_user_map">
+        <item>Ausgewählte Aufnahme</item>
+        <item>Alle Aufnahmen</item>
+        <item>Lärmkarte der Community</item>
+    </string-array>
+
+    <!--  Ressources for the spinner map !-->
+
+    <!--  Ressources for the spinner history
+          History:HistoryItemListener:onItemClick remove the first entry (upload) !-->
+    <string-array name="choice_user_history">
+        <item>Zur Community hochladen</item>
+        <item>Ergebnis exportieren</item>
+        <item>Beschriftung bearbeiten</item>
+        <item>Ergebnis anzeigen</item>
+        <item>Zeige in Karte</item>
+        <item>Löschen</item>
+    </string-array>
+
+    <!--  Ressources for the Drawer and option menu !-->
+    <string-array name="dm_list_array">
+        <item>Messung</item>
+        <item>Beschreibung</item>
+        <item>Ergebnisse</item>
+        <item>Historie</item>
+        <item>Karte</item>
+        <item>Kalibrierung</item>
+        <item>Hilfe</item>
+        <item>Info</item>
+    </string-array>
+    <string name="result_share">Ergebnis teilen</string>
+    <string name="result_button_map">Karte anzeigen</string>
+    <string name="result_button_upload">Upload</string>
+    <string name="result_button_user_feedback">Beschreibung</string>
+    <string name="result_tooltip_nei">Äquivalenter Lärmpegel in dB(A) über die gesamte Messdauer [im Mittelpunkt des farbigen Kreises]</string>
+    <string name="result_tooltip_rne">Dieser Indikator  stellt die zeitliche Verteilung ihrer Lärmexposition dar.
+Jede der fünf Farben entspricht einem bestimmten Lärmpegelbereich.</string>
+    <string name="result_tooltip_minsl">Minimaler 1-Sekunden A-gewichteter Lärmpegel</string>
+    <string name="result_tooltip_maxsl">Maximaler 1-Sekunden A-gewichteter Lärmpegel</string>
+    <string name="result_tooltip_la10">LA10: A-gewichteter Lärmpegel, der für mehr als 10% der
+Messdauer überschritten wird. Mit LA10 kann der Straßenverkehrslärm beschrieben werden, der mit Lärmbelästigung korreliert.</string>
+    <string name="result_tooltip_la50">LA50: A-gewichteter Lärmpegel, der für mehr als 50% der
+Messdauer überschritten wird. LA50 ist der Median des Geräuschpegels</string>
+    <string name="result_tooltip_la90">LA90: A-gewichteter Lärmpegel, der für mehr als 90% der
+Messdauer überschritten wird. Mit LA90 kann der Hintergrundlärmpegel quantifiziert werden.</string>
+    <string name="drawer_open">Navigationsleiste öffnen</string>
+    <string name="drawer_close">Navigationsleiste schließen</string>
+    <string name="url_about">file:///android_asset/html/about.html</string>
+    <string name="url_help">file:///android_asset/html/help.html</string>
+
+    <!--  Ressources for acoustics !-->
+    <string name="caption_SL">Geräuschpegel</string>
+    <string-array name="catNE_list_array">
+        <item>Über 75 dB(A)</item>
+        <item>65-75 dB(A)</item>
+        <item>55-65 dB(A)</item>
+        <item>45-55 dB(A)</item>
+        <item>Unter 45 dB(A)</item>
+    </string-array>
+    <!-- Add new tags at the end, update also this array Storage.TAGS -->
+    <string-array name="tags">
+        <item>TEST</item>
+        <item>Regen</item>
+        <item>Wind</item>
+        <item>Drinnen</item>
+        <item>Schritte</item>
+        <item>Stimme</item>
+        <item>Natürlich</item>
+        <item>Mechanisch</item>
+        <item>Menschlich</item>
+        <item>Arbeitsumgebung</item>
+        <item>Flugverkehr</item>
+        <item>Entertainment</item>
+        <item>Kinder</item>
+        <item>Musik</item>
+        <item>Straße</item>
+        <item>Bahn</item>
+        <item>Schifffahrt</item>
+        <item>Alarme</item>
+        <item>Industrie</item>
+        <item>Wasser</item>
+        <item>Tiere</item>
+        <item>Vegetation</item>
+    </string-array>
+    <string name="title_activity_main">Hauptaktivität</string>
+
+    <string name="title_activity_view_html_page">View_html_page</string>
+    <string name="title_activity_settings">Einstellungen</string>
+    <string name="title_activity_map">Karte</string>
+    <string name="title_activity_start">NoiseCapture</string>
+    <string name="title_activity_calibration_start">Kalibrierung</string>
+    <string name="title_activity_calibration_linearity">Linearitäts-Korrelations-Test</string>
+
+    <string name="start_text_title">NoiseCapture</string>
+    <string name="start_text_subtitle">Geräuschumgebung wird gemessen</string>
+    <string name="start_text_developed_by">Entwickelt von</string>
+    <string name="start_text_supported_by">Unterstützt von</string>
+    <string name="upload_progress_title">Uploading&#8230;</string>
+    <string name="upload_progress_message">Messung wird hochgeladen</string>
+
+    <string name="history_length">%d s</string>
+    <string name="history_date">- %s</string>
+    <string name="history_already_uploaded">Diese Messung wurde bereits hochgeladen</string>
+    <string name="history_sel">%.01f dB(A)</string>
+    <string name="history_upload_top">Hochladen</string>
+    <string name="map_marker_label">%1$.01f dB(A) Präzision: %2$s m</string>
+    <string name="history_uploadeddescr">Wurde dieses Ergebnis bereits zur Community-Datenbank hochgeladen?</string>
+
+    <string name="measurement_processlastsamples">Verbleibende %d Messwerte werden verarbeitet&#8230;</string>
+    <string name="history_item_choice_title">Messung %s</string>
+    <string name="calibration_select_frequency">Anzuzeigende Frequenz auswählen</string>
+    <string name="local_service_started">Ortsbestimmungsservice gestartet</string>
+    <string name="measurement_service_disconnected">Verbindung zum Messservice unterbrochen</string>
+    <string name="measurement_pause">Messung angehalten</string>
+    <string name="delete">Löschen</string>
+    <string name="hint_userinput">Hier drücken um eine Beschreibung anzugeben</string>
+    <string name="no_data_text_description">Start durch Drücken des Aufnahmeknopfs</string>
+    <string name="export_zip_info">Beschreibung der Export-Datei\n\n
+Die Datei meta.properties enthält allgemeine Informationen zum Gerät und zur Aufzeichnung:\n
+- version_name Version der Anwendung\n
+- build_date Datum der APK assembly\n
+- version_number nummerische Version der Anwendung\n
+- time_length Aufzeichnungslänge in Sekunden\n
+- uuid Zufälliger Identifikator (wird beim ersten Start der Anwendung generiert)\n
+- leq_mean Durchschnittspegel in dB(A) der Messung\n
+- record_utc Aufzeichnungszeitpunkt in Millisekunden koordinierte Weltzeit (UTC)\n
+- device_manufacturer device_model device_product Hardware-Information zum Gerät\n
+- pleasantness Annehmlichkeit 1-100\n
+- tags Komma-separierte Werte der vom Nutzer selektierten Tags (nur in Englisch)\n
+- user_profile Erfahrung des Nutzers NONE (keine Angabe), NOVICE (Anfänger), EXPERT (Experte)\n
+- noiseparty_tag Identifikator-Tag (noise party)\n\n
+
+track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.io)\n
+- leq_mean 1s Durchschnittspegel in dB(A)\n
+- accuracy Genauigkeit des Standorts in m (ermittelt über GPS, Netzwerk oder GSM)\n
+- location_utc UTC-Zeit in Millisekunden\n
+- leq_utc Aufzeichnungsdauer in UTC-Millisekunden\n
+- leq_id Unique Identifikator der Aufzeichnung\n
+- marker_color Farbe für geojson.io\n
+- bearing Orientierung. Siehe https://developer.android.com/reference/android/location/Location.html#getBearing()\n
+- speed geschätzte Bewegungsgeschwindigkeit in m/s\n
+- leq_frequency 1s Durchschnittspegel in dB(A) für die spezifizierte Frequenz\n</string>
+    <string name="title_activity_comment">Beschreibung</string>
+    <string name="userinfo_unpleasant">Unangenehm</string>
+    <string name="userinfo_pleasant">Angenehm</string>
+    <string name="userinfo_pleasantness">Grad der Annehmlichkeit</string>
+    <string name="calibration_status_waiting_for_user_start">Warte auf Start der Kalibrierung&#8230;</string>
+    <string name="calibration_status_waiting_for_start_timer">Kalibrierung wird gestartet&#8230;</string>
+    <string name="userinfo_button_measure">Messung</string>
+    <string name="userinfo_button_results">Gültig</string>
+    <string name="userinfo_tags">Hauptquellen</string>
+    <string name="calibration_status_on">Kalibrierung&#8230;</string>
+    <string name="calibration_linear_status_on">Kalibrierung auf %1$.0f dB</string>
+    <string name="calibration_status_end">Kalibrierung abgeschlossen</string>
+    <string name="calibration_status_background_noise">Messung der Hintergrund-Geräusche</string>
+    <string name="calibration_button_start">Start</string>
+    <string name="calibration_button_cancel">Abbrechen</string>
+    <string name="calibration_leq_title">Gemessener Leq:</string>
+    <string name="calibration_measure_title">Referenzwert:</string>
+    <string name="calibration_button_apply">Bestätigen</string>
+    <string name="calibration_button_reset">Zurücksetzen</string>
+    <string name="calibration_test_gain_checkbox">Testergebnis</string>
+    <string name="calibration_mode">Kalibrierungsmodus</string>
+    <string-array name="calibrate_type_list_array">
+        <item>Allgemein</item>
+        <item>125 Hz</item>
+        <item>250 Hz</item>
+        <item>500 Hz</item>
+        <item>1 kHz</item>
+        <item>4 kHz</item>
+        <item>8 kHz</item>
+        <item>16 kHz</item>
+    </string-array>
+    <string name="share_message">Ich messe %.01f dB(A) mit #NoiseCapture @Noise_Planet</string>
+    <string name="summary_settings_measurement_display_window">Fensterfunktion für Echtzeitmessung (wird für das Endergebnis nicht verwendet)</string>
+    <string name="title_settings_measurement_display_window">Echtzeitfenster</string>
+    <string name="title_settings_map_maxmarker">Angezeigte Messgrenzen</string>
+    <string name="summary_settings_map_maxmarker">Maximale Anzahl von Messungen, die auf der Karte angezeigt werden (0 für alle Messungen)</string>
+    <string name="map_title_progress_loading">Messorte werden geladen</string>
+    <string name="policy_legal_age">Ich habe das gesetzliche Mindestalter, um diese App benutzen zu dürfen</string>
+    <string name="policy_agree_statement">Ich stimme den NoiseCapture Datenschutz-Bestimmungen zu</string>
+    <string name="policy_button_continue">Fortfahren</string>
+    <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
+    <string name="privacy_policy_title">Datenschutz-Bestimmungen</string>
+    <string name="calibration_warning">Die Kalibrierung benötigt ein kalibriertes Referenzgerät, wie beispielsweise ein Sonometer oder ein kalibriertes Smartphone. Für mehr Information, siehe <a href=\"org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration\">Hilfeseite</a>des Programms.</string>
+    <string name="notification_record_content">Messung in Arbeit... %1$.1f db(A)</string>
+    <string name="result_title_progress_loading">Messungen werden geladen</string>
+    <string name="userinfo_tags_measurement_conditions">Messbedingungen</string>
+    <string name="notification_goto_community_map_title">Community-Messungen</string>
+
+    <string-array name="output_mode_labels">
+        <item>Anruf</item>
+        <item>Systemklang</item>
+        <item>Klingelton</item>
+        <item>Musik</item>
+        <item>Alarm</item>
+        <item>Benachrichtigung</item>
+        <item>DTMF</item>
+    </string-array>
+    <string-array name="settings_display_measurement_window_labels">
+        <item>Rechteckig</item>
+        <item>Hann</item>
+    </string-array>
+    <string name="notification_goto_community_map">Besuchen Sie http://noise-planet.org und sehen Sie sich die Karte aller Messungen der Community an</string>
+    <string name="title_settings_notification_links">Benachrichtigung</string>
+    <string name="summary_settings_notification_links">Auswählen, um den Benachrichtigungslink zur Noise-Planet Webseite anzuzeigen</string>
+    <string name="settings_category_profile">Benutzerprofil</string>
+    <string name="title_settings_user_noise_knowledge">Benutzerprofil</string>
+    <string name="settings_user_noise_knowledge_description">Wie schätzen Sie ihre Kenntnisse über Geräuschumgebungen ein?</string>
+    <string name="hint_userinput_noiseparty_tag">NoiseCapture Party code</string>
+    <string-array name="knowledge">
+        <item>Ich habe keinerlei Kenntnisse im Bereich Lärm</item>
+        <item>Ich habe einige Kenntnisse im Bereich Lärm</item>
+        <item>Ich bin ein Experte im Bereich Lärm</item>
+    </string-array>
+</resources>

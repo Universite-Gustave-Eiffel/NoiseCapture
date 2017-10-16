@@ -443,18 +443,20 @@ public class AudioProcess implements Runnable {
                     while (!bufferToProcess.isEmpty() && !audioProcess.canceled.get()) {
                         processing.set(true);
                         short[] buffer = bufferToProcess.poll();
-                        if(buffer.length <= window.getMaximalBufferSize()) {
-                            // Good buffer size, use it
-                            processSample(buffer);
-                        } else {
-                            // Buffer is too large for the window
-                            // Split the buffer in multiple parts
-                            int cursor = 0;
-                            while(cursor < buffer.length) {
-                                int sampleLen = Math.min(window.getMaximalBufferSize(), buffer.length - cursor);
-                                short[] samples = Arrays.copyOfRange(buffer, cursor, cursor + sampleLen);
-                                cursor += samples.length;
-                                processSample(samples);
+                        if(buffer != null) {
+                            if (buffer.length <= window.getMaximalBufferSize()) {
+                                // Good buffer size, use it
+                                processSample(buffer);
+                            } else {
+                                // Buffer is too large for the window
+                                // Split the buffer in multiple parts
+                                int cursor = 0;
+                                while (cursor < buffer.length) {
+                                    int sampleLen = Math.min(window.getMaximalBufferSize(), buffer.length - cursor);
+                                    short[] samples = Arrays.copyOfRange(buffer, cursor, cursor + sampleLen);
+                                    cursor += samples.length;
+                                    processSample(samples);
+                                }
                             }
                         }
                     }

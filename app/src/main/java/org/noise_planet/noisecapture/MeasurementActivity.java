@@ -38,14 +38,17 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
+import android.support.design.widget.TabLayout;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.animation.AnimationUtils;
+import android.webkit.WebView;
 import android.widget.Chronometer;
 import android.widget.CompoundButton;
 import android.widget.ImageButton;
@@ -66,16 +69,18 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.YAxisValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
+import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.LeqStats;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MeasurementActivity extends MainActivity implements
-        SharedPreferences.OnSharedPreferenceChangeListener {
+        SharedPreferences.OnSharedPreferenceChangeListener, MapFragment.MapFragmentAvailableListener {
 
     //public ImageButton buttonrecord;
     //public ImageButton buttoncancel;
@@ -83,16 +88,23 @@ public class MeasurementActivity extends MainActivity implements
     private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
     // For the Charts
     protected HorizontalBarChart mChart; // VUMETER representation
-    protected BarChart sChart; // Spectrum representation
-    protected Spectrogram spectrogram;
     private DoProcessing doProcessing;
     private ImageButton buttonrecord;
     private ImageButton buttonPause;
+    private ViewPagerExt viewPager;
+    private static final int PAGE_SPECTRUM = 0;
+    private static final int PAGE_SPECTROGRAM = 1;
+    private static final int PAGE_MAP = 2;
     // From this accuracy the location hint color is orange
     private static final float APROXIMATE_LOCATION_ACCURACY = 10.f;
+    private static final double MINIMAL_DISTANCE_RESTORE_MAP = 3.f;
+    private static final int MAX_LOCATIONS_RESTORE_MAP = 500;
 
     // Other resources
     private boolean mIsBound = false;
+    private long lastMapLocationRefresh = 0;
+    // Map user location refresh rate in milliseconds
+    private static final long REFRESH_MAP_LOCATION_RATE = 1000;
     private AtomicBoolean chronometerWaitingToStart = new AtomicBoolean(false);
 
     public final static double MIN_SHOWN_DBA_VALUE = 20;
@@ -104,10 +116,15 @@ public class MeasurementActivity extends MainActivity implements
     private boolean hasMaximalMeasurementTime;
     private int maximalMeasurementTime = 0;
 
+    // NoiseCapture will switch from Hann window to Rectangular window if the measurement delay
+    // is superior than this value in ms
+    private final static long SWITCH_TO_FAST_RECTANGULAR_DELAY = 1500;
+
     private static final String LOG_SCALE_SETTING = "settings_spectrogram_logscalemode";
     private static final String DELETE_LEQ_ON_PAUSE_SETTING = "settings_delete_leq_on_pause";
     private static final String HAS_MAXIMAL_MEASURE_TIME_SETTING = "settings_recording";
     private static final String MAXIMAL_MEASURE_TIME_SETTING = "settings_recording_duration";
+    private static final String SETTINGS_MEASUREMENT_DISPLAY_WINDOW = "settings_measurement_display_window";
     private static final int DEFAULT_MAXIMAL_MEASURE_TIME_SETTING = 10;
 
     public int getRecordId() {
@@ -116,18 +133,75 @@ public class MeasurementActivity extends MainActivity implements
 
 
     public void initComponents() {
-        spectrogram.setTimeStep(measurementService.getAudioProcess().getFFTDelay());
+        Spectrogram spectrogram = getSpectrogram();
+        if(spectrogram != null) {
+            spectrogram.setTimeStep(measurementService.getAudioProcess().getFFTDelay());
+        }
         setData(0);
         updateSpectrumGUI();
-        Legend ls = sChart.getLegend();
-        ls.setEnabled(false); // Hide legend
+    }
+
+    private Spectrogram getSpectrogram() {
+        View view = ((ViewPagerAdapter)viewPager.getAdapter()).getItem(PAGE_SPECTROGRAM).getView();
+        if(view != null) {
+            return (Spectrogram) view.findViewById(R.id.spectrogram_view);
+        } else {
+            return null;
+        }
+    }
+
+    private BarChart getSpectrum() {
+        View view = ((ViewPagerAdapter)viewPager.getAdapter()).getItem(PAGE_SPECTRUM).getView();
+        if(view != null) {
+            return (BarChart) view.findViewById(R.id.spectrumChart);
+        } else {
+            return null;
+        }
+    }
+
+    private WebView getMap() {
+        View view = ((ViewPagerAdapter)viewPager.getAdapter()).getItem(PAGE_MAP).getView();
+        if(view != null) {
+            return (WebView) view.findViewById(R.id.measurement_webmapview);
+        } else {
+            return null;
+        }
+    }
+
+    private MapFragment getMapControler() {
+        return (MapFragment) (((ViewPagerAdapter)viewPager.getAdapter()).getItem(PAGE_MAP));
+    }
+
+    private void setupViewPager(ViewPagerExt viewPager) {
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        adapter.addFragment(new MeasurementSpectrumFragment(), getString(R.string.measurement_tab_spectrum));
+        adapter.addFragment(new MeasurementSpectrogramFragment(), getString(R.string.measurement_tab_spectrogram));
+        MapFragment mapFragment = new MapFragment();
+        mapFragment.setMapFragmentAvailableListener(this);
+        adapter.addFragment(mapFragment, getString(R.string.measurement_tab_map));
+        // Give full control of swipe to the map instead of the tabs controller.
+        viewPager.addIgnoredTab(2);
+        viewPager.setAdapter(adapter);
+    }
+
+    @Override
+    public void onMapFragmentAvailable(MapFragment mapFragment) {
+        mapFragment.loadUrl("file:///android_asset/html/map_measurement.html");
+    }
+
+    @Override
+    public void onPageLoaded(MapFragment mapFragment) {
+        // Nothing to do
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if(LOG_SCALE_SETTING.equals(key)) {
-            spectrogram.setScaleMode(sharedPreferences.getBoolean(key, true) ?
-                    Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR);
+            Spectrogram spectrogram = getSpectrogram();
+            if(spectrogram != null) {
+                spectrogram.setScaleMode(sharedPreferences.getBoolean(key, true) ?
+                        Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR);
+            }
         } else if(DELETE_LEQ_ON_PAUSE_SETTING.equals(key)) {
             measurementService.setDeletedLeqOnPause(getInteger(sharedPreferences,key, DEFAULT_DELETE_LEQ_ON_PAUSE));
         } else if(HAS_MAXIMAL_MEASURE_TIME_SETTING.equals(key)) {
@@ -135,8 +209,13 @@ public class MeasurementActivity extends MainActivity implements
                     false);
         } else if(MAXIMAL_MEASURE_TIME_SETTING.equals(key)) {
             maximalMeasurementTime = getInteger(sharedPreferences,MAXIMAL_MEASURE_TIME_SETTING, DEFAULT_MAXIMAL_MEASURE_TIME_SETTING);
-        } if("settings_recording_gain".equals(key) && measurementService != null) {
+        } else if("settings_recording_gain".equals(key) && measurementService != null) {
             measurementService.setdBGain(getDouble(sharedPreferences, key, 0));
+        } else if(SETTINGS_MEASUREMENT_DISPLAY_WINDOW.equals(key) && measurementService != null) {
+            measurementService.getAudioProcess().setHannWindowFast(sharedPreferences.getString(SETTINGS_MEASUREMENT_DISPLAY_WINDOW, "RECTANGULAR").equals("HANN"));
+            if(BuildConfig.DEBUG) {
+                System.out.println("Switch to Rectangular window");
+            }
         }
     }
 
@@ -159,10 +238,8 @@ public class MeasurementActivity extends MainActivity implements
         hasMaximalMeasurementTime = sharedPref.getBoolean(HAS_MAXIMAL_MEASURE_TIME_SETTING,
                 false);
         maximalMeasurementTime = getInteger(sharedPref, MAXIMAL_MEASURE_TIME_SETTING, DEFAULT_MAXIMAL_MEASURE_TIME_SETTING);
-        if (CheckNbRun() & CheckNbRunSettings) {
-
-            // show dialog
-            // TODO : verify calibration mode and inform user
+        if (CheckNbRunSettings && CheckNbRun("NbRunMaxCaution", getResources().getInteger(R.integer
+                .NbRunMaxCaution))) {
             new AlertDialog.Builder(this).setTitle(R.string.title_caution)
                     .setMessage(R.string.text_caution)
                     .setNeutralButton(R.string.text_OK, null)
@@ -173,25 +250,6 @@ public class MeasurementActivity extends MainActivity implements
         // Enabled/disabled buttons
         buttonPause = (ImageButton) findViewById(R.id.pauseBtn);
         buttonPause.setEnabled(false);
-
-        // Display element in expert mode or not
-        Boolean CheckViewModeSettings = sharedPref.getBoolean("settings_view_mode", true);
-        //FrameLayout Frame_Stat_SEL = (FrameLayout) findViewById(R.id.Frame_Stat_SEL);
-        TextView textView_value_Min_i = (TextView) findViewById(R.id.textView_value_Min_i);
-        TextView textView_value_Mean_i = (TextView) findViewById(R.id.textView_value_Mean_i);
-        TextView textView_value_Max_i = (TextView) findViewById(R.id.textView_value_Max_i);
-        TextView textView_title_Min_i = (TextView) findViewById(R.id.textView_title_Min_i);
-        TextView textView_title_Mean_i = (TextView) findViewById(R.id.textView_title_Mean_i);
-        TextView textView_title_Max_i = (TextView) findViewById(R.id.textView_title_Max_i);
-        if (!CheckViewModeSettings){
-            textView_value_Min_i.setVisibility(View.GONE);
-            textView_value_Mean_i.setVisibility(View.GONE);
-            textView_value_Max_i.setVisibility(View.GONE);
-            textView_title_Min_i.setVisibility(View.GONE);
-            textView_title_Mean_i.setVisibility(View.GONE);
-            textView_title_Max_i.setVisibility(View.GONE);
-        }
-
 
         // To start a record (test mode)
         buttonrecord = (ImageButton) findViewById(R.id.recordBtn);
@@ -206,34 +264,26 @@ public class MeasurementActivity extends MainActivity implements
         buttonPause.setOnClickListener(onButtonPause);
         buttonPause.setOnTouchListener(new ToggleButtonTouch(this));
 
+        // Init tabs (Spectrum, Spectrogram, Map)
+
+        viewPager = (ViewPagerExt) findViewById(R.id.measurement_viewpager);
+        setupViewPager(viewPager);
+        TabLayout tabLayout = (TabLayout) findViewById(R.id.measurement_tabs);
+        tabLayout.setupWithViewPager(viewPager);
+
         // Instantaneous sound level VUMETER
         // Stacked bars are used for represented Min, Current and Max values
         // Horizontal barchart
         LinearLayout graphLayouts = (LinearLayout) findViewById(R.id.graph_components_layout);
-        sChart = (BarChart) findViewById(R.id.spectrumChart);
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
-        spectrogram = (Spectrogram) findViewById(R.id.spectrogram_view);
-        spectrogram.setScaleMode(sharedPref.getBoolean("settings_spectrogram_logscalemode", true) ?
-                Spectrogram.SCALE_MODE.SCALE_LOG : Spectrogram.SCALE_MODE.SCALE_LINEAR);
         mChart.setTouchEnabled(false);
-        sChart.setTouchEnabled(false);
-        // When user click on spectrum control, view are switched
-        SwitchVisibilityListener switchVisibilityListener = new SwitchVisibilityListener(sChart, spectrogram);
-        graphLayouts.setOnClickListener(switchVisibilityListener);
-        initSpectrum();
+
         initVueMeter();
         setData(0);
         // Legend: hide all
         Legend lv = mChart.getLegend();
         lv.setEnabled(false); // Hide legend
 
-        // Instantaneous spectrum
-        // Stacked bars are used for represented Min, Current and Max values
-        sChart = (BarChart) findViewById(R.id.spectrumChart);
-        if (!CheckViewModeSettings){
-            sChart.setVisibility(View.GONE);
-        }
-        initSpectrum();
     }
 
     @Override
@@ -268,6 +318,7 @@ public class MeasurementActivity extends MainActivity implements
             // Stop measurement without waiting for the end of processing
             measurementService.setPause(!measurementService.isPaused());
             chronometerWaitingToStart.set(true);
+            MeasurementActivity.this.runOnUiThread(new UpdateText(MeasurementActivity.this));
         }
     };
 
@@ -289,33 +340,6 @@ public class MeasurementActivity extends MainActivity implements
     }
 
 
-    private void initSpectrum() {
-        sChart.setDrawBarShadow(false);
-        sChart.setDescription("");
-        sChart.setPinchZoom(false);
-        sChart.setDrawGridBackground(false);
-        sChart.setMaxVisibleValueCount(0);
-        sChart.setNoDataTextDescription(getText(R.string.no_data_text_description).toString());
-        // XAxis parameters:
-        XAxis xls = sChart.getXAxis();
-        xls.setPosition(XAxisPosition.BOTTOM);
-        xls.setDrawAxisLine(true);
-        xls.setDrawGridLines(false);
-        xls.setDrawLabels(true);
-        xls.setTextColor(Color.WHITE);
-        // YAxis parameters (left): main axis for dB values representation
-        YAxis yls = sChart.getAxisLeft();
-        yls.setDrawAxisLine(true);
-        yls.setDrawGridLines(true);
-        yls.setAxisMaxValue(110.f);
-        yls.setStartAtZero(true);
-        yls.setTextColor(Color.WHITE);
-        yls.setGridColor(Color.WHITE);
-        yls.setValueFormatter(new SPLValueFormatter());
-        // YAxis parameters (right): no axis, hide all
-        YAxis yrs = sChart.getAxisRight();
-        yrs.setEnabled(false);
-    }
 
     // Init RNE Pie Chart
     public void initVueMeter(){
@@ -346,33 +370,6 @@ public class MeasurementActivity extends MainActivity implements
         //return true;
     }
 
-    /***
-     * Checks that application runs first time and write flags at SharedPreferences
-     * Need further codes for enhancing conditions
-     * @return true if 1st time
-     * see : http://stackoverflow.com/questions/9806791/showing-a-message-dialog-only-once-when-application-is-launched-for-the-first
-     * see also for checking version (later) : http://stackoverflow.com/questions/7562786/android-first-run-popup-dialog
-     * Can be used for checking new version
-     */
-    private boolean CheckNbRun() {
-        Resources res = getResources();
-        Integer NbRunMaxCaution = res.getInteger(R.integer.NbRunMaxCaution);
-        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
-        SharedPreferences.Editor editor = preferences.edit();
-                Integer NbRun = preferences.getInt("NbRun", 1);
-        if (NbRun > NbRunMaxCaution) {
-            NbRun=1;
-            editor.putInt("NbRun", NbRun+1);
-            editor.apply();
-        }
-        else
-        {
-            editor.putInt("NbRun", NbRun+1);
-            editor.apply();
-            //AlreadyRanBefore = preferences.getBoolean("AlreadyRanBefore", false);
-        }
-        return (NbRun==1);
-    }
 
     // Fix the format of the dB Axis of the vumeter
     public class dBValueFormatter implements YAxisValueFormatter {
@@ -440,8 +437,13 @@ public class MeasurementActivity extends MainActivity implements
         BarData data = new BarData(xVals, dataSets);
         data.setValueTextSize(10f);
 
-        sChart.setData(data);
-        sChart.invalidate(); // refresh
+        BarChart sChart = getSpectrum();
+        if(sChart != null){
+            sChart.setData(data);
+            sChart.setPadding(0, 0, 0, 0);
+            sChart.setViewPortOffsets(0,0,0,0);
+            sChart.invalidate(); // refresh
+        }
     }
 
     private static class WaitEndOfProcessing implements Runnable {
@@ -479,7 +481,7 @@ public class MeasurementActivity extends MainActivity implements
                     @Override
                     public void run() {
                         Intent ir = new Intent(activity.getApplicationContext(), CommentActivity.class);
-                        ir.putExtra(Results.RESULTS_RECORD_ID,
+                        ir.putExtra(MainActivity.RESULTS_RECORD_ID,
                                 activity.measurementService.getRecordId());
                         ir.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                         activity.startActivity(ir);
@@ -535,6 +537,23 @@ public class MeasurementActivity extends MainActivity implements
 
             // Start chronometer
             chronometerWaitingToStart.set(true);
+
+            MeasurementManager measurementManager = new MeasurementManager(this);
+
+            MapFragment mapFragment = getMapControler();
+            if(mapFragment != null) {
+                List<MeasurementManager.LeqBatch> locations = measurementManager
+                        .getRecordLocations(measurementService.getRecordId(), true, MAX_LOCATIONS_RESTORE_MAP, null,
+                                MINIMAL_DISTANCE_RESTORE_MAP);
+                mapFragment.cleanMeasurementPoints();
+                for(MeasurementManager.LeqBatch location : locations) {
+                    Storage.Leq leq = location.getLeq();
+                    String htmlColor = MeasurementExport.getColorFromLevel
+                            (location.computeGlobalLeq());
+                    mapFragment.addMeasurement(new MapFragment.LatLng(leq.getLatitude(), leq
+                            .getLongitude()), htmlColor);
+                }
+            }
         }
         else
         {
@@ -565,10 +584,25 @@ public class MeasurementActivity extends MainActivity implements
                 AudioProcess.AudioMeasureResult measure =
                         (AudioProcess.AudioMeasureResult) event.getNewValue();
                 // Realtime audio processing
-                activity.spectrogram.addTimeStep(measure.getResult().getFftResult(),
-                        activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
-                if(activity.isComputingMovingLeq.compareAndSet(false, true)) {
+                Spectrogram spectrogram = activity.getSpectrogram();
+                if(spectrogram  != null) {
+                    spectrogram.addTimeStep(measure.getResult().getFftResult(),
+                            activity.measurementService.getAudioProcess().getFFTFreqArrayStep());
+                }
+                if(activity.isComputingMovingLeq.compareAndSet(false, true) && activity
+                        .measurementService.isRecording()) {
                     activity.runOnUiThread(new UpdateText(activity));
+                }
+                if(activity.measurementService.getAudioProcess().isHannWindowFast() && activity.measurementService.getAudioProcess().getFastNotProcessedMilliseconds() > SWITCH_TO_FAST_RECTANGULAR_DELAY) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(activity.getApplicationContext());
+                            SharedPreferences.Editor editor = sharedPref.edit();
+                            editor.putString(MeasurementActivity.SETTINGS_MEASUREMENT_DISPLAY_WINDOW, "RECTANGULAR");
+                            editor.apply();
+                        }
+                    });
                 }
             } else if(AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
                 if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
@@ -585,6 +619,25 @@ public class MeasurementActivity extends MainActivity implements
                     });
                 }
             }
+            else if(MeasurementService.PROP_NEW_MEASUREMENT.equals(event.getPropertyName())) {
+                if(BuildConfig.DEBUG) {
+                    System.out.println("Measure offset "+activity.measurementService.getAudioProcess().getFastNotProcessedMilliseconds()+" ms");
+                }
+                MapFragment mapFragment = activity.getMapControler();
+                if(mapFragment != null) {
+                    final MeasurementService.MeasurementEventObject measurement = (MeasurementService.MeasurementEventObject) event.getNewValue();
+                    if(!(Double.compare(measurement.leq.getLatitude(), 0) == 0 && Double.compare(measurement.leq.getLongitude(), 0) == 0)) {
+                        activity.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                String htmlColor = MeasurementExport.getColorFromLevel
+                                        (measurement.measure.getGlobaldBaValue());
+                                activity.getMapControler().addMeasurement(new MapFragment.LatLng(measurement.leq.getLatitude(), measurement.leq.getLongitude()), htmlColor);
+                            }
+                        });
+                    }
+                }
+            }
         }
 
         @Override
@@ -599,6 +652,8 @@ public class MeasurementActivity extends MainActivity implements
                 buttonrecord.setImageResource(R.drawable.button_record_pressed);
                 buttonrecord.setEnabled(false);
                 activity.measurementService.startStorage();
+                // Force service to stay alive even if this activity is killed (Foreground service)
+                activity.startService(new Intent(activity, MeasurementService.class));
             } else {
                 // Stop measurement
                 activity.measurementService.stopRecording();
@@ -670,22 +725,31 @@ public class MeasurementActivity extends MainActivity implements
                     //Update accuracy hint
                     final TextView accuracyText = (TextView) activity.findViewById(R.id.textView_value_gps_precision);
                     final ImageView accuracyImageHint = (ImageView) activity.findViewById(R.id.imageView_value_gps_precision);
-                    Float lastPrecision = activity.measurementService.getLastPrecision();
-                    if(lastPrecision == null) {
+                    Location location = activity.measurementService.getLastLocation();
+                    if(location != null) {
+                        float lastPrecision = location.getAccuracy();
+                        if (lastPrecision < APROXIMATE_LOCATION_ACCURACY) {
+                            accuracyImageHint.setImageResource(R.drawable.gps_fixed);
+                            accuracyText.setText(activity.getString(R.string.gps_hint_precision,
+                                    (int)lastPrecision));
+                        } else {
+                            accuracyImageHint.setImageResource(R.drawable.gps_not_fixed);
+                            accuracyText.setText(activity.getString(R.string.gps_hint_precision,
+                                    (int)lastPrecision));
+                        }
+                        if (accuracyImageHint.getVisibility() == View.INVISIBLE) {
+                            accuracyImageHint.setVisibility(View.VISIBLE);
+                        }
+                        long now = System.currentTimeMillis();
+                        if(now - activity.lastMapLocationRefresh >= REFRESH_MAP_LOCATION_RATE) {
+                            activity.getMapControler().updateLocationMarker(new MapFragment.LatLng(location.getLatitude(), location.getLongitude()), location.getAccuracy());
+                            activity.lastMapLocationRefresh = now;
+                        }
+                    } else {
                         accuracyImageHint.setImageResource(R.drawable.gps_off);
                         accuracyText.setText(R.string.no_gps_hint);
-                    } else if(lastPrecision < APROXIMATE_LOCATION_ACCURACY) {
-                        accuracyImageHint.setImageResource(R.drawable.gps_fixed);
-                        accuracyText.setText(activity.getString(R.string.gps_hint_precision,
-                                lastPrecision.intValue()));
-                    } else {
-                        accuracyImageHint.setImageResource(R.drawable.gps_not_fixed);
-                        accuracyText.setText(activity.getString(R.string.gps_hint_precision,
-                                lastPrecision.intValue()));
                     }
-                    if(accuracyImageHint.getVisibility() == View.INVISIBLE) {
-                        accuracyImageHint.setVisibility(View.VISIBLE);
-                    }
+                    // Update current location of user
                     final double leq = activity.measurementService.getAudioProcess().getLeq();
                     activity.setData(leq);
                     // Change the text and the textcolor in the corresponding textview
@@ -726,28 +790,6 @@ public class MeasurementActivity extends MainActivity implements
 
     }
 
-    private static class SwitchVisibilityListener implements View.OnClickListener {
-        private BarChart sChart; // Spectrum representation
-        private Spectrogram spectrogram;
-
-        public SwitchVisibilityListener(BarChart sChart, Spectrogram spectrogram) {
-            this.sChart = sChart;
-            this.spectrogram = spectrogram;
-        }
-
-        @Override
-        public void onClick(View view) {
-            if(sChart.getVisibility() == View.GONE) {
-                sChart.setVisibility(View.VISIBLE);
-                spectrogram.setVisibility(View.GONE);
-            } else {
-                sChart.setVisibility(View.GONE);
-                spectrogram.setVisibility(View.VISIBLE);
-            }
-        }
-    }
-
-
     private MeasurementService measurementService;
 
     private ServiceConnection mConnection = new ServiceConnection() {
@@ -774,8 +816,8 @@ public class MeasurementActivity extends MainActivity implements
             measurementService.getAudioProcess().setDoFastLeq(true);
             measurementService.getAudioProcess().setDoOneSecondLeq(true);
             measurementService.getAudioProcess().setWeightingA(true);
-            measurementService.getAudioProcess().setHannWindowOneSecond(false);
-            measurementService.getAudioProcess().setHannWindowFast(true);
+            measurementService.getAudioProcess().setHannWindowOneSecond(true);
+            measurementService.getAudioProcess().setHannWindowFast(sharedPref.getString(SETTINGS_MEASUREMENT_DISPLAY_WINDOW, "RECTANGULAR").equals("HANN"));
             initGuiState();
         }
 
@@ -818,14 +860,19 @@ public class MeasurementActivity extends MainActivity implements
         doBindService();
         if(measurementService != null) {
             initGuiState();
+            measurementService.getAudioProcess().setDoFastLeq(true);
         }
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if(measurementService != null && !measurementService.isStoring()) {
+        if(measurementService != null) {
             // Disconnect listener from measurement
+            if(measurementService.isStoring()) {
+                // Disable 125ms processing as it is only used for display
+                measurementService.getAudioProcess().setDoFastLeq(false);
+            }
             doUnbindService();
         }
     }

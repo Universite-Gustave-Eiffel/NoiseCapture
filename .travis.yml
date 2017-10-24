@@ -15,7 +15,7 @@ script:
   - ./gradlew -PdisablePreDex check
   - cd onomap-geoserver/geoserver
   - pwd
-  - ./gradlew test --info --stacktrace
+  - travis_retry ./gradlew test --info --stacktrace
 
 before_cache:
   - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock

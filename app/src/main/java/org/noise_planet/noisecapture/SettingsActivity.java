@@ -27,23 +27,20 @@
 
 package org.noise_planet.noisecapture;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class SettingsActivity extends AppCompatActivity {
-
+public class SettingsActivity extends MainActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
-        //initDrawer();
+        Intent intent = getIntent();
+        initDrawer(intent != null ? intent.getIntExtra(RESULTS_RECORD_ID, -1) : null);
 
-        // Display the fragment as the main content.
-        getFragmentManager().beginTransaction()
-                .replace(android.R.id.content, new SettingsFragment())
-                .commit();
     }
 
 

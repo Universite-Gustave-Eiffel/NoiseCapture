@@ -226,8 +226,8 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             assertEquals("Point", result.features[0].geometry.type)
             assertEquals(3, result.features[0].geometry.coordinates.size())
             assertEquals(14.19, (Double)result.features[0].properties.accuracy, 0.01)
-            assertEquals(0.14, (Double)result.features[0].properties.orientation, 0.01)
-            assertEquals(0.0, (Double)result.features[0].properties.speed, 0.01)
+            assertEquals(0.14, (Double)result.features[0].properties.speed, 0.01)
+            assertEquals(0.0, (Double)result.features[0].properties.orientation, 0.01)
             assertEquals(1, (Double)result.features[0].properties.pk_track)
             assertEquals("2016-06-09T14:17:19+02:00", result.features[0].properties.time_ISO8601)
             assertEquals(1465474639000, result.features[0].properties.time_epoch)
@@ -242,8 +242,8 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             assertEquals("Point", result.features[0].geometry.type)
             assertEquals(3, result.features[0].geometry.coordinates.size())
             assertEquals(4.0, (Double)result.features[0].properties.accuracy, 0.01)
-            assertEquals(1.102, (Double)result.features[0].properties.orientation, 0.01)
-            assertEquals(79.2, (Double)result.features[0].properties.speed, 0.01)
+            assertEquals(1.102, (Double)result.features[0].properties.speed, 0.01)
+            assertEquals(79.2, (Double)result.features[0].properties.orientation, 0.01)
             assertEquals(2, (Double)result.features[0].properties.pk_track)
             assertEquals("2017-01-24T17:49:11+01:00", result.features[0].properties.time_ISO8601)
             assertEquals(1485276551000, result.features[0].properties.time_epoch)
@@ -263,8 +263,8 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             assertEquals(490.16, (double)result.features[0].geometry.coordinates[2], 0.01)
             assertEquals(3, result.features[0].geometry.coordinates.size())
             assertEquals(11.582, (Double)result.features[0].properties.accuracy, 0.01)
-            assertEquals(1.19, (Double)result.features[0].properties.orientation, 0.01)
-            assertEquals(0.0, (Double)result.features[0].properties.speed, 0.01)
+            assertEquals(1.19, (Double)result.features[0].properties.speed, 0.01)
+            assertEquals(0.0, (Double)result.features[0].properties.orientation, 0.01)
             assertEquals(3, (Double)result.features[0].properties.pk_track)
             assertEquals("2016-10-12T08:33:56+02:00", result.features[0].properties.time_ISO8601)
             assertEquals(1476254036000, result.features[0].properties.time_epoch)
@@ -302,7 +302,7 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             def result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8");
             assertNotNull(result)
             // Check content first file
-            assertEquals(6, result.features.size())
+            assertEquals(4, result.features.size())
             // Search for a specific hexagon
             assertEquals("Polygon", result.features[0].geometry.type)
             assertEquals(7, result.features[0].geometry.coordinates[0].size())
@@ -310,20 +310,21 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             assertEquals(265210, result.features[0].properties.cell_r);
             assertEquals("2016-06-09T14:17:25+02:00", result.features[0].properties.first_measure_ISO_8601);
             assertEquals(1465474645000, result.features[0].properties.first_measure_epoch);
-            assertEquals(55.96, (Double)result.features[0].properties.la50, 0.01);
-            assertEquals(68.54, (Double)result.features[0].properties.laeq, 0.01);
+            assertEquals(62.37, (Double)result.features[0].properties.la50, 0.01);
+            assertEquals(69.73, (Double)result.features[0].properties.laeq, 0.01);
             assertEquals("2016-06-09T14:18:02+02:00", result.features[0].properties.last_measure_ISO_8601);
             assertEquals(1465474682000, result.features[0].properties.last_measure_epoch);
             assertEquals(72, result.features[0].properties.leq_profile.size());
             assertEquals(69.0, (Double)result.features[0].properties.mean_pleasantness, 0.01);
-            assertEquals(40, result.features[0].properties.measure_count);
+            assertEquals(30, result.features[0].properties.measure_count);
+            assertEquals(69.7, (double)result.features[0].properties.leq_profile[14], 0.1);
         }
         new ZipInputStream(new FileInputStream(createdFiles.get(1))).withStream { zipInputStream ->
             assertEquals("Italy_Umbria_Perugia.areas.geojson", zipInputStream.getNextEntry().getName())
             def result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8");
             assertNotNull(result)
             // Check content first file
-            assertEquals(22, result.features.size())
+            assertEquals(21, result.features.size())
             assertEquals("Polygon", result.features[0].geometry.type)
             assertEquals(7, result.features[0].geometry.coordinates[0].size())
             assertEquals(-65335, result.features[0].properties.cell_q);

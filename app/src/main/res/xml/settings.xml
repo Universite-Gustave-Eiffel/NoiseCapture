@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="@string/settings_category_profile">
+
+        <ListPreference
+            android:key="settings_user_noise_knowledge"
+            android:title="@string/title_settings_user_noise_knowledge"
+            android:defaultValue="NONE"
+            android:summary="@string/settings_user_noise_knowledge_description"
+            android:entryValues="@array/knowledge_values"
+            android:entries="@array/knowledge"
+            />
+    </PreferenceCategory>
  <PreferenceCategory android:title="@string/setting_general_group">
      <CheckBoxPreference
          android:key="settings_tooltip"
@@ -10,6 +21,11 @@
          android:key="settings_caution"
          android:title="@string/title_settings_caution"
          android:summary="@string/summary_settings_caution"
+         android:defaultValue="true" />
+     <CheckBoxPreference
+         android:key="settings_notification_links"
+         android:title="@string/title_settings_notification_links"
+         android:summary="@string/summary_settings_notification_links"
          android:defaultValue="true" />
     <CheckBoxPreference
         android:key="settings_data_transfer"
@@ -24,6 +40,15 @@
         android:defaultValue="false" />
  </PreferenceCategory>
     <PreferenceCategory android:title="@string/setting_measurement_group">
+        <!--Hidden setting-->
+    <ListPreference
+        android:key="settings_measurement_display_window"
+        android:title="@string/title_settings_measurement_display_window"
+        android:defaultValue="HANN"
+        android:summary="@string/summary_settings_measurement_display_window"
+        android:entryValues="@array/settings_display_measurement_window"
+        android:entries="@array/settings_display_measurement_window_labels"
+        />
     <CheckBoxPreference
         android:key="settings_recording"
         android:title="@string/title_settings_recording"
@@ -36,12 +61,6 @@
         android:summary="@string/summary_settings_recording_duration"
         android:dependency="settings_recording"
         android:inputType="numberDecimal"/>
-        <EditTextPreference
-            android:defaultValue="0"
-            android:key="settings_recording_gain"
-            android:title="@string/title_settings_recording_gain"
-            android:summary="@string/summary_settings_recording_gain"
-            android:inputType="numberDecimal|numberSigned"/>
     <CheckBoxPreference
         android:key="settings_spectrogram_logscalemode"
         android:title="@string/title_settings_spectrogram_logscalemode"
@@ -55,6 +74,12 @@
         android:inputType="number"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/setting_calibration_group">
+        <EditTextPreference
+            android:defaultValue="0"
+            android:key="settings_recording_gain"
+            android:title="@string/title_settings_recording_gain"
+            android:summary="@string/summary_settings_recording_gain"
+            android:inputType="numberDecimal|numberSigned"/>
         <EditTextPreference
             android:defaultValue="4"
             android:key="settings_calibration_warmup_time"
@@ -77,4 +102,14 @@
             />
 
     </PreferenceCategory>
+
+    <PreferenceCategory android:title="@string/title_activity_map">
+        <EditTextPreference
+            android:defaultValue="500"
+            android:key="settings_map_maxmarker"
+            android:title="@string/title_settings_map_maxmarker"
+            android:summary="@string/summary_settings_map_maxmarker"
+            android:inputType="number"/>
+    </PreferenceCategory>
+
 </PreferenceScreen>

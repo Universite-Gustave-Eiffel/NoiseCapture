@@ -18,8 +18,8 @@ android {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
         targetSdkVersion 24
-        versionCode 24
-        versionName "0.4.8 (Beta)"
+        versionCode 31
+        versionName "1.0.3"
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""
@@ -83,7 +83,6 @@ dependencies {
     compile 'com.android.support:design:24.2.1'
     compile 'com.android.support:support-vector-drawable:24.2.1'
     compile 'com.android.support:animated-vector-drawable:24.2.1'
-    compile 'com.google.android.gms:play-services-maps:8.4.0'
     compile 'com.nhaarman.supertooltips:library:3.0.0'
     //compile 'com.android.support:multidex:1.0.0'
     // Testing-only dependencies

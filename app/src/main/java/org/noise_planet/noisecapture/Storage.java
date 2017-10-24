@@ -35,6 +35,9 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.BaseColumns;
+import android.support.annotation.ColorRes;
+import android.support.annotation.IdRes;
+import android.text.TextUtils;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -43,11 +46,54 @@ import java.util.Date;
  * Handle database schema creation and upgrade
  */
 public class Storage extends SQLiteOpenHelper {
-    // Untranslated Tags in the same order as string.xml used when exporting to zip file
-    public static final String[] TAGS = {"test", "rain", "wind", "indoor",
-            "footsteps", "chatting", "natural", "mechanical", "human"};
+    // Untranslated Tags, in the same order as displayed in the layouts
+    public static final TagInfo[] TAGS_INFO = {t(0, "test", R.id.tags_measurement_conditions), t
+            (3, "indoor", R.id.tags_measurement_conditions), t(1, "rain", R.id
+            .tags_measurement_conditions), t(2, "wind", R.id.tags_measurement_conditions), t(5,
+            "chatting", R.id.tags_predominant_sound_sources_col1, R.color.tag_group_human), t(12,
+            "children", R.id.tags_predominant_sound_sources_col1, R.color.tag_group_human), t(4,
+            "footsteps", R.id.tags_predominant_sound_sources_col1, R.color.tag_group_human), t
+            (13, "music", R.id.tags_predominant_sound_sources_col1, R.color.tag_group_human), t
+            (14, "road", R.id.tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t
+            (15, "rail", R.id.tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t
+            (10, "air_traffic", R.id.tags_predominant_sound_sources_col2, R.color
+                    .tag_group_traffic), t(16, "marine_traffic", R.id
+            .tags_predominant_sound_sources_col2, R.color.tag_group_traffic), t(19, "water", R.id
+            .tags_predominant_sound_sources_col3, R.color.tag_group_natural), t(20, "animals", R
+            .id.tags_predominant_sound_sources_col3, R.color.tag_group_natural), t(21,
+            "vegetation", R.id.tags_predominant_sound_sources_col3, R.color.tag_group_natural), t(9, "works", R.id
+            .tags_predominant_sound_sources_col4, R.color.tag_group_work), t(17, "alarms", R.id
+            .tags_predominant_sound_sources_col4, R.color.tag_group_work), t(18, "industrial", R
+            .id.tags_predominant_sound_sources_col4, R.color.tag_group_work)};
+
+    private static TagInfo t(int id, String name, @IdRes int location, @ColorRes int color) {
+        return new TagInfo(id, name, location, color);
+    }
+
+    private static TagInfo t(int id, String name, @IdRes int location) {
+        return new TagInfo(id, name, location, -1);
+    }
+    public static final class TagInfo {
+        // Id to peek into string.xml used when translation must be done
+        public final int id;
+        // Name stored in database
+        public final String name;
+        public final
+        @IdRes
+        int location;
+        public final
+        @ColorRes
+        int color;
+
+        public TagInfo(int id, String name, int location, int color) {
+            this.id = id;
+            this.name = name;
+            this.location = location;
+            this.color = color;
+        }
+    }
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 7;
+    public static final int DATABASE_VERSION = 9;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -117,6 +163,19 @@ public class Storage extends SQLiteOpenHelper {
                 db.execSQL("ALTER TABLE record ADD COLUMN calibration_gain FLOAT DEFAULT 0");
             }
             oldVersion = 7;
+        }
+        if(oldVersion == 7) {
+            if(!db.isReadOnly()) {
+                // Up to version 7, there was a swapping of speed and bearing
+                db.execSQL("UPDATE leq SET bearing=speed, speed=bearing;");
+            }
+            oldVersion = 8;
+        }
+        if(oldVersion == 8) {
+            if(!db.isReadOnly()) {
+                db.execSQL("ALTER TABLE record add column "+Record.COLUMN_NOISEPARTY_TAG + " TEXT");
+            }
+            oldVersion = 9;
         }
     }
 
@@ -221,6 +280,7 @@ public class Storage extends SQLiteOpenHelper {
         public static final String COLUMN_PLEASANTNESS = "pleasantness";
         public static final String COLUMN_PHOTO_URI = "photo_uri";
         public static final String COLUMN_CALIBRATION_GAIN = "calibration_gain";
+        public static final String COLUMN_NOISEPARTY_TAG = "noiseparty_tag";
 
         private int id;
         private long utc;
@@ -231,6 +291,7 @@ public class Storage extends SQLiteOpenHelper {
         private Integer pleasantness;
         private Uri photoUri;
         private float calibrationGain;
+        private String noisePartyTag;
 
         public Record(Cursor cursor) {
             this(cursor.getInt(cursor.getColumnIndex(COLUMN_ID)),
@@ -239,6 +300,7 @@ public class Storage extends SQLiteOpenHelper {
                     cursor.getFloat(cursor.getColumnIndex(COLUMN_LEQ_MEAN)),
                     cursor.getInt(cursor.getColumnIndex(COLUMN_TIME_LENGTH)),
                     cursor.getFloat(cursor.getColumnIndex(COLUMN_CALIBRATION_GAIN)));
+            noisePartyTag = getString(cursor, COLUMN_NOISEPARTY_TAG);
             description = getString(cursor, COLUMN_DESCRIPTION);
             String uriString = getString(cursor, COLUMN_PHOTO_URI);
             if(uriString != null && !uriString.isEmpty()) {
@@ -255,6 +317,17 @@ public class Storage extends SQLiteOpenHelper {
             this.leqMean = leqMean;
             this.timeLength = timeLength;
             this.calibrationGain = calibrationGain;
+        }
+
+        /**
+         * @return The NoiseParty identifier for this measurement
+         */
+        public String getNoisePartyTag() {
+            return noisePartyTag;
+        }
+
+        public void setNoisePartyTag(String noisePartyTag) {
+            this.noisePartyTag = noisePartyTag;
         }
 
         public String getDescription() {
@@ -322,7 +395,8 @@ public class Storage extends SQLiteOpenHelper {
             Record.COLUMN_DESCRIPTION + " TEXT, " +
             Record.COLUMN_PHOTO_URI + " TEXT, " +
             Record.COLUMN_PLEASANTNESS + " SMALLINT," +
-            Record.COLUMN_CALIBRATION_GAIN + " FLOAT DEFAULT 0" +
+            Record.COLUMN_CALIBRATION_GAIN + " FLOAT DEFAULT 0," +
+            Record.COLUMN_NOISEPARTY_TAG + " TEXT" +
             ")";
 
 
@@ -387,6 +461,14 @@ public class Storage extends SQLiteOpenHelper {
                     getFloat(cursor, COLUMN_BEARING),
                     cursor.getFloat(cursor.getColumnIndex(COLUMN_ACCURACY)),
                     cursor.getLong(cursor.getColumnIndex(COLUMN_LOCATION_UTC)));
+        }
+
+        public static String getAllFields(String prepend) {
+            return TextUtils.join(",", new String[]{prepend + COLUMN_RECORD_ID, prepend +
+                    COLUMN_LEQ_ID, prepend + COLUMN_LEQ_UTC, prepend + COLUMN_LATITUDE, prepend +
+                    COLUMN_LONGITUDE, prepend + COLUMN_ALTITUDE, prepend + COLUMN_ACCURACY,
+                    prepend + COLUMN_SPEED, prepend + COLUMN_BEARING, prepend +
+                    COLUMN_LOCATION_UTC});
         }
 
         public int getRecordId() {

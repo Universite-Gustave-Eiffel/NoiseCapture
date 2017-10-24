@@ -1,6 +1,6 @@
 DROP TABLE IF EXISTS NOISECAPTURE_FREQ, NOISECAPTURE_POINT, NOISECAPTURE_TRACK, NOISECAPTURE_USER,
  NOISECAPTURE_CALIBRATE, NOISECAPTURE_TAG, NOISECAPTURE_TRACK_TAG, NOISECAPTURE_AREA, NOISECAPTURE_PROCESS_QUEUE,
-  NOISECAPTURE_AREA_PROFILE;
+  NOISECAPTURE_AREA_PROFILE, NOISECAPTURE_AREA_CLUSTER, NOISECAPTURE_PARTY, NOISECAPTURE_STATS_LAST_TRACKS;
 
  -- H2 Only
  CREATE DOMAIN IF NOT EXISTS TIMESTAMPTZ AS TIMESTAMP;
@@ -11,10 +11,34 @@ DROP TABLE IF EXISTS NOISECAPTURE_FREQ, NOISECAPTURE_POINT, NOISECAPTURE_TRACK, 
 CREATE TABLE NOISECAPTURE_USER (
     PK_USER serial  NOT NULL,
     USER_UUID char(36)  NOT NULL,
-    PSEUDO text,	
+    PSEUDO text,
     DATE_CREATION date  NOT NULL,
+    PROFILE varchar default '',
     CONSTRAINT NOISECAPTURE_USER_PK PRIMARY KEY (PK_USER)
 );
+
+COMMENT ON COLUMN NOISECAPTURE_USER.PROFILE IS 'User acoustic knowledge, one of NONE, NOVICE, EXPERT';
+
+-- Table: NOISECAPTURE_PARTY
+CREATE TABLE NOISECAPTURE_PARTY (
+    PK_PARTY serial NOT NULL,
+    THE_GEOM geometry NOT NULL,
+    LAYER_NAME varchar UNIQUE NOT NULL,
+    TITLE varchar NOT NULL,
+    TAG varchar NOT NULL,
+    DESCRIPTION varchar NOT NULL,
+    START_TIME TIMESTAMPTZ,
+    END_TIME TIMESTAMPTZ,
+    FILTER_TIME boolean NOT NULL default false,
+    FILTER_AREA boolean NOT NULL default false,
+    CONSTRAINT NOISECAPTURE_PARTY_PK PRIMARY KEY (PK_PARTY)
+);
+
+COMMENT ON COLUMN NOISECAPTURE_PARTY.title IS 'Short NoiseParty title';
+COMMENT ON COLUMN NOISECAPTURE_PARTY.description IS 'Long description of the NoiseParty';
+COMMENT ON COLUMN NOISECAPTURE_PARTY.tag IS 'Tag typed by users';
+COMMENT ON COLUMN NOISECAPTURE_PARTY.the_geom IS 'NoiseParty location';
+COMMENT ON COLUMN NOISECAPTURE_PARTY.layer_name IS 'Layer name in leaflet url, must be unique';
 
 -- Table: NOISECAPTURE_TRACK
 CREATE TABLE NOISECAPTURE_TRACK (
@@ -30,6 +54,7 @@ CREATE TABLE NOISECAPTURE_TRACK (
 	NOISE_LEVEL float NOT NULL,
 	TIME_LENGTH float NOT NULL,
 	GAIN_CALIBRATION float NOT NULL DEFAULT 0,
+	PK_PARTY int REFERENCES noisecapture_party (PK_PARTY) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT NOISECAPTURE_TRACK_PK PRIMARY KEY (PK_TRACK)
 );
 
@@ -65,7 +90,7 @@ CREATE TABLE NOISECAPTURE_FREQ (
     PK_POINT int  NOT NULL REFERENCES noisecapture_point (pk_point) ON DELETE CASCADE ON UPDATE CASCADE,
     FREQUENCY smallint  NOT NULL,
     NOISE_LEVEL float NOT NULL   ,
-    CONSTRAINT NOISECAPTURE_FREQ_PK PRIMARY KEY (PK_POINT, FREQUENCY) 
+    CONSTRAINT NOISECAPTURE_FREQ_PK PRIMARY KEY (PK_POINT, FREQUENCY)
 );
 
 COMMENT ON COLUMN NOISECAPTURE_FREQ.FREQUENCY IS 'Frequency Hz';
@@ -89,6 +114,22 @@ CREATE TABLE NOISECAPTURE_PROCESS_QUEUE (
 
 COMMENT ON COLUMN NOISECAPTURE_PROCESS_QUEUE.PK_TRACK IS 'Update area that contains this track';
 
+-- Table: NOISECAPTURE_AREA_CLUSTER, Variable size hexagons that contains only the measurement count
+CREATE TABLE NOISECAPTURE_AREA_CLUSTER (
+    CELL_LEVEL smallint NOT NULL,
+    CELL_Q bigint NOT NULL,
+    CELL_R bigint NOT NULL,
+    THE_GEOM geometry NOT NULL,
+    MEASURE_COUNT int NOT NULL,
+    CONSTRAINT NOISECAPTURE_AREA_CLUSTER_PK PRIMARY KEY (CELL_LEVEL, CELL_Q, CELL_R)
+);
+
+COMMENT ON COLUMN NOISECAPTURE_AREA_CLUSTER.CELL_LEVEL IS 'Hexagonal size exponent 3^n';
+COMMENT ON COLUMN NOISECAPTURE_AREA_CLUSTER.CELL_Q IS 'Hexagonal index Q';
+COMMENT ON COLUMN NOISECAPTURE_AREA_CLUSTER.CELL_R IS 'Hexagonal index R';
+COMMENT ON COLUMN NOISECAPTURE_AREA_CLUSTER.THE_GEOM IS 'Area shape';
+COMMENT ON COLUMN NOISECAPTURE_AREA_CLUSTER.MEASURE_COUNT IS 'noisecapture_point entities in this area';
+
 -- Table: NOISECAPTURE_AREA, Post-processed results, merge of measurements in a regular area
 CREATE TABLE NOISECAPTURE_AREA (
     PK_AREA serial  NOT NULL,
@@ -103,6 +144,7 @@ CREATE TABLE NOISECAPTURE_AREA (
     MEASURE_COUNT int NOT NULL,
     FIRST_MEASURE timestamptz NOT NULL,
     LAST_MEASURE timestamptz NOT NULL,
+    PK_PARTY int REFERENCES noisecapture_party (PK_PARTY) ON UPDATE CASCADE ON DELETE CASCADE,
     CONSTRAINT NOISECAPTURE_AREA_PK PRIMARY KEY (PK_AREA)
 );
 
@@ -136,6 +178,22 @@ CREATE TABLE NOISECAPTURE_DUMP_TRACK_ENVELOPE(
     THE_GEOM geometry,
     measure_count bigint);
 
+-- Statistics cache table
+
+CREATE TABLE noisecapture_stats_last_tracks (
+    pk_track integer,
+    time_length double precision,
+    record_utc timestamptz,
+    the_geom varchar,
+    env varchar,
+    start_pt varchar,
+    stop_pt varchar,
+    name_0 varchar,
+    name_1 varchar,
+    name_3 varchar,
+    pk_party integer
+);
+
 --- Add index
 
 CREATE INDEX ki_noisecapture_area_cellq
@@ -159,31 +217,17 @@ CREATE INDEX fki_noisecapture_freq_pk_point_fk
 
    CREATE SPATIAL INDEX ON NOISECAPTURE_POINT(THE_GEOM);
    CREATE SPATIAL INDEX ON NOISECAPTURE_AREA(THE_GEOM);
+   CREATE SPATIAL INDEX ON NOISECAPTURE_AREA_CLUSTER(THE_GEOM);
 
  ---- PostGIS only query
 
  -- CREATE INDEX ON NOISECAPTURE_POINT USING GIST(THE_GEOM);
  -- CREATE INDEX ON NOISECAPTURE_AREA USING GIST(THE_GEOM);
+ -- CREATE INDEX ON NOISECAPTURE_AREA_CLUSTER USING GIST(THE_GEOM);
 
  ---- Force SRID
 
 -- SELECT UpdateGeometrySRID('noisecapture_dump_track_envelope','the_geom',4326);
 -- SELECT UpdateGeometrySRID('noisecapture_area','the_geom',4326);
 -- SELECT UpdateGeometrySRID('noisecapture_point','the_geom',4326);
-
----- Special view for postgis
-
-
--- create view point_heatmap_density as SELECT 1 AS weight, noisecapture_point.the_geom, noisecapture_point.accuracy FROM noisecapture_point WHERE noisecapture_point.noise_level > 0::double precision AND noisecapture_point.noise_level <= 110::double precision AND st_isempty(noisecapture_point.the_geom) = false AND noisecapture_point.accuracy <= 15::double precision;
-
--- create view todaypoints as SELECT noisecapture_point.pk_point,
---                                   noisecapture_point.the_geom,
---                                   noisecapture_point.pk_track,
---                                   noisecapture_point.noise_level,
---                                   noisecapture_point.speed,
---                                   noisecapture_point.accuracy,
---                                   noisecapture_point.orientation,
---                                   noisecapture_point.time_date,
---                                   noisecapture_point.time_location
---                                  FROM noisecapture_point
---                                 WHERE (now() - noisecapture_point.time_date::timestamp with time zone) < '24:00:00'::interval;
+-- SELECT UpdateGeometrySRID('noisecapture_area_cluster','the_geom',4326);

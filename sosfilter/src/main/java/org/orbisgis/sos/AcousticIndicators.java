@@ -40,7 +40,27 @@ public class AcousticIndicators {
     public static final double TIMEPERIOD_FAST = 0.125;
 
     // Reference sound pressure level [Pa]
-    public static final double REF_SOUND_PRESSURE = 0.00002;
+    public static final double REF_SOUND_PRESSURE = 2e-5;
+
+    public static double computeRms(double[] inputSignal) {
+        double sampleSum = 0;
+        for (double sample : inputSignal) {
+            sampleSum += sample * sample;
+        }
+        return Math.sqrt(sampleSum / inputSignal.length);
+    }
+
+    public static double computeRms(short[] inputSignal) {
+        double sampleSum = 0;
+        for (short sample : inputSignal) {
+            sampleSum += sample * sample;
+        }
+        return Math.sqrt(sampleSum / inputSignal.length);
+    }
+
+    public static double todBspl(double rms, double refSoundPressure ) {
+        return 20 * Math.log10(rms / refSoundPressure);
+    }
 
     /**
      * Calculation of the equivalent sound pressure level
@@ -48,14 +68,17 @@ public class AcousticIndicators {
      * @return equivalent sound pressure level [dB] not normalised by reference pressure.
      */
     public static double getLeq(double[] inputSignal, double refSoundPressure) {
-        double sqrRms = 0.0;
-        final double sqrRefSoundPressure = refSoundPressure * refSoundPressure;
-        for (int idT = 1; idT < inputSignal.length; idT++) {
-            sqrRms += inputSignal[idT] * inputSignal[idT];
-        }
-        return 10 * Math.log10(sqrRms / (inputSignal.length * sqrRefSoundPressure));
+        return todBspl(computeRms(inputSignal), refSoundPressure);
     }
 
+    /**
+     * Calculation of the equivalent sound pressure level
+     * @param inputSignal time signal [Pa]
+     * @return equivalent sound pressure level [dB] not normalised by reference pressure.
+     */
+    public static double getLeq(short[] inputSignal, double refSoundPressure) {
+        return todBspl(computeRms(inputSignal), refSoundPressure);
+    }
     /**
      * Calculation of the equivalent sound pressure levels over a time period
      * @param inputSignal time signal [Pa]
@@ -78,11 +101,11 @@ public class AcousticIndicators {
     }
 
     /**
-     * Apply a Hanning window to a signal
+     * Apply a Hann window to a signal
      * @param signal time signal
      * @return the windowed signal
      */
-    public static double[] hanningWindow(double[] signal) {
+    public static double[] hannWindow(double[] signal) {
 
         // Iterate until the last line of the data buffer
         for (int n = 1; n < signal.length; n++) {
@@ -98,7 +121,7 @@ public class AcousticIndicators {
      * @param signal time signal
      * @return the windowed signal
      */
-    public static float[] hanningWindow(float[] signal) {
+    public static float[] hannWindow(float[] signal) {
 
         // Iterate until the last line of the data buffer
         for (int n = 1; n < signal.length; n++) {

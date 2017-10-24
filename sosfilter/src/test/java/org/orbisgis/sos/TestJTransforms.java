@@ -48,7 +48,7 @@ public class TestJTransforms {
     public void testProcessingWhiteNoise() throws IOException {
         final int sampleRate = 44100;
         final double length = 0.5;
-        InputStream inputStream = CoreSignalProcessingTest.class.getResourceAsStream("whitenoise_44100Hz_16bitPCM_10s.raw");
+        InputStream inputStream = TestJTransforms.class.getResourceAsStream("whitenoise_44100Hz_16bitPCM_10s.raw");
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, STANDARD_FREQUENCIES_UNITTEST, (int) (sampleRate * length));
         // Read input signal up to buffer.length
@@ -56,8 +56,10 @@ public class TestJTransforms {
         inputStream.close();
         fftSignalProcessing.addSample(signal);
         FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false, false);
-        System.out.println("RMS : " + fftSignalProcessing.computeRms() + "\ndbRMS " +
-                fftSignalProcessing.computeGlobalLeq() + "\nThird octave spl :" + processingResult.getGlobaldBaValue());
+        assertEquals(1251.7, fftSignalProcessing.computeRms() ,0.1);
+        // Check third-octave recomposition. 1 dB because the global dba value filter frequencies outside bounds 100-16000
+        assertEquals(83, fftSignalProcessing.computeGlobalLeq(),1.0);
+        assertEquals(83, processingResult.getGlobaldBaValue(),1.0);
     }
 
     /**
@@ -71,21 +73,23 @@ public class TestJTransforms {
         FFTSignalProcessing fftSignalProcessing = new FFTSignalProcessing(44100,
                 ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, fftResult.length);
         float[] thirdOctaveSum = fftSignalProcessing.thirdOctaveProcessing(fftResult, false);
-        double ref = FFTSignalProcessing.todBspl(thirdOctaveSum[0]);
+        double ref = fftSignalProcessing.todBspl(thirdOctaveSum[0]);
         for(int idThirdOctave  = 1; idThirdOctave < thirdOctaveSum.length; idThirdOctave++) {
-            assertEquals(ref + idThirdOctave, FFTSignalProcessing.todBspl(thirdOctaveSum[idThirdOctave]), 0.01);
+            assertEquals(ref + idThirdOctave, fftSignalProcessing.todBspl(thirdOctaveSum[idThirdOctave]), 0.01);
         }
     }
 
     @Test
     public void testProcessing() {
-        // Make 1000 Hz signal
+        // Make 2s 1000 Hz signal
+        final double length = 2;
         final int sampleRate = 44100;
+        final int samples = (int)(sampleRate * length);
         final int signalFrequency = 1000;
         double powerRMS = 2500; // 90 dBspl
         double powerPeak = powerRMS * Math.sqrt(2);
-        short[] signal = new short[sampleRate * 2];
-        for (int s = 0; s < sampleRate * 2; s++) {
+        short[] signal = new short[samples];
+        for (int s = 0; s < samples; s++) {
             double t = s * (1 / (double) sampleRate);
             signal[s] = (short)(Math.sin(2 * Math.PI * signalFrequency * t) * (powerPeak));
         }
@@ -152,8 +156,9 @@ public class TestJTransforms {
         FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false, false);
 
         assertEquals(323.85, fftSignalProcessing.computeRms(), 0.01);
-        assertEquals(72.24, processingResult.getGlobaldBaValue(), 1);
+        assertEquals(72.24, AcousticIndicators.getLeq(signal, fftSignalProcessing.getRefSoundPressure()), 0.01) ;
         assertEquals(72.24, fftSignalProcessing.computeGlobalLeq(), 0.01);
+        assertEquals(72.24, processingResult.getGlobaldBaValue(), 0.01);
     }
 
     @Test

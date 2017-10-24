@@ -170,7 +170,94 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
             assertEquals(87, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_point where pk_track=:idtrack",
                     [idtrack:idTrack]).get("cpt"))
             assertEquals(23 * 87, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_freq").get("cpt"))
-
+            assertEquals(334.59,sql.firstRow("SELECT orientation FROM noisecapture_point where time_date = :lequtc::timestamptz", [lequtc : new nc_parse().epochToRFCTime(1465474658594)]).get("orientation"), 0.01)
+            assertEquals(0.077723056,sql.firstRow("SELECT speed FROM noisecapture_point where time_date = :lequtc::timestamptz", [lequtc : new nc_parse().epochToRFCTime(1465474658594)]).get("speed"), 1e-6)
         }
+    }
+
+    void testParseProfile() {
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_e0f5dd71-75f9-44b2-a106-98712a826719.zip").file))
+        // Read db; check content
+        Sql sql = new Sql(connection)
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals("NONE", sql.firstRow("SELECT * FROM  noisecapture_user").profile)
+        // Check records
+        assertEquals(107, sql.firstRow("SELECT ORIENTATION FROM  noisecapture_point where time_date=:time_date",
+                [time_date: new nc_parse().epochToRFCTime(1504245786780)]).orientation)
+        assertEquals(1.83, sql.firstRow("SELECT SPEED FROM  noisecapture_point where time_date=:time_date",
+                [time_date: new nc_parse().epochToRFCTime(1504245786780)]).speed)
+
+
+    }
+
+
+    // Test parse with a party tag that does not exists in database
+    void testParseInvalidNoiseParty() {
+        Sql sql = new Sql(connection)
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name) VALUES ('POLYGON((2.38717 48.8944,2.38717 48.8964,2.38917 48.8964,2.38917 48.8944,2.38717 48.8944))','ANQES 2017 event','ANQES2017'," +
+                "'8es Assises nationales de la qualité de l''environnement sonore','noisecapture_area_anqes2017');")
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file))
+        // Read db; check content
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertNull(sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
+    }
+
+
+    // Test parse with a party tag that exist in database
+    void testParseNoiseParty() {
+        Sql sql = new Sql(connection)
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
+                "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018');")
+        assertEquals(1, new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
+        // Read db; check content
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals(1, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
+    }
+
+    void testOutdatedNoiseParty() {
+        Sql sql = new Sql(connection)
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, start_time, end_time, filter_time) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
+                "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018',:begintime::timestamptz,:endtime::timestamptz,true);", [begintime: "2017-09-13T01:00:00Z", endtime:"2017-09-13T23:59:59Z"])
+        assertEquals(null, new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
+        // Read db; check content
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals(null, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
+    }
+
+    void testTimeFilteredNoiseParty() {
+        Sql sql = new Sql(connection)
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, start_time, end_time, filter_time) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
+                "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018',:begintime::timestamptz,:endtime::timestamptz,true);", [begintime: "2017-09-14T01:00:00Z", endtime:"2017-09-14T23:59:59Z"])
+        assertEquals(1, new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
+        // Read db; check content
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals(1, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
+    }
+
+    void testOutOfBoundsNoiseParty() {
+        Sql sql = new Sql(connection)
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, filter_area) VALUES ('POLYGON((2.38717 48.8944,2.38717 48.8964,2.38917 48.8964,2.38917 48.8944,2.38717 48.8944))','OGRS 2018 event','OGRS_2018'," +
+                "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018', true);")
+        assertEquals(null, new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
+        // Read db; check content
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals(null, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
+    }
+
+    void testInBoundsNoiseParty() {
+        Sql sql = new Sql(connection)
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, filter_area) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
+                "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018', true);")
+        assertEquals(1, new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
+        // Read db; check content
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals(1, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
     }
 }

@@ -27,21 +27,23 @@
 
 package org.noise_planet.noisecapture;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.Uri;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.ShareActionProvider;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageButton;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -78,9 +80,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Results extends MainActivity {
-    public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
     private static final Logger LOGGER = LoggerFactory.getLogger(Results.class);
     private MeasurementManager measurementManager;
     private Storage.Record record;
@@ -101,6 +103,7 @@ public class Results extends MainActivity {
     private String[] catNE; // List of noise level category (defined as ressources)
     private List<Float> splHistogram;
     private LeqStats leqStats = new LeqStats();
+    private List<String> tags;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -125,11 +128,9 @@ public class Results extends MainActivity {
                 return;
             }
         }
+        tags = measurementManager.getTags(record.getId());
         initDrawer(record.getId());
         toolTip = (ToolTipRelativeLayout) findViewById(R.id.activity_tooltip);
-
-        loadMeasurement();
-        LeqStats.LeqOccurrences leqOccurrences = leqStats.computeLeqOccurrences(CLASS_RANGES);
 
         // RNE PieChart
         rneChart = (PieChart) findViewById(R.id.RNEChart);
@@ -138,7 +139,6 @@ public class Results extends MainActivity {
         //    rneChart.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_rne));
         //}
         initRNEChart();
-        setRNEData(leqOccurrences.getUserDefinedOccurrences());
         Legend lrne = rneChart.getLegend();
         lrne.setTextColor(Color.WHITE);
         lrne.setTextSize(8f);
@@ -147,61 +147,58 @@ public class Results extends MainActivity {
 
         // NEI PieChart
         neiChart = (PieChart) findViewById(R.id.NEIChart);
-        // Disable tooltip as it crash with this view
-        //if(showTooltip) {
-        //    neiChart.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_nei));
-        //}
         initNEIChart();
-        setNEIData();
+
         Legend lnei = neiChart.getLegend();
         lnei.setEnabled(false);
 
         // Cumulated spectrum
         sChart = (BarChart) findViewById(R.id.spectrumChart);
         initSpectrumChart();
-        setDataS();
         Legend ls = sChart.getLegend();
         ls.setEnabled(false); // Hide legend
 
         TextView minText = (TextView) findViewById(R.id.textView_value_Min_SL);
-        minText.setText(String.format("%.01f", leqStats.getLeqMin()));
+        minText.setText(R.string.no_valid_dba_value);
         if(showTooltip) {
-            minText.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_minsl));
+            ToolTipListener touchListener = new ToolTipListener(this, R.string
+                    .result_tooltip_minsl);
+            minText.setOnTouchListener(touchListener);
+            findViewById(R.id.textView_label_Min_SL).setOnTouchListener(touchListener);
         }
-        findViewById(R.id.textView_color_Min_SL)
-                .setBackgroundColor(NE_COLORS[getNEcatColors(leqStats.getLeqMin())]);
 
         TextView maxText = (TextView) findViewById(R.id.textView_value_Max_SL);
-        maxText.setText(String.format("%.01f", leqStats.getLeqMax()));
+        maxText.setText(R.string.no_valid_dba_value);
         if(showTooltip) {
-            maxText.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_maxsl));
+            ToolTipListener touchListener = new ToolTipListener(this, R.string
+                    .result_tooltip_maxsl);
+            maxText.setOnTouchListener(touchListener);
+            findViewById(R.id.textView_label_Max_SL).setOnTouchListener(touchListener);
         }
-        findViewById(R.id.textView_color_Max_SL)
-                .setBackgroundColor(NE_COLORS[getNEcatColors(leqStats.getLeqMax())]);
 
         TextView la10Text = (TextView) findViewById(R.id.textView_value_LA10);
-        la10Text.setText(String.format("%.01f", leqOccurrences.getLa10()));
+        la10Text.setText(R.string.no_valid_dba_value);
         if(showTooltip) {
-            la10Text.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_la10));
+            ToolTipListener touchListener = new ToolTipListener(this, R.string.result_tooltip_la10);
+            la10Text.setOnTouchListener(touchListener);
+            findViewById(R.id.textView_label_la10_SL).setOnTouchListener(touchListener);
         }
-        findViewById(R.id.textView_color_LA10)
-                .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa10())]);
 
         TextView la50Text = (TextView) findViewById(R.id.textView_value_LA50);
-        la50Text.setText(String.format("%.01f", leqOccurrences.getLa50()));
+        la50Text.setText(R.string.no_valid_dba_value);
         if(showTooltip) {
-            la50Text.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_la50));
+            ToolTipListener touchListener = new ToolTipListener(this, R.string.result_tooltip_la50);
+            la50Text.setOnTouchListener(touchListener);
+            findViewById(R.id.textView_label_la50_SL).setOnTouchListener(touchListener);
         }
-        findViewById(R.id.textView_color_LA50)
-                .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa50())]);
 
         TextView la90Text = (TextView) findViewById(R.id.textView_value_LA90);
-        la90Text.setText(String.format("%.01f", leqOccurrences.getLa90()));
+        la90Text.setText(R.string.no_valid_dba_value);
         if(showTooltip) {
-            la90Text.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_la90));
+            ToolTipListener touchListener = new ToolTipListener(this, R.string.result_tooltip_la90);
+            la90Text.setOnTouchListener(touchListener);
+            findViewById(R.id.textView_label_la90_SL).setOnTouchListener(touchListener);
         }
-        findViewById(R.id.textView_color_LA90)
-                .setBackgroundColor(NE_COLORS[getNEcatColors(leqOccurrences.getLa90())]);
 
         // Action on Map button
         Button buttonmap=(Button)findViewById(R.id.mapBtn);
@@ -211,7 +208,7 @@ public class Results extends MainActivity {
             public void onClick(View view) {
                 // Go to map page
                 Intent a = new Intent(getApplicationContext(), MapActivity.class);
-                a.putExtra(MapActivity.RESULTS_RECORD_ID, record.getId());
+                a.putExtra(RESULTS_RECORD_ID, record.getId());
                 startActivity(a);
                 finish();
             }
@@ -224,22 +221,14 @@ public class Results extends MainActivity {
         exportComment.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Export
-                final ProgressDialog progress = ProgressDialog.show(Results.this,
-                        Results.this.getText(R.string.upload_progress_title),
-                        Results.this.getText(R.string.upload_progress_message), true);
-                new Thread(new SendZipToServer(Results.this, Results.this.record.getId(), progress,
-                        new OnUploadedListener() {
-                            @Override
-                            public void onMeasurementUploaded() {
-                                onTransferRecord();
-                            }
-                        })).start();
+                runOnUiThread(new SendResults(Results.this, record.getId()));
             }
         });
 
         exportComment.setEnabled(record.getUploadId().isEmpty());
 
+
+        AsyncTask.execute(new LoadMeasurements(this));
     }
 
     private static final class OnGoToMeasurePage implements View.OnClickListener {
@@ -260,15 +249,6 @@ public class Results extends MainActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if(sChart != null) {
-            sChart.animateXY(1500, 1500);
-        }
-        if(neiChart != null) {
-            neiChart.animateXY(1500, 1500);
-        }
-        if(rneChart != null) {
-            rneChart.animateXY(1500, 1500);
-        }
         // Transfer results automatically (with all checking)
         checkTransferResults();
     }
@@ -298,25 +278,25 @@ public class Results extends MainActivity {
         // Fetch and store ShareActionProvider
         ShareActionProvider mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(item);
 
-        Map<String, Integer> tagToIndex = new HashMap<>(Storage.TAGS.length);
-        int iTag = 0;
-        for(String sysTag : Storage.TAGS) {
-            tagToIndex.put(sysTag, iTag++);
+        Map<String, Storage.TagInfo> tagToIndex = new HashMap<>(Storage.TAGS_INFO.length);
+        for(Storage.TagInfo sysTag : Storage.TAGS_INFO) {
+            tagToIndex.put(sysTag.name, sysTag);
         }
-        List<String> tags = measurementManager.getTags(record.getId());
 
         StringBuilder hashtags = new StringBuilder();
         String[] localeStringArray = getResources().getStringArray(R.array.tags);
         for(String enTag : tags) {
-            Integer tagIndex = tagToIndex.get(enTag);
-            if (tagIndex != null) {
+            Storage.TagInfo tagInfo = tagToIndex.get(enTag);
+            if (tagInfo != null && tagInfo.id < localeStringArray.length) {
                 if(hashtags.length() > 0 ) {
                     hashtags.append(",");
                 }
-                hashtags.append(localeStringArray[tagIndex].replace(" ",""));
+                hashtags.append(localeStringArray[tagInfo.id].replace(" ",""));
             }
         }
-
+        if(record.getNoisePartyTag() != null && !record.getNoisePartyTag().isEmpty()) {
+            hashtags.append(record.getNoisePartyTag());
+        }
         //@see https://dev.twitter.com/web/tweet-button/web-intent
         String url = "http://www.twitter.com/intent/tweet?via=Noise_Planet&hashtags="+hashtags.toString() +
                 "&text=" + Uri.encode(getString(R.string.share_message, record.getLeqMean()));
@@ -331,38 +311,6 @@ public class Results extends MainActivity {
         return true;
     }
 
-    private void loadMeasurement() {
-
-        // Query database
-        List<Integer> frequencies = new ArrayList<Integer>();
-        List<Float[]> leqValues = new ArrayList<Float[]>();
-        measurementManager.getRecordLeqs(record.getId(), frequencies, leqValues);
-
-        // Create leq statistics by frequency
-        LeqStats[] leqStatsByFreq = new LeqStats[frequencies.size()];
-        for(int idFreq = 0; idFreq < leqStatsByFreq.length; idFreq++) {
-            leqStatsByFreq[idFreq] = new LeqStats();
-        }
-        // parse each leq window time
-        for(Float[] leqFreqs : leqValues) {
-            double rms = 0;
-            int idFreq = 0;
-            for(float leqValue : leqFreqs) {
-                leqStatsByFreq[idFreq].addLeq(leqValue);
-                rms += Math.pow(10, leqValue / 10);
-                idFreq++;
-            }
-            leqStats.addLeq(10 * Math.log10(rms));
-        }
-        splHistogram = new ArrayList<>(leqStatsByFreq.length);
-        ltob = new String[leqStatsByFreq.length];
-        int idFreq = 0;
-        for (LeqStats aLeqStatsByFreq : leqStatsByFreq) {
-            ltob[idFreq] = Spectrogram.formatFrequency(frequencies.get(idFreq));
-            splHistogram.add((float) aLeqStatsByFreq.getLeqMean());
-            idFreq++;
-        }
-    }
 
     public void initSpectrumChart(){
         sChart.setPinchZoom(false);
@@ -522,7 +470,7 @@ public class Results extends MainActivity {
 
         PieDataSet dataSet = new PieDataSet(yVals1, "NEI");
         dataSet.setSliceSpace(3f);
-        int nc=getNEcatColors(leqStats.getLeqMean());    // Choose the color category in function of the sound level
+        int nc=getNEcatColors(record.getLeqMean());    // Choose the color category in function of the sound level
         dataSet.setColor(NE_COLORS[nc]);   // Apply color category for the corresponding sound level
 
         PieData data = new PieData(xVals, dataSet);
@@ -532,8 +480,9 @@ public class Results extends MainActivity {
         data.setDrawValues(false);
 
         neiChart.setData(data);
-        neiChart.setCenterText(String.format("%.1f", leqStats.getLeqMean()).concat(" dB(A)"));
-        rneChart.invalidate();
+        neiChart.setCenterText(String.format(Locale.getDefault(), "%.1f", record.getLeqMean())
+                .concat(" dB(A)" + ""));
+        neiChart.invalidate();
     }
 
 
@@ -584,6 +533,188 @@ public class Results extends MainActivity {
                 results.lastShownTooltip = results.toolTip.showToolTipForView(toolTipMinSL, v);
             }
             return false;
+        }
+    }
+
+
+
+    private static final class ReadRecordsProgression implements MeasurementManager
+            .ProgressionCallBack, View.OnClickListener {
+        private AppCompatActivity activity;
+        private long beginReadRecords = 0;
+        AtomicBoolean canceled = new AtomicBoolean(false);
+        int recordCount = 0;
+        int record = 0;
+        int lastProgress = 0;
+        boolean handleProgression = false;
+        private static final int MINIMAL_RECORD_DISPLAY_PROGRESS = 100;
+        View progressView;
+        ProgressBar progressBar;
+        Button button;
+
+        public ReadRecordsProgression(AppCompatActivity activity) {
+            this.activity = activity;
+            progressView = activity.findViewById(R.id
+                    .result_progress_layout);
+            progressBar = (ProgressBar) activity.findViewById(R.id
+                    .result_progress_control);
+            button = (Button)activity.findViewById(R.id
+                    .result_progress_cancel);
+            button.setOnClickListener(this);
+        }
+
+        @Override
+        public void onClick(View v) {
+            canceled.set(true);
+        }
+
+        @Override
+        public void onCreateCursor(int recordCount) {
+            this.recordCount = recordCount;
+            beginReadRecords = System.currentTimeMillis();
+            if(recordCount > MINIMAL_RECORD_DISPLAY_PROGRESS) {
+                activity.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        progressBar.setProgress(0);
+                        progressView.setVisibility(View.VISIBLE);
+                    }
+                });
+                handleProgression = true;
+            }
+        }
+
+        @Override
+        public boolean onCursorNext() {
+            if(handleProgression) {
+                record++;
+                final int newProgression = (int)((record / (double) recordCount) * 100);
+                if(newProgression / 5 != lastProgress / 5) {
+                    activity.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                                progressBar.setProgress(newProgression, true);
+                            } else {
+                                progressBar.setProgress(newProgression);
+                            }
+                        }
+                    });
+                    lastProgress = newProgression;
+                }
+            }
+            return !canceled.get();
+        }
+
+        @Override
+        public void onDeleteCursor() {
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    progressView.setVisibility(View.GONE);
+                }
+            });
+            if(BuildConfig.DEBUG) {
+                System.out.println("Fetch measurement time "+(System.currentTimeMillis() - beginReadRecords)+" " +
+                        "ms");
+            }
+        }
+    }
+    private static class LoadMeasurements implements Runnable {
+        private Results activity;
+
+        LoadMeasurements(Results activity) {
+            this.activity = activity;
+        }
+
+        @Override
+        public void run() {
+
+            // Query database
+            List<Integer> frequencies = new ArrayList<Integer>();
+            List<Float[]> leqValues = new ArrayList<Float[]>();
+            activity.measurementManager.getRecordLeqs(activity.record.getId(), frequencies, leqValues, new
+                    ReadRecordsProgression(activity));
+
+            // Create leq statistics by frequency
+            LeqStats[] leqStatsByFreq = new LeqStats[frequencies.size()];
+            for(int idFreq = 0; idFreq < leqStatsByFreq.length; idFreq++) {
+                leqStatsByFreq[idFreq] = new LeqStats();
+            }
+            // parse each leq window time
+            for(Float[] leqFreqs : leqValues) {
+                double rms = 0;
+                int idFreq = 0;
+                for(float leqValue : leqFreqs) {
+                    leqStatsByFreq[idFreq].addLeq(leqValue);
+                    rms += Math.pow(10, leqValue / 10);
+                    idFreq++;
+                }
+                activity.leqStats.addLeq(10 * Math.log10(rms));
+            }
+            activity.splHistogram = new ArrayList<>(leqStatsByFreq.length);
+            activity.ltob = new String[leqStatsByFreq.length];
+            int idFreq = 0;
+            for (LeqStats aLeqStatsByFreq : leqStatsByFreq) {
+                activity.ltob[idFreq] = Spectrogram.formatFrequency(frequencies.get(idFreq));
+                activity.splHistogram.add((float) aLeqStatsByFreq.getLeqMean());
+                idFreq++;
+            }
+
+            final LeqStats.LeqOccurrences leqOccurrences = activity.leqStats.computeLeqOccurrences
+                    (CLASS_RANGES);
+            activity.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    activity.setRNEData(leqOccurrences.getUserDefinedOccurrences());
+                    activity.setNEIData();
+                    activity.setDataS();
+
+                    TextView minText = (TextView) activity.findViewById(R.id.textView_value_Min_SL);
+                    minText.setText(String.format(Locale.getDefault(), "%.01f", activity.leqStats
+                            .getLeqMin()));
+
+                    activity.findViewById(R.id.textView_color_Min_SL).setBackgroundColor(activity
+                            .NE_COLORS[getNEcatColors(activity.leqStats.getLeqMin())]);
+
+                    TextView maxText = (TextView) activity.findViewById(R.id.textView_value_Max_SL);
+                    maxText.setText(String.format(Locale.getDefault(), "%.01f", activity.leqStats
+                            .getLeqMax()));
+
+                    activity.findViewById(R.id.textView_color_Max_SL)
+                            .setBackgroundColor(activity.NE_COLORS[getNEcatColors(activity.leqStats.getLeqMax())]);
+
+                    TextView la10Text = (TextView) activity.findViewById(R.id.textView_value_LA10);
+                    la10Text.setText(String.format(Locale.getDefault(), "%.01f", leqOccurrences.getLa10()));
+
+                    activity.findViewById(R.id.textView_color_LA10)
+                            .setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqOccurrences.getLa10())]);
+
+                    TextView la50Text = (TextView) activity.findViewById(R.id.textView_value_LA50);
+                    la50Text.setText(String.format(Locale.getDefault(), "%.01f", leqOccurrences.getLa50()));
+
+                    activity.findViewById(R.id.textView_color_LA50)
+                            .setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqOccurrences.getLa50())]);
+
+                    TextView la90Text = (TextView) activity.findViewById(R.id.textView_value_LA90);
+                    la90Text.setText(String.format(Locale.getDefault(), "%.01f", leqOccurrences.getLa90()));
+
+                    activity.findViewById(R.id.textView_color_LA90)
+                            .setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqOccurrences.getLa90())]);
+
+                    // launch animation
+                    if(activity.sChart != null) {
+                        activity.sChart.animateXY(1500, 1500);
+                    }
+                    if(activity.neiChart != null) {
+                        activity.neiChart.animateXY(1500, 1500);
+                    }
+                    if(activity.rneChart != null) {
+                        activity.rneChart.animateXY(1500, 1500);
+                    }
+                }
+            });
+
         }
     }
 }

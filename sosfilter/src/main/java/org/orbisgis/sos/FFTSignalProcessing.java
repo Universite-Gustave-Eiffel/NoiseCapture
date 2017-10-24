@@ -42,7 +42,9 @@ public class FFTSignalProcessing {
     private final int windowSize;
     private FloatFFT_1D floatFFT_1D;
     private static final double RMS_REFERENCE_90DB = 2500;
-    private static final double DB_FS_REFERENCE = - (20 * Math.log10(RMS_REFERENCE_90DB)) + 90;
+    public static final double DB_FS_REFERENCE = - (20 * Math.log10(RMS_REFERENCE_90DB)) + 90;
+    private final double refSoundPressure;
+    private long sampleAdded = 0;
 
     public FFTSignalProcessing(int samplingRate, double[] standardFrequencies, int windowSize) {
         this.windowSize = windowSize;
@@ -50,6 +52,16 @@ public class FFTSignalProcessing {
         this.samplingRate = samplingRate;
         this.sampleBuffer = new short[windowSize];
         this.floatFFT_1D = new FloatFFT_1D(windowSize);
+        this.refSoundPressure = 1 / Math.pow(10, DB_FS_REFERENCE / 20);
+    }
+
+    public FFTSignalProcessing(int samplingRate, double[] standardFrequencies, int windowSize, double dbFsReference) {
+        this.windowSize = windowSize;
+        this.standardFrequencies = standardFrequencies;
+        this.samplingRate = samplingRate;
+        this.sampleBuffer = new short[windowSize];
+        this.floatFFT_1D = new FloatFFT_1D(windowSize);
+        this.refSoundPressure = 1 / Math.pow(10, dbFsReference / 20);
     }
 
 
@@ -72,7 +84,7 @@ public class FFTSignalProcessing {
      * @return Time in seconds of sample buffer
      */
     public double getSampleDuration() {
-        return samplingRate / (double)windowSize;
+        return windowSize / (double)samplingRate;
     }
 
     /**
@@ -99,27 +111,25 @@ public class FFTSignalProcessing {
             // Move previous samples backward
             System.arraycopy(sampleBuffer, sample.length, sampleBuffer, 0, sampleBuffer.length - sample.length);
             System.arraycopy(sample, 0, sampleBuffer, sampleBuffer.length - sample.length, sample.length);
+            sampleAdded+=sample.length;
         } else {
             // Take last samples
             System.arraycopy(sample, Math.max(0, sample.length - sampleBuffer.length), sampleBuffer, 0,
                     sampleBuffer.length);
+            sampleAdded+=sampleBuffer.length;
         }
     }
 
     public double computeRms() {
-        double sampleSum = 0;
-        for (short sample : sampleBuffer) {
-            sampleSum += sample * sample;
-        }
-        return Math.sqrt(sampleSum / sampleBuffer.length);
+        return AcousticIndicators.computeRms(sampleBuffer);
     }
 
     public double computeGlobalLeq() {
-        return todBspl(computeRms());
+        return AcousticIndicators.getLeq(sampleBuffer, refSoundPressure);
     }
 
-    public static double todBspl(double rms) {
-        return (20 * Math.log10(rms) + DB_FS_REFERENCE);
+    public double todBspl(double rms) {
+        return AcousticIndicators.todBspl (rms,  refSoundPressure);
     }
 
     /**
@@ -134,7 +144,7 @@ public class FFTSignalProcessing {
         }
         if(hanningWindow) {
             // Apply Hanning window
-            AcousticIndicators.hanningWindow(signal);
+            AcousticIndicators.hannWindow(signal);
         }
         if(aWeighting) {
             signal = AWeighting.aWeightingSignal(signal);
@@ -143,35 +153,43 @@ public class FFTSignalProcessing {
         final double freqByCell = samplingRate / (double)windowSize;
         float[] squareAbsoluteFFT = new float[signal.length / 2];
         //a[offa+2*k] = Re[k], 0<=k<n/2
+        double sumRMS = 0;
         for(int k = 0; k < squareAbsoluteFFT.length; k++) {
             final float re = signal[k * 2];
             final float im = signal[k * 2 + 1];
             squareAbsoluteFFT[k] = re * re + im * im;
+            sumRMS += squareAbsoluteFFT[k];
         }
         //rmsFft = Math.sqrt((rmsFft / 2) / (fftResult.length * fftResult.length));
         // Compute A weighted third octave bands
         float[] splLevels = thirdOctaveProcessing(squareAbsoluteFFT, false);
-        double globalSpl = 0;
-        for(float splLevel : splLevels) {
-            globalSpl += Math.pow(10, splLevel / 10);
-        }
         // Limit spectrum output by specified frequencies and convert to dBspl
         float[] spectrumSplLevels = null;
         if(outputThinFrequency) {
-            spectrumSplLevels = new float[(int) (standardFrequencies[standardFrequencies.length - 1] /
+            spectrumSplLevels = new float[(int) (Math.min(samplingRate / 2, standardFrequencies[standardFrequencies.length - 1]) /
                     freqByCell)];
             for (int i = 0; i < spectrumSplLevels.length; i++) {
                 spectrumSplLevels[i] = (float) todBspl(squareAbsoluteFFTToRMS(squareAbsoluteFFT[i
                         ], squareAbsoluteFFT.length));
             }
         }
-        return new ProcessingResult(spectrumSplLevels, splLevels, (float)(10 * Math.log10(globalSpl)));
+        return new ProcessingResult(sampleAdded, spectrumSplLevels, splLevels, (float)todBspl(squareAbsoluteFFTToRMS(sumRMS, squareAbsoluteFFT.length)));
     }
 
     private double squareAbsoluteFFTToRMS(double squareAbsoluteFFT, int sampleSize) {
-        return Math.sqrt((squareAbsoluteFFT / 2) / (sampleSize * sampleSize));
+        return Math.sqrt(squareAbsoluteFFT / 2) / sampleSize;
     }
 
+    public double getRefSoundPressure() {
+        return refSoundPressure;
+    }
+
+    /**
+     * Third-octave recombination method
+     * @param squareAbsoluteFFT Narrow frequency array
+     * @param thirdOctaveAWeighting True to apply a A weighting on bands
+     * @return Third octave bands
+     */
     public float[] thirdOctaveProcessing(float[] squareAbsoluteFFT, boolean thirdOctaveAWeighting) {
         final double freqByCell = samplingRate / (double)windowSize;
         float[] splLevels = new float[standardFrequencies.length];
@@ -211,44 +229,62 @@ public class FFTSignalProcessing {
         float[] fftResult;
         float[] dBaLevels;
         float globaldBaValue;
+        long id;
 
-        public ProcessingResult(float[] fftResult, float[] dBaLevels, float globaldBaValue) {
+        ProcessingResult(long id, float[] fftResult, float[] dBaLevels, float globaldBaValue) {
             this.fftResult = fftResult;
             this.dBaLevels = dBaLevels;
             this.globaldBaValue = globaldBaValue;
+            this.id = id;
+        }
+
+        public long getId() {
+            return id;
+        }
+
+        public void setId(long id) {
+            this.id = id;
         }
 
         /**
-         * Energetic sums of provided results. Used when using window functions
-         * @param toMerge
+         * Energetic avg of provided results.
          */
-        public ProcessingResult(ProcessingResult... toMerge) {
-            if(toMerge.length > 0) {
-                if(toMerge[0].fftResult != null) {
-                    this.fftResult = new float[toMerge[0].fftResult.length];
+        public ProcessingResult(double windowCount, ProcessingResult... toMerge) {
+            // Take the last processing result as reference because results are moved from
+            // the right to the left in the array
+            if(toMerge[toMerge.length - 1] != null && toMerge.length > 0) {
+                id = toMerge[toMerge.length - 1].id;
+                if(toMerge[toMerge.length - 1].fftResult != null) {
+                    this.fftResult = new float[toMerge[toMerge.length - 1].fftResult.length];
                     for(ProcessingResult merge : toMerge) {
-                        for(int i = 0; i < fftResult.length; i++) {
-                            fftResult[i] += Math.pow(10, merge.fftResult[i] / 10.);
+                        if(merge != null) {
+                            for (int i = 0; i < fftResult.length; i++) {
+                                fftResult[i] += Math.pow(10, merge.fftResult[i] / 10.);
+                            }
                         }
                     }
                     for(int i = 0; i < fftResult.length; i++) {
-                        fftResult[i] = (float)(10. * Math.log10(fftResult[i]));
+                        fftResult[i] = (float)(10. * Math.log10(fftResult[i] / windowCount));
                     }
                 }
-                this.dBaLevels = new float[toMerge[0].dBaLevels.length];
+                this.dBaLevels = new float[toMerge[toMerge.length - 1].dBaLevels.length];
                 for(ProcessingResult merge : toMerge) {
-                    for(int i = 0; i < dBaLevels.length; i++) {
-                        dBaLevels[i] += Math.pow(10, merge.dBaLevels[i] / 10.);
+                    if(merge != null) {
+                        for (int i = 0; i < dBaLevels.length; i++) {
+                            dBaLevels[i] += Math.pow(10, merge.dBaLevels[i] / 10.);
+                        }
                     }
                 }
                 for(int i = 0; i < dBaLevels.length; i++) {
-                    dBaLevels[i] = (float)(10. * Math.log10(dBaLevels[i]));
+                    dBaLevels[i] = (float)(10. * Math.log10(dBaLevels[i] / windowCount));
                 }
                 double sum = 0;
                 for(ProcessingResult merge : toMerge) {
-                    sum += Math.pow(10, merge.getGlobaldBaValue() / 10.);
+                    if(merge != null) {
+                        sum += Math.pow(10, merge.getGlobaldBaValue() / 10.);
+                    }
                 }
-                this.globaldBaValue = (float)(10. * Math.log10(sum));
+                this.globaldBaValue = (float)(10. * Math.log10(sum / windowCount));
             }
         }
 

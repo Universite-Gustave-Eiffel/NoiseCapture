@@ -765,7 +765,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                     (AudioProcess.AudioMeasureResult) event.getNewValue();
             final double leq;
             // Use global dB value or only the selected frequency band
-            leq = measure.getSignalLeq();
+            leq = measure.getGlobaldBaValue();
             if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
                 leqStats.addLeq(leq);
                 if(!freqLeqStats.isEmpty() && splBackroundNoise != 0) {
@@ -994,34 +994,6 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             for(int idFreq = 0; idFreq < this.measure.length; idFreq++) {
                 this.measure[idFreq].addLeq(measureLevels[idFreq]);
             }
-        }
-    }
-    private static class ViewPagerAdapter extends FragmentPagerAdapter {
-        private final List<Fragment> mFragmentList = new ArrayList<>();
-        private final List<String> mFragmentTitleList = new ArrayList<>();
-
-        public ViewPagerAdapter(FragmentManager manager) {
-            super(manager);
-        }
-
-        @Override
-        public Fragment getItem(int position) {
-            return mFragmentList.get(position);
-        }
-
-        @Override
-        public int getCount() {
-            return mFragmentList.size();
-        }
-
-        public void addFragment(Fragment fragment, String title) {
-            mFragmentList.add(fragment);
-            mFragmentTitleList.add(title);
-        }
-
-        @Override
-        public CharSequence getPageTitle(int position) {
-            return mFragmentTitleList.get(position);
         }
     }
 }

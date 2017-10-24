@@ -30,6 +30,8 @@ package org.noise_planet.noisecapture;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -37,12 +39,15 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -65,6 +70,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -76,13 +82,16 @@ public class MainActivity extends AppCompatActivity {
     }
     // Color for noise exposition representation
     public int[] NE_COLORS;
+    public static final String RESULTS_RECORD_ID = "RESULTS_RECORD_ID";
     protected static final Logger MAINLOGGER = LoggerFactory.getLogger(MainActivity.class);
+    private static final int NOTIFICATION_MAP = R.string.notification_goto_community_map_title;
 
     // For the list view
     public ListView mDrawerList;
     public DrawerLayout mDrawerLayout;
     public String[] mMenuLeft;
     public ActionBarDrawerToggle mDrawerToggle;
+    private ProgressDialog progress;
 
     public static final int PERMISSION_RECORD_AUDIO_AND_GPS = 1;
     public static final int PERMISSION_WIFI_STATE = 2;
@@ -160,6 +169,19 @@ public class MainActivity extends AppCompatActivity {
             return false;
         }
         return true;
+    }
+
+
+    @Override
+    protected void onPause() {
+        if(progress != null && progress.isShowing()) {
+            try {
+                progress.dismiss();
+            } catch (IllegalArgumentException ex) {
+                //Ignore
+            }
+        }
+        super.onPause();
     }
 
     /**
@@ -301,7 +323,7 @@ public class MainActivity extends AppCompatActivity {
                 case 1:
                     // Comment
                     Intent ir = new Intent(getApplicationContext(), CommentActivity.class);
-                    if(recordId != null) {
+                    if(recordId != null && recordId >= 0) {
                         ir.putExtra(CommentActivity.COMMENT_RECORD_ID, recordId);
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
@@ -311,8 +333,8 @@ public class MainActivity extends AppCompatActivity {
                 case 2:
                     // Results
                     ir = new Intent(getApplicationContext(), Results.class);
-                    if(recordId != null) {
-                        ir.putExtra(Results.RESULTS_RECORD_ID, recordId);
+                    if(recordId != null && recordId >= 0) {
+                        ir.putExtra(RESULTS_RECORD_ID, recordId);
                     }
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ir);
@@ -328,6 +350,9 @@ public class MainActivity extends AppCompatActivity {
                 case 4:
                     // Show the map
                     Intent imap = new Intent(getApplicationContext(), MapActivity.class);
+                    if(recordId != null && recordId >= 0) {
+                        imap.putExtra(Results.RESULTS_RECORD_ID, recordId);
+                    }
                     startActivity(imap);
                     finish();
                     mDrawerLayout.closeDrawer(mDrawerList);
@@ -339,7 +364,7 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                     break;
                 case 6:
-                    Intent ih = new Intent(getApplicationContext(),View_html_page.class);
+                    Intent ih = new Intent(getApplicationContext(),ViewHtmlPage.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     ih.putExtra("pagetosee",
                             getString(R.string.url_help));
@@ -349,7 +374,7 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                     break;
                 case 7:
-                    Intent ia = new Intent(getApplicationContext(),View_html_page.class);
+                    Intent ia = new Intent(getApplicationContext(),ViewHtmlPage.class);
                     ia.putExtra("pagetosee",
                             getString(R.string.url_about));
                     ia.putExtra("titletosee",
@@ -416,7 +441,7 @@ public class MainActivity extends AppCompatActivity {
             return true;
             /*
             case R.id.action_about:
-                Intent ia = new Intent(getApplicationContext(),View_html_page.class);
+                Intent ia = new Intent(getApplicationContext(),ViewHtmlPage.class);
                 pagetosee=getString(R.string.url_about);
                 titletosee=getString((R.string.title_activity_about));
                 startActivity(ia);
@@ -480,9 +505,16 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Transfer provided records
+     */
+    protected void doTransferRecords(List<Integer> selectedRecordIds) {
+        runOnUiThread(new SendResults(this, selectedRecordIds));
+    }
+
+    /**
      * Transfer records without checking user preferences
      */
-    private void doTransferRecords() {
+    protected void doTransferRecords() {
         if(!isOnline()) {
             MAINLOGGER.info("Not online, skip send of record");
             return;
@@ -491,12 +523,15 @@ public class MainActivity extends AppCompatActivity {
         List<Storage.Record> records = measurementManager.getRecords();
         final List<Integer> recordsToTransfer = new ArrayList<>();
         for(Storage.Record record : records) {
-            if(record.getUploadId().isEmpty() && record.getTimeLength() > 0) {
+            // Auto send records only if the record is not in progress and if the user have
+            // validated the Description activity
+            if(record.getUploadId().isEmpty() && record.getTimeLength() > 0 && record
+                    .getNoisePartyTag() != null) {
                 recordsToTransfer.add(record.getId());
             }
         }
         if(!recordsToTransfer.isEmpty()) {
-            runOnUiThread(new SendResults(this, recordsToTransfer));
+            doTransferRecords(recordsToTransfer);
         }
     }
 
@@ -509,25 +544,82 @@ public class MainActivity extends AppCompatActivity {
             this.recordsToTransfer = recordsToTransfer;
         }
 
+        public SendResults(MainActivity mainActivity, Integer... recordsToTransfer) {
+            this.mainActivity = mainActivity;
+            this.recordsToTransfer = Arrays.asList(recordsToTransfer);
+        }
+
         @Override
         public void run() {
             // Export
-            final ProgressDialog progress = ProgressDialog.show(mainActivity,
-                    mainActivity.getText(R.string.upload_progress_title),
-                    mainActivity.getText(R.string.upload_progress_message), true);
-            new Thread(new SendZipToServer(mainActivity, recordsToTransfer, progress,
-                    new OnUploadedListener() {
-                        @Override
-                        public void onMeasurementUploaded() {
-                            mainActivity.onTransferRecord();
-                        }
-                    })).start();
+            try {
+                mainActivity.progress = ProgressDialog.show(mainActivity, mainActivity
+                        .getText(R.string
+                        .upload_progress_title),
+                        mainActivity.getText(R.string.upload_progress_message), true);
+            } catch (RuntimeException ex) {
+                // This error may arise on some system
+                // The display of progression are not vital so cancel the crash by handling the
+                // error
+                MAINLOGGER.error(ex.getLocalizedMessage(), ex);
+            }
+            new Thread(new SendZipToServer(mainActivity, recordsToTransfer, mainActivity
+                    .progress, new
+                    OnUploadedListener() {
+                @Override
+                public void onMeasurementUploaded() {
+                    mainActivity.onTransferRecord();
+                }
+            })).start();
         }
     }
 
     protected void onTransferRecord() {
         // Nothing to do
     }
+
+
+    /***
+     * Checks that application runs first time and write flags at SharedPreferences
+     * Need further codes for enhancing conditions
+     * @return true if 1st time
+     * see : http://stackoverflow.com/questions/9806791/showing-a-message-dialog-only-once-when-application-is-launched-for-the-first
+     * see also for checking version (later) : http://stackoverflow.com/questions/7562786/android-first-run-popup-dialog
+     * Can be used for checking new version
+     */
+    protected boolean CheckNbRun(String preferenceName, int maxCount) {
+        SharedPreferences preferences = getPreferences(MODE_PRIVATE);
+        SharedPreferences.Editor editor = preferences.edit();
+        Integer NbRun = preferences.getInt(preferenceName, 1);
+        if (NbRun > maxCount) {
+            NbRun=1;
+        }
+        editor.putInt(preferenceName, NbRun+1);
+        editor.apply();
+        return (NbRun==1);
+    }
+
+    protected void displayCommunityMapNotification() {
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+                .setSmallIcon(MeasurementService.getNotificationIcon())
+                .setContentTitle(getString(R.string.notification_goto_community_map_title))
+                .setContentText(getString(R.string.notification_goto_community_map))
+                .setAutoCancel(true);
+        NotificationCompat.BigTextStyle bigTextStyle =
+                new NotificationCompat.BigTextStyle();
+        bigTextStyle.setBigContentTitle(getString(R.string.notification_goto_community_map_title));
+        bigTextStyle.bigText(getString(R.string.notification_goto_community_map));
+        builder.setStyle(bigTextStyle);
+        Intent intent = new Intent(Intent.ACTION_VIEW);
+        intent.setData(Uri.parse("http://noise-planet.org/map_noisecapture"));
+        TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+        stackBuilder.addParentStack(this);
+        stackBuilder.addNextIntent(intent);
+        builder.setContentIntent(stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT));
+        NotificationManager mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        mNM.notify(NOTIFICATION_MAP, builder.build());
+    }
+
 
 
     @Override
@@ -626,7 +718,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                 });
             } finally {
-                progress.dismiss();
+                if(progress != null && progress.isShowing()) {
+                    try {
+                        progress.dismiss();
+                    } catch (IllegalArgumentException ex) {
+                        //Ignore
+                    }
+                }
             }
         }
     }

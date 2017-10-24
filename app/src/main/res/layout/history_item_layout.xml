@@ -49,8 +49,8 @@
             <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/history_length"
-                    android:id="@+id/textView_length_item_history"
+                    android:text=""
+                    android:id="@+id/textView_description_item_history"
                     android:textSize="12sp" />
         </LinearLayout>
 

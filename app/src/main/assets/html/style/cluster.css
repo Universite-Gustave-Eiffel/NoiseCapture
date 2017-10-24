@@ -1,0 +1,71 @@
+.marker-cluster-small {
+	background-color: rgba(240,240,240, 0.6);
+	color : rgba(0, 0, 0, 1);
+	}
+.marker-cluster-small div {
+	background-color: rgba(225,225,225, 0.6);
+	}
+
+.marker-cluster-medium {
+	background-color: rgba(189,189,189, 0.6);
+	color : rgba(255, 255, 255, 1);
+	}
+.marker-cluster-medium div {
+	background-color: rgba(175, 175, 175, 0.6);
+	}
+
+.marker-cluster-large {
+	background-color: rgba(99,99,99, 0.6);
+	color : rgba(255, 255, 255, 1);
+	}
+.marker-cluster-large div {
+	background-color: rgba(80, 80, 80, 0.6);
+	}
+
+.marker-cluster {
+	background-clip: padding-box;
+	border-radius: 20px;
+	}
+.marker-cluster div {
+	width: 30px;
+	height: 30px;
+	margin-left: 5px;
+	margin-top: 5px;
+
+	text-align: center;
+	border-radius: 15px;
+	font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+	}
+.marker-cluster span {
+	line-height: 30px;
+	}
+
+.hexagon-cluster-small {
+	color : rgba(0, 0, 0, 1);
+	}
+
+.hexagon-cluster-medium {
+	color : rgba(255, 255, 255, 1);
+	}
+
+.hexagon-cluster-large {
+	color : rgba(255, 255, 255, 1);
+	}
+
+.hexagon-cluster {
+	background-clip: padding-box;
+	border-radius: 20px;
+	}
+.hexagon-cluster div {
+	width: 30px;
+	height: 30px;
+	margin-left: 5px;
+	margin-top: 5px;
+
+	text-align: center;
+	border-radius: 15px;
+	font: 12px "Helvetica Neue", Arial, Helvetica, sans-serif;
+	}
+.hexagon-cluster span {
+	line-height: 30px;
+	}

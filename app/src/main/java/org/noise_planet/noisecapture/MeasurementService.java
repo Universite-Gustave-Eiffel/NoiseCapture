@@ -39,6 +39,7 @@ import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioManager;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
@@ -73,6 +74,8 @@ public class MeasurementService extends Service {
     private CommonLocationListener gpsLocationListener;
     private CommonLocationListener networkLocationListener;
     private CommonLocationListener passiveLocationListener;
+    // New measurement record sent to the database Event object is Storage.Leq
+    public static final String PROP_NEW_MEASUREMENT = "PROP_NEW_MEASUREMENT";
     private long minTimeDelay = 1000;
     private static final long MAXIMUM_LOCATION_HISTORY = 50;
     private AudioProcess audioProcess;
@@ -104,6 +107,8 @@ public class MeasurementService extends Service {
     // Unique Identification Number for the Notification.
     // We use it on Notification start, and to cancel it.
     private int NOTIFICATION = R.string.local_service_started;
+    private Notification.Builder notification;
+    private Notification notificationInstance;
 
     /**
      * Class for clients to access.  Because we know this service always
@@ -166,6 +171,13 @@ public class MeasurementService extends Service {
         this.measurementManager = new MeasurementManager(getApplicationContext());
         // Display a notification about us starting.  We put an icon in the status bar.
         showNotification();
+        // Mute NoiseCapture while measuring (do not capture android sounds)
+        try {
+            AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+            mgr.setStreamMute(AudioManager.STREAM_SYSTEM, true);
+        } catch (SecurityException ex) {
+            // Ignore
+        }
     }
 
     /**
@@ -190,13 +202,19 @@ public class MeasurementService extends Service {
         if(isRecording()) {
             cancel();
         }
+        try {
+            AudioManager mgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+            mgr.setStreamMute(AudioManager.STREAM_SYSTEM, false);
+        } catch (SecurityException ex) {
+            // Ignore
+        }
     }
 
     /***
      * @return Get last precision in meters. Null if no available location
      */
-    public Float getLastPrecision() {
-        return timeLocation.isEmpty() ? null : timeLocation.lastEntry().getValue().getAccuracy();
+    public Location getLastLocation() {
+        return timeLocation.isEmpty() ? null : timeLocation.lastEntry().getValue();
     }
 
     @Override
@@ -234,7 +252,7 @@ public class MeasurementService extends Service {
     // RemoteService for a more complete example.
     private final IBinder mBinder = new LocalBinder();
 
-    private int getNotificationIcon() {
+    public static int getNotificationIcon() {
         boolean useWhiteIcon = (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP);
         return useWhiteIcon ? R.drawable.ic_measure_notification : R.mipmap.ic_launcher;
     }
@@ -243,29 +261,40 @@ public class MeasurementService extends Service {
      * Show a notification while this service is running.
      */
     private void showNotification() {
+        // Do not stack notifications
+        mNM.cancelAll();
         // Text for the ticker
-        CharSequence text = isStoring() ? getText(R.string.title_service_measurement) :
+        CharSequence text = isStoring() ? getString(R.string.notification_record_content,
+                audioProcess.getLeq()) :
                 getText(R.string.record_message);
 
-        // The PendingIntent to launch our activity if the user selects this notification
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, MeasurementActivity.class), 0);
-
         // Set the info for the views that show in the notification panel.
-        Notification.Builder notification = new Notification.Builder(this)
-                .setSmallIcon(getNotificationIcon())  // the status icon
-                .setWhen(System.currentTimeMillis())
-                .setTicker(text)  // the status text
-                .setWhen(System.currentTimeMillis())  // the time stamp
-                .setContentTitle("NoiseCapture")  // the label of the entry
-                .setContentText(text)  // the contents of the entry
-                .setContentIntent(contentIntent)  // The intent to send when the entry is clicked
-                ;
+        if(notification == null) {
+
+            // The PendingIntent to launch our activity if the user selects this notification
+            PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+                    new Intent(this, MeasurementActivity.class), 0);
+
+
+            notification = new Notification.Builder(this).setSmallIcon(getNotificationIcon())  // the status icon
+                    .setWhen(System.currentTimeMillis()).setTicker(text)  // the status text
+                    .setWhen(System.currentTimeMillis())  // the time stamp
+                    .setContentTitle(getString(R.string.title_service_measurement))  // the label
+                    // of the
+                    // entry
+                    .setContentText(text)  // the contents of the entry
+                    .setContentIntent(contentIntent)  // The intent to send when the entry is clicked
+
+            ;
+        } else {
+            notification.setContentText(text);
+        }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
             notification.setUsesChronometer(true);
         }
         // Send the notification.
-        mNM.notify(NOTIFICATION, notification.getNotification());
+        notificationInstance = notification.getNotification();
+        mNM.notify(NOTIFICATION, notificationInstance);
     }
 
     private void initLocalisationServices() {
@@ -372,6 +401,8 @@ public class MeasurementService extends Service {
     public void setPause(boolean newState) {
         isPaused.set(newState);
         LOGGER.info("Measurement pause = " + String.valueOf(newState));
+        audioProcess.setDoFastLeq(!newState);
+        audioProcess.setDoOneSecondLeq(!newState);
         if(newState && deletedLeqOnPause > 0 && recordId > -1) {
             // Delete last recorded leq
             int deletedLeq = measurementManager.deleteLastLeqs(recordId,
@@ -379,13 +410,21 @@ public class MeasurementService extends Service {
             leqAdded.set(Math.max(0, leqAdded.get() - deletedLeq));
             // Recompute LeqStats altered by the removed leq
             LeqStats newLeqStats = new LeqStats();
-            for(MeasurementManager.LeqBatch leq : measurementManager
-                    .getRecordLocations(recordId, false, 0)) {
-                newLeqStats.addLeq(leq.computeGlobalLeq());
+            // Query database
+            List<Integer> frequencies = new ArrayList<Integer>();
+            List<Float[]> leqValues = new ArrayList<Float[]>();
+            measurementManager.getRecordLeqs(recordId, frequencies, leqValues, null);
+            // parse each leq window time
+            for(Float[] leqFreqs : leqValues) {
+                double rms = 0;
+                for(float leqValue : leqFreqs) {
+                    rms += Math.pow(10, leqValue / 10);
+                }
+                newLeqStats.addLeq(10 * Math.log10(rms));
             }
             leqStats = newLeqStats;
-        }
-        if(newState && recordId > -1) {
+            leqStatsFast = new LeqStats(newLeqStats);
+        } else if(newState && recordId > -1) {
             leqStatsFast = new LeqStats();
         }
     }
@@ -411,10 +450,10 @@ public class MeasurementService extends Service {
         // than two times of old location
         // see https://developer.android.com/guide/topics/location/strategies.html
         Location previousLocation = timeLocation.isEmpty() ? null : timeLocation.lastEntry().getValue();
-        if(previousLocation == null || (location.getAccuracy() < previousLocation.distanceTo(location)
-                && (location.getAccuracy() < previousLocation.getAccuracy()
-                || previousLocation.getAccuracy() < location.getAccuracy() * 2))) {
-            timeLocation.put(location.getTime(), location);
+        if(previousLocation == null || (location.getProvider().equals(LocationManager.GPS_PROVIDER) ||
+                previousLocation.getProvider().equals(LocationManager.NETWORK_PROVIDER)||
+                previousLocation.getProvider().equals(LocationManager.PASSIVE_PROVIDER))) {
+            timeLocation.put(System.currentTimeMillis(), location);
             if (timeLocation.size() > MAXIMUM_LOCATION_HISTORY) {
                 // Clean old entry
                 timeLocation.remove(timeLocation.firstKey());
@@ -431,14 +470,22 @@ public class MeasurementService extends Service {
         Map.Entry<Long, Location> low = timeLocation.floorEntry(utcTime);
         Map.Entry<Long, Location> high = timeLocation.ceilingEntry(utcTime);
         Location res = null;
+        long key = 0;
         if (low != null && high != null) {
             // Got two results, find nearest
             res = Math.abs(utcTime-low.getKey()) < Math.abs(utcTime-high.getKey())
                     ?   low.getValue()
-                    :   high.getValue();
+                    : high.getValue();
+            key = Math.abs(utcTime-low.getKey()) < Math.abs(utcTime-high.getKey())
+                    ?   low.getKey()
+                    : high.getKey();
         } else if (low != null || high != null) {
             // Just one range bound, search the good one
             res = low != null ? low.getValue() : high.getValue();
+            key = low != null ? low.getKey() : high.getKey();
+        }
+        if(BuildConfig.DEBUG) {
+            System.out.println("Fetch time offset "+(utcTime-key)+" ms");
         }
         return res;
     }
@@ -533,6 +580,8 @@ public class MeasurementService extends Service {
                     final float[] leqs = measure.getLeqs();
                     // Add leqs to stats
                     measurementService.leqStats.addLeq(measure.getGlobaldBaValue());
+                    // Update notification
+                    measurementService.showNotification();
                     List<Storage.LeqValue> leqValueList = new ArrayList<>(leqs.length);
                     for (int idFreq = 0; idFreq < leqs.length; idFreq++) {
                         leqValueList
@@ -541,9 +590,9 @@ public class MeasurementService extends Service {
                     measurementService.measurementManager
                             .addLeqBatch(new MeasurementManager.LeqBatch(leq, leqValueList));
                     measurementService.leqAdded.addAndGet(1);
+                    measurementService.listeners.firePropertyChange(PROP_NEW_MEASUREMENT, null, new MeasurementEventObject(measure, leq));
                 }
-            } else if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName
-                    ())) {
+            } else if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
                 if (measurementService.isStoring() && !measurementService.isPaused.get()) {
                     AudioProcess.AudioMeasureResult measure =
                             (AudioProcess.AudioMeasureResult) event.getNewValue();
@@ -571,6 +620,9 @@ public class MeasurementService extends Service {
                     }
                     measurementService.isRecording.set(false);
                     measurementService.stopLocalisationServices();
+                    // Stop task
+                    measurementService.stopForeground(true);
+                    measurementService.stopSelf();
                 }
             }
             measurementService.listeners.firePropertyChange(event);
@@ -602,6 +654,17 @@ public class MeasurementService extends Service {
         leqAdded.set(0);
         isStorageActivated.set(true);
         showNotification();
+        // Set is foreground in order to let this service running without stopping
+        startForeground(NOTIFICATION, notificationInstance);
     }
 
+    public static final class MeasurementEventObject {
+        public final Storage.Leq leq;
+        public final AudioProcess.AudioMeasureResult measure;
+
+        public MeasurementEventObject(AudioProcess.AudioMeasureResult measure, Storage.Leq leq) {
+            this.measure = measure;
+            this.leq = leq;
+        }
+    }
 }

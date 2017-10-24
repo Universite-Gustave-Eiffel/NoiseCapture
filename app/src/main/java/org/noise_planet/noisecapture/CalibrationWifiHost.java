@@ -31,11 +31,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -53,6 +55,8 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class CalibrationWifiHost extends MainActivity implements PropertyChangeListener {
@@ -100,7 +104,9 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
 
     void doUnbindService() {
         if (mIsBound) {
-            calibrationService.removePropertyChangeListener(this);
+            if(calibrationService != null) {
+                calibrationService.removePropertyChangeListener(this);
+            }
             // Detach our existing connection.
             unbindService(mConnection);
             mIsBound = false;
@@ -192,7 +198,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
             // New leq
             AudioProcess.AudioMeasureResult measure =
                     (AudioProcess.AudioMeasureResult) event.getNewValue();
-            final double leq = measure.getSignalLeq();
+            final double leq = measure.getGlobaldBaValue();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -230,6 +236,21 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
         }
     };
 
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case PERMISSION_WIFI_P2P: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if(calibrationService != null) {
+                        calibrationService.init();
+                    }
+                }
+            }
+        }
+    }
 
     @Override
     protected void onRestart() {

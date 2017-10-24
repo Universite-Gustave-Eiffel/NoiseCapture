@@ -329,4 +329,6 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="wifi_peer_failed">Failed</string>
     <string name="wifi_peer_unavailable">Unavailable</string>
     <string name="wifi_peer_unknown">Unknown</string>
+    <string name="permission_explain_change_wifi_state">NoiseCapture requires permission to enable
+        the wifi in order to connect to host calibration device</string>
 </resources>

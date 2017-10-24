@@ -27,6 +27,7 @@
 
 package org.noise_planet.noisecapture;
 
+import android.*;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -35,6 +36,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
@@ -48,6 +50,7 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.widget.Toast;
 
@@ -208,7 +211,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
     public void init() {
         LOGGER.info("CalibrationService.init");
         WifiManager wifi = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        if(!wifi.isWifiEnabled()) {
+        if(!wifi.isWifiEnabled() && ContextCompat.checkSelfPermission(this,
+                android.Manifest.permission.CHANGE_WIFI_STATE)
+                == PackageManager.PERMISSION_GRANTED) {
             wifi.setWifiEnabled(true);
         }
         Intent intent = new Intent(this, WifiDirectHandler.class);

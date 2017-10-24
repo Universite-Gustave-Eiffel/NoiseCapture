@@ -31,15 +31,19 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class CalibrationWifiGuest extends MainActivity implements PropertyChangeListener {
 
@@ -72,7 +76,7 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
             // New leq
             AudioProcess.AudioMeasureResult measure =
                     (AudioProcess.AudioMeasureResult) event.getNewValue();
-            final double leq = measure.getSignalLeq();
+            final double leq = measure.getGlobaldBaValue();
 
         } else if(CalibrationService.PROP_CALIBRATION_STATE.equals(event.getPropertyName())) {
             // Calibration service state change, inform user
@@ -85,6 +89,21 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
                 textDeviceName.setText(p2pDevice.deviceName);
             } else {
                 textDeviceName.setText("");
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        switch (requestCode) {
+            case PERMISSION_WIFI_P2P: {
+                // If request is cancelled, the result arrays are empty.
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    if(calibrationService != null) {
+                        calibrationService.init();
+                    }
+                }
             }
         }
     }
@@ -110,7 +129,9 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
 
     void doUnbindService() {
         if (mIsBound) {
-            calibrationService.removePropertyChangeListener(this);
+            if(calibrationService != null) {
+                calibrationService.removePropertyChangeListener(this);
+            }
             // Detach our existing connection.
             unbindService(mConnection);
             mIsBound = false;

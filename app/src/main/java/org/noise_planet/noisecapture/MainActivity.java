@@ -74,6 +74,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -92,10 +95,12 @@ public class MainActivity extends AppCompatActivity {
     public String[] mMenuLeft;
     public ActionBarDrawerToggle mDrawerToggle;
     private ProgressDialog progress;
+    protected AtomicBoolean currentlyRequestPermission = new AtomicBoolean(false);
 
     public static final int PERMISSION_RECORD_AUDIO_AND_GPS = 1;
     public static final int PERMISSION_WIFI_STATE = 2;
     public static final int PERMISSION_INTERNET = 3;
+    public static final int PERMISSION_WIFI_P2P = 4;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -127,9 +132,8 @@ public class MainActivity extends AppCompatActivity {
             }
             // Request the permission.
             ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.CHANGE_WIFI_STATE,
-                            android.Manifest.permission.ACCESS_WIFI_STATE},
-                    PERMISSION_WIFI_STATE);
+                    new String[]{android.Manifest.permission.CHANGE_WIFI_STATE},
+                    PERMISSION_WIFI_P2P);
             return false;
         }
         return true;
@@ -634,7 +638,13 @@ public class MainActivity extends AppCompatActivity {
                 } else {
                     // permission denied
                     // Ask again
-                    checkAndAskPermissions();
+                    Timer timer = new Timer();
+                    timer.schedule(new TimerTask() {
+                        @Override
+                        public void run() {
+                            checkAndAskWifiStatePermission();
+                        }
+                    }, 2000);
                 }
             }
         }

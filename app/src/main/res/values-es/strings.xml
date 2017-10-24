@@ -297,6 +297,7 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
     <string name="title_settings_user_noise_knowledge">Perfil de usuario</string>
     <string name="settings_user_noise_knowledge_description">¿Cómo destribirías tu conocimiento sobre entornos sonoros?</string>
     <string name="hint_userinput_noiseparty_tag">Codice NoiseCapture Party</string>
+    <string name="permission_explain_change_wifi_state"/>
     <string-array name="knowledge">
         <item>No tengo ningún conosimiento en el dominio del ruido</item>
         <item>Tengo algún conocimiento en el dominio del ruido</item>

@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
           package="org.noise_planet.noisecapture">
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <!-- Required for Wifi P2P -->
+    <uses-permission android:required="false" android:name="android.permission.CHANGE_WIFI_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <!-- <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" /> -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
@@ -43,6 +45,8 @@
         </provider>
 
         <service android:name=".MeasurementService"/>
+        <service android:name=".CalibrationService"/>
+        <service android:name="edu.rit.se.wifibuddy.WifiDirectHandler" />
 
         <activity
             android:name=".MeasurementActivity"
@@ -104,7 +108,12 @@
             android:name=".CommentActivity"
             android:label="@string/title_activity_comment"
             android:windowSoftInputMode="adjustPan" />
-        <activity
+
+        <activity android:name=".PrivacyPolicyActivity"
+            android:label="@string/privacy_policy_title">
+        </activity>
+
+    <activity
             android:name=".CalibrationMenu"
             android:label="@string/title_activity_menu_calibration" />
         <activity

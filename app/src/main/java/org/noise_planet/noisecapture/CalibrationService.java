@@ -38,6 +38,7 @@ import android.content.SharedPreferences;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.Handler;
@@ -57,6 +58,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.nio.charset.Charset;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -318,8 +320,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
         if(CALIBRATION_STATE.AWAITING_START.equals(state) && isHost) {
             CommunicationManager communicationManager = wifiDirectHandler.getCommunicationManager();
             if(communicationManager != null) {
-                communicationManager.write(buildMessage(ID_START_CALIBRATION, defaultWarmupTime,
-                        defaultCalibrationTime));
+                new NetworkTask(communicationManager).execute(ID_START_CALIBRATION, defaultWarmupTime,
+                        defaultCalibrationTime);
                 setState(CALIBRATION_STATE.WARMUP);
             } else {
                 LOGGER.error("Communication manager is null");
@@ -327,12 +329,13 @@ public class CalibrationService extends Service implements PropertyChangeListene
         }
     }
 
-    private byte[] buildMessage(int Id, Object... arguments) {
-        StringBuilder sb = new StringBuilder(String.valueOf(Id));
-        for(Object argument : arguments) {
+    private static byte[] buildMessage(Object... arguments) {
+        StringBuilder sb = new StringBuilder(String.valueOf(arguments[0]));
+        for(Object argument : Arrays.copyOfRange(arguments, 1, arguments.length)) {
             sb.append(messageSeparator);
             sb.append(argument);
         }
+        LOGGER.debug("Send message " + sb.toString());
         return sb.toString().getBytes();
     }
 
@@ -367,8 +370,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 case ID_PING:
                     // Peer receive ping
                     if (messagePingArgument.equals(stringTokenizer.nextToken())) {
-                        communicationManager.write(buildMessage(ID_PONG, messagePingArgument,
-                                wifiP2pDevice.deviceAddress));
+                        new NetworkTask(communicationManager).execute(ID_PONG, messagePingArgument,
+                                wifiDirectHandler.getThisDevice().deviceAddress);
                         setState(CALIBRATION_STATE.AWAITING_START);
                     }
                     break;
@@ -418,6 +421,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
             unbindService(measureConnection);
         }
         if(wifiDirectHandlerBound) {
+            if(wifiDirectHandler != null) {
+                wifiDirectHandler.unregisterP2pReceiver();
+            }
             unbindService(wifiServiceConnection);
         }
     }
@@ -437,7 +443,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     protected void initiateCommunication() {
         CommunicationManager communicationManager = wifiDirectHandler.getCommunicationManager();
         if(communicationManager != null) {
-            communicationManager.write(buildMessage(ID_PING,messagePingArgument));
+            new NetworkTask(communicationManager).execute(ID_PING,messagePingArgument);
         } else {
             LOGGER.error("Communication manager is null");
         }
@@ -580,6 +586,22 @@ public class CalibrationService extends Service implements PropertyChangeListene
             } else {
                 service.onTimerEnd();
             }
+            return true;
+        }
+    }
+
+
+    private static final class NetworkTask extends AsyncTask {
+
+        CommunicationManager communicationManager;
+
+        public NetworkTask(CommunicationManager communicationManager) {
+            this.communicationManager = communicationManager;
+        }
+
+        @Override
+        protected Object doInBackground(Object[] params) {
+            communicationManager.write(buildMessage(params));
             return true;
         }
     }

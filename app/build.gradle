@@ -1,19 +1,7 @@
 apply plugin: 'com.android.application'
 
 def getCheckedOutGitCommitHash() {
-    def gitFolder = "$rootProject.projectDir/.git/"
-    /*
-     * '.git/HEAD' contains either
-     *      in case of detached head: the currently checked out commit hash
-     *      otherwise: a reference to a file containing the current commit hash
-     */
-    def head = new File(gitFolder + "HEAD").text.split(":") // .git/HEAD
-    def isCommit = head.length == 1
-
-    if (isCommit) return head[0].trim()
-
-    def refHead = new File(gitFolder + head[1].trim()) // .git/refs/heads/master
-    refHead.text.trim()
+    'git rev-parse --verify --short HEAD'.execute().text.trim()
 }
 
 android {

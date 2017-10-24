@@ -328,7 +328,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
                     animation.setRepeatMode(Animation.REVERSE);
                     animation.setDuration(BLINK_DELAY);
                     statusIcon.startAnimation(animation);
-                    stringId = R.string.wifi_peer_paired;
+                    stringId = R.string.wifi_peer_connected;
                     break;
                 case WifiP2pDevice.FAILED:
                     // red

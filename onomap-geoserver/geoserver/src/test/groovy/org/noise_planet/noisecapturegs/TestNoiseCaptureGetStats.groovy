@@ -81,8 +81,10 @@ class TestNoiseCaptureGetStats extends GroovyTestCase {
     @Ignore
     static
     def addTestRecord(sql, time, location, levels) {
+        def idUser = sql.executeInsert("INSERT INTO noisecapture_user(user_uuid, date_creation) VALUES (:uuid, cast(cast(:userdate as timestamptz) as date))", [uuid: UUID.randomUUID(), userdate : time])[0][0]
+
         Map record = [track_uuid         : UUID.randomUUID().toString(),
-                      pk_user            : 1,
+                      pk_user            : idUser,
                       version_number     : 14,
                       record_utc         : time,
                       pleasantness       : 50,
@@ -92,7 +94,7 @@ class TestNoiseCaptureGetStats extends GroovyTestCase {
                       noise_level        : 10 * Math.log10(levels.sum({Math.pow(10.0, it / 10.0)})),
                       time_length        : levels.size(),
                       gain_calibration   : 0]
-        sql.executeInsert("INSERT INTO noisecapture_user(user_uuid, date_creation) VALUES (:uuid, cast(cast(:userdate as timestamptz) as date))", [uuid: UUID.randomUUID(), userdate : time])
+
         def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
                 " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration) VALUES (" +
                 ":track_uuid, :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
@@ -136,6 +138,13 @@ class TestNoiseCaptureGetStats extends GroovyTestCase {
 
         assertEquals("Italy",stats["week_tracks"]["datasets"][1].label)
         assertEquals(3, stats["week_tracks"]["datasets"][1].data.sum())
+
+        // Check contributors
+
+        assertTrue("contributors_7days" in stats.keySet())
+        // Only one contributor this week
+        assertEquals(1, stats["contributors_7days"].size())
+        assertEquals(3, stats["contributors_7days"][0]["total_length"])
     }
 
 }

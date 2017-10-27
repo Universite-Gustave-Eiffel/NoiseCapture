@@ -370,10 +370,17 @@ public class MeasurementManager {
                     StringTokenizer stringTokenizer = new StringTokenizer(leqStringArray, ",");
                     int i = 0;
                     while (stringTokenizer.hasMoreTokens()) {
-                        Storage.LeqValue leqValue = new Storage.LeqValue(lastId, (int)
-                                AudioProcess.realTimeCenterFrequency[i++], Float.valueOf
-                                (stringTokenizer.nextToken()));
-                        lastLeq.addLeqValue(leqValue);
+                        try {
+                            String leqValueString = stringTokenizer.nextToken();
+                            if(!leqValueString.isEmpty()) {
+                                Storage.LeqValue leqValue = new Storage.LeqValue(lastId,
+                                        (int) AudioProcess.realTimeCenterFrequency[i++],
+                                        Float.valueOf(leqValueString));
+                                lastLeq.addLeqValue(leqValue);
+                            }
+                        } catch (NumberFormatException ex) {
+                            // Could not read record value, skip
+                        }
                     }
                 }
                 // Add last leq

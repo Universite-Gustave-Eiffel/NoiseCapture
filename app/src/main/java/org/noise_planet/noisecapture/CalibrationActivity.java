@@ -45,6 +45,7 @@ import android.preference.PreferenceManager;
 import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
 import android.text.util.Linkify;
+import android.view.GestureDetector;
 import android.view.Menu;
 import android.view.MotionEvent;
 import android.view.View;
@@ -142,7 +143,8 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             }
         });
 
-        layout_progress.setOnTouchListener(new hiddenCalibrationTouchEvent(this));
+        layout_progress.setLongClickable(true);
+        layout_progress.setOnLongClickListener(new hiddenCalibrationTouchEvent(this));
 
         // Load spinner values
         // Create an ArrayAdapter using the string array and a default spinner layout
@@ -169,39 +171,21 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         initCalibration();
     }
 
-    private static final class hiddenCalibrationTouchEvent implements View.OnTouchListener {
+    private static final class hiddenCalibrationTouchEvent implements View.OnLongClickListener {
         private CalibrationActivity calibrationActivity;
-        private boolean mBooleanIsPressed = false;
-        private final Handler handler = new Handler();
-        private final Runnable runnable = new Runnable() {
-            public void run() {
-                if(mBooleanIsPressed) {
-                    Intent im = new Intent(calibrationActivity, CalibrationLinearityActivity.class);
-                    im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                    calibrationActivity.startActivity(im);
-                    calibrationActivity.finish();
-                }
-            }
-        };
 
         public hiddenCalibrationTouchEvent(CalibrationActivity calibrationActivity) {
             this.calibrationActivity = calibrationActivity;
         }
 
-        @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                handler.postDelayed(runnable, 5000);
-                mBooleanIsPressed = true;
-            }
 
-            if(event.getAction() == MotionEvent.ACTION_UP) {
-                if(mBooleanIsPressed) {
-                    mBooleanIsPressed = false;
-                    handler.removeCallbacks(runnable);
-                }
-            }
-            return false;
+        @Override
+        public boolean onLongClick(View v) {
+            Intent im = new Intent(calibrationActivity, CalibrationLinearityActivity.class);
+            im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+            calibrationActivity.startActivity(im);
+            calibrationActivity.finish();
+            return true;
         }
     }
 

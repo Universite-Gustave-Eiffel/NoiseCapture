@@ -27,7 +27,6 @@
 
 package org.noise_planet.noisecapture;
 
-import android.*;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
@@ -42,7 +41,6 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.os.AsyncTask;
 import android.os.Binder;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -88,6 +86,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
     public static final String PROP_CALIBRATION_PROGRESSION = "PROP_CALIBRATION_PROGRESSION"; // Calibration/Warmup progression 0-100
 
 
+    private AudioProcess audioProcess;
+    private AtomicBoolean recording = new AtomicBoolean(true);
+    private AtomicBoolean canceled = new AtomicBoolean(false);
 
     private final IntentFilter intentFilter = new IntentFilter();
     private WifiP2pDevice wifiP2pDevice;
@@ -96,7 +97,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationService.class);
     private static final String NOISECAPTURE_CALIBRATION_SERVICE = "NoiseCapture_Calibration";
     // Registration service timout
-    private static final int SERVICE_TIMEOUT = 120000;
+    private static final int SERVICE_TIMEOUT = 8000;
     private Handler timeHandler;
 
     public enum CALIBRATION_STATE {
@@ -147,6 +148,27 @@ public class CalibrationService extends Service implements PropertyChangeListene
         listeners.firePropertyChange(PROP_PEER_LIST, null, peers);
     }
 
+
+    private void initAudioProcess() {
+        canceled.set(false);
+        recording.set(true);
+        audioProcess = new AudioProcess(recording, canceled);
+        audioProcess.setDoFastLeq(false);
+        audioProcess.setDoOneSecondLeq(true);
+        audioProcess.setWeightingA(false);
+        audioProcess.setHannWindowOneSecond(true);
+        if(isHost) {
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationService.this);
+            audioProcess.setGain((float)Math.pow(10, MainActivity.getDouble(sharedPref,
+                    "settings_recording_gain", 0) / 20));
+        } else {
+            audioProcess.setGain(1);
+        }
+        audioProcess.getListeners().addPropertyChangeListener(this);
+
+        // Start measurement
+        new Thread(audioProcess).start();
+    }
     /**
      * Class for clients to access.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with
@@ -164,11 +186,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
 
     // Other resources
-    private boolean measurementIsBound = false;
     private boolean wifiDirectHandlerBound = false;
     private boolean isHost = false;
 
-    private MeasurementService measurementService;
     private WifiDirectHandler wifiDirectHandler;
     private BroadcastReceiver receiver = null;
 
@@ -224,7 +244,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(receiver);
-        doUnbindService();
     }
 
     private ServiceConnection wifiServiceConnection = new ServiceConnection() {
@@ -254,38 +273,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
         public void onServiceDisconnected(ComponentName name) {
             LOGGER.info("wifiDirectHandler unbound ");
             CalibrationService.this.wifiDirectHandlerBound = false;
-        }
-    };
-
-    private ServiceConnection measureConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            // This is called when the connection with the service has been
-            // established, giving us the service object we can use to
-            // interact with the service.  Because we have bound to a explicit
-            // service that we know is running in our own process, we can
-            // cast its IBinder to a concrete class and directly access it.
-            measurementService = ((MeasurementService.LocalBinder)service).getService();
-            CalibrationService.this.measurementIsBound = true;
-
-            measurementService.addPropertyChangeListener(CalibrationService.this);
-            if(!measurementService.isRecording()) {
-                measurementService.startRecording();
-            }
-            measurementService.setdBGain(0);
-            measurementService.getAudioProcess().setDoFastLeq(false);
-            measurementService.getAudioProcess().setDoOneSecondLeq(true);
-            measurementService.getAudioProcess().setWeightingA(false);
-            measurementService.getAudioProcess().setHannWindowOneSecond(false);
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            // This is called when the connection with the service has been
-            // unexpectedly disconnected -- that is, its process crashed.
-            // Because it is running in our same process, we should never
-            // see this happen.
-            measurementService.removePropertyChangeListener(CalibrationService.this);
-            measurementService = null;
-            CalibrationService.this.measurementIsBound = false;
         }
     };
 
@@ -347,7 +334,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private void runWarmup() {
         // Link measurement service with gui
         // Application have right now all permissions
-        doBindMeasureService();
         timeHandler = new Handler(Looper.getMainLooper(), progressHandler);
         progressHandler.start(defaultWarmupTime * 1000);
     }
@@ -375,9 +361,15 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 case ID_PING:
                     // Peer receive ping
                     if (messagePingArgument.equals(stringTokenizer.nextToken())) {
-                        new NetworkTask(communicationManager).execute(ID_PONG, messagePingArgument,
-                                wifiDirectHandler.getThisDevice().deviceAddress);
-                        setState(CALIBRATION_STATE.AWAITING_START);
+                        if(wifiDirectHandler.getThisDevice() == null) {
+                            // Too early
+                            // TODO handle ping later
+                            LOGGER.error("wifiDirectHandler is null");
+                        } else {
+                            new NetworkTask(communicationManager).execute(ID_PONG, messagePingArgument,
+                                    wifiDirectHandler.getThisDevice().deviceAddress);
+                            setState(CALIBRATION_STATE.AWAITING_START);
+                        }
                     }
                     break;
                 case ID_PONG:
@@ -398,19 +390,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
         }
     }
 
-    void doBindMeasureService() {
-        // Establish a connection with the service.  We use an explicit
-        // class name because we want a specific service implementation that
-        // we know will be running in our own process (and thus won't be
-        // supporting component replacement by other applications).
-        if(!bindService(new Intent(this, MeasurementService.class), measureConnection,
-                Context.BIND_AUTO_CREATE)) {
-            Toast.makeText(CalibrationService.this, R.string.measurement_service_disconnected,
-                    Toast.LENGTH_SHORT).show();
-        } else {
-            measurementIsBound = true;
-        }
-    }
 
     protected void setState(CALIBRATION_STATE state) {
         CALIBRATION_STATE oldState = this.state;
@@ -419,19 +398,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         LOGGER.info("CALIBRATION_STATE " + oldState.toString() + "->" + state.toString());
     }
 
-    void doUnbindService() {
-        if (measurementIsBound) {
-            measurementService.removePropertyChangeListener(this);
-            // Detach our existing connection.
-            unbindService(measureConnection);
-        }
-        if(wifiDirectHandlerBound) {
-            if(wifiDirectHandler != null) {
-                wifiDirectHandler.unregisterP2pReceiver();
-            }
-            unbindService(wifiServiceConnection);
-        }
-    }
+
     public CALIBRATION_STATE getState() {
         return state;
     }

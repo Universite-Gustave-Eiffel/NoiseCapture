@@ -107,7 +107,8 @@
         <activity
             android:name=".CommentActivity"
             android:label="@string/title_activity_comment"
-            android:windowSoftInputMode="adjustPan" />
+            android:windowSoftInputMode="adjustPan"
+            android:screenOrientation="portrait" />
 
         <activity android:name=".PrivacyPolicyActivity"
             android:label="@string/privacy_policy_title">
@@ -119,10 +120,12 @@
         <activity
             android:name=".CalibrationWifiHost"
             android:label="@string/title_activity_calibration_host"
-            android:keepScreenOn="true"/>
+            android:keepScreenOn="true"
+            android:screenOrientation="portrait"/>
         <activity android:name=".CalibrationWifiGuest"
             android:label="@string/title_activity_calibration_peer"
-            android:keepScreenOn="true" />
+            android:keepScreenOn="true"
+          android:screenOrientation="portrait" />
     </application>
 
 </manifest>

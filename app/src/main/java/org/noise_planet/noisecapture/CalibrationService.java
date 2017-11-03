@@ -260,6 +260,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     public void onDestroy() {
         super.onDestroy();
         unregisterReceiver(receiver);
+        unbindService(wifiServiceConnection);
     }
 
     private ServiceConnection wifiServiceConnection = new ServiceConnection() {
@@ -456,7 +457,10 @@ public class CalibrationService extends Service implements PropertyChangeListene
     protected void sendMessage(int messageId, Object... args) {
         CommunicationManager communicationManager = wifiDirectHandler.getCommunicationManager();
         if(communicationManager != null) {
-            new NetworkTask(communicationManager).execute(messageId, args);
+            Object[] execArgs = new Object[args.length + 1];
+            execArgs[0] = messageId;
+            System.arraycopy(args, 0, execArgs, 1, args.length);
+            new NetworkTask(communicationManager).execute(execArgs);
         } else {
             LOGGER.error("Communication manager is null");
         }
@@ -495,6 +499,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
                     }
                 } else if(calibrationService.wifiDirectHandler != null &&
                         calibrationService.wifiDirectHandler.getThisDevice() == null) {
+                    LOGGER.info("getThisDevice == null");
                     //calibrationService.wifiDirectHandler.unregisterP2p();
                     //calibrationService.wifiDirectHandler.unregisterP2pReceiver();
                     //calibrationService.wifiDirectHandler.registerP2p();

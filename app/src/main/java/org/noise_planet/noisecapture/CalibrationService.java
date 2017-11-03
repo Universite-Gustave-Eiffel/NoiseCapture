@@ -50,8 +50,8 @@ import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
-import android.widget.Toast;
 
+import org.orbisgis.sos.LeqStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,6 +87,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
 
     private AudioProcess audioProcess;
+    private LeqStats leqStats;
     private AtomicBoolean recording = new AtomicBoolean(true);
     private AtomicBoolean canceled = new AtomicBoolean(false);
 
@@ -98,6 +99,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private static final String NOISECAPTURE_CALIBRATION_SERVICE = "NoiseCapture_Calibration";
     // Registration service timout
     private static final int SERVICE_TIMEOUT = 8000;
+    public static final int COUNTDOWN_STEP_MILLISECOND = 125;
     private Handler timeHandler;
 
     public enum CALIBRATION_STATE {
@@ -110,22 +112,25 @@ public class CalibrationService extends Service implements PropertyChangeListene
         PAIRED_TO_HOST,             // Connected to reference device
         AWAITING_START,             // Awaiting host for calibration start
         CANCELED,                   // WARMUP or CALIBRATION canceled, next state is CANCEL_IN_PROGRESS
-        WARMUP,                     // Warmup is launched by host, Leq are sent to host
-        CALIBRATION,                // Calibration has been started leq is stored
-        WAITING_FOR_APPLY_OR_CANCEL,// Calibration is done,guest send stored leqs, waiting for the validation of gain,
+        WARMUP,                     // Warmup is launched by host
+        CALIBRATION,                // Calibration has been started.
+        WAITING_FOR_APPLY_OR_RESET,// Calibration is done,guest send stored leqs, waiting for
+        // the validation of gain.
         CANCEL_IN_PROGRESS,         // Canceled but waiting for timer to stop. Next state is AWAITING_START
     }
 
     private static final String messageSeparator = "|";
     private static final String messagePingArgument = "CHECK";
 
+    public static final String SETTINGS_CALIBRATION_WARMUP_TIME = "settings_calibration_warmup_time";
+    public static final String SETTINGS_CALIBRATION_TIME = "settings_calibration_time";
+
     private static final int ID_PING = 1;                   // 1|CHECK
     private static final int ID_PONG = 2;                   // 2|CHECK|DEVICE_ID
-    private static final int ID_START_CALIBRATION = 3;      // 3|5.0|10.0
-    private static final int ID_PEER_LEQ = 4;               // 4|74.15|DEVICE_ID
-    private static final int ID_PEER_CALIBRATION_RESULT = 5;// 5|78.00|DEVICE_ID
-    private static final int ID_HOST_APPLY = 6;             // 6|4.14
-    private static final int ID_HOST_CANCEL = 7;            // 7
+    private static final int ID_START_CALIBRATION = 3;      // 3|WARMUP_TIME|CALIBRATION_TIME
+    private static final int ID_PEER_CALIBRATION_RESULT = 4;// 4|LEQ|DEVICE_ID
+    private static final int ID_HOST_APPLY = 5;             // 5|REFERENCE_LEQ
+    private static final int ID_HOST_CANCEL = 6;            // 6
 
     private CALIBRATION_STATE state = CALIBRATION_STATE.WIFI_DISABLED;
 
@@ -134,12 +139,12 @@ public class CalibrationService extends Service implements PropertyChangeListene
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if(isHost) {
-            if (CalibrationActivity.SETTINGS_CALIBRATION_TIME.equals(key)) {
+            if (SETTINGS_CALIBRATION_TIME.equals(key)) {
                 defaultCalibrationTime = MainActivity.getInteger(sharedPreferences,
-                        CalibrationActivity.SETTINGS_CALIBRATION_TIME, 10);
-            } else if (CalibrationActivity.SETTINGS_CALIBRATION_WARMUP_TIME.equals(key)) {
+                        SETTINGS_CALIBRATION_TIME, 10);
+            } else if (SETTINGS_CALIBRATION_WARMUP_TIME.equals(key)) {
                 defaultWarmupTime = MainActivity.getInteger(sharedPreferences,
-                        CalibrationActivity.SETTINGS_CALIBRATION_WARMUP_TIME, 5);
+                        SETTINGS_CALIBRATION_WARMUP_TIME, 5);
             }
         }
     }
@@ -150,6 +155,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
 
     private void initAudioProcess() {
+        if(audioProcess != null) {
+            audioProcess.getListeners().removePropertyChangeListener(this);
+        }
         canceled.set(false);
         recording.set(true);
         audioProcess = new AudioProcess(recording, canceled);
@@ -169,6 +177,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         // Start measurement
         new Thread(audioProcess).start();
     }
+
     /**
      * Class for clients to access.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with
@@ -209,16 +218,23 @@ public class CalibrationService extends Service implements PropertyChangeListene
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
         if(isHost) {
-            defaultCalibrationTime = MainActivity.getInteger(sharedPref, CalibrationActivity.SETTINGS_CALIBRATION_TIME, 10);
-            defaultWarmupTime = MainActivity.getInteger(sharedPref, CalibrationActivity.SETTINGS_CALIBRATION_WARMUP_TIME, 5);
+            defaultCalibrationTime = MainActivity.getInteger(sharedPref, SETTINGS_CALIBRATION_TIME, 10);
+            defaultWarmupTime = MainActivity.getInteger(sharedPref, SETTINGS_CALIBRATION_WARMUP_TIME, 5);
         }
     }
 
     protected void onTimerEnd() {
         if(state == CALIBRATION_STATE.WARMUP) {
-
+            setState(CALIBRATION_STATE.CALIBRATION);
+            // Start calibration
+            leqStats = new LeqStats();
+            progressHandler.start(defaultCalibrationTime * 1000);
         } else if(state == CALIBRATION_STATE.CALIBRATION) {
-
+            if(!isHost) {
+                sendMessage(ID_PEER_CALIBRATION_RESULT, leqStats.getLeqMean(), wifiDirectHandler
+                        .getThisDevice().deviceAddress);
+            }
+            setState(CALIBRATION_STATE.WAITING_FOR_APPLY_OR_RESET);
         } else {
             // Canceled
             setState(CALIBRATION_STATE.AWAITING_START);
@@ -308,16 +324,29 @@ public class CalibrationService extends Service implements PropertyChangeListene
         listeners.addPropertyChangeListener(propertyChangeListener);
     }
 
+    public void applyCalibration() {
+        if(CALIBRATION_STATE.WAITING_FOR_APPLY_OR_RESET.equals(state)) {
+
+            setState(CALIBRATION_STATE.AWAITING_START);
+        }
+    }
+
+    public void cancelCalibration() {
+        if(CALIBRATION_STATE.WARMUP.equals(state) || CALIBRATION_STATE.CALIBRATION.equals(state)) {
+            sendMessage(ID_HOST_CANCEL);
+            setState(CALIBRATION_STATE.CANCEL_IN_PROGRESS);
+        }
+    }
+
     public void startCalibration() {
-        if(CALIBRATION_STATE.AWAITING_START.equals(state) && isHost) {
-            CommunicationManager communicationManager = wifiDirectHandler.getCommunicationManager();
-            if(communicationManager != null) {
-                new NetworkTask(communicationManager).execute(ID_START_CALIBRATION, defaultWarmupTime,
+        if(CALIBRATION_STATE.AWAITING_START.equals(state)) {
+            if(isHost) {
+                sendMessage(ID_START_CALIBRATION, defaultWarmupTime,
                         defaultCalibrationTime);
-                setState(CALIBRATION_STATE.WARMUP);
-            } else {
-                LOGGER.error("Communication manager is null");
             }
+            setState(CALIBRATION_STATE.WARMUP);
+            initAudioProcess();
+            runWarmup();
         }
     }
 
@@ -366,7 +395,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
                             // TODO handle ping later
                             LOGGER.error("wifiDirectHandler is null");
                         } else {
-                            new NetworkTask(communicationManager).execute(ID_PONG, messagePingArgument,
+                            sendMessage(ID_PONG, messagePingArgument,
                                     wifiDirectHandler.getThisDevice().deviceAddress);
                             setState(CALIBRATION_STATE.AWAITING_START);
                         }
@@ -380,10 +409,18 @@ public class CalibrationService extends Service implements PropertyChangeListene
                     }
                     break;
                 case ID_START_CALIBRATION:
-                    // Peer receive start order
-                    defaultWarmupTime = Integer.valueOf(stringTokenizer.nextToken());
-                    defaultCalibrationTime = Integer.valueOf(stringTokenizer.nextToken());
-                    setState(CALIBRATION_STATE.WARMUP);
+                    if(!isHost && CALIBRATION_STATE.AWAITING_START.equals(state)) {
+                        // Peer receive start order
+                        defaultWarmupTime = Integer.valueOf(stringTokenizer.nextToken());
+                        defaultCalibrationTime = Integer.valueOf(stringTokenizer.nextToken());
+                        startCalibration();
+                    }
+                    break;
+                case ID_HOST_CANCEL:
+                    if(!isHost && (CALIBRATION_STATE.WARMUP.equals(state) || CALIBRATION_STATE.CALIBRATION
+                            .equals(state))) {
+                        cancelCalibration();
+                    }
             }
         } catch (NumberFormatException ex) {
             LOGGER.error(ex.getLocalizedMessage(), ex);
@@ -394,7 +431,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     protected void setState(CALIBRATION_STATE state) {
         CALIBRATION_STATE oldState = this.state;
         this.state = state;
-        listeners.firePropertyChange(PROP_CALIBRATION_STATE, oldState, state);
+        listeners.firePropertyChange(PROP_CALIBRATION_STATE, null, state);
         LOGGER.info("CALIBRATION_STATE " + oldState.toString() + "->" + state.toString());
     }
 
@@ -413,9 +450,13 @@ public class CalibrationService extends Service implements PropertyChangeListene
     }
 
     protected void initiateCommunication() {
+        sendMessage(ID_PING,messagePingArgument);
+    }
+
+    protected void sendMessage(int messageId, Object... args) {
         CommunicationManager communicationManager = wifiDirectHandler.getCommunicationManager();
         if(communicationManager != null) {
-            new NetworkTask(communicationManager).execute(ID_PING,messagePingArgument);
+            new NetworkTask(communicationManager).execute(messageId, args);
         } else {
             LOGGER.error("Communication manager is null");
         }
@@ -543,7 +584,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         public void start(int delayMilliseconds) {
             delay = delayMilliseconds;
             beginTime = SystemClock.elapsedRealtime();
-            service.timeHandler.sendEmptyMessageDelayed(0, CalibrationActivity.COUNTDOWN_STEP_MILLISECOND);
+            service.timeHandler.sendEmptyMessageDelayed(0, COUNTDOWN_STEP_MILLISECOND);
         }
 
         @Override
@@ -554,7 +595,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
             service.listeners.firePropertyChange(PROP_CALIBRATION_PROGRESSION, 0, newProg);
             if(currentTime < beginTime + delay &&
                     (service.state == CALIBRATION_STATE.CALIBRATION || service.state == CALIBRATION_STATE.WARMUP)) {
-                service.timeHandler.sendEmptyMessageDelayed(0, CalibrationActivity.COUNTDOWN_STEP_MILLISECOND);
+                service.timeHandler.sendEmptyMessageDelayed(0, COUNTDOWN_STEP_MILLISECOND);
             } else {
                 service.onTimerEnd();
             }

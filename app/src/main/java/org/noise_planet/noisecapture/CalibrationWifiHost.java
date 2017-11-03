@@ -48,6 +48,8 @@ import android.view.animation.LinearInterpolator;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.beans.PropertyChangeEvent;
@@ -55,16 +57,20 @@ import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
+
+import static org.noise_planet.noisecapture.CalibrationService.CALIBRATION_STATE.*;
 
 
 public class CalibrationWifiHost extends MainActivity implements PropertyChangeListener {
-
     private boolean mIsBound = false;
     private CalibrationService calibrationService;
     private TextView textDeviceLevel;
+    private TextView startButton;
+    private ProgressBar progressBar_wait_calibration_recording;
+    private TextView applyButton;
+    private TextView resetButton;
     private ListView peersList;
+    private Spinner spinner;
     private ImageView connectionStatusImage;
     private TextView textStatus;
     private DeviceListAdapter deviceListAdapter;
@@ -77,12 +83,17 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         initDrawer();
 
+        progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
         textDeviceLevel = (TextView) findViewById(R.id.spl_ref_measured);
         peersList = (ListView) findViewById(R.id.listview_peers);
         deviceListAdapter = new DeviceListAdapter(this);
         peersList.setAdapter(deviceListAdapter);
         connectionStatusImage = (ImageView) findViewById(R.id.imageView_value_wifi_state);
         textStatus = (TextView) findViewById(R.id.calibration_state);
+        startButton = (TextView) findViewById(R.id.btn_start);
+        resetButton = (TextView) findViewById(R.id.btn_reset);
+        applyButton = (TextView) findViewById(R.id.btn_apply);
+        spinner = (Spinner) findViewById(R.id.spinner_calibration_mode);
 
         if(checkAndAskWifiP2PPermissions()) {
             doBindService();
@@ -183,13 +194,51 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
             case CALIBRATION:
                 message = R.string.calibration_status_on;
                 break;
-            case WAITING_FOR_APPLY_OR_CANCEL:
+            case WAITING_FOR_APPLY_OR_RESET:
                 message = R.string.calibration_status_end;
                 break;
             default:
                 message = R.string.calibration_status_p2p_error;
         }
         textStatus.setText(message);
+    }
+
+    private void initCalibration() {
+        textStatus.setText(R.string.calibration_status_waiting_for_user_start);
+        spinner.setEnabled(true);
+        textDeviceLevel.setText(R.string.no_valid_dba_value);
+        startButton.setEnabled(calibrationService.getState() == AWAITING_START);
+        applyButton.setEnabled(false);
+        resetButton.setEnabled(false);
+        startButton.setText(R.string.calibration_button_start);
+    }
+
+    public void onStartCalibration(View v) {
+        startButton.setEnabled(false);
+        textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
+        if(calibrationService.getState() == AWAITING_START) {
+            textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
+            // Link measurement service with gui
+            if (checkAndAskPermissions()) {
+                // Application have right now all permissions
+                calibrationService.startCalibration();
+            }
+            spinner.setEnabled(false);
+            startButton.setText(R.string.calibration_button_cancel);
+        } else {
+            calibrationService.cancelCalibration();
+            initCalibration();
+        }
+
+
+    }
+
+    public void onCancelCalibration(View v) {
+        calibrationService.cancelCalibration();
+    }
+
+    public void onApplyCalibration(View v) {
+        calibrationService.applyCalibration();
     }
 
     @Override
@@ -211,10 +260,21 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
             CalibrationService.CALIBRATION_STATE newState =
                     (CalibrationService.CALIBRATION_STATE)event.getNewValue();
             applyStateChange(newState, connectionStatusImage, textStatus);
+            // Change state of buttons
+            switch (newState) {
+                case AWAITING_START:
+                    startButton.setEnabled(true);
+                    break;
+                case WAITING_FOR_APPLY_OR_RESET:
+                    resetButton.setEnabled(true);
+                    break;
+            }
         } else if(CalibrationService.PROP_PEER_LIST.equals(event.getPropertyName())) {
             deviceListAdapter.onPeersAvailable((WifiP2pDeviceList)event.getNewValue());
         } else if(CalibrationService.PROP_PEER_READY.equals(event.getPropertyName())) {
             MAINLOGGER.info("Peer ready to start calibration " + event.getNewValue());
+        } else if(CalibrationService.PROP_CALIBRATION_PROGRESSION.equals(event.getPropertyName())) {
+            progressBar_wait_calibration_recording.setProgress((Integer)event.getNewValue());
         }
     }
 

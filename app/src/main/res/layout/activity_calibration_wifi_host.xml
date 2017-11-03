@@ -147,6 +147,7 @@
                 android:layout_width="wrap_content"
                 android:layout_weight="1"
                 android:enabled="false"
+                android:onClick="onStartCalibration"
                 android:layout_height="wrap_content"
                 android:id="@+id/btn_start"
                 android:text="@string/calibration_button_start"/>
@@ -155,6 +156,7 @@
                 android:layout_weight="1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:onClick="onApplyCalibration"
                 android:text="@string/calibration_button_apply"
                 android:enabled="false"/>
             <Button
@@ -162,6 +164,7 @@
                 android:layout_weight="1"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:onClick="onCancelCalibration"
                 android:text="@string/calibration_button_reset"
                 android:enabled="false"/>
         </LinearLayout>

@@ -214,13 +214,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
         receiver = new CalibrationWifiBroadcastReceiver(this);
         LocalBroadcastManager.getInstance(this).registerReceiver(receiver, intentFilter);
         registerReceiver(receiver, intentFilter);
-
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
-        if(isHost) {
-            defaultCalibrationTime = MainActivity.getInteger(sharedPref, SETTINGS_CALIBRATION_TIME, 10);
-            defaultWarmupTime = MainActivity.getInteger(sharedPref, SETTINGS_CALIBRATION_WARMUP_TIME, 5);
-        }
     }
 
     protected void onTimerEnd() {
@@ -259,8 +254,10 @@ public class CalibrationService extends Service implements PropertyChangeListene
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if(wifiDirectHandlerBound) {
+            unbindService(wifiServiceConnection);
+        }
         unregisterReceiver(receiver);
-        unbindService(wifiServiceConnection);
     }
 
     private ServiceConnection wifiServiceConnection = new ServiceConnection() {
@@ -307,6 +304,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
     public IBinder onBind(Intent intent) {
         if(intent.hasExtra(EXTRA_HOST) ) {
             isHost = intent.getIntExtra(EXTRA_HOST, 0) != 0;
+            if(isHost) {
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+                defaultCalibrationTime = MainActivity.getInteger(sharedPref, SETTINGS_CALIBRATION_TIME, 10);
+                defaultWarmupTime = MainActivity.getInteger(sharedPref, SETTINGS_CALIBRATION_WARMUP_TIME, 5);
+            }
         }
         return mBinder;
     }
@@ -460,6 +462,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
             Object[] execArgs = new Object[args.length + 1];
             execArgs[0] = messageId;
             System.arraycopy(args, 0, execArgs, 1, args.length);
+            LOGGER.info("SendMessage " + Arrays.toString(execArgs));
             new NetworkTask(communicationManager).execute(execArgs);
         } else {
             LOGGER.error("Communication manager is null");

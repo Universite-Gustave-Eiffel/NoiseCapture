@@ -319,6 +319,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
             // New leq
             AudioProcess.AudioMeasureResult measure =
                     (AudioProcess.AudioMeasureResult) event.getNewValue();
+            if(CALIBRATION_STATE.CALIBRATION.equals(state)) {
+                leqStats.addLeq(measure.getGlobaldBaValue());
+            }
         }
         listeners.firePropertyChange(event);
     }
@@ -335,9 +338,14 @@ public class CalibrationService extends Service implements PropertyChangeListene
     }
 
     public void cancelCalibration() {
-        if(CALIBRATION_STATE.WARMUP.equals(state) || CALIBRATION_STATE.CALIBRATION.equals(state)) {
-            sendMessage(ID_HOST_CANCEL);
-            setState(CALIBRATION_STATE.CANCEL_IN_PROGRESS);
+        if(CALIBRATION_STATE.WARMUP.equals(state) || CALIBRATION_STATE.CALIBRATION.equals(state)
+                || CALIBRATION_STATE.WAITING_FOR_APPLY_OR_RESET.equals(state)) {
+            if(isHost) {
+                sendMessage(ID_HOST_CANCEL);
+                setState(CALIBRATION_STATE.CANCEL_IN_PROGRESS);
+            } else {
+                setState(CALIBRATION_STATE.CANCELED);
+            }
         }
     }
 
@@ -491,11 +499,19 @@ public class CalibrationService extends Service implements PropertyChangeListene
                     } else {
                         calibrationService.setState(CALIBRATION_STATE.LOOKING_FOR_HOST);
                     }
-                    if(!calibrationService.wifiDirectHandler.isDiscovering()) {
-                        calibrationService.wifiDirectHandler.continuouslyDiscoverServices();
-                        LOGGER.info("calibrationService.wifiDirectHandler.continuouslyDiscoverServices()");
+                    if(!calibrationService.isHost && !calibrationService.wifiDirectHandler
+                            .isDiscovering()) {
+                        try {
+                            calibrationService.wifiDirectHandler.continuouslyDiscoverServices();
+                            LOGGER.info("calibrationService.wifiDirectHandler.continuouslyDiscoverServices()");
+                        } catch (NullPointerException ex) {
+                            // Ignore
+                        }
                     }
-                    if(calibrationService.isHost && System.currentTimeMillis() - lastServiceRegistering > SERVICE_TIMEOUT) {
+                    if(calibrationService.wifiDirectHandler != null &&
+                            calibrationService.wifiDirectHandler.getThisDevice() == null &&
+                    calibrationService.isHost && (System.currentTimeMillis() -
+                            lastServiceRegistering) > SERVICE_TIMEOUT) {
                         calibrationService.addLocalWifiService();
                         lastServiceRegistering = System.currentTimeMillis();
                         LOGGER.info("calibrationService.addLocalWifiService()");

@@ -267,6 +267,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
                     break;
                 case WAITING_FOR_APPLY_OR_RESET:
                     resetButton.setEnabled(true);
+                    applyButton.setEnabled(true);
                     break;
             }
         } else if(CalibrationService.PROP_PEER_LIST.equals(event.getPropertyName())) {

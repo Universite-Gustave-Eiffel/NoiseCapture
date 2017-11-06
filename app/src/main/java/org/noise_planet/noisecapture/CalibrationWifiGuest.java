@@ -38,6 +38,7 @@ import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import java.beans.PropertyChangeEvent;
@@ -52,6 +53,7 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
     private ImageView connectionStatusImage;
     private TextView textStatus;
     private TextView textDeviceName;
+    private ProgressBar progressBar_wait_calibration_recording;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +62,7 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         initDrawer();
 
+        progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
         connectionStatusImage = (ImageView) findViewById(R.id.imageView_value_wifi_state);
         textStatus = (TextView) findViewById(R.id.calibration_state);
         textDeviceName = (TextView) findViewById(R.id.calibration_host_ssid);
@@ -90,6 +93,8 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
             } else {
                 textDeviceName.setText("");
             }
+        } else if(CalibrationService.PROP_CALIBRATION_PROGRESSION.equals(event.getPropertyName())) {
+            progressBar_wait_calibration_recording.setProgress((Integer)event.getNewValue());
         }
     }
 

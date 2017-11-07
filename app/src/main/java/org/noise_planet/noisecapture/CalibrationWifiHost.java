@@ -84,6 +84,12 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
         initDrawer();
 
         progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
+        progressBar_wait_calibration_recording.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                calibrationService.initiateCommunication();
+            }
+        });
         textDeviceLevel = (TextView) findViewById(R.id.spl_ref_measured);
         peersList = (ListView) findViewById(R.id.listview_peers);
         deviceListAdapter = new DeviceListAdapter(this);
@@ -97,6 +103,12 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
 
         if(checkAndAskWifiP2PPermissions()) {
             doBindService();
+        }
+    }
+
+    public void onRegisterService() {
+        if(mIsBound && calibrationService != null) {
+            calibrationService.addLocalWifiService();
         }
     }
 
@@ -243,7 +255,11 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
-        if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName())){
+        if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName()) &&
+                (CalibrationService.CALIBRATION_STATE.CALIBRATION.equals(calibrationService
+                        .getState()) || CalibrationService.CALIBRATION_STATE.WARMUP.equals
+                        (calibrationService
+                        .getState()))){
             // New leq
             AudioProcess.AudioMeasureResult measure =
                     (AudioProcess.AudioMeasureResult) event.getNewValue();
@@ -252,7 +268,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
                 @Override
                 public void run() {
                     textDeviceLevel.setText(
-                            String.format(Locale.getDefault(), "%.1f", leq));
+                            String.format(Locale.getDefault(), "%.1f", calibrationService.getleq()));
                 }
             });
         } else if(CalibrationService.PROP_CALIBRATION_STATE.equals(event.getPropertyName())) {

@@ -36,6 +36,7 @@ import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
+import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -43,6 +44,7 @@ import android.widget.TextView;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Locale;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -63,6 +65,15 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
         initDrawer();
 
         progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
+        progressBar_wait_calibration_recording.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mIsBound && calibrationService != null && calibrationService
+                        .getWifiDirectHandler() != null) {
+                    calibrationService.getWifiDirectHandler().continuouslyDiscoverServices();
+                }
+            }
+        });
         connectionStatusImage = (ImageView) findViewById(R.id.imageView_value_wifi_state);
         textStatus = (TextView) findViewById(R.id.calibration_state);
         textDeviceName = (TextView) findViewById(R.id.calibration_host_ssid);
@@ -75,17 +86,17 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
-        if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName())){
-            // New leq
-            AudioProcess.AudioMeasureResult measure =
-                    (AudioProcess.AudioMeasureResult) event.getNewValue();
-            final double leq = measure.getGlobaldBaValue();
-
-        } else if(CalibrationService.PROP_CALIBRATION_STATE.equals(event.getPropertyName())) {
+        if(CalibrationService.PROP_CALIBRATION_STATE.equals(event.getPropertyName())) {
             // Calibration service state change, inform user
             CalibrationService.CALIBRATION_STATE newState =
                     (CalibrationService.CALIBRATION_STATE)event.getNewValue();
             CalibrationWifiHost.applyStateChange(newState, connectionStatusImage, textStatus);
+            // Change state of buttons
+            switch (newState) {
+                case WAITING_FOR_APPLY_OR_RESET:
+                    progressBar_wait_calibration_recording.setProgress(0);
+                    break;
+            }
         } else if(CalibrationService.PROP_P2P_DEVICE.equals(event.getPropertyName())) {
             WifiP2pDevice p2pDevice = calibrationService.getWifiP2pDevice();
             if(p2pDevice != null) {

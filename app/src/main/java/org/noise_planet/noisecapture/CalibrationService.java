@@ -153,6 +153,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
         listeners.firePropertyChange(PROP_PEER_LIST, null, peers);
     }
 
+    public double getleq() {
+        return leqStats.getLeqMean();
+    }
 
     private void initAudioProcess() {
         if(audioProcess != null) {
@@ -176,6 +179,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
         // Start measurement
         new Thread(audioProcess).start();
+    }
+
+    private void stopAudioProcess() {
+        canceled.set(true);
+        recording.set(false);
     }
 
     /**
@@ -218,6 +226,10 @@ public class CalibrationService extends Service implements PropertyChangeListene
         sharedPref.registerOnSharedPreferenceChangeListener(this);
     }
 
+    public WifiDirectHandler getWifiDirectHandler() {
+        return wifiDirectHandler;
+    }
+
     protected void onTimerEnd() {
         if(state == CALIBRATION_STATE.WARMUP) {
             setState(CALIBRATION_STATE.CALIBRATION);
@@ -230,6 +242,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
                         .getThisDevice().deviceAddress);
             }
             setState(CALIBRATION_STATE.WAITING_FOR_APPLY_OR_RESET);
+            stopAudioProcess();
         } else {
             // Canceled
             setState(CALIBRATION_STATE.AWAITING_START);
@@ -442,7 +455,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     protected void setState(CALIBRATION_STATE state) {
         CALIBRATION_STATE oldState = this.state;
         this.state = state;
-        listeners.firePropertyChange(PROP_CALIBRATION_STATE, null, state);
+        listeners.firePropertyChange(PROP_CALIBRATION_STATE, oldState, state);
         LOGGER.info("CALIBRATION_STATE " + oldState.toString() + "->" + state.toString());
     }
 
@@ -451,7 +464,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         return state;
     }
 
-    private void addLocalWifiService() {
+    public void addLocalWifiService() {
         if(wifiDirectHandler != null && wifiDirectHandler.getThisDevice() != null) {
             HashMap<String, String> record = new HashMap<>();
             record.put("Name", wifiDirectHandler.getThisDevice().deviceName);
@@ -499,7 +512,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
                     } else {
                         calibrationService.setState(CALIBRATION_STATE.LOOKING_FOR_HOST);
                     }
-                    if(!calibrationService.isHost && !calibrationService.wifiDirectHandler
+                    if(!calibrationService.wifiDirectHandler
                             .isDiscovering()) {
                         try {
                             calibrationService.wifiDirectHandler.continuouslyDiscoverServices();
@@ -509,9 +522,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
                         }
                     }
                     if(calibrationService.wifiDirectHandler != null &&
-                            calibrationService.wifiDirectHandler.getThisDevice() == null &&
-                    calibrationService.isHost && (System.currentTimeMillis() -
-                            lastServiceRegistering) > SERVICE_TIMEOUT) {
+                            calibrationService.wifiDirectHandler.getThisDevice() != null &&
+                    calibrationService.isHost && (System.currentTimeMillis()  -
+                    lastServiceRegistering) > SERVICE_TIMEOUT) {
                         calibrationService.addLocalWifiService();
                         lastServiceRegistering = System.currentTimeMillis();
                         LOGGER.info("calibrationService.addLocalWifiService()");
@@ -552,8 +565,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
                             LOGGER.info("Service connected");
                             if(calibrationService.isHost) {
                                 calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_PEER);
-                                // Send PING
-                                calibrationService.initiateCommunication();
                             } else {
                                 calibrationService.setState(CALIBRATION_STATE.PAIRED_TO_HOST);
                             }

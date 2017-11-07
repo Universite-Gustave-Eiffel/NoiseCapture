@@ -87,7 +87,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
 
     private AudioProcess audioProcess;
-    private LeqStats leqStats;
+    private LeqStats leqStats = new LeqStats();
     private AtomicBoolean recording = new AtomicBoolean(true);
     private AtomicBoolean canceled = new AtomicBoolean(false);
 

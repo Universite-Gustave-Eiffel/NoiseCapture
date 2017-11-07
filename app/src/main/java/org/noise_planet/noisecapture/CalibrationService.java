@@ -65,10 +65,6 @@ import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import edu.rit.se.wifibuddy.CommunicationManager;
-import edu.rit.se.wifibuddy.DnsSdService;
-import edu.rit.se.wifibuddy.WifiDirectHandler;
-
 /**
  * This service allow to be the host or the guest to an automated calibration while the android
  * phone GUI is in sleep mode.

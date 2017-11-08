@@ -44,6 +44,10 @@ public class AcousticModem {
     }
 
 
+    public Settings getSettings() {
+        return settings;
+    }
+
     /**
      * encodeStream is the public function of class Encoder.
      *
@@ -403,7 +407,7 @@ public class AcousticModem {
         return Arrays.copyOfRange(input, 0, input.length - 2);
     }
 
-    // original implementaiton from ask-simple-java :
+    // original implementation from ask-simple-java :
     private double complexDetect(byte[] signal, double frequency){
         double realSum = 0;
         double imaginarySum = 0;
@@ -411,7 +415,6 @@ public class AcousticModem {
         // y = e^(ju) = cos(u) + j * sin(u)
 
         for(int i = 0; i < signal.length; i++){
-            //System.out.println("signal[" +i +"]: " +signal[i] + "; convert: " + (signal[i])/(float)Constants.kFloatToByteShift);
             realSum = realSum + (Math.cos(i * u) * (signal[i]/(float)settings.kFloatToByteShift));
             imaginarySum = imaginarySum + (Math.sin(i * u) * (signal[i]/(float)settings.kFloatToByteShift));
         }

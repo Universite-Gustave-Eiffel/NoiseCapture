@@ -6,6 +6,7 @@ import org.orbisgis.sos.SOSSignalProcessing;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
 import org.orbisgis.sos.Window;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 
 /**
@@ -28,7 +29,8 @@ public class AcousticModemTest {
         String messageInput = "U1_76.8";
 
         // Convert data into audio signal
-        AcousticModem acousticModem = new AcousticModem(new Settings(44100, 0.150, Settings.wordsFrom8frequencies(UT_FREQUENCIES)));
+        int freqStart = Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, UT_FREQUENCIES[0]);
+        AcousticModem acousticModem = new AcousticModem(new Settings(44100, 0.150, Settings.wordsFrom8frequencies(UT_FREQUENCIES), UT_FREQUENCIES));
         byte[] data = messageInput.getBytes();
         int signalLength = acousticModem.getSignalLength(data, 0, data.length);
         short[] signal = new short[signalLength];
@@ -41,6 +43,7 @@ public class AcousticModemTest {
         int idSampleStart = 0;
         int packetSize = 1024;
         int lastPushIndex = 0;
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         while (idSampleStart < signal.length) {
             // Compute sub-sample size in order to not skip samples
             int sampleLen = Math.min(window.getMaximalBufferSize(), packetSize);
@@ -51,8 +54,10 @@ public class AcousticModemTest {
             if (window.getWindowIndex() != lastPushIndex) {
                 lastPushIndex = window.getWindowIndex();
                 FFTSignalProcessing.ProcessingResult res = window.getLastWindowMean();
-                
-
+                Byte words = acousticModem.spectrumToWord(Arrays.copyOfRange(res.getdBaLevels(), freqStart, freqStart + 8));
+                if(words != null) {
+                    byteArrayOutputStream.write(words);
+                }
                 window.cleanWindows();
             }
         }

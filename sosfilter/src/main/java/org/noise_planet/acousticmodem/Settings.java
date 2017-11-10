@@ -1,5 +1,8 @@
 package org.noise_planet.acousticmodem;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Settings for encoding and decoding streams
  */
@@ -10,6 +13,11 @@ public class Settings {
     final double wordTimeLength;
 
     final int wordLength;
+
+    // Minimum dB between powerful two frequencies over the third frequency to be recognised as a word
+    private float minimalSignalToNoiseLevel  = 5;
+
+    static final int[] DTMF_FREQUENCIES = new int[] {697, 770, 852, 941, 1209, 1336, 1477, 1633};
 
     // hexadecimal DTMF tones (each tone is simply the sum of two sine waves.)
     static final int[][] DTMF_WORDS = new int[][]{
@@ -34,13 +42,18 @@ public class Settings {
 
     final int[][] words;
 
+    final int[] frequencies;
+
+    private final Map<Integer, Integer> frequencyTupleToWordIndex;
+
     /**
      *
      * @param samplingRate Sample rate of signal
      * @param wordTimeLength Time in seconds of a word
      * @param words As the same output of wordsFrom8frequencies or DTMF_WORDS
+     * @param frequencies Frequencies supplied for AcousticModel{@link #wordsFrom8frequencies(int[])}
      */
-    public Settings(int samplingRate, double wordTimeLength, int[][] words) {
+    public Settings(int samplingRate, double wordTimeLength, int[][] words, int[] frequencies) {
         this.samplingRate = samplingRate;
         this.wordTimeLength = wordTimeLength;
         this.wordLength = (int)(samplingRate * wordTimeLength);
@@ -48,6 +61,11 @@ public class Settings {
             throw new IllegalArgumentException("Should be limited to 16 words type");
         }
         this.words = words;
+        this.frequencies = frequencies;
+        frequencyTupleToWordIndex = new HashMap<>();
+        for(int[] word : words) {
+
+        }
     }
 
     /**
@@ -64,5 +82,19 @@ public class Settings {
             }
         }
         return outWordDict;
+    }
+
+    /**
+     * @return Minimum dB between powerful two frequencies over the third frequency to be recognised as a word
+     */
+    public float getMinimalSignalToNoiseLevel() {
+        return minimalSignalToNoiseLevel;
+    }
+
+    /**
+     * @param minimalSignalToNoiseLevel Minimum dB between powerful two frequencies over the third frequency to be recognised as a word
+     */
+    public void setMinimalSignalToNoiseLevel(float minimalSignalToNoiseLevel) {
+        this.minimalSignalToNoiseLevel = minimalSignalToNoiseLevel;
     }
 }

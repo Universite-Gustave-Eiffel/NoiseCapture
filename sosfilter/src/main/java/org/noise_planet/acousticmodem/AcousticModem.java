@@ -26,11 +26,17 @@
  */
 package org.noise_planet.acousticmodem;
 
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.stream.IntStream;
+
 /**
  * Acoustic modem.
  */
 public class AcousticModem {
     private Settings settings;
+
+    private Integer lastInputWord = null;
 
     public AcousticModem(Settings settings) {
         this.settings = settings;
@@ -42,6 +48,7 @@ public class AcousticModem {
     }
 
     private void copyTone(int wordId, short[] out, int outIndex, short toneRms) {
+        //TODO maybe apply a windowing function
         int freqA = settings.words[wordId][0];
         int freqB = settings.words[wordId][1];
         for (int s = 0; s < settings.wordLength; s++) {
@@ -131,4 +138,37 @@ public class AcousticModem {
         }
     }
 
+    /**
+     * Convert spectrum to byte.
+     * @param source Spectrum
+     * @return Byte from spectrum or null if
+     */
+    public Byte spectrumToWord(float[] source) {
+        // Sort values by power
+        Integer[] indexes = new Integer[source.length];
+        for(int i=0; i < source.length; i++) {
+            indexes[i] = i;
+        }
+        Arrays.sort(indexes, new ArrayIndexComparator(source));
+        // If the third highest frequency bands level is inferior than second of SignalToNoiseLevel
+        if(source[indexes.length - 2] - source[indexes.length - 3] > settings.getMinimalSignalToNoiseLevel()) {
+            int word = ;
+        } else {
+            return null;
+        }
+    }
+
+
+    private static class ArrayIndexComparator implements Comparator<Integer> {
+        float[] source;
+
+        public ArrayIndexComparator(float[] source) {
+            this.source = source;
+        }
+
+        @Override
+        public int compare(Integer left, Integer right) {
+            return Float.valueOf(source[left]).compareTo(source[right]);
+        }
+    }
 }

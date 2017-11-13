@@ -7,7 +7,11 @@ import org.orbisgis.sos.ThirdOctaveBandsFiltering;
 import org.orbisgis.sos.Window;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *
@@ -24,13 +28,35 @@ public class AcousticModemTest {
             (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[18]
     };
     public static final double REF_SOUND_PRESSURE = 1 / Math.pow(10, FFTSignalProcessing.DB_FS_REFERENCE / 20);
+
+    @Test
+    public void testEncodeDecodeWord() {
+        String messageInput = "U1_76.8";
+
+        // encode
+        List<Integer[]> words = new ArrayList<>();
+        for(byte data : messageInput.getBytes()) {
+            int[] wordsRet = AcousticModem.byteToWordsIndex(data);
+            words.add(new Integer[]{wordsRet[0], wordsRet[1]});
+        }
+
+        // decode
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        for(Integer[] wordTuple : words) {
+            byteArrayOutputStream.write(AcousticModem.wordsToByte(wordTuple[0], wordTuple[1]));
+        }
+
+        assertEquals(messageInput, byteArrayOutputStream.toString());
+    }
+
+
     @Test
     public void TestEncodeDecode() throws Exception {
         String messageInput = "U1_76.8";
 
         // Convert data into audio signal
         int freqStart = Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, UT_FREQUENCIES[0]);
-        AcousticModem acousticModem = new AcousticModem(new Settings(44100, 0.150, Settings.wordsFrom8frequencies(UT_FREQUENCIES), UT_FREQUENCIES));
+        AcousticModem acousticModem = new AcousticModem(new Settings(44100, 0.300, Settings.wordsFrom8frequencies(UT_FREQUENCIES), UT_FREQUENCIES));
         byte[] data = messageInput.getBytes();
         int signalLength = acousticModem.getSignalLength(data, 0, data.length);
         short[] signal = new short[signalLength];
@@ -62,6 +88,7 @@ public class AcousticModemTest {
             }
         }
 
+        assertEquals(messageInput, new String(byteArrayOutputStream.toByteArray()));
 
     }
 }

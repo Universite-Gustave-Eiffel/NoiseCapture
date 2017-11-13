@@ -39,12 +39,15 @@ public class Settings {
             {941, 1633}, // F->D
          };
 
+    public Integer getWordFromFrequencyTuple(int freqA, int freqB) {
+        return frequencyTupleToWordIndex.get(new FrequencyIndex(freqA, freqB));
+    }
 
     final int[][] words;
 
     final int[] frequencies;
 
-    private final Map<Integer, Integer> frequencyTupleToWordIndex;
+    private final Map<FrequencyIndex, Integer> frequencyTupleToWordIndex;
 
     /**
      *
@@ -63,8 +66,9 @@ public class Settings {
         this.words = words;
         this.frequencies = frequencies;
         frequencyTupleToWordIndex = new HashMap<>();
+        int idWord = 0;
         for(int[] word : words) {
-
+            frequencyTupleToWordIndex.put(new FrequencyIndex(word[0], word[1]), idWord++);
         }
     }
 
@@ -77,8 +81,8 @@ public class Settings {
         int[][] outWordDict = new int[16][2];
         for(int i = 0; i < 4; i++) { // row
             for(int j = 0; j < 4; j++) { // column
-                outWordDict[i*j + i][0] = baseFrequencies[i];
-                outWordDict[i*j + i][1] = baseFrequencies[j + 4];
+                outWordDict[i*4 + j][0] = baseFrequencies[i];
+                outWordDict[i*4 + j][1] = baseFrequencies[j + 4];
             }
         }
         return outWordDict;
@@ -96,5 +100,41 @@ public class Settings {
      */
     public void setMinimalSignalToNoiseLevel(float minimalSignalToNoiseLevel) {
         this.minimalSignalToNoiseLevel = minimalSignalToNoiseLevel;
+    }
+
+    private static class FrequencyIndex {
+        private final int freqA;
+        private final int freqB;
+
+        public FrequencyIndex(int freqA, int freqB) {
+            this.freqA = Math.min(freqA, freqB);
+            this.freqB = Math.max(freqA, freqB);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+
+            FrequencyIndex that = (FrequencyIndex) o;
+
+            if (freqA != that.freqA) return false;
+            return freqB == that.freqB;
+        }
+
+        @Override
+        public int hashCode() {
+            int result = freqA;
+            result = 31 * result + freqB;
+            return result;
+        }
+
+        public int getFreqA() {
+            return freqA;
+        }
+
+        public int getFreqB() {
+            return freqB;
+        }
     }
 }

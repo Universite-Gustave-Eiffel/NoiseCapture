@@ -26,9 +26,9 @@
  */
 package org.noise_planet.acousticmodem;
 
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.stream.IntStream;
 
 /**
  * Acoustic modem.
@@ -57,6 +57,15 @@ public class AcousticModem {
         }
     }
 
+    public static int[] byteToWordsIndex(byte data) {
+        int v = data & 0xFF;
+        return new int[] {v >>> 4, v & 0x0F};
+    }
+
+    public static byte wordsToByte(int wordA, int wordB) {
+        return (byte)(wordA << 4 | wordB & 0x0F);
+    }
+
     /**
      * Compute size of signal length for the provided data
      *
@@ -69,21 +78,19 @@ public class AcousticModem {
         int lastWord = 0;
         int bufferLength = 0;
         for (int idByte = sourceIndex; idByte < sourceIndex + sourceLength; idByte++) {
-            int v = source[idByte] & 0xFF;
-            int wordA = v >>> 4;
+            int[] words = byteToWordsIndex(source[idByte]);
             bufferLength += settings.wordLength;
-            if (idByte > 0 && lastWord != wordA) {
+            if (idByte > 0 && lastWord != words[0]) {
                 // If the same word has to be sent we add a blank word
                 bufferLength += settings.wordLength;
             }
-            lastWord = wordA;
-            int wordB = v & 0x0F;
+            lastWord = words[0];
             bufferLength += settings.wordLength;
-            if (lastWord != wordB) {
+            if (lastWord != words[1]) {
                 // If the same word has to be sent we add a blank word
                 bufferLength += settings.wordLength;
             }
-            lastWord = wordB;
+            lastWord = words[1];
         }
         return bufferLength + settings.wordLength;
     }
@@ -108,29 +115,27 @@ public class AcousticModem {
         }
         int lastWord = 0;
         for (int idByte = sourceIndex; idByte < sourceIndex + sourceLength; idByte++) {
-            int v = source[idByte] & 0xFF;
-            int wordA = v >>> 4;
-            copyTone(wordA, out, outIndex, toneRms);
+            int[] words = byteToWordsIndex(source[idByte]);
+            copyTone(words[0], out, outIndex, toneRms);
             outIndex += settings.wordLength;
-            if (idByte > 0 && lastWord != wordA) {
+            if (idByte > 0 && lastWord != words[0]) {
                 // If the same word has to be sent we add a blank word
                 for (int i = outIndex; i < outIndex + settings.wordLength; i++) {
                     out[i] = 0;
                 }
                 outIndex += settings.wordLength;
             }
-            lastWord = wordA;
-            int wordB = v & 0x0F;
-            copyTone(wordB, out, outIndex, toneRms);
+            lastWord = words[0];
+            copyTone(words[1], out, outIndex, toneRms);
             outIndex += settings.wordLength;
-            if (idByte > 0 && lastWord != wordB) {
+            if (idByte > 0 && lastWord != words[1]) {
                 // If the same word has to be sent we add a blank word
                 for (int i = outIndex; i < outIndex + settings.wordLength; i++) {
                     out[i] = 0;
                 }
                 outIndex += settings.wordLength;
             }
-            lastWord = wordB;
+            lastWord = words[1];
         }
         // Finish with a blank word
         for (int i = outIndex; i < outIndex + settings.wordLength; i++) {
@@ -151,9 +156,23 @@ public class AcousticModem {
         }
         Arrays.sort(indexes, new ArrayIndexComparator(source));
         // If the third highest frequency bands level is inferior than second of SignalToNoiseLevel
-        if(source[indexes.length - 2] - source[indexes.length - 3] > settings.getMinimalSignalToNoiseLevel()) {
-            int word = ;
+        if(source[indexes[indexes.length - 2]] - source[indexes[indexes.length - 3]] > settings.getMinimalSignalToNoiseLevel()) {
+            Integer word = settings.getWordFromFrequencyTuple(settings.frequencies[indexes[indexes.length - 1]], settings.frequencies[indexes[indexes.length - 2]]);
+            if(word != null) {
+                if(lastInputWord != null) {
+                    byte val = wordsToByte(lastInputWord, word);
+                    lastInputWord = null;
+                    return val;
+                } else {
+                    lastInputWord = word;
+                    return null;
+                }
+            } else {
+                lastInputWord = null;
+                return null;
+            }
         } else {
+            lastInputWord = null;
             return null;
         }
     }

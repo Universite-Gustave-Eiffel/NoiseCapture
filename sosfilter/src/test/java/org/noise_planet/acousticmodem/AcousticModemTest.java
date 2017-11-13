@@ -57,7 +57,7 @@ public class AcousticModemTest {
 
         // Convert data into audio signal
         int freqStart = Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, UT_FREQUENCIES[0]);
-        AcousticModem acousticModem = new AcousticModem(new Settings(44100, 0.300, Settings.wordsFrom8frequencies(UT_FREQUENCIES), UT_FREQUENCIES));
+        AcousticModem acousticModem = new AcousticModem(new Settings(44100, 0.200, Settings.wordsFrom8frequencies(UT_FREQUENCIES), UT_FREQUENCIES));
         byte[] data = messageInput.getBytes();
         int offset = (int)(sampleRate * 0.412);
         int signalLength = acousticModem.getSignalLength(data, 0, data.length) + offset;
@@ -91,6 +91,10 @@ public class AcousticModemTest {
         }
 
         assertEquals(messageInput, new String(byteArrayOutputStream.toByteArray()));
+
+    }
+
+    public void testEncodeDecodeWithNoise() {
 
     }
 }

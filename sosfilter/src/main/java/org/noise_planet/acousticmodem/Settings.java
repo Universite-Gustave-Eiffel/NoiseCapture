@@ -1,7 +1,9 @@
 package org.noise_planet.acousticmodem;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Settings for encoding and decoding streams
@@ -45,7 +47,7 @@ public class Settings {
 
     final int[][] words;
 
-    final int[] frequencies;
+    final Integer[] frequencies;
 
     private final Map<FrequencyIndex, Integer> frequencyTupleToWordIndex;
 
@@ -56,7 +58,7 @@ public class Settings {
      * @param words As the same output of wordsFrom8frequencies or DTMF_WORDS
      * @param frequencies Frequencies supplied for AcousticModel{@link #wordsFrom8frequencies(int[])}
      */
-    public Settings(int samplingRate, double wordTimeLength, int[][] words, int[] frequencies) {
+    public Settings(int samplingRate, double wordTimeLength, int[][] words) {
         this.samplingRate = samplingRate;
         this.wordTimeLength = wordTimeLength;
         this.wordLength = (int)(samplingRate * wordTimeLength);
@@ -64,12 +66,16 @@ public class Settings {
             throw new IllegalArgumentException("Should be limited to 16 words type");
         }
         this.words = words;
-        this.frequencies = frequencies;
         frequencyTupleToWordIndex = new HashMap<>();
         int idWord = 0;
+        Set<Integer> frequenciesSet = new HashSet<>(8);
         for(int[] word : words) {
+            frequenciesSet.add(word[0]);
+            frequenciesSet.add(word[1]);
             frequencyTupleToWordIndex.put(new FrequencyIndex(word[0], word[1]), idWord++);
         }
+        this.frequencies = frequenciesSet.toArray(new Integer[frequenciesSet.size()]);
+
     }
 
     /**

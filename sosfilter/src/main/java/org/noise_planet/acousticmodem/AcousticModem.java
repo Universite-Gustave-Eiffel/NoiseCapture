@@ -26,14 +26,24 @@
  */
 package org.noise_planet.acousticmodem;
 
+import org.noise_planet.acousticmodem.reedsolomon.ReedSolomon;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.zip.CRC32;
 
 /**
  * Acoustic modem.
  */
 public class AcousticModem {
     private Settings settings;
+
+    // ReedSolomon parameters
+    public static final int DATA_SHARDS = 4;
+    public static final int PARITY_SHARDS = 2;
+    public static final int CRC_SIZE = 4;
 
     private Integer lastInputWord = null;
     private Integer ignoreDuplicateWord = Integer.MAX_VALUE;
@@ -55,6 +65,48 @@ public class AcousticModem {
             double t = s * (1 / (double) settings.samplingRate);
             out[outIndex + s] = (short) (Math.sin(2 * Math.PI * freqA * t) * (toneRms) + Math.sin(2 * Math.PI * freqB * t) * (toneRms));
         }
+    }
+
+    public byte[] encode(byte[] in) throws IOException {
+        final int shardSize = (int)Math.ceil((in.length + settings.crcSize) / TOTAL_SHARDS);
+        final int dataShardSize = shardSize - settings.crcSize;
+        byte [] [] shards = new byte [TOTAL_SHARDS] [shardSize];
+
+
+        for (int i = 0; i < DATA_SHARDS; i++) {
+            System.arraycopy(in, i * dataShardSize, shards[i], 0, Math.min(dataShardSize, in.length - i * dataShardSize));
+            // Add crc
+
+        }
+
+        // Use Reed-Solomon to calculate the parity.
+        ReedSolomon reedSolomon = new ReedSolomon(DATA_SHARDS, PARITY_SHARDS);
+        reedSolomon.encodeParity(shards, 0, shardSize);
+
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        for (int i = 0; i < DATA_SHARDS; i++) {
+            byteArrayOutputStream.write(shards[i]);
+        }
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    public byte[] decode(byte[] in) {
+        final int shardSize = (int)Math.ceil(in.length / TOTAL_SHARDS);
+        byte [] [] shards = new byte [TOTAL_SHARDS] [shardSize];
+        final boolean [] shardPresent = new boolean [TOTAL_SHARDS];
+
+        for (int i = 0; i < DATA_SHARDS; i++) {
+            System.arraycopy(in, i * shardSize, shards[i], 0, Math.min(shardSize, in.length - i * shardSize));
+        }
+
+        // Crc check of shard
+
+        // Use Reed-Solomon to fill in the missing shards
+        ReedSolomon reedSolomon = new ReedSolomon(DATA_SHARDS, PARITY_SHARDS);
+        reedSolomon.decodeMissing(shards, shardPresent, 0, shardSize);
+
+
+
     }
 
     public static int[] byteToWordsIndex(byte data) {

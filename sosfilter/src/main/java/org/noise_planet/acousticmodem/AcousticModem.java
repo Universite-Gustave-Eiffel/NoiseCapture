@@ -26,10 +26,8 @@
  */
 package org.noise_planet.acousticmodem;
 
-import org.noise_planet.acousticmodem.reedsolomon.ReedSolomon;
-
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.zip.CRC32;
@@ -40,10 +38,12 @@ import java.util.zip.CRC32;
 public class AcousticModem {
     private Settings settings;
 
+    private final int CRC_SIZE = Short.SIZE / Byte.SIZE;
+    private ByteBuffer crcBuffer = ByteBuffer.allocate(CRC_SIZE);
+
     // ReedSolomon parameters
     public static final int DATA_SHARDS = 4;
     public static final int PARITY_SHARDS = 2;
-    public static final int CRC_SIZE = 4;
 
     private Integer lastInputWord = null;
     private Integer ignoreDuplicateWord = Integer.MAX_VALUE;
@@ -68,45 +68,29 @@ public class AcousticModem {
     }
 
     public byte[] encode(byte[] in) throws IOException {
-        final int shardSize = (int)Math.ceil((in.length + settings.crcSize) / TOTAL_SHARDS);
-        final int dataShardSize = shardSize - settings.crcSize;
-        byte [] [] shards = new byte [TOTAL_SHARDS] [shardSize];
+        CRC32 crc32 = new CRC32();
+        crc32.update(in);
+        crcBuffer.putShort(0, Long.valueOf(crc32.getValue()).shortValue());
+        byte[] out = new byte[in.length + CRC_SIZE];
+        System.arraycopy(in, 0, out, 0, in.length);
+        System.arraycopy(crcBuffer.array(), 0, out, in.length, CRC_SIZE);
+        return out;
+    }
 
-
-        for (int i = 0; i < DATA_SHARDS; i++) {
-            System.arraycopy(in, i * dataShardSize, shards[i], 0, Math.min(dataShardSize, in.length - i * dataShardSize));
-            // Add crc
-
-        }
-
-        // Use Reed-Solomon to calculate the parity.
-        ReedSolomon reedSolomon = new ReedSolomon(DATA_SHARDS, PARITY_SHARDS);
-        reedSolomon.encodeParity(shards, 0, shardSize);
-
-        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-        for (int i = 0; i < DATA_SHARDS; i++) {
-            byteArrayOutputStream.write(shards[i]);
-        }
-        return byteArrayOutputStream.toByteArray();
+    /**
+     * @param in
+     * @return True if the embedded crc32 code at the end of the message check the beginning of the message
+     */
+    public boolean isMessageCheck(byte[] in) {
+        CRC32 crc32 = new CRC32();
+        crc32.update(in, 0, in.length - CRC_SIZE);
+        crcBuffer.clear();
+        crcBuffer.put(in, in.length - (Long.SIZE / Byte.SIZE), CRC_SIZE);
+        return Long.valueOf(crc32.getValue()).shortValue() == crcBuffer.getShort();
     }
 
     public byte[] decode(byte[] in) {
-        final int shardSize = (int)Math.ceil(in.length / TOTAL_SHARDS);
-        byte [] [] shards = new byte [TOTAL_SHARDS] [shardSize];
-        final boolean [] shardPresent = new boolean [TOTAL_SHARDS];
-
-        for (int i = 0; i < DATA_SHARDS; i++) {
-            System.arraycopy(in, i * shardSize, shards[i], 0, Math.min(shardSize, in.length - i * shardSize));
-        }
-
-        // Crc check of shard
-
-        // Use Reed-Solomon to fill in the missing shards
-        ReedSolomon reedSolomon = new ReedSolomon(DATA_SHARDS, PARITY_SHARDS);
-        reedSolomon.decodeMissing(shards, shardPresent, 0, shardSize);
-
-
-
+        return Arrays.copyOfRange(in, 0, in.length - CRC_SIZE);
     }
 
     public static int[] byteToWordsIndex(byte data) {

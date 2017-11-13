@@ -1,9 +1,6 @@
 package org.noise_planet.acousticmodem;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Settings for encoding and decoding streams
@@ -75,6 +72,7 @@ public class Settings {
             frequencyTupleToWordIndex.put(new FrequencyIndex(word[0], word[1]), idWord++);
         }
         this.frequencies = frequenciesSet.toArray(new Integer[frequenciesSet.size()]);
+        Arrays.sort(frequencies);
 
     }
 

@@ -85,7 +85,8 @@ public class AcousticModem {
         CRC32 crc32 = new CRC32();
         crc32.update(in, 0, in.length - CRC_SIZE);
         crcBuffer.clear();
-        crcBuffer.put(in, in.length - (Long.SIZE / Byte.SIZE), CRC_SIZE);
+        crcBuffer.put(Arrays.copyOfRange(in, in.length - CRC_SIZE, in.length), 0, CRC_SIZE);
+        crcBuffer.position(0);
         return Long.valueOf(crc32.getValue()).shortValue() == crcBuffer.getShort();
     }
 

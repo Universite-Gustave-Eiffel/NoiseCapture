@@ -90,7 +90,9 @@ public class AcousticModemTest {
             }
         }
 
-        assertEquals(messageInput, new String(acousticModem.decode(byteArrayOutputStream.toByteArray())));
+        byte[] receivedBytes = byteArrayOutputStream.toByteArray();
+        assert(acousticModem.isMessageCheck(receivedBytes));
+        assertEquals(messageInput, new String(acousticModem.decode(receivedBytes)));
 
     }
 

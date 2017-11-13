@@ -26,7 +26,6 @@
  */
 package org.noise_planet.acousticmodem;
 
-import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.Comparator;
 
@@ -37,6 +36,7 @@ public class AcousticModem {
     private Settings settings;
 
     private Integer lastInputWord = null;
+    private Integer ignoreDuplicateWord = Integer.MAX_VALUE;
 
     public AcousticModem(Settings settings) {
         this.settings = settings;
@@ -79,17 +79,17 @@ public class AcousticModem {
         int bufferLength = 0;
         for (int idByte = sourceIndex; idByte < sourceIndex + sourceLength; idByte++) {
             int[] words = byteToWordsIndex(source[idByte]);
-            bufferLength += settings.wordLength;
-            if (idByte > 0 && lastWord != words[0]) {
+            if (idByte > 0 && lastWord == words[0]) {
                 // If the same word has to be sent we add a blank word
                 bufferLength += settings.wordLength;
             }
+            bufferLength += settings.wordLength;
             lastWord = words[0];
-            bufferLength += settings.wordLength;
-            if (lastWord != words[1]) {
+            if (lastWord == words[1]) {
                 // If the same word has to be sent we add a blank word
                 bufferLength += settings.wordLength;
             }
+            bufferLength += settings.wordLength;
             lastWord = words[1];
         }
         return bufferLength + settings.wordLength;
@@ -116,25 +116,25 @@ public class AcousticModem {
         int lastWord = 0;
         for (int idByte = sourceIndex; idByte < sourceIndex + sourceLength; idByte++) {
             int[] words = byteToWordsIndex(source[idByte]);
+            if (idByte > 0 && lastWord == words[0]) {
+                // If the same word has to be sent we add a blank word before
+                for (int i = outIndex; i < outIndex + settings.wordLength; i++) {
+                    out[i] = 0;
+                }
+                outIndex += settings.wordLength;
+            }
             copyTone(words[0], out, outIndex, toneRms);
             outIndex += settings.wordLength;
-            if (idByte > 0 && lastWord != words[0]) {
-                // If the same word has to be sent we add a blank word
+            lastWord = words[0];
+            if (lastWord == words[1]) {
+                // If the same word has to be sent we add a blank word before
                 for (int i = outIndex; i < outIndex + settings.wordLength; i++) {
                     out[i] = 0;
                 }
                 outIndex += settings.wordLength;
             }
-            lastWord = words[0];
             copyTone(words[1], out, outIndex, toneRms);
             outIndex += settings.wordLength;
-            if (idByte > 0 && lastWord != words[1]) {
-                // If the same word has to be sent we add a blank word
-                for (int i = outIndex; i < outIndex + settings.wordLength; i++) {
-                    out[i] = 0;
-                }
-                outIndex += settings.wordLength;
-            }
             lastWord = words[1];
         }
         // Finish with a blank word
@@ -158,7 +158,8 @@ public class AcousticModem {
         // If the third highest frequency bands level is inferior than second of SignalToNoiseLevel
         if(source[indexes[indexes.length - 2]] - source[indexes[indexes.length - 3]] > settings.getMinimalSignalToNoiseLevel()) {
             Integer word = settings.getWordFromFrequencyTuple(settings.frequencies[indexes[indexes.length - 1]], settings.frequencies[indexes[indexes.length - 2]]);
-            if(word != null) {
+            if(word != null && (!word.equals(ignoreDuplicateWord))) {
+                ignoreDuplicateWord = word;
                 if(lastInputWord != null) {
                     byte val = wordsToByte(lastInputWord, word);
                     lastInputWord = null;
@@ -168,11 +169,10 @@ public class AcousticModem {
                     return null;
                 }
             } else {
-                lastInputWord = null;
                 return null;
             }
         } else {
-            lastInputWord = null;
+            ignoreDuplicateWord = Integer.MAX_VALUE;
             return null;
         }
     }

@@ -53,14 +53,16 @@ public class AcousticModemTest {
     @Test
     public void TestEncodeDecode() throws Exception {
         String messageInput = "U1_76.8";
+        int sampleRate = 44100;
 
         // Convert data into audio signal
         int freqStart = Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, UT_FREQUENCIES[0]);
         AcousticModem acousticModem = new AcousticModem(new Settings(44100, 0.300, Settings.wordsFrom8frequencies(UT_FREQUENCIES), UT_FREQUENCIES));
         byte[] data = messageInput.getBytes();
-        int signalLength = acousticModem.getSignalLength(data, 0, data.length);
+        int offset = (int)(sampleRate * 0.412);
+        int signalLength = acousticModem.getSignalLength(data, 0, data.length) + offset;
         short[] signal = new short[signalLength];
-        acousticModem.wordsToSignal(data, 0, data.length, signal, 0, (short) 2500);
+        acousticModem.wordsToSignal(data, 0, data.length, signal, offset, (short) 2500);
 
         // Convert audio signal back to data
 

@@ -67,14 +67,8 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
     private TextView textDeviceLevel;
     private TextView startButton;
     private ProgressBar progressBar_wait_calibration_recording;
-    private TextView applyButton;
-    private TextView resetButton;
-    private ListView peersList;
     private Spinner spinner;
-    private ImageView connectionStatusImage;
     private TextView textStatus;
-    
-    private static final int BLINK_DELAY = 500;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -132,8 +126,6 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
         spinner.setEnabled(true);
         textDeviceLevel.setText(R.string.no_valid_dba_value);
         startButton.setEnabled(calibrationService.getState() == AWAITING_START);
-        applyButton.setEnabled(false);
-        resetButton.setEnabled(false);
         startButton.setText(R.string.calibration_button_start);
     }
 

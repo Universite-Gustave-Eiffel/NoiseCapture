@@ -46,42 +46,20 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="org.noise_planet.noisecapture.CalibrationWifiGuest">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Wifi SSID:"
-        android:textSize="15sp" />
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingLeft="5dp"
-        android:paddingRight="5dp"
-        android:gravity="center"
-        android:id="@+id/calibration_host_ssid"
-        android:text=""
-        android:textSize="20sp" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="left"
+        android:gravity="center"
         android:paddingTop="15dp"
         android:layout_gravity="center"
         android:orientation="horizontal">
-        <ImageView
-            android:id="@+id/imageView_value_wifi_state"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:layout_gravity="center_horizontal"
-            android:paddingRight="5dp"
-            android:contentDescription="@string/loc_hint"
-            app:srcCompat="@drawable/no_wifi" />
 
         <TextView
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Wifi is disabled"
+            android:text=""
             android:id="@+id/calibration_state"
-            android:textSize="20sp" />
+            android:textSize="20sp"
+            android:layout_width="wrap_content"/>
 
     </LinearLayout>
 
@@ -91,6 +69,61 @@
         android:layout_height="wrap_content"
         android:id="@+id/progressBar_wait_calibration_recording"
         android:layout_marginTop="6dp" />
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/calibration_leq_title"
+        android:paddingTop="15dp"
+        android:textSize="15sp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="80dp"
+            android:textSize="25sp"
+            android:text="@string/no_valid_dba_value"
+            android:gravity="right"
+            android:id="@+id/spl_measured"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="15dp"
+            android:paddingRight="0dp"
+            android:text="@string/SL_dB"
+            android:textSize="20sp"/>
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/calibration_measure_title"
+        android:paddingTop="15dp"
+        android:textSize="15sp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+        <TextView
+            android:layout_width="80dp"
+            android:textSize="25sp"
+            android:text="@string/no_valid_dba_value"
+            android:gravity="right"
+            android:id="@+id/spl_ref_measured"
+            android:layout_height="wrap_content"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingLeft="15dp"
+            android:paddingRight="0dp"
+            android:text="@string/SL_dB"
+            android:textSize="20sp"/>
+    </LinearLayout>
 </LinearLayout>
 
     <ListView

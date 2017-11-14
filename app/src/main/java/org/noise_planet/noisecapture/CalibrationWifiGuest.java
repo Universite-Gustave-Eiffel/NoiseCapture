@@ -65,15 +65,6 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
         initDrawer();
 
         progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
-        progressBar_wait_calibration_recording.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(mIsBound && calibrationService != null && calibrationService
-                        .getWifiDirectHandler() != null) {
-                    calibrationService.getWifiDirectHandler().continuouslyDiscoverServices();
-                }
-            }
-        });
         connectionStatusImage = (ImageView) findViewById(R.id.imageView_value_wifi_state);
         textStatus = (TextView) findViewById(R.id.calibration_state);
         textDeviceName = (TextView) findViewById(R.id.calibration_host_ssid);
@@ -90,46 +81,21 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
             // Calibration service state change, inform user
             CalibrationService.CALIBRATION_STATE newState =
                     (CalibrationService.CALIBRATION_STATE)event.getNewValue();
-            CalibrationWifiHost.applyStateChange(newState, connectionStatusImage, textStatus);
             // Change state of buttons
-            switch (newState) {
-                case WAITING_FOR_APPLY_OR_RESET:
-                    progressBar_wait_calibration_recording.setProgress(0);
-                    break;
-            }
-        } else if(CalibrationService.PROP_P2P_DEVICE.equals(event.getPropertyName())) {
-            WifiP2pDevice p2pDevice = calibrationService.getWifiP2pDevice();
-            if(p2pDevice != null) {
-                textDeviceName.setText(p2pDevice.deviceName);
-            } else {
-                textDeviceName.setText("");
+            if(!(newState == CalibrationService.CALIBRATION_STATE.WARMUP || newState ==
+                    CalibrationService.CALIBRATION_STATE.CALIBRATION)) {
+                progressBar_wait_calibration_recording.setProgress(0);
             }
         } else if(CalibrationService.PROP_CALIBRATION_PROGRESSION.equals(event.getPropertyName())) {
             progressBar_wait_calibration_recording.setProgress((Integer)event.getNewValue());
         }
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case PERMISSION_WIFI_P2P: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if(calibrationService != null) {
-                        calibrationService.init();
-                    }
-                }
-            }
-        }
-    }
-
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             calibrationService = ((CalibrationService.LocalBinder)service).getService();
-            CalibrationWifiHost.applyStateChange(calibrationService.getState(), connectionStatusImage, textStatus);
             calibrationService.addPropertyChangeListener(CalibrationWifiGuest.this);
-            calibrationService.init();
+            calibrationService.startCalibration();
         }
 
         public void onServiceDisconnected(ComponentName className) {

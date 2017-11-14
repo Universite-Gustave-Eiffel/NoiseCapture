@@ -69,6 +69,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -127,6 +128,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
         HOST_COOLDOWN,                 // Wait time after end of calibration and send of level
         AWAITING_FOR_APPLY_OR_RESTART, // Calibration is done waiting for reference device level
     }
+
+    public static final short MESSAGEID_START_CALIBRATION = 1;
+    public static final short MESSAGEID_APPLY_REFERENCE_GAIN = MESSAGEID_START_CALIBRATION + 1;
 
     public static final String SETTINGS_CALIBRATION_WARMUP_TIME = "settings_calibration_warmup_time";
     public static final String SETTINGS_CALIBRATION_TIME = "settings_calibration_time";
@@ -238,43 +242,45 @@ public class CalibrationService extends Service implements PropertyChangeListene
         }
     }
 
-    private void playMessage(AudioMessage message) {
-        try {
-            double rms = dbToRms(99);
-            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+    private void playMessage(byte[] data) {
+        double rms = dbToRms(99);
+        short[] signal = new short[acousticModem.getSignalLength(data, 0, data.length)];
+        acousticModem.wordsToSignal(data, 0,
+                data.length, signal, 0, (short)rms);
+        if (audioTrack == null) {
+            audioTrack = new AudioTrack(getAudioOutput(), 44100, AudioFormat
+                    .CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, signal.length * (Short
+                    .SIZE / Byte.SIZE), AudioTrack.MODE_STATIC);
+        } else {
             try {
-                objectOutputStream.writeObject(message);
-            } finally {
-                objectOutputStream.close();
+                audioTrack.pause();
+                audioTrack.flush();
+            } catch (IllegalStateException ex) {
+                // Ignore
             }
-            byte[] data = acousticModem.encode(byteArrayOutputStream.toByteArray());
-            short[] signal = new short[acousticModem.getSignalLength(data, 0, data.length)];
-            acousticModem.wordsToSignal(data, 0,
-                    data.length, signal, 0, (short)rms);
-            if (audioTrack == null) {
-                audioTrack = new AudioTrack(getAudioOutput(), 44100, AudioFormat
-                        .CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, signal.length * (Short
-                        .SIZE / Byte.SIZE), AudioTrack.MODE_STATIC);
-            } else {
-                try {
-                    audioTrack.pause();
-                    audioTrack.flush();
-                } catch (IllegalStateException ex) {
-                    // Ignore
-                }
-            }
-            //audioTrack.setLoopPoints(0, audioTrack.write(data, 0, data.length), -1);
-            audioTrack.play();
+        }
+        audioTrack.write(signal, 0, signal.length);
+        //audioTrack.setLoopPoints(0, audioTrack.write(data, 0, data.length), -1);
+        audioTrack.play();
+    }
+
+    private void sendMessage(short id, float... data) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate((Short.SIZE + Float.SIZE * data.length) /
+                Byte.SIZE);
+        byteBuffer.putShort(id);
+        for(int i=0; i<data.length; i++) {
+            byteBuffer.putFloat(data[i]);
+        }
+        try {
+            playMessage(acousticModem.encode(byteBuffer.array()));
         } catch (IOException ex) {
             LOGGER.error(ex.getLocalizedMessage(), ex);
         }
     }
-
     protected void onTimerEnd() {
         if (state == CALIBRATION_STATE.DELAY_BEFORE_SEND_SIGNAL) {
             // Ready to send start signal to other devices
-
+            sendMessage(MESSAGEID_START_CALIBRATION,  defaultWarmupTime, defaultCalibrationTime);
         }else if(state == CALIBRATION_STATE.WARMUP) {
             setState(CALIBRATION_STATE.CALIBRATION);
             // Start calibration
@@ -333,7 +339,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     public void startCalibration() {
         if(CALIBRATION_STATE.AWAITING_START.equals(state)) {
             if(isHost) {
-                setState(CALIBRATION_STATE.HOST_COOLDOWN);
+                setState(CALIBRATION_STATE.DELAY_BEFORE_SEND_SIGNAL);
             }
             initAudioProcess();
             runWarmup();
@@ -397,16 +403,4 @@ public class CalibrationService extends Service implements PropertyChangeListene
             return true;
         }
     }
-
-    public static final class AudioMessage implements Serializable {
-
-        public final short messageId;
-        public float[] content;
-
-        public AudioMessage(short messageId, float[] content) {
-            this.messageId = messageId;
-            this.content = content;
-        }
-    }
-
 }

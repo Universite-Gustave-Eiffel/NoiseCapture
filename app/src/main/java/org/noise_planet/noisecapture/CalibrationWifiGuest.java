@@ -45,9 +45,7 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
 
     private boolean mIsBound = false;
     private CalibrationService calibrationService;
-    private ImageView connectionStatusImage;
     private TextView textStatus;
-    private TextView textDeviceName;
     private ProgressBar progressBar_wait_calibration_recording;
 
     @Override
@@ -58,9 +56,7 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
         initDrawer();
 
         progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
-        connectionStatusImage = (ImageView) findViewById(R.id.imageView_value_wifi_state);
         textStatus = (TextView) findViewById(R.id.calibration_state);
-        textDeviceName = (TextView) findViewById(R.id.calibration_host_ssid);
 
 
         if(checkAndAskPermissions()) {

@@ -199,7 +199,12 @@ public class AcousticModem {
         }
     }
 
-    protected float[] filterSpectrum(float[] spectrum) {
+    /**
+     * Try to find background noise for each frequency bands and remote it before returning the noise level.
+     * @param spectrum SPL per frequency band
+     * @return SPL per frequency band (without background noise)
+     */
+    public float[] filterSpectrum(float[] spectrum) {
         float[] ret = new float[spectrum.length];
         int idFreq = 0;
         for(float level : spectrum) {

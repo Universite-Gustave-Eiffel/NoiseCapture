@@ -97,7 +97,7 @@ public class AcousticModemTest {
 
         byte[] receivedBytes = byteArrayOutputStream.toByteArray();
 
-        writeToFile("/home/nicolas/data/signal2.raw", signal);
+        //writeToFile("out/signal2.raw", signal);
 
         assert(acousticModem.isMessageCheck(receivedBytes));
         assertEquals(messageInput, new String(acousticModem.decode(receivedBytes)));
@@ -125,7 +125,7 @@ public class AcousticModemTest {
         final int sampleRate = 44100;
         AcousticModem acousticModem = new AcousticModem(new Settings(44100, 0.200, Settings.wordsFrom8frequencies(UT_FREQUENCIES)));
         InputStream inputStream = AcousticModemTest.class.getResourceAsStream("signal_with_voice.raw");
-        int windowSize = acousticModem.getSettings().wordLength / 2;
+        int windowSize = (int)(sampleRate * AcousticIndicators.TIMEPERIOD_FAST);
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, windowSize);
         // Read input signal up to buffer.length
@@ -147,6 +147,7 @@ public class AcousticModemTest {
         assertTrue(acousticModem.isMessageCheck(receivedBytes));
     }
 
+    /*
     @Test
     public void testFrequencyFilter() throws IOException {
         int freqStart = Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, UT_FREQUENCIES[0]);
@@ -154,7 +155,7 @@ public class AcousticModemTest {
         AcousticModem acousticModem = new AcousticModem(new Settings(44100, 0.200, Settings.wordsFrom8frequencies(UT_FREQUENCIES)));
 
         InputStream inputStream = AcousticModemTest.class.getResourceAsStream("signal_with_voice.raw");
-        int windowSize = acousticModem.getSettings().wordLength / 2;
+        int windowSize = 1024;
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, windowSize);
         // Read input signal up to buffer.length
@@ -167,4 +168,5 @@ public class AcousticModemTest {
             System.out.println(Arrays.toString(filteredSpectrum));
         }
     }
+    */
 }

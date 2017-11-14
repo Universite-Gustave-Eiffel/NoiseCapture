@@ -36,6 +36,9 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.media.AudioFormat;
+import android.media.AudioManager;
+import android.media.AudioTrack;
 import android.net.wifi.WifiManager;
 import android.net.wifi.p2p.WifiP2pDevice;
 import android.net.wifi.p2p.WifiP2pDeviceList;
@@ -51,13 +54,21 @@ import android.support.annotation.Nullable;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 
+import org.noise_planet.acousticmodem.AcousticModem;
+import org.noise_planet.acousticmodem.Settings;
+import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.LeqStats;
+import org.orbisgis.sos.ThirdOctaveBandsFiltering;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -73,6 +84,20 @@ public class CalibrationService extends Service implements PropertyChangeListene
         SharedPreferences.OnSharedPreferenceChangeListener {
     public static final String EXTRA_HOST = "MODE_HOST";
 
+
+    private static final int[] MODEM_FREQUENCIES = new int[]{
+            (int) ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[15],
+            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[16],
+            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[17],
+            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[18],
+            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[19],
+            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[20],
+            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[21],
+            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[22]};
+
+    private static final int FREQ_START = Arrays.binarySearch(ThirdOctaveBandsFiltering
+            .STANDARD_FREQUENCIES_REDUCED, MODEM_FREQUENCIES[0]);
+
     // properties
     public static final String PROP_CALIBRATION_STATE = "PROP_CALIBRATION_STATE";
     public static final String PROP_CALIBRATION_PROGRESSION = "PROP_CALIBRATION_PROGRESSION"; // Calibration/Warmup progression 0-100
@@ -83,16 +108,16 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private AtomicBoolean recording = new AtomicBoolean(true);
     private AtomicBoolean canceled = new AtomicBoolean(false);
 
-    private final IntentFilter intentFilter = new IntentFilter();
-    private WifiP2pDevice wifiP2pDevice;
+    private static final double WORD_TIME_LENGTH = AcousticIndicators.TIMEPERIOD_FAST * 2;
+
     private int defaultWarmupTime;
     private int defaultCalibrationTime;
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationService.class);
-    private static final String NOISECAPTURE_CALIBRATION_SERVICE = "NoiseCapture_Calibration";
-    // Registration service timout
-    private static final int SERVICE_TIMEOUT = 8000;
+
     public static final int COUNTDOWN_STEP_MILLISECOND = 125;
     private Handler timeHandler;
+    private AudioTrack audioTrack;
+    private AcousticModem acousticModem;
 
     public enum CALIBRATION_STATE {
         AWAITING_START,                // Awaiting signal for start of warmup
@@ -147,6 +172,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
         }
         audioProcess.getListeners().addPropertyChangeListener(this);
 
+        // Init audio modem
+
+        acousticModem = new AcousticModem(new Settings(audioProcess.getRate(), WORD_TIME_LENGTH,
+                Settings.wordsFrom8frequencies(MODEM_FREQUENCIES)));
+
         // Start measurement
         new Thread(audioProcess).start();
     }
@@ -181,8 +211,71 @@ public class CalibrationService extends Service implements PropertyChangeListene
         sharedPref.registerOnSharedPreferenceChangeListener(this);
     }
 
+    private double dbToRms(double db) {
+        return (Math.pow(10, db / 20.)/(Math.pow(10, 90./20.))) * 2500;
+    }
+
+    private int getAudioOutput() {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        String value = sharedPref.getString("settings_calibration_audio_output", "STREAM_RING");
+
+        if("STREAM_VOICE_CALL".equals(value)) {
+            return AudioManager.STREAM_VOICE_CALL;
+        } else if("STREAM_SYSTEM".equals(value)) {
+            return AudioManager.STREAM_SYSTEM;
+        } else if("STREAM_RING".equals(value)) {
+            return AudioManager.STREAM_RING;
+        } else if("STREAM_MUSIC".equals(value)) {
+            return AudioManager.STREAM_MUSIC;
+        } else if("STREAM_ALARM".equals(value)) {
+            return AudioManager.STREAM_ALARM;
+        } else if("STREAM_NOTIFICATION".equals(value)) {
+            return AudioManager.STREAM_NOTIFICATION;
+        } else if("STREAM_DTMF".equals(value)) {
+            return AudioManager.STREAM_DTMF;
+        } else {
+            return AudioManager.STREAM_RING;
+        }
+    }
+
+    private void playMessage(AudioMessage message) {
+        try {
+            double rms = dbToRms(99);
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteArrayOutputStream);
+            try {
+                objectOutputStream.writeObject(message);
+            } finally {
+                objectOutputStream.close();
+            }
+            byte[] data = acousticModem.encode(byteArrayOutputStream.toByteArray());
+            short[] signal = new short[acousticModem.getSignalLength(data, 0, data.length)];
+            acousticModem.wordsToSignal(data, 0,
+                    data.length, signal, 0, (short)rms);
+            if (audioTrack == null) {
+                audioTrack = new AudioTrack(getAudioOutput(), 44100, AudioFormat
+                        .CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, signal.length * (Short
+                        .SIZE / Byte.SIZE), AudioTrack.MODE_STATIC);
+            } else {
+                try {
+                    audioTrack.pause();
+                    audioTrack.flush();
+                } catch (IllegalStateException ex) {
+                    // Ignore
+                }
+            }
+            //audioTrack.setLoopPoints(0, audioTrack.write(data, 0, data.length), -1);
+            audioTrack.play();
+        } catch (IOException ex) {
+            LOGGER.error(ex.getLocalizedMessage(), ex);
+        }
+    }
+
     protected void onTimerEnd() {
-        if(state == CALIBRATION_STATE.WARMUP) {
+        if (state == CALIBRATION_STATE.DELAY_BEFORE_SEND_SIGNAL) {
+            // Ready to send start signal to other devices
+
+        }else if(state == CALIBRATION_STATE.WARMUP) {
             setState(CALIBRATION_STATE.CALIBRATION);
             // Start calibration
             leqStats = new LeqStats();
@@ -302,6 +395,17 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 service.onTimerEnd();
             }
             return true;
+        }
+    }
+
+    public static final class AudioMessage implements Serializable {
+
+        public final short messageId;
+        public float[] content;
+
+        public AudioMessage(short messageId, float[] content) {
+            this.messageId = messageId;
+            this.content = content;
         }
     }
 

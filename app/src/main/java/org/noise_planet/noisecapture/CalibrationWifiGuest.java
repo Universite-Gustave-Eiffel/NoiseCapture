@@ -31,12 +31,8 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
-import android.net.wifi.p2p.WifiP2pDevice;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
-import android.view.View;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -44,9 +40,6 @@ import android.widget.TextView;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class CalibrationWifiGuest extends MainActivity implements PropertyChangeListener {
 
@@ -70,7 +63,7 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
         textDeviceName = (TextView) findViewById(R.id.calibration_host_ssid);
 
 
-        if(checkAndAskWifiP2PPermissions()) {
+        if(checkAndAskPermissions()) {
             doBindService();
         }
     }

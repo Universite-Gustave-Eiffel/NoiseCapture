@@ -132,6 +132,89 @@ public class AcousticIndicators {
         return signal;
     }
 
+    /**
+     * Fast computation of median (L50)
+     * Derived from C code from http://www.stat.cmu.edu/~ryantibs/median/
+     * @param levels noise levels
+     * @return median noise level or Float.NaN if median not found
+     */
+    public static float medianApprox(float[] levels) {
+        if(levels.length == 0) {
+            return Float.NaN;
+        } else if(levels.length == 1){
+            return levels[0];
+        }
+        // Compute the mean and standard deviation
+        float sum = 0;
+        int i;
+        for (i = 0; i < levels.length; i++) {
+            sum += levels[i];
+        }
+        float mu = sum/levels.length;
+
+        sum = 0;
+        for (i = 0; i < levels.length; i++) {
+            sum += (levels[i]-mu)*(levels[i]-mu);
+        }
+        float sigma = (float)Math.sqrt(sum/levels.length);
+
+        // Bin x across the interval [mu-sigma, mu+sigma]
+        int bottomCount = 0;
+        int binCounts[] = new int[1001];
+        for (i = 0; i < binCounts.length; i++) {
+            binCounts[i] = 0;
+        }
+        float scaleFactor = 1000/(2*sigma);
+        float leftEnd =  mu-sigma;
+        float rightEnd = mu+sigma;
+        int bin;
+
+        for (i = 0; i < levels.length; i++) {
+            if (levels[i] < leftEnd) {
+                bottomCount++;
+            }
+            else if (levels[i] < rightEnd) {
+                bin = (int)((levels[i]-leftEnd) * scaleFactor);
+                binCounts[bin]++;
+            }
+        }
+
+        // If n is odd
+        if ((levels.length & 1) != 0){
+            // Find the bin that contains the median
+            int k = (levels.length+1)/2;
+            int count = bottomCount;
+
+            for (i = 0; i < 1001; i++) {
+                count += binCounts[i];
+                if (count >= k) {
+                    return (i+0.5f)/scaleFactor + leftEnd;
+                }
+            }
+        } else {
+            // If n is even
+            // Find the bins that contains the medians
+            int k = levels.length/2;
+            int count = bottomCount;
+
+            for (i = 0; i < 1001; i++) {
+                count += binCounts[i];
+
+                if (count >= k) {
+                    int j = i;
+                    while (count == k) {
+                        j++;
+                        if(j >= binCounts.length) {
+                            break;
+                        }
+                        count += binCounts[j];
+                    }
+                    return (i+j+1)/(2*scaleFactor) + leftEnd;
+                }
+            }
+        }
+        return Float.NaN;
+    }
 
     public final static class SplStatistics {
         public final double min;

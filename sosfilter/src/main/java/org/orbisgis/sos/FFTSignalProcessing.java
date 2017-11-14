@@ -87,6 +87,10 @@ public class FFTSignalProcessing {
         return windowSize / (double)samplingRate;
     }
 
+    public int getWindowSize() {
+        return windowSize;
+    }
+
     /**
      * @return Computed frequencies
      */

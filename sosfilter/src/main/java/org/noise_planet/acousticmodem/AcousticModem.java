@@ -26,10 +26,13 @@
  */
 package org.noise_planet.acousticmodem;
 
+import org.apache.commons.math3.stat.descriptive.rank.Percentile;
+import org.orbisgis.sos.AcousticIndicators;
+import org.orbisgis.sos.LeqStats;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.Comparator;
+import java.util.*;
 import java.util.zip.CRC32;
 
 /**
@@ -41,6 +44,10 @@ public class AcousticModem {
     private final int CRC_SIZE = Short.SIZE / Byte.SIZE;
     private ByteBuffer crcBuffer = ByteBuffer.allocate(CRC_SIZE);
 
+    // Used to compute background noise
+    private static final int BACKGROUND_LEQ_CAPACITY = 100;
+    private float[][] levelsHisto = new float[8][];
+
     // ReedSolomon parameters
     public static final int DATA_SHARDS = 4;
     public static final int PARITY_SHARDS = 2;
@@ -50,6 +57,9 @@ public class AcousticModem {
 
     public AcousticModem(Settings settings) {
         this.settings = settings;
+        for(int i=0; i < settings.frequencies.length; i++) {
+            levelsHisto[i] = new float[0];
+        }
     }
 
 
@@ -58,12 +68,14 @@ public class AcousticModem {
     }
 
     private void copyTone(int wordId, short[] out, int outIndex, short toneRms) {
-        //TODO maybe apply a windowing function
         int freqA = settings.words[wordId][0];
         int freqB = settings.words[wordId][1];
         for (int s = 0; s < settings.wordLength; s++) {
             double t = s * (1 / (double) settings.samplingRate);
-            out[outIndex + s] = (short) (Math.sin(2 * Math.PI * freqA * t) * (toneRms) + Math.sin(2 * Math.PI * freqB * t) * (toneRms));
+            double firstSin = Math.sin(2 * Math.PI * freqA * t) * (toneRms);
+            double secondSin = Math.sin(2 * Math.PI * freqB * t) * (toneRms);
+            double window = s > 0 ? 0.5 * (1 - Math.cos((2 * Math.PI * s) / ( settings.wordLength - 1))) : 0;
+            out[outIndex + s] = (short) ((firstSin + secondSin) * window);
         }
     }
 
@@ -180,20 +192,49 @@ public class AcousticModem {
         }
     }
 
+    protected float[] filterSpectrum(float[] spectrum) {
+        float[] ret = new float[spectrum.length];
+        int idFreq = 0;
+        for(float level : spectrum) {
+            // Compute median level
+            float medianLevel = AcousticIndicators.medianApprox(levelsHisto[idFreq]);
+            if(!Float.isNaN(medianLevel)) {
+                ret[idFreq] = level - medianLevel;
+            } else {
+                ret[idFreq] = level;
+            }
+            idFreq++;
+        }
+        // Push spectrum to history
+        for(int i = 0; i < levelsHisto.length; i++) {
+            if(levelsHisto[i].length < BACKGROUND_LEQ_CAPACITY) {
+                float[] oldLevels = levelsHisto[i];
+                levelsHisto[i] = new float[oldLevels.length + 1];
+                System.arraycopy(oldLevels, 0, levelsHisto[i], 0, oldLevels.length);
+                levelsHisto[i][oldLevels.length] = spectrum[i];
+            } else {
+                float[] oldLevels = levelsHisto[i];
+                System.arraycopy(oldLevels, 1, levelsHisto[i], 0, oldLevels.length - 1);
+                levelsHisto[i][BACKGROUND_LEQ_CAPACITY - 1] = spectrum[i];
+            }
+        }
+        return ret;
+    }
+
     /**
      * Convert spectrum to byte.
-     * @param source Spectrum
-     * @return Byte from spectrum or null if
+     * @param spectrum Spectrum SPL as specified in {@link Settings#frequencies}
+     * @return Byte from spectrum or null if not a new word
      */
-    public Byte spectrumToWord(float[] source) {
+    public Byte spectrumToWord(float[] spectrum) {
         // Sort values by power
-        Integer[] indexes = new Integer[source.length];
-        for(int i=0; i < source.length; i++) {
+        Integer[] indexes = new Integer[spectrum.length];
+        for(int i=0; i < spectrum.length; i++) {
             indexes[i] = i;
         }
-        Arrays.sort(indexes, new ArrayIndexComparator(source));
+        Arrays.sort(indexes, new ArrayIndexComparator(spectrum));
         // If the third highest frequency bands level is inferior than second of SignalToNoiseLevel
-        if(source[indexes[indexes.length - 2]] - source[indexes[indexes.length - 3]] > settings.getMinimalSignalToNoiseLevel()) {
+        if(spectrum[indexes[indexes.length - 2]] - spectrum[indexes[indexes.length - 3]] > settings.getMinimalSignalToNoiseLevel()) {
             Integer word = settings.getWordFromFrequencyTuple(settings.frequencies[indexes[indexes.length - 1]], settings.frequencies[indexes[indexes.length - 2]]);
             if(word != null && (!word.equals(ignoreDuplicateWord))) {
                 ignoreDuplicateWord = word;

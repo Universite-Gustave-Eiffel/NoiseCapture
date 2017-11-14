@@ -70,12 +70,15 @@ public class AcousticModem {
     private void copyTone(int wordId, short[] out, int outIndex, short toneRms) {
         int freqA = settings.words[wordId][0];
         int freqB = settings.words[wordId][1];
-        for (int s = 0; s < settings.wordLength; s++) {
+        Arrays.fill(out, outIndex, outIndex + settings.wordLength, (short)0);
+        int signalLength = settings.wordLength / 2;
+        int offset = signalLength / 2;
+        for (int s = 0; s < signalLength; s++) {
             double t = s * (1 / (double) settings.samplingRate);
             double firstSin = Math.sin(2 * Math.PI * freqA * t) * (toneRms);
             double secondSin = Math.sin(2 * Math.PI * freqB * t) * (toneRms);
-            double window = s > 0 ? 0.5 * (1 - Math.cos((2 * Math.PI * s) / ( settings.wordLength - 1))) : 0;
-            out[outIndex + s] = (short) ((firstSin + secondSin) * window);
+            double window = 0.5 * (1 - Math.cos((2 * Math.PI * s) / (signalLength)));
+            out[outIndex + offset + s] = (short) ((firstSin + secondSin) * window);
         }
     }
 
@@ -103,7 +106,11 @@ public class AcousticModem {
     }
 
     public byte[] decode(byte[] in) {
-        return Arrays.copyOfRange(in, 0, in.length - CRC_SIZE);
+        if(in.length >= CRC_SIZE) {
+            return Arrays.copyOfRange(in, 0, in.length - CRC_SIZE);
+        } else {
+            return in;
+        }
     }
 
     public static int[] byteToWordsIndex(byte data) {
@@ -201,7 +208,7 @@ public class AcousticModem {
             if(!Float.isNaN(medianLevel)) {
                 ret[idFreq] = level - medianLevel;
             } else {
-                ret[idFreq] = level;
+                ret[idFreq] = 0;
             }
             idFreq++;
         }

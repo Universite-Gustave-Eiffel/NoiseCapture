@@ -20,16 +20,18 @@ import static org.junit.Assert.assertTrue;
  *
  */
 public class AcousticModemTest {
+
     private static final int[] UT_FREQUENCIES = new int[]{
-            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[11],
-            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[12],
-            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[13],
-            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[14],
             (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[15],
             (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[16],
             (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[17],
-            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[18]
-    };
+            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[18],
+            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[19],
+            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[20],
+            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[21],
+            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[22]};
+
+
     public static final double REF_SOUND_PRESSURE = 1 / Math.pow(10, FFTSignalProcessing.DB_FS_REFERENCE / 20);
 
     @Test
@@ -60,7 +62,7 @@ public class AcousticModemTest {
 
         // Convert data into audio signal
         int freqStart = Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, UT_FREQUENCIES[0]);
-        AcousticModem acousticModem = new AcousticModem(new Settings(44100, 0.200, Settings.wordsFrom8frequencies(UT_FREQUENCIES)));
+        AcousticModem acousticModem = new AcousticModem(new Settings(44100, 0.300, Settings.wordsFrom8frequencies(UT_FREQUENCIES)));
         byte[] data = acousticModem.encode(messageInput.getBytes());
         int offset = (int)(sampleRate * 0.412);
         int signalLength = acousticModem.getSignalLength(data, 0, data.length) + offset;

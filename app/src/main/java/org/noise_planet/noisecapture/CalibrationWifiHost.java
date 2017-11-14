@@ -73,7 +73,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
     private Spinner spinner;
     private ImageView connectionStatusImage;
     private TextView textStatus;
-    private DeviceListAdapter deviceListAdapter;
+    
     private static final int BLINK_DELAY = 500;
 
     @Override
@@ -84,34 +84,13 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
         initDrawer();
 
         progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
-        progressBar_wait_calibration_recording.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                calibrationService.initiateCommunication();
-            }
-        });
         textDeviceLevel = (TextView) findViewById(R.id.spl_ref_measured);
-        peersList = (ListView) findViewById(R.id.listview_peers);
-        deviceListAdapter = new DeviceListAdapter(this);
-        peersList.setAdapter(deviceListAdapter);
-        connectionStatusImage = (ImageView) findViewById(R.id.imageView_value_wifi_state);
         textStatus = (TextView) findViewById(R.id.calibration_state);
         startButton = (TextView) findViewById(R.id.btn_start);
-        resetButton = (TextView) findViewById(R.id.btn_reset);
-        applyButton = (TextView) findViewById(R.id.btn_apply);
         spinner = (Spinner) findViewById(R.id.spinner_calibration_mode);
 
-        if(checkAndAskWifiP2PPermissions()) {
-            doBindService();
-        }
+        doBindService();
     }
-
-    public void onRegisterService() {
-        if(mIsBound && calibrationService != null) {
-            calibrationService.addLocalWifiService();
-        }
-    }
-
 
     @Override
     protected void onResume() {
@@ -148,73 +127,6 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
         }
     }
 
-    public static void applyStateChange(CalibrationService.CALIBRATION_STATE newState, ImageView connectionStatusImage, TextView textStatus) {
-        int message;
-        AlphaAnimation alphaAnimation;
-        switch (newState) {
-            case WIFI_DISABLED:
-                message = R.string.calibration_status_p2p_disabled;
-                connectionStatusImage.setImageResource(R.drawable.no_wifi);
-                connectionStatusImage.clearAnimation();
-                break;
-            case WIFI_BUSY:
-                message = R.string.calibration_status_p2p_busy;
-                connectionStatusImage.setImageResource(R.drawable.no_wifi);
-                connectionStatusImage.clearAnimation();
-                break;
-            case P2P_UNSUPPORTED:
-                message = R.string.calibration_status_p2p_error;
-                connectionStatusImage.setImageResource(R.drawable.no_wifi);
-                connectionStatusImage.clearAnimation();
-                break;
-            case LOOKING_FOR_HOST:
-                message = R.string.calibration_status_waiting_for_host;
-                connectionStatusImage.setImageResource(R.drawable.wifi_lookup);
-                alphaAnimation = new AlphaAnimation(1,0);
-                alphaAnimation.setDuration(BLINK_DELAY);
-                alphaAnimation.setInterpolator(new LinearInterpolator());
-                alphaAnimation.setRepeatCount(Animation.INFINITE);
-                alphaAnimation.setRepeatMode(Animation.REVERSE);
-                connectionStatusImage.startAnimation(alphaAnimation);
-                break;
-            case LOOKING_FOR_PEERS:
-                message = R.string.calibration_status_waiting_for_peers;
-                connectionStatusImage.setImageResource(R.drawable.wifi_lookup);
-                alphaAnimation = new AlphaAnimation(1,0);
-                alphaAnimation.setDuration(BLINK_DELAY);
-                alphaAnimation.setInterpolator(new LinearInterpolator());
-                alphaAnimation.setRepeatCount(Animation.INFINITE);
-                alphaAnimation.setRepeatMode(Animation.REVERSE);
-                connectionStatusImage.startAnimation(alphaAnimation);
-                break;
-            case PAIRED_TO_HOST:
-                message = R.string.calibration_status_paired_to_host;
-                connectionStatusImage.setImageResource(R.drawable.wifi_active);
-                connectionStatusImage.clearAnimation();
-                break;
-            case PAIRED_TO_PEER:
-                message = R.string.calibration_status_paired_to_peer;
-                connectionStatusImage.setImageResource(R.drawable.wifi_active);
-                connectionStatusImage.clearAnimation();
-                break;
-            case AWAITING_START:
-                message = R.string.calibration_status_waiting_for_user_start;
-                break;
-            case WARMUP:
-                message = R.string.calibration_status_waiting_for_start_timer;
-                break;
-            case CALIBRATION:
-                message = R.string.calibration_status_on;
-                break;
-            case WAITING_FOR_APPLY_OR_RESET:
-                message = R.string.calibration_status_end;
-                break;
-            default:
-                message = R.string.calibration_status_p2p_error;
-        }
-        textStatus.setText(message);
-    }
-
     private void initCalibration() {
         textStatus.setText(R.string.calibration_status_waiting_for_user_start);
         spinner.setEnabled(true);
@@ -227,6 +139,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
 
     public void onStartCalibration(View v) {
         startButton.setEnabled(false);
+        spinner.setEnabled(false);
         textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
         if(calibrationService.getState() == AWAITING_START) {
             textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
@@ -235,22 +148,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
                 // Application have right now all permissions
                 calibrationService.startCalibration();
             }
-            spinner.setEnabled(false);
-            startButton.setText(R.string.calibration_button_cancel);
-        } else {
-            calibrationService.cancelCalibration();
-            initCalibration();
         }
-
-
-    }
-
-    public void onCancelCalibration(View v) {
-        calibrationService.cancelCalibration();
-    }
-
-    public void onApplyCalibration(View v) {
-        calibrationService.applyCalibration();
     }
 
     @Override
@@ -275,21 +173,12 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
             // Calibration service state change, inform user
             CalibrationService.CALIBRATION_STATE newState =
                     (CalibrationService.CALIBRATION_STATE)event.getNewValue();
-            applyStateChange(newState, connectionStatusImage, textStatus);
             // Change state of buttons
-            switch (newState) {
-                case AWAITING_START:
-                    startButton.setEnabled(true);
-                    break;
-                case WAITING_FOR_APPLY_OR_RESET:
-                    resetButton.setEnabled(true);
-                    applyButton.setEnabled(true);
-                    break;
+            if(newState == AWAITING_START) {
+                startButton.setEnabled(true);
+            } else {
+                startButton.setEnabled(false);
             }
-        } else if(CalibrationService.PROP_PEER_LIST.equals(event.getPropertyName())) {
-            deviceListAdapter.onPeersAvailable((WifiP2pDeviceList)event.getNewValue());
-        } else if(CalibrationService.PROP_PEER_READY.equals(event.getPropertyName())) {
-            MAINLOGGER.info("Peer ready to start calibration " + event.getNewValue());
         } else if(CalibrationService.PROP_CALIBRATION_PROGRESSION.equals(event.getPropertyName())) {
             progressBar_wait_calibration_recording.setProgress((Integer)event.getNewValue());
         }
@@ -298,9 +187,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             calibrationService = ((CalibrationService.LocalBinder)service).getService();
-            applyStateChange(calibrationService.getState(), connectionStatusImage, textStatus);
             calibrationService.addPropertyChangeListener(CalibrationWifiHost.this);
-            calibrationService.init();
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -312,22 +199,6 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
             calibrationService = null;
         }
     };
-
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case PERMISSION_WIFI_P2P: {
-                // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    if(calibrationService != null) {
-                        calibrationService.init();
-                    }
-                }
-            }
-        }
-    }
 
     @Override
     protected void onRestart() {
@@ -351,104 +222,4 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
         }
     }
 
-
-    public static class DeviceListAdapter extends BaseAdapter implements WifiP2pManager.PeerListListener {
-        private List<WifiP2pDevice> peers = new ArrayList<>();
-        private CalibrationWifiHost activity;
-        private LayoutInflater mInflater;
-
-
-        public DeviceListAdapter(CalibrationWifiHost activity) {
-            this.activity = activity;
-            mInflater = (LayoutInflater)activity.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        }
-
-        @Override
-        public void onPeersAvailable(WifiP2pDeviceList peers) {
-            this.peers = new ArrayList<>(peers.getDeviceList());
-            notifyDataSetChanged();
-        }
-
-        @Override
-        public int getCount() {
-            return peers.size();
-        }
-
-        @Override
-        public WifiP2pDevice getItem(int position) {
-            return peers.get(position);
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View view = convertView;  // old view to re-use if possible. Useful for Heterogeneous list with diff item view type.
-            String item = getItem(position).deviceName;
-
-            if( view == null ){
-                view = mInflater.inflate(R.layout.wifi_peers_item_layout, null);
-            }
-
-            TextView msgRow = (TextView)view.findViewById(R.id.device_name);
-            msgRow.setText(item);
-            TextView statusRow = (TextView)view.findViewById(R.id.device_details);
-            ImageView statusIcon = (ImageView) view.findViewById(R.id.icon);
-            int stringId;
-            AlphaAnimation animation;
-            switch (getItem(position).status) {
-                case WifiP2pDevice.AVAILABLE:
-                    // yellow
-                    stringId = R.string.wifi_peer_available;
-                    statusIcon.setImageResource(R.drawable.wifi_lookup);
-                    statusIcon.clearAnimation();
-                    break;
-                case WifiP2pDevice.INVITED:
-                    // yellow blink
-                    stringId = R.string.wifi_peer_invited;
-                    statusIcon.setImageResource(R.drawable.wifi_lookup);
-                    animation = new AlphaAnimation(1, 0);
-                    animation.setInterpolator(new LinearInterpolator());
-                    animation.setRepeatCount(Animation.INFINITE);
-                    animation.setRepeatMode(Animation.REVERSE);
-                    animation.setDuration(BLINK_DELAY);
-                    statusIcon.startAnimation(animation);
-                    break;
-                case WifiP2pDevice.CONNECTED:
-                    // green
-                    statusIcon.setImageResource(R.drawable.wifi_active);
-                    animation = new AlphaAnimation(1, 0);
-                    animation.setInterpolator(new LinearInterpolator());
-                    animation.setRepeatCount(Animation.INFINITE);
-                    animation.setRepeatMode(Animation.REVERSE);
-                    animation.setDuration(BLINK_DELAY);
-                    statusIcon.startAnimation(animation);
-                    stringId = R.string.wifi_peer_connected;
-                    break;
-                case WifiP2pDevice.FAILED:
-                    // red
-                    statusIcon.setImageResource(R.drawable.no_wifi);
-                    statusIcon.clearAnimation();
-                    stringId = R.string.wifi_peer_failed;
-                    break;
-                case WifiP2pDevice.UNAVAILABLE:
-                    // red
-                    statusIcon.setImageResource(R.drawable.no_wifi);
-                    statusIcon.clearAnimation();
-                    stringId = R.string.wifi_peer_unavailable;
-                    break;
-                default:
-                    // red
-                    statusIcon.setImageResource(R.drawable.no_wifi);
-                    statusIcon.clearAnimation();
-                    stringId = R.string.wifi_peer_unknown;
-            }
-            statusRow.setText(activity.getText(stringId));
-            return view;
-        }
-
-    }
 }

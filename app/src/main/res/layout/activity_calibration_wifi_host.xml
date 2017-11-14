@@ -77,19 +77,11 @@
         android:paddingTop="15dp"
         android:layout_gravity="center"
         android:orientation="horizontal">
-        <ImageView
-            android:id="@+id/imageView_value_wifi_state"
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:layout_gravity="center_horizontal"
-            android:paddingRight="5dp"
-            android:contentDescription="@string/loc_hint"
-            app:srcCompat="@drawable/no_wifi" />
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Wifi is disabled"
+            android:text=""
             android:id="@+id/calibration_state"
             android:textSize="20sp" />
 
@@ -126,18 +118,6 @@
                 android:text="@string/SL_dB"
                 android:textSize="20sp"/>
         </LinearLayout>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Peer list:"
-            android:textSize="15sp" />
-        <ListView
-            android:id="@+id/listview_peers"
-            android:layout_width="match_parent"
-            android:scrollbarAlwaysDrawVerticalTrack="true"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:padding="5dp"/>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -151,22 +131,6 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/btn_start"
                 android:text="@string/calibration_button_start"/>
-            <Button
-                android:id="@+id/btn_apply"
-                android:layout_weight="1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onApplyCalibration"
-                android:text="@string/calibration_button_apply"
-                android:enabled="false"/>
-            <Button
-                android:id="@+id/btn_reset"
-                android:layout_weight="1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:onClick="onCancelCalibration"
-                android:text="@string/calibration_button_reset"
-                android:enabled="false"/>
         </LinearLayout>
     </LinearLayout>
 </RelativeLayout>

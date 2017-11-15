@@ -68,6 +68,9 @@ public class AudioProcess implements Runnable {
     // 1s level evaluation for upload to server
     private final LeqProcessingThread fastLeqProcessing;
     private final LeqProcessingThread slowLeqProcessing;
+    private final ProcessingThread customLeqProcessing;
+
+
     public static final int REALTIME_SAMPLE_RATE_LIMITATION = 16000;
     public static final double[] realTimeCenterFrequency = FFTSignalProcessing.computeFFTCenterFrequency(REALTIME_SAMPLE_RATE_LIMITATION);
     private float gain = 1;
@@ -78,14 +81,21 @@ public class AudioProcess implements Runnable {
 
 
 
+    public AudioProcess(AtomicBoolean recording, AtomicBoolean canceled) {
+        this(recording, canceled, null);
+    }
 
     /**
      * Constructor
      * @param recording Recording state
+     * @param canceled Canceled state
+     * @param customLeqProcessing Custom receiver of sound signals
      */
-    public AudioProcess(AtomicBoolean recording, AtomicBoolean canceled) {
+    public AudioProcess(AtomicBoolean recording, AtomicBoolean canceled, ProcessingThread
+            customLeqProcessing) {
         this.recording = recording;
         this.canceled = canceled;
+        this.customLeqProcessing = customLeqProcessing;
         final int[] mSampleRates = new int[] {44100}; // AWeigting coefficient are based on 44100
         // Hz sampling rate, so we do not support other samplings (22050, 16000, 11025,8000)
         final int[] encodings = new int[] { AudioFormat.ENCODING_PCM_16BIT , AudioFormat.ENCODING_PCM_8BIT };
@@ -277,6 +287,9 @@ public class AudioProcess implements Runnable {
                         if(doOneSecondLeq) {
                             slowLeqProcessing.addSample(buffer);
                         }
+                        if(customLeqProcessing != null) {
+                            customLeqProcessing.addSample(buffer);
+                        }
                     }
                     setCurrentState(STATE.WAITING_END_PROCESSING);
                     while (fastLeqProcessing.isProcessing() || slowLeqProcessing.isProcessing()) {
@@ -323,7 +336,15 @@ public class AudioProcess implements Runnable {
         return rate;
     }
 
-    private static final class LeqProcessingThread implements Runnable {
+    public interface  ProcessingThread extends Runnable {
+        /**
+         * Add Signed Short sound samples
+         * @param sample
+         */
+        void addSample(short[] sample);
+    }
+
+    public static final class LeqProcessingThread implements ProcessingThread {
         private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
         private final AudioProcess audioProcess;
         private AtomicBoolean processing = new AtomicBoolean(false);

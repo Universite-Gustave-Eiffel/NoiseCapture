@@ -46,6 +46,7 @@ import android.widget.Toast;
 import org.noise_planet.acousticmodem.AcousticModem;
 import org.noise_planet.acousticmodem.Settings;
 import org.orbisgis.sos.AcousticIndicators;
+import org.orbisgis.sos.FFTSignalProcessing;
 import org.orbisgis.sos.LeqStats;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
 import org.slf4j.Logger;
@@ -58,6 +59,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -79,6 +82,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
             (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[21],
             (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[22]};
 
+    private final double[] FFT_FREQUENCIES;
+
     private static final int FREQ_START = Arrays.binarySearch(ThirdOctaveBandsFiltering
             .STANDARD_FREQUENCIES_REDUCED, MODEM_FREQUENCIES[0]);
 
@@ -88,12 +93,12 @@ public class CalibrationService extends Service implements PropertyChangeListene
     public static final String PROP_CALIBRATION_REF_LEVEL = "PROP_CALIBRATION_REF_LEVEL"; //
     // received ref level
 
-    private ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
     private AudioProcess audioProcess;
     private LeqStats leqStats = new LeqStats();
 
     private AtomicBoolean recording = new AtomicBoolean(true);
+    private AtomicBoolean recordingModem = new AtomicBoolean(true);
     private AtomicBoolean canceled = new AtomicBoolean(false);
 
     private static final double WORD_TIME_LENGTH = AcousticIndicators.TIMEPERIOD_FAST * 2;
@@ -149,11 +154,13 @@ public class CalibrationService extends Service implements PropertyChangeListene
         }
         canceled.set(false);
         recording.set(true);
-        audioProcess = new AudioProcess(recording, canceled);
-        audioProcess.setDoFastLeq(true);
+        AcousticModemListener acousticModemListener = new AcousticModemListener(this, canceled, recordingModem);
+        audioProcess = new AudioProcess(recording, canceled, acousticModemListener);
+        audioProcess.setDoFastLeq(false);
         audioProcess.setDoOneSecondLeq(true);
         audioProcess.setWeightingA(false);
         audioProcess.setHannWindowOneSecond(true);
+
         if(isHost) {
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationService.this);
             audioProcess.setGain((float)Math.pow(10, MainActivity.getDouble(sharedPref,
@@ -168,6 +175,13 @@ public class CalibrationService extends Service implements PropertyChangeListene
         acousticModem = new AcousticModem(new Settings(audioProcess.getRate(), WORD_TIME_LENGTH,
                 Settings.wordsFrom8frequencies(MODEM_FREQUENCIES)));
 
+        acousticModemListener.setFftSignalProcessing(new FFTSignalProcessing(audioProcess.getRate
+                (), FFT_FREQUENCIES, (int)(AcousticIndicators.TIMEPERIOD_FAST * audioProcess.getRate
+                ())));
+
+        acousticModemListener.setAcousticModem(acousticModem);
+
+        new Thread(acousticModemListener).start();
         // Start measurement
         new Thread(audioProcess).start();
     }
@@ -195,6 +209,14 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     // Other resources
     private boolean isHost = false;
+
+    public CalibrationService() {
+        int idfreq = 0;
+        FFT_FREQUENCIES = new double[MODEM_FREQUENCIES.length];
+        for(int freq : MODEM_FREQUENCIES) {
+            FFT_FREQUENCIES[idfreq++] = freq;
+        }
+    }
 
     @Override
     public void onCreate() {
@@ -267,13 +289,14 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     private void onNewMessage(byte... data) {
         ByteBuffer byteBuffer = ByteBuffer.wrap(data);
-        int id = byteBuffer.getInt();
+        short id = byteBuffer.getShort();
         if(id == MESSAGEID_START_CALIBRATION) {
             if(!isHost) {
                 defaultWarmupTime = Math.max(1, (int)byteBuffer.getFloat());
                 defaultCalibrationTime =  Math.max(1, (int)byteBuffer.getFloat());
             }
             setState(CALIBRATION_STATE.WARMUP);
+            recordingModem.set(false);
             runWarmup();
         } else if(id == MESSAGEID_APPLY_REFERENCE_GAIN) {
             if(!isHost) {
@@ -298,7 +321,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
             sendMessage(MESSAGEID_START_CALIBRATION,  defaultWarmupTime, defaultCalibrationTime);
         }else if(state == CALIBRATION_STATE.WARMUP) {
             setState(CALIBRATION_STATE.CALIBRATION);
-            audioProcess.setDoFastLeq(false);
             // Start calibration
             leqStats = new LeqStats();
             progressHandler.start(defaultCalibrationTime * 1000);
@@ -309,11 +331,12 @@ public class CalibrationService extends Service implements PropertyChangeListene
             } else {
                 // Guest waiting for host reference level or relaunch of measurement
                 setState(CALIBRATION_STATE.AWAITING_FOR_APPLY_OR_RESTART);
-                audioProcess.setDoFastLeq(true);
+                recordingModem.set(true);
             }
         } else if (state == CALIBRATION_STATE.HOST_COOLDOWN){
-            // TODO send reference noise level
             sendMessage(MESSAGEID_APPLY_REFERENCE_GAIN, (float)getleq());
+            setState(CALIBRATION_STATE.AWAITING_FOR_APPLY_OR_RESTART);
+            recordingModem.set(true);
         }
     }
 
@@ -345,26 +368,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
                     (AudioProcess.AudioMeasureResult) event.getNewValue();
             if(CALIBRATION_STATE.CALIBRATION.equals(state)) {
                 leqStats.addLeq(measure.getGlobaldBaValue());
-            }
-        } else if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
-            // new 150 ms leq
-            AudioProcess.AudioMeasureResult measure =
-                    (AudioProcess.AudioMeasureResult) event.getNewValue();
-            Byte word = acousticModem.spectrumToWord(acousticModem.filterSpectrum(Arrays.copyOfRange
-                    (measure.getLeqs(), FREQ_START, FREQ_START + 8)));
-            if(word != null) {
-                bytes.write(word);
-                byte[] message = bytes.toByteArray();
-                while(message.length > AcousticModem.CRC_SIZE) {
-                    if(acousticModem.isMessageCheck(message)) {
-                        bytes.reset();
-                        onNewMessage(bytes.toByteArray());
-                        break;
-                    } else {
-                        // Skip old messages that may be not well understood
-                        message = Arrays.copyOfRange(message, 1, message.length);
-                    }
-                }
             }
         }
         listeners.firePropertyChange(event);
@@ -441,6 +444,92 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 service.onTimerEnd();
             }
             return true;
+        }
+    }
+
+    private static class AcousticModemListener implements AudioProcess.ProcessingThread {
+        private final CalibrationService calibrationService;
+        private final AtomicBoolean canceled;
+        private final AtomicBoolean recording;
+        private AcousticModem acousticModem;
+        private FFTSignalProcessing fftSignalProcessing = null;
+        private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
+        private long processedSamples = 0;
+        private ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+
+        public AcousticModemListener(CalibrationService calibrationService, AtomicBoolean
+                canceled, AtomicBoolean recording) {
+            this.calibrationService = calibrationService;
+            this.canceled = canceled;
+            this.recording = recording;
+        }
+
+        public void setFftSignalProcessing(FFTSignalProcessing fftSignalProcessing) {
+            this.fftSignalProcessing = fftSignalProcessing;
+        }
+
+        public void setAcousticModem(AcousticModem acousticModem) {
+            this.acousticModem = acousticModem;
+        }
+
+        @Override
+        public void addSample(short[] sample) {
+            if(recording.get()) {
+                bufferToProcess.add(sample);
+            }
+        }
+
+        @Override
+        public void run() {
+            while (!canceled.get() && fftSignalProcessing != null) {
+                while(!bufferToProcess.isEmpty()) {
+                    short[] buffer = bufferToProcess.poll();
+                    if(buffer.length <= fftSignalProcessing.getWindowSize() - processedSamples) {
+                        // Good buffer size, use it
+                        fftSignalProcessing.addSample(buffer);
+                        processedSamples+=buffer.length;
+                    } else {
+                        // Buffer is too large for the window
+                        // Split the buffer in multiple parts
+                        int cursor = 0;
+                        while(cursor < buffer.length) {
+                            int sampleLen = (int)Math.min(buffer.length - cursor, fftSignalProcessing
+                                    .getWindowSize() - processedSamples);
+                            short[] samples = Arrays.copyOfRange(buffer, cursor, cursor + sampleLen);
+                            cursor += samples.length;
+                            fftSignalProcessing.addSample(samples);
+                            processedSamples+=sampleLen;
+                        }
+                    }
+                    if(processedSamples >= fftSignalProcessing
+                            .getWindowSize()) {
+                        FFTSignalProcessing.ProcessingResult measure = fftSignalProcessing
+                                .processSample
+                                (true, false, false);
+                        Byte word = acousticModem.spectrumToWord(acousticModem.filterSpectrum(measure.getdBaLevels()));
+                        if(word != null) {
+                            bytes.write(word);
+                            byte[] message = bytes.toByteArray();
+                            while(message.length > AcousticModem.CRC_SIZE) {
+                                if(acousticModem.isMessageCheck(message)) {
+                                    calibrationService.onNewMessage(bytes.toByteArray());
+                                    bytes.reset();
+                                    break;
+                                } else {
+                                    // Skip old messages that may be not well understood
+                                    message = Arrays.copyOfRange(message, 1, message.length);
+                                }
+                            }
+                        }
+                        processedSamples = 0;
+                    }
+                }
+                try {
+                    Thread.sleep(5);
+                } catch (InterruptedException ex) {
+                    break;
+                }
+            }
         }
     }
 }

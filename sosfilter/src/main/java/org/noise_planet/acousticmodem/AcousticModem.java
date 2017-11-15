@@ -41,7 +41,7 @@ import java.util.zip.CRC32;
 public class AcousticModem {
     private Settings settings;
 
-    private final int CRC_SIZE = Short.SIZE / Byte.SIZE;
+    public static final int CRC_SIZE = Short.SIZE / Byte.SIZE;
     private ByteBuffer crcBuffer = ByteBuffer.allocate(CRC_SIZE);
 
     // Used to compute background noise

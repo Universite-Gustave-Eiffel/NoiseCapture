@@ -28,21 +28,11 @@
 package org.noise_planet.noisecapture;
 
 import android.app.Service;
-import android.content.BroadcastReceiver;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
-import android.content.pm.PackageManager;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
-import android.net.wifi.WifiManager;
-import android.net.wifi.p2p.WifiP2pDevice;
-import android.net.wifi.p2p.WifiP2pDeviceList;
-import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Handler;
 import android.os.IBinder;
@@ -51,8 +41,7 @@ import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.content.LocalBroadcastManager;
+import android.widget.Toast;
 
 import org.noise_planet.acousticmodem.AcousticModem;
 import org.noise_planet.acousticmodem.Settings;
@@ -67,14 +56,8 @@ import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.StringTokenizer;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -102,10 +85,14 @@ public class CalibrationService extends Service implements PropertyChangeListene
     // properties
     public static final String PROP_CALIBRATION_STATE = "PROP_CALIBRATION_STATE";
     public static final String PROP_CALIBRATION_PROGRESSION = "PROP_CALIBRATION_PROGRESSION"; // Calibration/Warmup progression 0-100
+    public static final String PROP_CALIBRATION_REF_LEVEL = "PROP_CALIBRATION_REF_LEVEL"; //
+    // received ref level
 
+    private ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
     private AudioProcess audioProcess;
     private LeqStats leqStats = new LeqStats();
+
     private AtomicBoolean recording = new AtomicBoolean(true);
     private AtomicBoolean canceled = new AtomicBoolean(false);
 
@@ -163,7 +150,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         canceled.set(false);
         recording.set(true);
         audioProcess = new AudioProcess(recording, canceled);
-        audioProcess.setDoFastLeq(false);
+        audioProcess.setDoFastLeq(true);
         audioProcess.setDoOneSecondLeq(true);
         audioProcess.setWeightingA(false);
         audioProcess.setHannWindowOneSecond(true);
@@ -277,25 +264,56 @@ public class CalibrationService extends Service implements PropertyChangeListene
             LOGGER.error(ex.getLocalizedMessage(), ex);
         }
     }
+
+    private void onNewMessage(byte... data) {
+        ByteBuffer byteBuffer = ByteBuffer.wrap(data);
+        int id = byteBuffer.getInt();
+        if(id == MESSAGEID_START_CALIBRATION) {
+            if(!isHost) {
+                defaultWarmupTime = Math.max(1, (int)byteBuffer.getFloat());
+                defaultCalibrationTime =  Math.max(1, (int)byteBuffer.getFloat());
+            }
+            setState(CALIBRATION_STATE.WARMUP);
+            runWarmup();
+        } else if(id == MESSAGEID_APPLY_REFERENCE_GAIN) {
+            if(!isHost) {
+                float referenceLeq = byteBuffer.getFloat();
+                double gain = Math.round((referenceLeq - leqStats.getLeqMean()) * 100.) / 100.;
+                listeners.firePropertyChange(PROP_CALIBRATION_REF_LEVEL, leqStats.getLeqMean(),
+                        referenceLeq);
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+                SharedPreferences.Editor editor = sharedPref.edit();
+                editor.putString("settings_recording_gain", String.valueOf(gain));
+                editor.apply();
+                Toast.makeText(getApplicationContext(),
+                        getString(R.string.calibrate_done, gain), Toast.LENGTH_LONG).show();
+                setState(CALIBRATION_STATE.AWAITING_FOR_APPLY_OR_RESTART);
+            }
+        }
+    }
+
     protected void onTimerEnd() {
         if (state == CALIBRATION_STATE.DELAY_BEFORE_SEND_SIGNAL) {
             // Ready to send start signal to other devices
             sendMessage(MESSAGEID_START_CALIBRATION,  defaultWarmupTime, defaultCalibrationTime);
         }else if(state == CALIBRATION_STATE.WARMUP) {
             setState(CALIBRATION_STATE.CALIBRATION);
+            audioProcess.setDoFastLeq(false);
             // Start calibration
             leqStats = new LeqStats();
             progressHandler.start(defaultCalibrationTime * 1000);
         } else if(state == CALIBRATION_STATE.CALIBRATION) {
             if(isHost) {
                 setState(CALIBRATION_STATE.HOST_COOLDOWN);
-                progressHandler.start(defaultCalibrationTime * 1000);
+                progressHandler.start(defaultWarmupTime * 1000);
             } else {
                 // Guest waiting for host reference level or relaunch of measurement
                 setState(CALIBRATION_STATE.AWAITING_FOR_APPLY_OR_RESTART);
+                audioProcess.setDoFastLeq(true);
             }
         } else if (state == CALIBRATION_STATE.HOST_COOLDOWN){
             // TODO send reference noise level
+            sendMessage(MESSAGEID_APPLY_REFERENCE_GAIN, (float)getleq());
         }
     }
 
@@ -327,6 +345,26 @@ public class CalibrationService extends Service implements PropertyChangeListene
                     (AudioProcess.AudioMeasureResult) event.getNewValue();
             if(CALIBRATION_STATE.CALIBRATION.equals(state)) {
                 leqStats.addLeq(measure.getGlobaldBaValue());
+            }
+        } else if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
+            // new 150 ms leq
+            AudioProcess.AudioMeasureResult measure =
+                    (AudioProcess.AudioMeasureResult) event.getNewValue();
+            Byte word = acousticModem.spectrumToWord(acousticModem.filterSpectrum(Arrays.copyOfRange
+                    (measure.getLeqs(), FREQ_START, FREQ_START + 8)));
+            if(word != null) {
+                bytes.write(word);
+                byte[] message = bytes.toByteArray();
+                while(message.length > AcousticModem.CRC_SIZE) {
+                    if(acousticModem.isMessageCheck(message)) {
+                        bytes.reset();
+                        onNewMessage(bytes.toByteArray());
+                        break;
+                    } else {
+                        // Skip old messages that may be not well understood
+                        message = Arrays.copyOfRange(message, 1, message.length);
+                    }
+                }
             }
         }
         listeners.firePropertyChange(event);

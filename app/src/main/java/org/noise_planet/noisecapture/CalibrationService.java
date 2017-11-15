@@ -395,7 +395,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
                     100);
             service.listeners.firePropertyChange(PROP_CALIBRATION_PROGRESSION, 0, newProg);
             if(currentTime < beginTime + delay &&
-                    (service.state == CALIBRATION_STATE.CALIBRATION || service.state == CALIBRATION_STATE.WARMUP)) {
+                    (service.state == CALIBRATION_STATE.CALIBRATION || service.state ==
+                            CALIBRATION_STATE.WARMUP || service.state == CALIBRATION_STATE
+                            .DELAY_BEFORE_SEND_SIGNAL || service.state == CALIBRATION_STATE.HOST_COOLDOWN)) {
                 service.timeHandler.sendEmptyMessageDelayed(0, COUNTDOWN_STEP_MILLISECOND);
             } else {
                 service.onTimerEnd();

@@ -176,7 +176,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 Settings.wordsFrom8frequencies(MODEM_FREQUENCIES)));
 
         acousticModemListener.setFftSignalProcessing(new FFTSignalProcessing(audioProcess.getRate
-                (), FFT_FREQUENCIES, (int)(AcousticIndicators.TIMEPERIOD_FAST * audioProcess.getRate
+                (), ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, (int)(AcousticIndicators.TIMEPERIOD_FAST *
+                audioProcess.getRate
                 ())));
 
         acousticModemListener.setAcousticModem(acousticModem);
@@ -257,7 +258,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         acousticModem.wordsToSignal(data, 0,
                 data.length, signal, 0, (short)rms);
         if (audioTrack == null) {
-            audioTrack = new AudioTrack(getAudioOutput(), 44100, AudioFormat
+            audioTrack = new AudioTrack(getAudioOutput(), audioProcess.getRate(), AudioFormat
                     .CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, signal.length * (Short
                     .SIZE / Byte.SIZE), AudioTrack.MODE_STATIC);
         } else {
@@ -268,6 +269,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 // Ignore
             }
         }
+        audioTrack.write(new byte[audioProcess.getRate() * 2], 0, audioProcess.getRate() * 2);
         audioTrack.write(signal, 0, signal.length);
         //audioTrack.setLoopPoints(0, audioTrack.write(data, 0, data.length), -1);
         audioTrack.play();
@@ -290,6 +292,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private void onNewMessage(byte... data) {
         ByteBuffer byteBuffer = ByteBuffer.wrap(data);
         short id = byteBuffer.getShort();
+        LOGGER.info("New message id:" + id);
         if(id == MESSAGEID_START_CALIBRATION) {
             if(!isHost) {
                 defaultWarmupTime = Math.max(1, (int)byteBuffer.getFloat());
@@ -506,7 +509,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
                         FFTSignalProcessing.ProcessingResult measure = fftSignalProcessing
                                 .processSample
                                 (true, false, false);
-                        Byte word = acousticModem.spectrumToWord(acousticModem.filterSpectrum(measure.getdBaLevels()));
+                        Byte word = acousticModem.spectrumToWord(acousticModem
+                                .filterSpectrum(Arrays.copyOfRange(measure.getdBaLevels(), FREQ_START, FREQ_START + 8)));
                         if(word != null) {
                             bytes.write(word);
                             byte[] message = bytes.toByteArray();

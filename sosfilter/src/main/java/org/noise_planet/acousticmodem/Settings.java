@@ -44,7 +44,7 @@ public class Settings {
 
     final int[][] words;
 
-    final Integer[] frequencies;
+    public final Integer[] frequencies;
 
     private final Map<FrequencyIndex, Integer> frequencyTupleToWordIndex;
 

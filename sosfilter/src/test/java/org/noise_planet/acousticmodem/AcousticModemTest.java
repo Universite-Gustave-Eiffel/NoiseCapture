@@ -147,7 +147,7 @@ public class AcousticModemTest {
         assertTrue(acousticModem.isMessageCheck(receivedBytes));
     }
 
-    /*
+
     @Test
     public void testFrequencyFilter() throws IOException {
         int freqStart = Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, UT_FREQUENCIES[0]);
@@ -168,5 +168,5 @@ public class AcousticModemTest {
             System.out.println(Arrays.toString(filteredSpectrum));
         }
     }
-    */
+
 }

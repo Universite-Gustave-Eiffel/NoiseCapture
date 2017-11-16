@@ -72,20 +72,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
     public static final String EXTRA_HOST = "MODE_HOST";
 
 
-    private static final int[] MODEM_FREQUENCIES = new int[]{
-            (int) ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[15],
-            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[16],
-            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[17],
-            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[18],
-            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[19],
-            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[20],
-            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[21],
-            (int)ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED[22]};
+    private final int[] MODEM_FREQUENCIES;
 
-    private final double[] FFT_FREQUENCIES;
-
-    private static final int FREQ_START = Arrays.binarySearch(ThirdOctaveBandsFiltering
-            .STANDARD_FREQUENCIES_REDUCED, MODEM_FREQUENCIES[0]);
+    private static final int FREQ_START = 7;
 
     // properties
     public static final String PROP_CALIBRATION_STATE = "PROP_CALIBRATION_STATE";
@@ -101,13 +90,15 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private AtomicBoolean recordingModem = new AtomicBoolean(true);
     private AtomicBoolean canceled = new AtomicBoolean(false);
 
-    private static final double WORD_TIME_LENGTH = AcousticIndicators.TIMEPERIOD_FAST * 2;
+    private static final double WORD_TIME_LENGTH = 0.200;
 
     private int defaultWarmupTime;
     private int defaultCalibrationTime;
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationService.class);
 
     public static final int COUNTDOWN_STEP_MILLISECOND = 125;
+    // Empty audio before playing signal
+    public static final int EMPTY_AUDIO_LENGTH = 2000;
     private Handler timeHandler;
     private AudioTrack audioTrack;
     private AcousticModem acousticModem;
@@ -211,10 +202,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private boolean isHost = false;
 
     public CalibrationService() {
-        int idfreq = 0;
-        FFT_FREQUENCIES = new double[MODEM_FREQUENCIES.length];
-        for(int freq : MODEM_FREQUENCIES) {
-            FFT_FREQUENCIES[idfreq++] = freq;
+        MODEM_FREQUENCIES = new int[8];
+        int modemId = 0;
+        for(int idFreq = FREQ_START; idFreq < FREQ_START + 8; idFreq++) {
+            MODEM_FREQUENCIES[modemId++] = (int)ThirdOctaveBandsFiltering
+                    .STANDARD_FREQUENCIES_REDUCED[idFreq];
         }
     }
 
@@ -253,9 +245,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     private void playMessage(byte[] data) {
         double rms = dbToRms(99);
-        short[] signal = new short[acousticModem.getSignalLength(data, 0, data.length)];
+        final int paddingLength = (int)((EMPTY_AUDIO_LENGTH / 1000.) * audioProcess.getRate());
+        short[] signal = new short[paddingLength + acousticModem.getSignalLength(data, 0, data
+                .length)];
         acousticModem.wordsToSignal(data, 0,
-                data.length, signal, 0, (short)rms);
+                data.length, signal, paddingLength, (short)rms);
         if(audioTrack != null) {
             audioTrack.pause();
             audioTrack.flush();

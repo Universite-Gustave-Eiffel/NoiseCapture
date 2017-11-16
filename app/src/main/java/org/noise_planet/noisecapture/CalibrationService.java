@@ -74,7 +74,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     private final int[] MODEM_FREQUENCIES;
 
-    private static final int FREQ_START = 7;
+    private static final int FREQ_START = 10;
 
     // properties
     public static final String PROP_CALIBRATION_STATE = "PROP_CALIBRATION_STATE";
@@ -250,6 +250,20 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 .length)];
         acousticModem.wordsToSignal(data, 0,
                 data.length, signal, paddingLength, (short)rms);
+        playAudio(signal, 1);
+    }
+
+    private short[] makeWhiteNoiseSignal(int sampleRate, double powerRMS) {
+        // Make signal
+        double powerPeak = powerRMS * Math.sqrt(2);
+        short[] signal = new short[sampleRate];
+        for (int s = 0; s < sampleRate; s++) {
+            signal[s] = (short)(powerPeak * ((Math.random() - 0.5) * 2));
+        }
+        return signal;
+    }
+
+    private void playAudio(short[] signal, int loop) {
         if(audioTrack != null) {
             audioTrack.pause();
             audioTrack.flush();
@@ -258,8 +272,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
         audioTrack = new AudioTrack(getAudioOutput(), audioProcess.getRate(), AudioFormat
                 .CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, signal.length * (Short
                 .SIZE / Byte.SIZE), AudioTrack.MODE_STATIC);
-        audioTrack.write(signal, 0, signal.length);
-        //audioTrack.setLoopPoints(0, audioTrack.write(data, 0, data.length), -1);
+        if(loop > 1) {
+            audioTrack.setLoopPoints(0, audioTrack.write(signal, 0, signal.length), loop);
+        } else {
+            audioTrack.write(signal, 0, signal.length);
+        }
         audioTrack.play();
     }
 
@@ -390,6 +407,10 @@ public class CalibrationService extends Service implements PropertyChangeListene
         // Application have right now all permissions
         if(state.equals(CALIBRATION_STATE.WARMUP)) {
             audioProcess.setDoOneSecondLeq(true);
+            if(isHost) {
+                playAudio(makeWhiteNoiseSignal(audioProcess.getRate(), 2500),
+                        defaultCalibrationTime + defaultWarmupTime);
+            }
         } else {
             audioProcess.setDoOneSecondLeq(false);
         }

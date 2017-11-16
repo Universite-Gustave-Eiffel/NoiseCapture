@@ -295,6 +295,9 @@ public class Results extends MainActivity {
             }
         }
         if(record.getNoisePartyTag() != null && !record.getNoisePartyTag().isEmpty()) {
+            if(hashtags.length() > 0 ) {
+                hashtags.append(",");
+            }
             hashtags.append(record.getNoisePartyTag());
         }
         //@see https://dev.twitter.com/web/tweet-button/web-intent

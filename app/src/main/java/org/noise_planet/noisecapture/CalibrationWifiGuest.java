@@ -37,15 +37,19 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
+import java.util.Locale;
 
 public class CalibrationWifiGuest extends MainActivity implements PropertyChangeListener {
 
     private boolean mIsBound = false;
     private CalibrationService calibrationService;
     private TextView textStatus;
+    private TextView textReferenceLevel;
+    private TextView textMeasurementLevel;
     private ProgressBar progressBar_wait_calibration_recording;
 
     @Override
@@ -57,6 +61,8 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
 
         progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
         textStatus = (TextView) findViewById(R.id.calibration_state);
+        textMeasurementLevel = (TextView) findViewById(R.id.spl_measured);
+        textReferenceLevel = (TextView) findViewById(R.id.spl_ref_measured);
 
 
         if(checkAndAskPermissions()) {
@@ -65,7 +71,7 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
     }
 
     @Override
-    public void propertyChange(PropertyChangeEvent event) {
+    public void propertyChange(final PropertyChangeEvent event) {
         if(CalibrationService.PROP_CALIBRATION_STATE.equals(event.getPropertyName())) {
             // Calibration service state change, inform user
             CalibrationService.CALIBRATION_STATE newState =
@@ -77,6 +83,32 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
             }
         } else if(CalibrationService.PROP_CALIBRATION_PROGRESSION.equals(event.getPropertyName())) {
             progressBar_wait_calibration_recording.setProgress((Integer)event.getNewValue());
+        } else if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName()) &&
+                (CalibrationService.CALIBRATION_STATE.CALIBRATION.equals(calibrationService
+                        .getState()) || CalibrationService.CALIBRATION_STATE.WARMUP.equals
+                        (calibrationService
+                                .getState()))){
+            // New leq
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    textMeasurementLevel.setText(
+                            String.format(Locale.getDefault(), "%.1f", calibrationService.getleq()));
+                }
+            });
+        } else if(CalibrationService.PROP_CALIBRATION_REF_LEVEL.equals(event.getPropertyName())) {
+            // This device has been calibrated
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    float referenceLeq = (float)event.getNewValue();
+                    textReferenceLevel.setText(
+                            String.format(Locale.getDefault(), "%.1f", referenceLeq));
+                    double gain = Math.round((referenceLeq - calibrationService.getleq()) * 100.) / 100.;
+                    Toast.makeText(getApplicationContext(),
+                            getString(R.string.calibrate_done, gain), Toast.LENGTH_LONG).show();
+                }
+            });
         }
     }
 

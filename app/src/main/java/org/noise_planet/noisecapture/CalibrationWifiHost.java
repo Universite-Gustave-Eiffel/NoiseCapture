@@ -151,9 +151,6 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
                         (calibrationService
                         .getState()))){
             // New leq
-            AudioProcess.AudioMeasureResult measure =
-                    (AudioProcess.AudioMeasureResult) event.getNewValue();
-            final double leq = measure.getGlobaldBaValue();
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -166,10 +163,12 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
             CalibrationService.CALIBRATION_STATE newState =
                     (CalibrationService.CALIBRATION_STATE)event.getNewValue();
             // Change state of buttons
-            if(newState == AWAITING_START) {
-                startButton.setEnabled(true);
-            } else {
-                startButton.setEnabled(false);
+            switch (newState) {
+                case AWAITING_START:
+                    startButton.setEnabled(true);
+                    break;
+                default:
+                    startButton.setEnabled(false);
             }
         } else if(CalibrationService.PROP_CALIBRATION_PROGRESSION.equals(event.getPropertyName())) {
             progressBar_wait_calibration_recording.setProgress((Integer)event.getNewValue());

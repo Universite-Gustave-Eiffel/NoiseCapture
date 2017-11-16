@@ -149,42 +149,41 @@ public class CalibrationService extends Service implements PropertyChangeListene
     }
 
     private void initAudioProcess() {
-        if(audioProcess != null) {
-            audioProcess.getListeners().removePropertyChangeListener(this);
+        if(audioProcess == null) {
+            canceled.set(false);
+            recording.set(true);
+            AcousticModemListener acousticModemListener = new AcousticModemListener(this, canceled, recordingModem);
+            audioProcess = new AudioProcess(recording, canceled, acousticModemListener);
+            audioProcess.setDoFastLeq(false);
+            audioProcess.setDoOneSecondLeq(false);
+            audioProcess.setWeightingA(false);
+            audioProcess.setHannWindowOneSecond(true);
+
+            if(isHost) {
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationService.this);
+                audioProcess.setGain((float)Math.pow(10, MainActivity.getDouble(sharedPref,
+                        "settings_recording_gain", 0) / 20));
+            } else {
+                audioProcess.setGain(1);
+            }
+            audioProcess.getListeners().addPropertyChangeListener(this);
+
+            // Init audio modem
+
+            acousticModem = new AcousticModem(new Settings(audioProcess.getRate(), WORD_TIME_LENGTH,
+                    Settings.wordsFrom8frequencies(MODEM_FREQUENCIES)));
+
+            acousticModemListener.setFftSignalProcessing(new FFTSignalProcessing(audioProcess.getRate
+                    (), ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, (int)(AcousticIndicators.TIMEPERIOD_FAST *
+                    audioProcess.getRate
+                            ())));
+
+            acousticModemListener.setAcousticModem(acousticModem);
+
+            new Thread(acousticModemListener).start();
+            // Start measurement
+            new Thread(audioProcess).start();
         }
-        canceled.set(false);
-        recording.set(true);
-        AcousticModemListener acousticModemListener = new AcousticModemListener(this, canceled, recordingModem);
-        audioProcess = new AudioProcess(recording, canceled, acousticModemListener);
-        audioProcess.setDoFastLeq(false);
-        audioProcess.setDoOneSecondLeq(true);
-        audioProcess.setWeightingA(false);
-        audioProcess.setHannWindowOneSecond(true);
-
-        if(isHost) {
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationService.this);
-            audioProcess.setGain((float)Math.pow(10, MainActivity.getDouble(sharedPref,
-                    "settings_recording_gain", 0) / 20));
-        } else {
-            audioProcess.setGain(1);
-        }
-        audioProcess.getListeners().addPropertyChangeListener(this);
-
-        // Init audio modem
-
-        acousticModem = new AcousticModem(new Settings(audioProcess.getRate(), WORD_TIME_LENGTH,
-                Settings.wordsFrom8frequencies(MODEM_FREQUENCIES)));
-
-        acousticModemListener.setFftSignalProcessing(new FFTSignalProcessing(audioProcess.getRate
-                (), ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, (int)(AcousticIndicators.TIMEPERIOD_FAST *
-                audioProcess.getRate
-                ())));
-
-        acousticModemListener.setAcousticModem(acousticModem);
-
-        new Thread(acousticModemListener).start();
-        // Start measurement
-        new Thread(audioProcess).start();
     }
 
     private void stopAudioProcess() {
@@ -257,25 +256,21 @@ public class CalibrationService extends Service implements PropertyChangeListene
         short[] signal = new short[acousticModem.getSignalLength(data, 0, data.length)];
         acousticModem.wordsToSignal(data, 0,
                 data.length, signal, 0, (short)rms);
-        if (audioTrack == null) {
-            audioTrack = new AudioTrack(getAudioOutput(), audioProcess.getRate(), AudioFormat
-                    .CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, signal.length * (Short
-                    .SIZE / Byte.SIZE), AudioTrack.MODE_STATIC);
-        } else {
-            try {
-                audioTrack.pause();
-                audioTrack.flush();
-            } catch (IllegalStateException ex) {
-                // Ignore
-            }
+        if(audioTrack != null) {
+            audioTrack.pause();
+            audioTrack.flush();
+            audioTrack.release();
         }
-        audioTrack.write(new byte[audioProcess.getRate() * 2], 0, audioProcess.getRate() * 2);
+        audioTrack = new AudioTrack(getAudioOutput(), audioProcess.getRate(), AudioFormat
+                .CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, signal.length * (Short
+                .SIZE / Byte.SIZE), AudioTrack.MODE_STATIC);
         audioTrack.write(signal, 0, signal.length);
         //audioTrack.setLoopPoints(0, audioTrack.write(data, 0, data.length), -1);
         audioTrack.play();
     }
 
     private void sendMessage(short id, float... data) {
+        LOGGER.info("Send message: " + id + " - " + Arrays.toString(data));
         ByteBuffer byteBuffer = ByteBuffer.allocate((Short.SIZE + Float.SIZE * data.length) /
                 Byte.SIZE);
         byteBuffer.putShort(id);
@@ -297,6 +292,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
             if(!isHost) {
                 defaultWarmupTime = Math.max(1, (int)byteBuffer.getFloat());
                 defaultCalibrationTime =  Math.max(1, (int)byteBuffer.getFloat());
+            } else {
+                audioTrack.stop();
             }
             setState(CALIBRATION_STATE.WARMUP);
             recordingModem.set(false);
@@ -311,9 +308,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putString("settings_recording_gain", String.valueOf(gain));
                 editor.apply();
-                Toast.makeText(getApplicationContext(),
-                        getString(R.string.calibrate_done, gain), Toast.LENGTH_LONG).show();
-                setState(CALIBRATION_STATE.AWAITING_FOR_APPLY_OR_RESTART);
+                setState(CALIBRATION_STATE.AWAITING_START);
             }
         }
     }
@@ -338,7 +333,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
             }
         } else if (state == CALIBRATION_STATE.HOST_COOLDOWN){
             sendMessage(MESSAGEID_APPLY_REFERENCE_GAIN, (float)getleq());
-            setState(CALIBRATION_STATE.AWAITING_FOR_APPLY_OR_RESTART);
+            setState(CALIBRATION_STATE.AWAITING_START);
             recordingModem.set(true);
         }
     }
@@ -346,6 +341,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
     @Override
     public void onDestroy() {
         super.onDestroy();
+        if(audioTrack != null) {
+            audioTrack.stop();
+        }
         stopAudioProcess();
     }
 
@@ -384,6 +382,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
         if(CALIBRATION_STATE.AWAITING_START.equals(state)) {
             if(isHost) {
                 setState(CALIBRATION_STATE.DELAY_BEFORE_SEND_SIGNAL);
+                if(audioTrack != null) {
+                    audioTrack.stop();
+                }
             }
             initAudioProcess();
             runWarmup();
@@ -393,6 +394,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private void runWarmup() {
         // Link measurement service with gui
         // Application have right now all permissions
+        if(state.equals(CALIBRATION_STATE.WARMUP)) {
+            audioProcess.setDoOneSecondLeq(true);
+        } else {
+            audioProcess.setDoOneSecondLeq(false);
+        }
         timeHandler = new Handler(Looper.getMainLooper(), progressHandler);
         progressHandler.start(defaultWarmupTime * 1000);
     }
@@ -512,6 +518,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
                         Byte word = acousticModem.spectrumToWord(acousticModem
                                 .filterSpectrum(Arrays.copyOfRange(measure.getdBaLevels(), FREQ_START, FREQ_START + 8)));
                         if(word != null) {
+                            LOGGER.info("Receive audio byte :" + word);
                             bytes.write(word);
                             byte[] message = bytes.toByteArray();
                             while(message.length > AcousticModem.CRC_SIZE) {

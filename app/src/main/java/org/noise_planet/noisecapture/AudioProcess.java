@@ -262,13 +262,10 @@ public class AudioProcess implements Runnable {
                     } catch (IllegalArgumentException | SecurityException ex) {
                         // Ignore
                     }
-                    if(doFastLeq) {
-                        new Thread(fastLeqProcessing).start();
-                    }
-                    if(doOneSecondLeq) {
-                        new Thread(slowLeqProcessing).start();
-                    }
+                    new Thread(fastLeqProcessing).start();
+                    new Thread(slowLeqProcessing).start();
                     audioRecord.startRecording();
+
                     while (recording.get()) {
                         buffer = new short[bufferSize];
                         int read = audioRecord.read(buffer, 0, buffer.length);

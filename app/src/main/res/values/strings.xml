@@ -313,15 +313,6 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>I am an expert/pro in the field of noise</item>
     </string-array>
     <string name="calibration_menu_btn_manual">Manual calibration</string>
-    <string name="calibration_menu_btn_wifi_guest">WIFI calibration</string>
-    <string name="calibration_menu_btn_wifi_host">Calibrate other devices</string>
-    <string name="wifi_peer_available">Available</string>
-    <string name="wifi_peer_invited">Invited</string>
-    <string name="wifi_peer_connected">Connected</string>
-    <string name="wifi_peer_paired">Paired, try to connect</string>
-    <string name="wifi_peer_failed">Failed</string>
-    <string name="wifi_peer_unavailable">Unavailable</string>
-    <string name="wifi_peer_unknown">Unknown</string>
-    <string name="permission_explain_change_wifi_state">NoiseCapture requires permission to enable
-        the wifi in order to connect to host calibration device</string>
+    <string name="calibration_menu_btn_guest">Receive calibration</string>
+    <string name="calibration_menu_btn_host">Send calibration</string>
 </resources>

@@ -65,7 +65,7 @@
         <Button android:id="@+id/BtnWifiCalibration"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/calibration_menu_btn_wifi_guest"
+            android:text="@string/calibration_menu_btn_guest"
             android:onClick="onWifiGuestCalibration"/>
         <android.support.v4.widget.Space
             android:layout_width="match_parent"
@@ -74,7 +74,7 @@
         <Button android:id="@+id/BtnHostWifiGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/calibration_menu_btn_wifi_host"
+            android:text="@string/calibration_menu_btn_host"
             android:onClick="onWifiHostCalibration"/>
         <android.support.v4.widget.Space
             android:layout_width="match_parent"

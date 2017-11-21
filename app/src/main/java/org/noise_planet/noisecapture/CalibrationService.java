@@ -48,6 +48,7 @@ import org.noise_planet.acousticmodem.Settings;
 import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.FFTSignalProcessing;
 import org.orbisgis.sos.LeqStats;
+import org.orbisgis.sos.SOSSignalProcessing;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -75,6 +76,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private final int[] MODEM_FREQUENCIES;
 
     private static final int FREQ_START = 10;
+
+    private static final double PINK_POWER = Short.MAX_VALUE;
 
     // properties
     public static final String PROP_CALIBRATION_STATE = "PROP_CALIBRATION_STATE";
@@ -157,6 +160,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
             } else {
                 audioProcess.setGain(1);
             }
+
             audioProcess.getListeners().addPropertyChangeListener(this);
 
             // Init audio modem
@@ -253,16 +257,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
         playAudio(signal, 1);
     }
 
-    private short[] makeWhiteNoiseSignal(int sampleRate, double powerRMS) {
-        // Make signal
-        double powerPeak = powerRMS * Math.sqrt(2);
-        short[] signal = new short[sampleRate];
-        for (int s = 0; s < sampleRate; s++) {
-            signal[s] = (short)(powerPeak * ((Math.random() - 0.5) * 2));
-        }
-        return signal;
-    }
-
     private void playAudio(short[] signal, int loop) {
         if(audioTrack != null) {
             audioTrack.pause();
@@ -280,6 +274,20 @@ public class CalibrationService extends Service implements PropertyChangeListene
         audioTrack.play();
     }
 
+    private void playPinkNoise(double length, double power) {
+        if(audioTrack != null) {
+            audioTrack.pause();
+            audioTrack.flush();
+            audioTrack.release();
+        }
+        audioTrack = new AudioTrack(getAudioOutput(), audioProcess.getRate(), AudioFormat
+                .CHANNEL_OUT_MONO, AudioFormat.ENCODING_PCM_16BIT, audioProcess.getRate() * (Short
+                .SIZE / Byte.SIZE), AudioTrack.MODE_STREAM);
+        audioTrack.play();
+
+
+        new Thread(new PinkNoiseFeed(this, audioTrack, power, length)).start();
+    }
     private void sendMessage(short id, float... data) {
         LOGGER.info("Send message: " + id + " - " + Arrays.toString(data));
         ByteBuffer byteBuffer = ByteBuffer.allocate((Short.SIZE + Float.SIZE * data.length) /
@@ -408,8 +416,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         if(state.equals(CALIBRATION_STATE.WARMUP)) {
             audioProcess.setDoOneSecondLeq(true);
             if(isHost) {
-                playAudio(makeWhiteNoiseSignal(audioProcess.getRate(), 2500),
-                        defaultCalibrationTime + defaultWarmupTime);
+                playPinkNoise(defaultCalibrationTime + defaultWarmupTime, PINK_POWER);
             }
         } else {
             audioProcess.setDoOneSecondLeq(false);
@@ -556,6 +563,45 @@ public class CalibrationService extends Service implements PropertyChangeListene
                     break;
                 }
             }
+        }
+    }
+
+    private static class PinkNoiseFeed implements Runnable {
+        private CalibrationService calibrationService;
+        private AudioTrack audioTrack;
+        private final int sampleBufferLength;
+        private final short[] signal;
+        private final int bufferSize;
+
+        public PinkNoiseFeed(CalibrationService calibrationService, AudioTrack audioTrack,
+                              double powerRMS, double maxLength) {
+            this.calibrationService = calibrationService;
+            this.audioTrack = audioTrack;
+            sampleBufferLength = (int)(audioTrack.getSampleRate() * maxLength);
+            signal = SOSSignalProcessing.makePinkNoise(sampleBufferLength, (short)powerRMS, 0);
+            bufferSize = (int)(audioTrack.getSampleRate() * 0.1);
+        }
+
+
+        @Override
+        public void run() {
+            try {
+                android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+            } catch (IllegalArgumentException | SecurityException ex) {
+                // Ignore
+            }
+            int cursor = 0;
+            while((CALIBRATION_STATE.WARMUP.equals(calibrationService.getState()) ||
+                    CALIBRATION_STATE.CALIBRATION.equals(calibrationService.getState())) &&
+                            !calibrationService.canceled.get()) {
+                int size = Math.min(signal.length - cursor, bufferSize);
+                audioTrack.write(Arrays.copyOfRange(signal, cursor, cursor+size), 0, size);
+                cursor += size;
+                if(cursor >= signal.length) {
+                    cursor = 0;
+                }
+            }
+            audioTrack.pause();
         }
     }
 }

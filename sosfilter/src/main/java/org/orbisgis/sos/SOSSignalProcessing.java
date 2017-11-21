@@ -38,6 +38,7 @@ import java.nio.ShortBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 
 /**
@@ -261,4 +262,79 @@ public class SOSSignalProcessing {
         }
     }
 
+
+    public static short[] makeWhiteNoise(int samples, short rms, long seed) {
+        short[] signal = new short[samples];
+        Random random = new Random(seed);
+        for(int i=0; i < samples; i++) {
+            signal[i] = (short) (random.nextGaussian() * rms);
+        }
+        return signal;
+    }
+
+    public static short[] makePinkNoise(int samples, short rms, long seed) {
+        // https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html
+        final double[] b = new double[] {0.049922035, -0.095993537, 0.050612699, -0.004408786};
+        final double[] a = new double[] {1, -2.494956002,   2.017265875,  -0.522189400};
+        final int nt60 = 1430; // nT60 = round(log(1000)/(1-max(abs(roots(A))))); % T60 est.
+        double[] v = new double[samples + nt60];
+        Random random = new Random(seed);
+        for(int i=0; i < v.length; i++) {
+            v[i] = random.nextGaussian() * rms;
+        }
+        double[] x = filter(b, a, v);
+        short[] signal = new short[samples];
+        for(int i=nt60; i < x.length; i++) {
+            signal[i - nt60] = (short) (x[i]);
+        }
+        return signal;
+    }
+
+    public static double[] filter(double[] b, double[] a, double[] X){
+
+        //Checks if these conditions are met otherwise it
+        //will return the original input x
+        if(Double.compare(a[0],0) != 0 && (a.length >= b.length)){
+
+            int n = b.length;
+
+            //Filter delay filled with zeros
+            double[] z = new double[n];
+
+            //The filtered signal filled with zeros
+            double[] Y = new double[X.length];
+
+            //Divide b and a by first coefficient of a
+            divideEach(b, a[0]);
+            divideEach(a, a[0]);
+
+            for(int m = 0; m < Y.length; m++){
+
+                //Calculates the filtered value using
+                //Y[m] = b[0] * X[m] + z[0]
+                Y[m] = b[0] * X[m] + z[0];
+
+                for(int i= 1; i < n; i++){
+
+                    //Previous filter delays recalculated by
+                    //z[i-1] = b[i] * X[m] + z[i] - a[i] * Y[m]
+                    z[i-1] = (b[i] * X[m] + z[i] ) - a[i] * Y[m];
+
+                }
+
+            }
+
+            //The filtered signal
+            return Y;
+        }
+
+        //Returns original signal when conditions not met
+        return X;
+    }
+
+    private static void divideEach(double[] array, double divisor){
+        for(int i = 0; i < array.length; i++){
+            array[i] = array[i] / divisor;
+        }
+    }
 }

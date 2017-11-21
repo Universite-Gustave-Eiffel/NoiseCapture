@@ -67,7 +67,6 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
     private TextView textDeviceLevel;
     private TextView startButton;
     private ProgressBar progressBar_wait_calibration_recording;
-    private Spinner spinner;
     private TextView textStatus;
 
     @Override
@@ -81,7 +80,6 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
         textDeviceLevel = (TextView) findViewById(R.id.spl_ref_measured);
         textStatus = (TextView) findViewById(R.id.calibration_state);
         startButton = (TextView) findViewById(R.id.btn_start);
-        spinner = (Spinner) findViewById(R.id.spinner_calibration_mode);
 
         doBindService();
     }
@@ -123,7 +121,6 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
 
     private void initCalibration() {
         textStatus.setText(R.string.calibration_status_waiting_for_user_start);
-        spinner.setEnabled(true);
         textDeviceLevel.setText(R.string.no_valid_dba_value);
         startButton.setEnabled(calibrationService.getState() == AWAITING_START);
         startButton.setText(R.string.calibration_button_start);
@@ -131,7 +128,6 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
 
     public void onStartCalibration(View v) {
         startButton.setEnabled(false);
-        spinner.setEnabled(false);
         textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
         if(calibrationService.getState() == AWAITING_START) {
             textStatus.setText(R.string.calibration_status_waiting_for_start_timer);

@@ -74,13 +74,33 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
     public void propertyChange(final PropertyChangeEvent event) {
         if(CalibrationService.PROP_CALIBRATION_STATE.equals(event.getPropertyName())) {
             // Calibration service state change, inform user
-            CalibrationService.CALIBRATION_STATE newState =
+            final CalibrationService.CALIBRATION_STATE newState =
                     (CalibrationService.CALIBRATION_STATE)event.getNewValue();
             // Change state of buttons
             if(!(newState == CalibrationService.CALIBRATION_STATE.WARMUP || newState ==
                     CalibrationService.CALIBRATION_STATE.CALIBRATION)) {
                 progressBar_wait_calibration_recording.setProgress(0);
             }
+
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    // Change state of buttons
+                    switch (newState) {
+                        case AWAITING_START:
+                            textStatus.setText(R.string.calibration_status_end);
+                            break;
+                        case WARMUP:
+                            textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
+                            break;
+                        case CALIBRATION:
+                            textStatus.setText(R.string.calibration_status_on);
+                            break;
+                        case AWAITING_FOR_APPLY_OR_RESTART:
+                            textStatus.setText(R.string.calibration_status_receive_reference);
+                            break;
+                    }
+                }});
         } else if(CalibrationService.PROP_CALIBRATION_PROGRESSION.equals(event.getPropertyName())) {
             progressBar_wait_calibration_recording.setProgress((Integer)event.getNewValue());
         } else if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName()) &&
@@ -92,8 +112,15 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    double level;
+                    if(CalibrationService.CALIBRATION_STATE.CALIBRATION.equals(calibrationService
+                            .getState())) {
+                        level = calibrationService.getleq();
+                    } else {
+                        level = ((AudioProcess.AudioMeasureResult)event.getNewValue()).getGlobaldBaValue();
+                    }
                     textMeasurementLevel.setText(
-                            String.format(Locale.getDefault(), "%.1f", calibrationService.getleq()));
+                            String.format(Locale.getDefault(), "%.1f", level));
                 }
             });
         } else if(CalibrationService.PROP_CALIBRATION_REF_LEVEL.equals(event.getPropertyName())) {

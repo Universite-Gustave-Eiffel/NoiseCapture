@@ -56,7 +56,7 @@
 
         <TextView
             android:layout_height="wrap_content"
-            android:text=""
+            android:text="@string/calibration_status_waiting_for_user_start"
             android:id="@+id/calibration_state"
             android:textSize="20sp"
             android:layout_width="wrap_content"/>

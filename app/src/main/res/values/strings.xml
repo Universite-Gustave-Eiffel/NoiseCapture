@@ -245,6 +245,9 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="userinfo_pleasantness">Pleasantness</string>
     <string name="calibration_status_waiting_for_user_start">Waiting for calibration start&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">Calibration is about to start&#8230;</string>
+    <string name="calibration_status_send_parameters">Send calibration parameters&#8230;</string>
+    <string name="calibration_status_receive_reference">Awaiting reference value&#8230;</string>
+    <string name="calibration_status_cooldown">Calibration done, send reference value&#8230;</string>
     <string name="userinfo_button_measure">Measure</string>
     <string name="userinfo_button_results">Valid</string>
     <string name="userinfo_tags">Predominant sources</string>
@@ -313,6 +316,9 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>I am an expert/pro in the field of noise</item>
     </string-array>
     <string name="calibration_menu_btn_manual">Manual calibration</string>
-    <string name="calibration_menu_btn_guest">Receive calibration</string>
-    <string name="calibration_menu_btn_host">Send calibration</string>
+    <string name="calibration_menu_btn_guest">Auto calibration (receiver)</string>
+    <string name="calibration_menu_btn_host">Auto calibration (sender)</string>
+    <string name="calibration_menu_text_manual">Use an external reference device (sound level meter, sound calibrator) to calibrate your smartphone.</string>
+    <string name="calibration_menu_text_receive">Calibrate your smartphone from another already calibrated smartphone.</string>
+    <string name="calibration_menu_text_host">Use your own smartphone to calibrate other smartphones.</string>
 </resources>

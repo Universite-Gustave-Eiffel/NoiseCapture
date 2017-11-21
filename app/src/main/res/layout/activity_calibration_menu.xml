@@ -51,6 +51,12 @@
         android:layout_centerHorizontal="true"
         android:id="@+id/linearLayout">
 
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:text="@string/calibration_menu_text_manual"
+            android:textSize="20sp"
+            android:layout_width="wrap_content"/>
         <Button
             android:id="@+id/BtnManualCalibration"
             android:layout_width="match_parent"
@@ -62,6 +68,12 @@
             android:layout_width="match_parent"
             android:layout_weight="1"
             android:layout_height="wrap_content" />
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:text="@string/calibration_menu_text_receive"
+            android:textSize="20sp"
+            android:layout_width="wrap_content"/>
         <Button android:id="@+id/BtnWifiCalibration"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -71,6 +83,13 @@
             android:layout_width="match_parent"
             android:layout_weight="1"
             android:layout_height="wrap_content" />
+
+
+        <TextView
+            android:layout_height="wrap_content"
+            android:text="@string/calibration_menu_text_host"
+            android:textSize="20sp"
+            android:layout_width="wrap_content"/>
         <Button android:id="@+id/BtnHostWifiGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

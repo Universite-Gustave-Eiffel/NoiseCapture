@@ -299,9 +299,15 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="settings_user_noise_knowledge_description">Comment évaluez-vous vos connaissances sur les environnements sonores ?</string>
     <string name="hint_userinput_noiseparty_tag">Code NoiseCapture Party</string>
     <string name="permission_explain_change_wifi_state"/>
+    <string name="calibration_menu_text_manual">Utiliser un appareil de référence externe (sonomètre, calibreur acoustique) pour calibrer votre téléphone.</string>
+    <string name="calibration_menu_text_receive">Calibrer votre smartphone à partir d\'un autre smartphone déjà calibré.</string>
+    <string name="calibration_menu_text_host">Utiliser votre propre smartphone pour calibrer d\'autres smartphones.</string>
     <string-array name="knowledge">
         <item>Je n\'ai aucune connaissance dans le domaine du bruit</item>
         <item>J\'ai quelques connaissances dans le domaine du bruit</item>
         <item>Je suis expert/pro dans le domaine du bruit</item>
     </string-array>
+    <string name="calibration_menu_btn_host">Calibrage auto (émetteur)</string>
+    <string name="calibration_menu_btn_manual">Calibrage manuel</string>
+    <string name="calibration_menu_btn_guest">Calibrage auto (récepteur)</string>
 </resources>

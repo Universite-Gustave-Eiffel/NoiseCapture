@@ -78,6 +78,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private static final int FREQ_START = 10;
 
     private static final double PINK_POWER = Short.MAX_VALUE;
+    private static final short MESSAGE_RMS = 450;
 
     // properties
     public static final String PROP_CALIBRATION_STATE = "PROP_CALIBRATION_STATE";
@@ -248,12 +249,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
     }
 
     private void playMessage(byte[] data) {
-        double rms = dbToRms(99);
         final int paddingLength = (int)((EMPTY_AUDIO_LENGTH / 1000.) * audioProcess.getRate());
         short[] signal = new short[paddingLength + acousticModem.getSignalLength(data, 0, data
                 .length)];
         acousticModem.wordsToSignal(data, 0,
-                data.length, signal, paddingLength, (short)rms);
+                data.length, signal, paddingLength, MESSAGE_RMS);
         playAudio(signal, 1);
     }
 
@@ -289,7 +289,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
         new Thread(new PinkNoiseFeed(this, audioTrack, power, length)).start();
     }
     private void sendMessage(short id, float... data) {
-        LOGGER.info("Send message: " + id + " - " + Arrays.toString(data));
         ByteBuffer byteBuffer = ByteBuffer.allocate((Short.SIZE + Float.SIZE * data.length) /
                 Byte.SIZE);
         byteBuffer.putShort(id);
@@ -297,7 +296,10 @@ public class CalibrationService extends Service implements PropertyChangeListene
             byteBuffer.putFloat(data[i]);
         }
         try {
-            playMessage(acousticModem.encode(byteBuffer.array()));
+            byte[] messageBytes = acousticModem.encode(byteBuffer.array());
+            LOGGER.info("Send message: " + id + " - " + Arrays.toString(data) + " " + Arrays
+                    .toString(messageBytes));
+            playMessage(messageBytes);
         } catch (IOException ex) {
             LOGGER.error(ex.getLocalizedMessage(), ex);
         }
@@ -398,7 +400,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
     }
 
     public void startCalibration() {
-        if(CALIBRATION_STATE.AWAITING_START.equals(state)) {
+        if(CALIBRATION_STATE.AWAITING_START.equals(state) || CALIBRATION_STATE
+                .DELAY_BEFORE_SEND_SIGNAL.equals(state)) {
             if(isHost) {
                 setState(CALIBRATION_STATE.DELAY_BEFORE_SEND_SIGNAL);
                 if(audioTrack != null) {
@@ -488,7 +491,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         private long processedSamples = 0;
         private ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         private long lastReceivedWordTime = 0;
-        private static final int wordDeprecationTimeFactor = 4;
+        private static final int wordDeprecationTimeFactor = 10;
         private int wordDeprecationTime;
 
         public AcousticModemListener(CalibrationService calibrationService, AtomicBoolean
@@ -505,7 +508,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         public void setAcousticModem(AcousticModem acousticModem) {
             this.acousticModem = acousticModem;
             wordDeprecationTime = (int)(acousticModem.getSettings().wordTimeLength *
-                    wordDeprecationTimeFactor);
+                    wordDeprecationTimeFactor * 1000);
         }
 
         @Override
@@ -545,15 +548,18 @@ public class CalibrationService extends Service implements PropertyChangeListene
                         Byte word = acousticModem.spectrumToWord(acousticModem
                                 .filterSpectrum(Arrays.copyOfRange(measure.getdBaLevels(), FREQ_START, FREQ_START + 8)));
                         if(word != null) {
-                            LOGGER.info("Receive audio byte :" + word);
                             long curTime = System.currentTimeMillis();
-                            if( lastReceivedWordTime - curTime > wordDeprecationTime ) {
+                            if( curTime - lastReceivedWordTime > wordDeprecationTime ) {
+                                LOGGER.info("Clear audio modem cache " + wordDeprecationTime + " " +
+                                        "ms");
                                 bytes.reset();
                             }
+                            LOGGER.info("Receive audio byte :" + word);
                             bytes.write(word);
                             lastReceivedWordTime = curTime;
                             byte[] message = bytes.toByteArray();
-                            while(message.length > AcousticModem.CRC_SIZE) {
+                            while(message.length >= AcousticModem.CRC_SIZE + (Short.SIZE / Byte
+                                    .SIZE + Float.SIZE / Byte.SIZE)) {
                                 if(acousticModem.isMessageCheck(message)) {
                                     calibrationService.onNewMessage(bytes.toByteArray());
                                     bytes.reset();

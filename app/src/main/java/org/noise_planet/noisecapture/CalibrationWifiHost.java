@@ -129,12 +129,10 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
     public void onStartCalibration(View v) {
         startButton.setEnabled(false);
         textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
-        if(calibrationService.getState() == AWAITING_START) {
-            // Link measurement service with gui
-            if (checkAndAskPermissions()) {
-                // Application have right now all permissions
-                calibrationService.startCalibration();
-            }
+        // Link measurement service with gui
+        if (checkAndAskPermissions()) {
+            // Application have right now all permissions
+            calibrationService.startCalibration();
         }
     }
 

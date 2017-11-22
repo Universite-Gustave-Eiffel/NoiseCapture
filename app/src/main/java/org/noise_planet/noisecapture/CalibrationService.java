@@ -78,7 +78,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private static final int FREQ_START = 10;
 
     private static final double PINK_POWER = Short.MAX_VALUE;
-    private static final short MESSAGE_RMS = 450;
+    private static final short MESSAGE_RMS = Short.MAX_VALUE / 2;
 
     // properties
     public static final String PROP_CALIBRATION_STATE = "PROP_CALIBRATION_STATE";

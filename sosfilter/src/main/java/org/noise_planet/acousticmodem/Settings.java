@@ -7,11 +7,11 @@ import java.util.*;
  */
 public class Settings {
 
-    final int samplingRate;
+    public final int samplingRate;
 
-    final double wordTimeLength;
+    public final double wordTimeLength;
 
-    final int wordLength;
+    public final int wordLength;
 
     // Minimum dB between powerful two frequencies over the third frequency to be recognised as a word
     private float minimalSignalToNoiseLevel  = 5;

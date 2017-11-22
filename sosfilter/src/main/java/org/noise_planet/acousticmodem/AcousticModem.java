@@ -26,14 +26,13 @@
  */
 package org.noise_planet.acousticmodem;
 
-import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 import org.orbisgis.sos.AcousticIndicators;
-import org.orbisgis.sos.LeqStats;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.*;
-import java.util.zip.CRC32;
+import java.nio.ByteOrder;
+import java.util.Arrays;
+import java.util.Comparator;
 
 /**
  * Acoustic modem.
@@ -83,13 +82,33 @@ public class AcousticModem {
     }
 
     public byte[] encode(byte[] in) throws IOException {
-        CRC32 crc32 = new CRC32();
-        crc32.update(in);
-        crcBuffer.putShort(0, Long.valueOf(crc32.getValue()).shortValue());
+        crcBuffer.clear();
+        crcBuffer.putShort(0, crc16(in, 0, in.length));
         byte[] out = new byte[in.length + CRC_SIZE];
         System.arraycopy(in, 0, out, 0, in.length);
         System.arraycopy(crcBuffer.array(), 0, out, in.length, CRC_SIZE);
         return out;
+    }
+
+    private static int crc16_update(int crc, byte a) {
+        crc ^= ((a+128) & 0xff);
+        for (int i = 0; i < 8; ++i) {
+            if ((crc & 1) != 0) {
+                crc = ((crc >>> 1) ^ 0xA001) & 0xffff;
+            }
+            else {
+                crc = (crc >>> 1) & 0xffff;
+            }
+        }
+        return crc;
+    }
+
+    private static short crc16(byte[] bytes, int from, int to) {
+        int crc = 0;
+        for (int i = from; i < to; i++) {
+            crc = crc16_update(crc, bytes[i]);
+        }
+        return (short) crc;
     }
 
     /**
@@ -97,12 +116,11 @@ public class AcousticModem {
      * @return True if the embedded crc32 code at the end of the message check the beginning of the message
      */
     public boolean isMessageCheck(byte[] in) {
-        CRC32 crc32 = new CRC32();
-        crc32.update(in, 0, in.length - CRC_SIZE);
+        short signature = crc16(in, 0, in.length - CRC_SIZE);
         crcBuffer.clear();
         crcBuffer.put(Arrays.copyOfRange(in, in.length - CRC_SIZE, in.length), 0, CRC_SIZE);
         crcBuffer.position(0);
-        return Long.valueOf(crc32.getValue()).shortValue() == crcBuffer.getShort();
+        return signature == crcBuffer.getShort(0);
     }
 
     public byte[] decode(byte[] in) {

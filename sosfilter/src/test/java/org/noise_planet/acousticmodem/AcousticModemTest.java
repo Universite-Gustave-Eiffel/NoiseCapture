@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -119,8 +120,8 @@ public class AcousticModemTest {
 
     @Test
     public void testEncodeDecodeWithNoise() throws IOException {
-        String messageInput = "U1_76.8";
-        int freqStart = Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, UT_FREQUENCIES[0]);
+        byte[] messageInput = makeMessage((short)1, 5, 4);
+        int freqStart = 10;
 
         final int sampleRate = 44100;
         AcousticModem acousticModem = new AcousticModem(new Settings(44100, 0.200, Settings.wordsFrom8frequencies(UT_FREQUENCIES)));
@@ -142,11 +143,21 @@ public class AcousticModemTest {
 
         byte[] receivedBytes = byteArrayOutputStream.toByteArray();
 
-        assertEquals(messageInput, new String(acousticModem.decode(receivedBytes)));
+        assertArrayEquals(messageInput, acousticModem.decode(receivedBytes));
 
         assertTrue(acousticModem.isMessageCheck(receivedBytes));
     }
 
+
+    private static byte[] makeMessage(short id, float... data) {
+        ByteBuffer byteBuffer = ByteBuffer.allocate((Short.SIZE + Float.SIZE * data.length) /
+                Byte.SIZE);
+        byteBuffer.putShort(id);
+        for(int i=0; i<data.length; i++) {
+            byteBuffer.putFloat(data[i]);
+        }
+        return byteBuffer.array();
+    }
 
     @Test
     public void testFrequencyFilter() throws IOException {

@@ -487,6 +487,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
         private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
         private long processedSamples = 0;
         private ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        private long lastReceivedWordTime = 0;
+        private static final int wordDeprecationTimeFactor = 4;
+        private int wordDeprecationTime;
 
         public AcousticModemListener(CalibrationService calibrationService, AtomicBoolean
                 canceled, AtomicBoolean recording) {
@@ -501,6 +504,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
         public void setAcousticModem(AcousticModem acousticModem) {
             this.acousticModem = acousticModem;
+            wordDeprecationTime = (int)(acousticModem.getSettings().wordTimeLength *
+                    wordDeprecationTimeFactor);
         }
 
         @Override
@@ -541,7 +546,12 @@ public class CalibrationService extends Service implements PropertyChangeListene
                                 .filterSpectrum(Arrays.copyOfRange(measure.getdBaLevels(), FREQ_START, FREQ_START + 8)));
                         if(word != null) {
                             LOGGER.info("Receive audio byte :" + word);
+                            long curTime = System.currentTimeMillis();
+                            if( lastReceivedWordTime - curTime > wordDeprecationTime ) {
+                                bytes.reset();
+                            }
                             bytes.write(word);
+                            lastReceivedWordTime = curTime;
                             byte[] message = bytes.toByteArray();
                             while(message.length > AcousticModem.CRC_SIZE) {
                                 if(acousticModem.isMessageCheck(message)) {

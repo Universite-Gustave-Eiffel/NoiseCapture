@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          xmlns:tools="http://schemas.android.com/tools"
           package="org.noise_planet.noisecapture">
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
@@ -96,10 +95,6 @@
             android:name=".CalibrationLinearityActivity"
             android:label="@string/title_activity_calibration_linearity"
             android:screenOrientation="portrait" />
-
-        <meta-data
-            android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyAYoxRofWQ-HVerF_Bb1ysuiXajgYcWlNM" />
 
         <activity
             android:name=".CommentActivity"

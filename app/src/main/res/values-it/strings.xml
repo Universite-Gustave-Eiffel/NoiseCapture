@@ -91,12 +91,6 @@ per evitare di trasmettere dati se non sei connesso</string>
     <string name="measurement_tab_map">Mappa</string>
 
     <!--  Ressources for the spinner calibration !-->
-    <string name="title_choice_data_map">Scegli i dati:</string>
-    <string-array name="choice_user_map">
-        <item>Misurazione selezionata</item>
-        <item>Tutte le misurazioni</item>
-        <item>Mappa del rumore comunitaria</item>
-    </string-array>
 
     <!--  Ressources for the spinner map !-->
 
@@ -125,10 +119,6 @@ per evitare di trasmettere dati se non sei connesso</string>
     <string name="result_share">Condividi questo risultato</string>
     <string name="result_button_map">Mostra mappa</string>
     <string name="result_button_upload">Carica</string>
-    <string name="result_button_user_feedback">Descrizione</string>
-    <string name="result_tooltip_nei">Livello di rumore equivalente in dB(A), su tutta la durata della misurazione [al centro del cerchio colorato]</string>
-    <string name="result_tooltip_rne">Questo indicatore rappresenta la distribuzione nel tempo dell\'esposizione al rumore.
-Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore.</string>
     <string name="result_tooltip_minsl">Livello minimo di 1 secondo di rumore pesato secondo la curva A</string>
     <string name="result_tooltip_maxsl">Livello massimo di 1 secondo di rumore pesato secondo la curva A</string>
     <string name="result_tooltip_la10">LA10: livello di rumore pesato secondo la curva A che è superato per il 10% del periodo di misurazione. LA10 è un utile descrittore del rumore del traffico stradale, che è correlato con il livello di fastidio del rumore.</string>
@@ -194,7 +184,6 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
     <string name="history_already_uploaded">Questa misura è già stata inviata</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Carica</string>
-    <string name="map_marker_label">%1$.01f dB(A) Precisione: %2$s m</string>
     <string name="history_uploadeddescr">Questo risultato è stato caricato sul server di mappa della comunità degli utenti ?</string>
 
     <string name="measurement_processlastsamples">Elaborazione dei %d campioni rimanenti&#8230;</string>
@@ -233,7 +222,6 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="title_activity_comment">Descrizione</string>
     <string name="userinfo_unpleasant">Fastidioso</string>
     <string name="userinfo_pleasant">Piacevole</string>
-    <string name="userinfo_pleasantness">Piacevolezza</string>
     <string name="calibration_status_waiting_for_user_start">In attesa dell\'avvio della calibrazione&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">La calibrazione sta per iniziare&#8230;</string>
     <string name="userinfo_button_measure">Misura</string>
@@ -298,7 +286,6 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="title_settings_user_noise_knowledge">Profilo utente</string>
     <string name="settings_user_noise_knowledge_description">"Come valuta la tua conoscenza di ambienti sonori ? "</string>
     <string name="hint_userinput_noiseparty_tag">Tag NoiseParty</string>
-    <string name="permission_explain_change_wifi_state"/>
     <string name="calibration_menu_text_manual"/>
     <string name="calibration_menu_text_receive"/>
     <string name="calibration_menu_text_host"/>

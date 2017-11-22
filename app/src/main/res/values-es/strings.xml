@@ -90,12 +90,6 @@
     <string name="measurement_tab_map">Mapa</string>
 
     <!--  Ressources for the spinner calibration !-->
-    <string name="title_choice_data_map">Selección:</string>
-    <string-array name="choice_user_map">
-        <item>Grabación seleccionada</item>
-        <item>Todas las grabaciones</item>
-        <item>Mapa de ruido de la comunidad</item>
-    </string-array>
 
     <!--  Ressources for the spinner map !-->
 
@@ -124,9 +118,6 @@
     <string name="result_share">Compartir el resultado</string>
     <string name="result_button_map">Mostrar mapa</string>
     <string name="result_button_upload">Enviar</string>
-    <string name="result_button_user_feedback">Descripción</string>
-    <string name="result_tooltip_nei">Nivel de ruido equivalente en dB(A), en toda la duración de la medida [en el centro del círculo coloreado]</string>
-    <string name="result_tooltip_rne">Este indicador representa la distribución en el tiempo de tu exposión al ruido. Cada uno de los cinco colores corresponede a un rango de niveles de ruido</string>
     <string name="result_tooltip_minsl">Nivel mínimo de rudio ponderado por segundo</string>
     <string name="result_tooltip_maxsl">Nivel máximo de rudio ponderado por segundo</string>
     <string name="result_tooltip_la10">LA10: nivel de ruido ponderado que excede el 10% del periodo de medición.
@@ -194,7 +185,6 @@ LA90 es un descriptor útil para la cuantificación del nivel de ruido de fondo<
     <string name="history_already_uploaded">Esta medición ya ha sido enviada</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Subir</string>
-    <string name="map_marker_label">%1$.01f dB(A) Precisión: %2$s m</string>
     <string name="history_uploadeddescr">¿Se ha subido este resultado a la base de datos de la comunidad?</string>
 
     <string name="measurement_processlastsamples">Procesando las %d muestras restantes&#8230;</string>
@@ -232,7 +222,6 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
     <string name="title_activity_comment">Descripción</string>
     <string name="userinfo_unpleasant">Desagradable</string>
     <string name="userinfo_pleasant">Agradable</string>
-    <string name="userinfo_pleasantness">Agrado</string>
     <string name="calibration_status_waiting_for_user_start">Esperando para iniciar la calibración&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">La calibración está a punto de comenzar&#8230;</string>
     <string name="userinfo_button_measure">Medida</string>
@@ -297,7 +286,6 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
     <string name="title_settings_user_noise_knowledge">Perfil de usuario</string>
     <string name="settings_user_noise_knowledge_description">¿Cómo destribirías tu conocimiento sobre entornos sonoros?</string>
     <string name="hint_userinput_noiseparty_tag">Codice NoiseCapture Party</string>
-    <string name="permission_explain_change_wifi_state"/>
     <string name="calibration_menu_text_manual"/>
     <string name="calibration_menu_text_receive"/>
     <string name="calibration_menu_text_host"/>

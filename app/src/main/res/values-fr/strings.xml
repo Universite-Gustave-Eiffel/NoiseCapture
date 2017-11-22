@@ -90,12 +90,6 @@
     <string name="measurement_tab_map">Carte</string>
 
     <!--  Ressources for the spinner calibration !-->
-    <string name="title_choice_data_map">Sélection :</string>
-    <string-array name="choice_user_map">
-        <item>Résultat en cours</item>
-        <item>Tous les enregistrements</item>
-        <item>Carte de bruit communautaire</item>
-    </string-array>
 
     <!--  Ressources for the spinner map !-->
 
@@ -124,9 +118,6 @@
     <string name="result_share">Partager ce résultat</string>
     <string name="result_button_map">Carte</string>
     <string name="result_button_upload">Envoyer</string>
-    <string name="result_button_user_feedback">Description</string>
-    <string name="result_tooltip_nei">Niveau sonore équivalent en dB(A), sur la durée totale de la mesure [au centre du cercle coloré]</string>
-    <string name="result_tooltip_rne">Cet indicateur représente la distribution temporelle de votre exposition au bruit. Chacune des couleurs correspond à un intervalle de niveau sonore.</string>
     <string name="result_tooltip_minsl">Niveau sonore équivalent LAeq (1 seconde) minimum</string>
     <string name="result_tooltip_maxsl">Niveau sonore équivalent LAeq (1 seconde) maximum</string>
     <string name="result_tooltip_la10">LA10: niveau sonore pondéré A dépassé 10% du temps. Cet indicateur est en général lié au bruit routier et est corrélé avec la gêne.</string>
@@ -192,7 +183,6 @@
     <string name="history_already_uploaded">Cette mesure a déjà été transférée</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Transfert</string>
-    <string name="map_marker_label">%1$.01f dB(A) Précision : %2$s m</string>
     <string name="history_uploadeddescr">Ce résultat a t\'il été transféré vers la communauté?</string>
 
     <string name="measurement_processlastsamples">Traitement des %d derniers échantillons&#8230;</string>
@@ -233,7 +223,6 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="title_activity_menu_calibration">Méthodes de calibration</string>
     <string name="userinfo_unpleasant">Désagréable</string>
     <string name="userinfo_pleasant">Agréable</string>
-    <string name="userinfo_pleasantness">Agrément sonore</string>
     <string name="calibration_status_waiting_for_user_start">En attente du début du calibrage&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">Le calibrage est sur le point de commencer&#8230;</string>
     <string name="userinfo_button_measure">Mesure</string>
@@ -298,7 +287,6 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="title_settings_user_noise_knowledge">Profil de l\'utilisateur</string>
     <string name="settings_user_noise_knowledge_description">Comment évaluez-vous vos connaissances sur les environnements sonores ?</string>
     <string name="hint_userinput_noiseparty_tag">Code NoiseCapture Party</string>
-    <string name="permission_explain_change_wifi_state"/>
     <string name="calibration_menu_text_manual">Utiliser un appareil de référence externe (sonomètre, calibreur acoustique) pour calibrer votre téléphone.</string>
     <string name="calibration_menu_text_receive">Calibrer votre smartphone à partir d\'un autre smartphone déjà calibré.</string>
     <string name="calibration_menu_text_host">Utiliser votre propre smartphone pour calibrer d\'autres smartphones.</string>

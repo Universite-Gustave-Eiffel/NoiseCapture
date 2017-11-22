@@ -221,10 +221,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
         sharedPref.registerOnSharedPreferenceChangeListener(this);
     }
 
-    private double dbToRms(double db) {
-        return (Math.pow(10, db / 20.)/(Math.pow(10, 90./20.))) * 2500;
-    }
-
     private int getAudioOutput() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         String value = sharedPref.getString("settings_calibration_audio_output", "STREAM_RING");

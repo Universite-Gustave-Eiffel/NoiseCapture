@@ -44,7 +44,6 @@
 
         <service android:name=".MeasurementService"/>
         <service android:name=".CalibrationService"/>
-        <service android:name="edu.rit.se.wifibuddy.WifiDirectHandler" />
 
         <activity
             android:name=".MeasurementActivity"
@@ -114,7 +113,8 @@
 
     <activity
             android:name=".CalibrationMenu"
-            android:label="@string/title_activity_menu_calibration" />
+            android:label="@string/title_activity_menu_calibration"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".CalibrationWifiHost"
             android:label="@string/title_activity_calibration_host"

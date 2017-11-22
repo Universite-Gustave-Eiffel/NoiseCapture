@@ -95,12 +95,9 @@ public class MainActivity extends AppCompatActivity {
     public String[] mMenuLeft;
     public ActionBarDrawerToggle mDrawerToggle;
     private ProgressDialog progress;
-    protected AtomicBoolean currentlyRequestPermission = new AtomicBoolean(false);
 
     public static final int PERMISSION_RECORD_AUDIO_AND_GPS = 1;
     public static final int PERMISSION_WIFI_STATE = 2;
-    public static final int PERMISSION_INTERNET = 3;
-    public static final int PERMISSION_WIFI_P2P = 4;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -112,32 +109,6 @@ public class MainActivity extends AppCompatActivity {
                 res.getColor(R.color.R5_SL_level)};
     }
 
-    /**
-     * If necessary request user to acquire permisions for wifi p2p
-     * @return True if service can be bind immediately. Otherwise the bind should be done using the
-     * @see #onRequestPermissionsResult
-     */
-    protected boolean checkAndAskWifiP2PPermissions() {
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.CHANGE_WIFI_STATE)
-                != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_WIFI_STATE)
-                != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    android.Manifest.permission.CHANGE_WIFI_STATE)) {
-                // After the user
-                // sees the explanation, try again to request the permission.
-                Toast.makeText(this,
-                        R.string.permission_explain_wifi, Toast.LENGTH_LONG).show();
-            }
-            // Request the permission.
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.CHANGE_WIFI_STATE},
-                    PERMISSION_WIFI_P2P);
-            return false;
-        }
-        return true;
-    }
 
     /**
      * If necessary request user to acquire permisions for critical ressources (gps and microphone)

@@ -23,7 +23,6 @@
     <string name="gps_hint_precision">%1$d m</string>
     <string name="loc_hint">Location status hint</string>
     <string name="permission_explain_audio_record">NoiseCapture requires microphone use permission for audio measures</string>
-    <string name="permission_explain_wifi">NoiseCapture requires wifi permission in order to establish wifi peer to peer connection</string>
     <string name="permission_explain_gps">NoiseCapture requires GPS location for the localisation of noise levels on the map</string>
     <string name="permission_explain_access_wifi_state">NoiseCapture requires permission to access
         the wifi state in order to not transfer data if you are not connected using wifi</string>
@@ -176,8 +175,8 @@
     <string name="title_activity_calibration_linearity">Linearity correlation test</string>
     <string name="title_activity_menu_calibration">Calibration methods</string>
 
-    <string name="title_activity_calibration_host">Host calibration session</string>
-    <string name="title_activity_calibration_peer">Wifi calibration session</string>
+    <string name="title_activity_calibration_host">Auto calibration (sender)</string>
+    <string name="title_activity_calibration_peer">Auto calibration (receiver)</string>
 
 
     <string name="start_text_title">NoiseCapture</string>

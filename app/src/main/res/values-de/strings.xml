@@ -64,8 +64,7 @@ damit keine Daten übertragen werden, wenn Sie nicht über WiFi verbunden sind.<
     <string name="title_settings_transfer_wifi_only">Nur W-LAN</string>
     <string name="summary_settings_transfer_wifi_only">Automatischer Datentransfer nur mit W-LAN-Verbindung</string>
     <string name="title_settings_recording">Aufnahme läuft</string>
-    <string name="summary_settings_recording">Maximale Länge der Aufnahme setzen</string>
-    <string name="title_settings_caution">Warnmeldung</string>
+    <string name="summary_settings_recording">Maximale Länge der Aufnahme setzen</string><string name="title_settings_caution">Warnmeldung</string>
     <string name="summary_settings_tooltip">Auswählen, um Tooltips bei Berührung von Elementen in NoiseCapture anzuzeigen</string>
     <string name="title_settings_tooltip">Tooltip-Meldung</string>
     <string name="summary_settings_caution">Auswählen, um die Warnmeldung während des Programmstarts anzuzeigen</string>
@@ -91,12 +90,6 @@ damit keine Daten übertragen werden, wenn Sie nicht über WiFi verbunden sind.<
     <string name="measurement_tab_map">Karte</string>
 
     <!--  Ressources for the spinner calibration !-->
-    <string name="title_choice_data_map">Daten auswählen:</string>
-    <string-array name="choice_user_map">
-        <item>Ausgewählte Aufnahme</item>
-        <item>Alle Aufnahmen</item>
-        <item>Lärmkarte der Community</item>
-    </string-array>
 
     <!--  Ressources for the spinner map !-->
 
@@ -125,10 +118,6 @@ damit keine Daten übertragen werden, wenn Sie nicht über WiFi verbunden sind.<
     <string name="result_share">Ergebnis teilen</string>
     <string name="result_button_map">Karte anzeigen</string>
     <string name="result_button_upload">Upload</string>
-    <string name="result_button_user_feedback">Beschreibung</string>
-    <string name="result_tooltip_nei">Äquivalenter Lärmpegel in dB(A) über die gesamte Messdauer [im Mittelpunkt des farbigen Kreises]</string>
-    <string name="result_tooltip_rne">Dieser Indikator  stellt die zeitliche Verteilung ihrer Lärmexposition dar.
-Jede der fünf Farben entspricht einem bestimmten Lärmpegelbereich.</string>
     <string name="result_tooltip_minsl">Minimaler 1-Sekunden A-gewichteter Lärmpegel</string>
     <string name="result_tooltip_maxsl">Maximaler 1-Sekunden A-gewichteter Lärmpegel</string>
     <string name="result_tooltip_la10">LA10: A-gewichteter Lärmpegel, der für mehr als 10% der
@@ -184,6 +173,11 @@ Messdauer überschritten wird. Mit LA90 kann der Hintergrundlärmpegel quantifiz
     <string name="title_activity_start">NoiseCapture</string>
     <string name="title_activity_calibration_start">Kalibrierung</string>
     <string name="title_activity_calibration_linearity">Linearitäts-Korrelations-Test</string>
+    <string name="title_activity_menu_calibration">Kalibrierverfahren</string>
+
+    <string name="title_activity_calibration_host">Autokalibrierung (Sender)</string>
+    <string name="title_activity_calibration_peer">Auto-Kalibrierung (Empfänger)</string>
+
 
     <string name="start_text_title">NoiseCapture</string>
     <string name="start_text_subtitle">Geräuschumgebung wird gemessen</string>
@@ -197,7 +191,6 @@ Messdauer überschritten wird. Mit LA90 kann der Hintergrundlärmpegel quantifiz
     <string name="history_already_uploaded">Diese Messung wurde bereits hochgeladen</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Hochladen</string>
-    <string name="map_marker_label">%1$.01f dB(A) Präzision: %2$s m</string>
     <string name="history_uploadeddescr">Wurde dieses Ergebnis bereits zur Community-Datenbank hochgeladen?</string>
 
     <string name="measurement_processlastsamples">Verbleibende %d Messwerte werden verarbeitet&#8230;</string>
@@ -237,9 +230,11 @@ track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.
     <string name="title_activity_comment">Beschreibung</string>
     <string name="userinfo_unpleasant">Unangenehm</string>
     <string name="userinfo_pleasant">Angenehm</string>
-    <string name="userinfo_pleasantness">Grad der Annehmlichkeit</string>
     <string name="calibration_status_waiting_for_user_start">Warte auf Start der Kalibrierung&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">Kalibrierung wird gestartet&#8230;</string>
+    <string name="calibration_status_send_parameters">Kalibrierparameter übertragen&#8230;</string>
+    <string name="calibration_status_receive_reference">Warten auf den Referenzwert&#8230;</string>
+    <string name="calibration_status_cooldown">Kalibrierung durchgeführt, Referenzwert übertragen&#8230;</string>
     <string name="userinfo_button_measure">Messung</string>
     <string name="userinfo_button_results">Gültig</string>
     <string name="userinfo_tags">Hauptquellen</string>
@@ -307,4 +302,10 @@ track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.
         <item>Ich habe einige Kenntnisse im Bereich Lärm</item>
         <item>Ich bin ein Experte im Bereich Lärm</item>
     </string-array>
+    <string name="calibration_menu_btn_manual">Manuelle Kalibrierung</string>
+    <string name="calibration_menu_btn_guest">Auto-Kalibrierung (Empfänger)</string>
+    <string name="calibration_menu_btn_host">Autokalibrierung (Sender)</string>
+    <string name="calibration_menu_text_manual">Verwenden Sie ein externes Referenzgerät (Schallpegelmesser, Tonkalibrator), um Ihr Smartphone zu kalibrieren.</string>
+    <string name="calibration_menu_text_receive">Kalibrieren Sie Ihr Smartphone von einem anderen bereits kalibrierten Smartphone aus.</string>
+    <string name="calibration_menu_text_host">Verwenden Sie Ihr Smartphone, um andere Smartphones zu kalibrieren.</string>
 </resources>

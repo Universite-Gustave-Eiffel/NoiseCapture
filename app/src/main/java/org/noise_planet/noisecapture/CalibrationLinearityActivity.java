@@ -97,6 +97,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class CalibrationLinearityActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener,ViewPager.OnPageChangeListener {
@@ -120,7 +121,11 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
     private List<LinearCalibrationResult> freqLeqStats = new ArrayList<>();
     private boolean mIsBound = false;
     private TabLayout tabLayout;
-    private MeasurementService measurementService;
+
+    private AudioProcess audioProcess;
+    private AtomicBoolean recording = new AtomicBoolean(true);
+    private AtomicBoolean canceled = new AtomicBoolean(false);
+
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationLinearityActivity.class);
     private static final int COUNTDOWN_STEP_MILLISECOND = 125;
     private ProgressHandler progressHandler = new ProgressHandler(this);
@@ -408,14 +413,41 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         }
     }
 
+
+
+    private void initAudioProcess() {
+        canceled.set(false);
+        recording.set(true);
+        audioProcess = new AudioProcess(recording, canceled);
+        audioProcess.setDoFastLeq(false);
+        audioProcess.setDoOneSecondLeq(true);
+        audioProcess.setWeightingA(false);
+        audioProcess.setHannWindowOneSecond(true);
+        if(testGainCheckBox.isChecked()) {
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationLinearityActivity.this);
+            audioProcess.setGain((float)Math.pow(10, getDouble(sharedPref,"settings_recording_gain", 0) / 20));
+        } else {
+            audioProcess.setGain(1);
+        }
+        audioProcess.getListeners().addPropertyChangeListener(this);
+
+        // Start measurement
+        new Thread(audioProcess).start();
+    }
+
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
         if(SETTINGS_CALIBRATION_TIME.equals(key)) {
             defaultCalibrationTime = getInteger(sharedPreferences, SETTINGS_CALIBRATION_TIME, 10);
         } else if(SETTINGS_CALIBRATION_WARMUP_TIME.equals(key)) {
             defaultWarmupTime = getInteger(sharedPreferences, SETTINGS_CALIBRATION_WARMUP_TIME, 5);
-        } else if("settings_recording_gain".equals(key) && measurementService != null) {
-            measurementService.setdBGain(getDouble(sharedPreferences, key, 0));
+        } else if("settings_recording_gain".equals(key) && audioProcess != null) {
+            if(testGainCheckBox.isChecked()) {
+                SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationLinearityActivity.this);
+                audioProcess.setGain((float)Math.pow(10, getDouble(sharedPreferences, key, 0) / 20));
+            } else {
+                audioProcess.setGain(1);
+            }
         }
     }
 
@@ -439,7 +471,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         // Link measurement service with gui
         if(checkAndAskPermissions()) {
             // Application have right now all permissions
-            doBindService();
+            initAudioProcess();
         }
         startButton.setEnabled(false);
         testGainCheckBox.setEnabled(false);
@@ -528,7 +560,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    doBindService();
+                    initAudioProcess();
                 } else {
                     // permission denied
                     // Ask again
@@ -788,57 +820,8 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         }
     }
 
-    private ServiceConnection mConnection = new ServiceConnection() {
-        public void onServiceConnected(ComponentName className, IBinder service) {
-            measurementService = ((MeasurementService.LocalBinder)service).getService();
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationLinearityActivity.this);
-            measurementService.setdBGain(
-                    getDouble(sharedPref,"settings_recording_gain", 0));
-            measurementService.addPropertyChangeListener(CalibrationLinearityActivity.this);
-            if(!measurementService.isRecording()) {
-                measurementService.startRecording();
-            }
-            measurementService.getAudioProcess().setDoFastLeq(false);
-            measurementService.getAudioProcess().setDoOneSecondLeq(true);
-            measurementService.getAudioProcess().setWeightingA(false);
-            measurementService.getAudioProcess().setHannWindowOneSecond(true);
-        }
-
-        public void onServiceDisconnected(ComponentName className) {
-            // This is called when the connection with the service has been
-            // unexpectedly disconnected -- that is, its process crashed.
-            // Because it is running in our same process, we should never
-            // see this happen.
-            measurementService.removePropertyChangeListener(CalibrationLinearityActivity.this);
-            measurementService = null;
-        }
-    };
-
-    void doBindService() {
-        // Establish a connection with the service.  We use an explicit
-        // class name because we want a specific service implementation that
-        // we know will be running in our own process (and thus won't be
-        // supporting component replacement by other applications).
-        if(!bindService(new Intent(this, MeasurementService.class), mConnection,
-                Context.BIND_AUTO_CREATE)) {
-            Toast.makeText(CalibrationLinearityActivity.this, R.string.measurement_service_disconnected,
-                    Toast.LENGTH_SHORT).show();
-        } else {
-            mIsBound = true;
-        }
-    }
-
     public void onReset() {
         initCalibration();
-    }
-
-    void doUnbindService() {
-        if (mIsBound) {
-            measurementService.removePropertyChangeListener(this);
-            // Detach our existing connection.
-            unbindService(mConnection);
-            mIsBound = false;
-        }
     }
 
     @Override
@@ -894,9 +877,8 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                             updateSelectedGraph();
                         }
                     });
-                    measurementService.stopRecording();
-                    // Remove measurement service
-                    doUnbindService();
+                    recording.set(false);
+                    canceled.set(true);
                     // Stop playing sound
                     audioTrack.stop();
                     // Activate user input

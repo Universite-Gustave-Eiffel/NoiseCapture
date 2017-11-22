@@ -1,0 +1,310 @@
+<resources>
+
+    <string name="app_name">NoiseCapture</string>
+
+    <string name="action_settings">设置</string>
+    <string name="comment_cancel_change">取消</string>
+    <string name="comment_save_change">存储</string>
+    <string name="comment_delete_record">删除</string>
+    <string name="comment_title_save_change">存储更改？</string>
+    <string name="comment_title_delete">删除测量？</string>
+    <string name="history_title_delete">删除所选测量？</string>
+
+    <string name="record_message">点击记录按钮开始</string>
+    <string name="calibrate_done">校准完成，增益设置为%1$.1fdB</string>
+    <string name="calibration_out_bounds_title">噪声水平过低</string>
+    <string name="calibration_out_bounds">校准声场水平与硬件范围不兼容，须调整至%1$.0fdB与%2$.0fdB之间</string>
+    <string name="calibration_save_change">忽略和应用</string>
+    <string name="calibration_cancel_change">取消</string>
+    <string name="fail_share">共享文件生成失败</string>
+    <string name="no_results">尚无记录，请进行记录</string>
+    <string name="no_gps_results">记录中无GPS坐标</string>
+    <string name="no_gps_hint">无GPS</string>
+    <string name="gps_hint_precision">%1$dm</string>
+    <string name="loc_hint">定位状态提示</string>
+    <string name="permission_explain_audio_record">NoiseCapture 进行音频采集时需要手机麦克风的使用权限</string>
+    <string name="permission_explain_gps">NoiseCapture 在生成噪声地图时需要获取GPS定位数据权限</string>
+    <string name="permission_explain_access_wifi_state">NoiseCapture 需要获取WIFI连接状态
+用于在无wifi连接状态时不进行数据传输</string>
+
+    <string name="title_menu">菜单</string>
+    <string name="title_service_measurement">测量</string>
+    <string name="title_activity_measurement">测量</string>
+    <string name="title_activity_results">结果</string>
+    <string name="title_activity_history">历史</string>
+    <string name="title_activity_about">关于</string>
+    <string name="user_id_activity_about">用户ID</string>
+    <string name="title_activity_help">帮助</string>
+    <string name="title_appversion">版本%1$s%2$sr.%3$s</string>
+
+    <!-- Caution dialog box at app launch !-->
+    <string name="text_OK">是的，了解</string>
+    <string name="title_caution">注意事项</string>
+    <string name="text_caution">此应用不可与专业认证且校准的声噪水平测量仪等同比对</string>
+
+    <!-- Caution dialog box for data transfer !-->
+    <string name="text_CANCEL_data_transfer">取消</string>
+    <string name="no_valid_dba_value">-</string>
+
+    <string name="SL_dBA">dB(A)</string>
+    <string name="SL_dB">dB</string>
+
+    <string name="hello_world">您好！</string>
+    <string name="title_settings_calibration_warmup_time">校准预热时间</string>
+    <string name="title_settings_calibration_warmup_time_description">校准前预热时间 （秒）</string>
+    <string name="title_settings_calibration_time">校准时间</string>
+    <string name="title_settings_calibration_time_description">校准时间（秒）</string>
+    <string name="title_settings_calibration_linear_title">音频输出</string>
+    <string name="title_settings_calibration_linear_description">输出设备用于线性相关性测试</string>
+    <string name="setting_general_group">通用</string>
+    <string name="setting_measurement_group">测量</string>
+    <string name="setting_calibration_group">校准</string>
+    <string name="title_settings_data_transfer">数据传输</string>
+    <string name="summary_settings_data_transfer">测量数据自动传输</string>
+    <string name="title_settings_transfer_wifi_only">只用Wifi</string>
+    <string name="summary_settings_transfer_wifi_only">自动数据传输仅在wifi连接时进行</string>
+    <string name="title_settings_recording">记录中</string>
+    <string name="summary_settings_recording">设置最大记录时间</string>
+    <string name="title_settings_caution">警告信息</string>
+    <string name="summary_settings_tooltip">选中后在NoiseCapture中显示帮助提示</string>
+    <string name="title_settings_tooltip">提示信息</string>
+    <string name="summary_settings_caution">选中后在应用开启时显示警示信息</string>
+    <string name="title_settings_recording_duration">记录时长</string>
+
+
+    <string name="title_settings_recording_gain">信号增益</string>
+    <string name="summary_settings_recording_gain">设置信号校准增益</string>
+
+    <string name="title_settings_spectrogram_logscalemode">时频谱显示</string>
+    <string name="title_settings_delete_leq_on_pause">暂停时删除Leq</string>
+    <string name="title_settings_delete_leq_on_pause_description">暂停删除最近几秒记录</string>
+    <string name="summary_settings_spectrogram_logscalemode">选中时频域显示基于对数坐标，否则基于线性坐标</string>
+    <string name="summary_settings_recording_duration">设置记录持续时间 (秒)</string>
+    <string name="measurement_dba_min">最小</string>
+    <string name="measurement_dba_max">最大</string>
+    <string name="measurement_dba_mean">平均值</string>
+    <string name="measurement_dba_la10">LA10</string>
+    <string name="measurement_dba_la50">LA50</string>
+    <string name="measurement_dba_la90">LA90</string>
+    <string name="measurement_tab_spectrum">频谱</string>
+    <string name="measurement_tab_spectrogram">时频谱</string>
+    <string name="measurement_tab_map">地图</string>
+
+    <!--  Ressources for the spinner calibration !-->
+    <string name="title_choice_data_map">选择数据：</string>
+    <string-array name="choice_user_map">
+        <item>已选记录</item>
+        <item>所有记录</item>
+        <item>社区噪声地图</item>
+    </string-array>
+
+    <!--  Ressources for the spinner map !-->
+
+    <!--  Ressources for the spinner history
+          History:HistoryItemListener:onItemClick remove the first entry (upload) !-->
+    <string-array name="choice_user_history">
+        <item>上传至社区</item>
+        <item>结果导出</item>
+        <item>编辑描述</item>
+        <item>显示结果</item>
+        <item>显示在地图上</item>
+        <item>删除</item>
+    </string-array>
+
+    <!--  Ressources for the Drawer and option menu !-->
+    <string-array name="dm_list_array">
+        <item>测量</item>
+        <item>描述</item>
+        <item>结果</item>
+        <item>历史</item>
+        <item>地图</item>
+        <item>校准</item>
+        <item>帮助</item>
+        <item>关于</item>
+    </string-array>
+    <string name="result_share">显示此结果</string>
+    <string name="result_button_map">显示地图</string>
+    <string name="result_button_upload">上传</string>
+    <string name="result_button_user_feedback">描述</string>
+    <string name="result_tooltip_nei">整个测量过程中的等效声强 dB(A) [在着色环中心位置]</string>
+    <string name="result_tooltip_rne">这个参数表现了一定时间内你周围噪声的分布情况
+五种颜色分别表示了不同的噪声级别。</string>
+    <string name="result_tooltip_minsl">1秒内最小A计权噪声级</string>
+    <string name="result_tooltip_maxsl">1秒内最大A计权噪声级</string>
+    <string name="result_tooltip_la10">LA10: 表示在一定时间内10%的时间噪声高出一定的声级
+LA10通常为峰值噪声用于表征车辆交通等令人烦躁的声音</string>
+    <string name="result_tooltip_la50">LA50: 表示在一定时间内50%的时间噪声高出一定的声级
+LA50通常为平均噪声用于表征环境平均声噪级别</string>
+    <string name="result_tooltip_la90">LA90: 表示在一定时间内90%的时间噪声高出一定的声级
+LA90为背景噪声用于表征背景声噪级别</string>
+    <string name="drawer_open">打开侧滑菜单</string>
+    <string name="drawer_close">关闭侧滑菜单</string>
+    <string name="url_about">file:///android_asset/html/about.html</string>
+    <string name="url_help">file:///android_asset/html/help.html</string>
+
+    <!--  Ressources for acoustics !-->
+    <string name="caption_SL">声音强度</string>
+    <string-array name="catNE_list_array">
+        <item>超过 75 dB(A)</item>
+        <item>65-75 dB(A)</item>
+        <item>55-65 dB(A)</item>
+        <item>45-55 dB(A)</item>
+        <item>低于 45 dB(A)</item>
+    </string-array>
+    <!-- Add new tags at the end, update also this array Storage.TAGS -->
+    <string-array name="tags">
+        <item>测试</item>
+        <item>雨</item>
+        <item>风</item>
+        <item>室内</item>
+        <item>脚步声</item>
+        <item>谈话声</item>
+        <item>自然</item>
+        <item>机械</item>
+        <item>人类</item>
+        <item>工作</item>
+        <item>艺术</item>
+        <item>娱乐</item>
+        <item>儿童</item>
+        <item>音乐</item>
+        <item>道路</item>
+        <item>铁轨</item>
+        <item>海洋</item>
+        <item>警报</item>
+        <item>工业</item>
+        <item>水</item>
+        <item>动物</item>
+        <item>植物</item>
+    </string-array>
+    <string name="title_activity_main">主要活动</string>
+
+    <string name="title_activity_view_html_page">查看html页面</string>
+    <string name="title_activity_settings">设置</string>
+    <string name="title_activity_map">地图</string>
+    <string name="title_activity_start">采集噪声</string>
+    <string name="title_activity_calibration_start">校准</string>
+    <string name="title_activity_calibration_linearity">线性相关性测试</string>
+
+    <string name="start_text_title">NoiseCapture</string>
+    <string name="start_text_subtitle">测量您的声音环境</string>
+    <string name="start_text_developed_by">研发者</string>
+    <string name="start_text_supported_by">支持者</string>
+    <string name="upload_progress_title">Uploading&#8230;</string>
+    <string name="upload_progress_message">测量上传中</string>
+
+    <string name="history_length">%ds</string>
+    <string name="history_date">- %s</string>
+    <string name="history_already_uploaded">此项测量已经上传</string>
+    <string name="history_sel">%.01f dB(A)</string>
+    <string name="history_upload_top">上传</string>
+    <string name="map_marker_label">%1$.01f dB(A) 精度: %2$s m</string>
+    <string name="history_uploadeddescr">此结果是否已经上传至社区数据库？</string>
+
+    <string name="measurement_processlastsamples">剩余处理%d样本&#8230;</string>
+    <string name="history_item_choice_title">测量 %s</string>
+    <string name="calibration_select_frequency">选择显示频率</string>
+    <string name="local_service_started">定位服务开始</string>
+    <string name="measurement_service_disconnected">测量服务断开</string>
+    <string name="measurement_pause">暂停测量</string>
+    <string name="delete">删除</string>
+    <string name="hint_userinput">点击此处设置一个描述</string>
+    <string name="no_data_text_description">点击记录按钮开始</string>
+    <string name="export_zip_info">Export archive description\n\n
+meta.properties file are general info on device and record:\n
+- version_name Major, minor and revision version\n
+- build_date Date of APK assembly\n
+- version_number Application version integer\n
+- time_length Record length in seconds\n
+- uuid Random identifier set on first application start\n
+- leq_mean Mean equivalent sound level in dB(A) of the measure\n
+- record_utc Record time in epoch millisecond\n
+- device_manufacturer device_model device_product Generic Hardware information of measure device\n
+- pleasantness User input pleasantness 1-100\n
+- tags Comma separated values of user selected tags (english only)\n
+- user_profile User knowledge in acoustics NONE, NOVICE, EXPERT\n
+- noiseparty_tag Record NoiseParty identifier\n\n
+
+track.geojson 1s samples of measures. Using the geojson format (http://geojson.io)\n
+- leq_mean 1s mean equivalent sound level in dB(A)\n
+- accuracy Localisation precision in m (provided by gps, network or gsm)\n
+- location_utc Localisation fix time in epoch millisecond\n
+- leq_utc Measure time in epoch millisecond\n
+- leq_id Unique identifier of record\n
+- marker_color Color used by geojson.io\n
+- bearing Movement orientation.See https://developer.android.com/reference/android/location/Location.html#getBearing()\n
+- speed Estimated device speed in m/s\n
+- leq_frequency 1s mean equivalent sound level in dB(A) for the specified frequency\n</string>
+    <string name="title_activity_comment">描述</string>
+    <string name="userinfo_unpleasant">不舒适的</string>
+    <string name="userinfo_pleasant">舒适的</string>
+    <string name="userinfo_pleasantness">舒适度</string>
+    <string name="calibration_status_waiting_for_user_start">等待校准开始&#8230;</string>
+    <string name="calibration_status_waiting_for_start_timer">校准即将开始&#8230;</string>
+    <string name="userinfo_button_measure">测量</string>
+    <string name="userinfo_button_results">确认</string>
+    <string name="userinfo_tags">主要来源</string>
+    <string name="calibration_status_on">校准&#8230;</string>
+    <string name="calibration_linear_status_on">校准至%1$.0fdB</string>
+    <string name="calibration_status_end">校准完成</string>
+    <string name="calibration_status_background_noise">测量背景噪声</string>
+    <string name="calibration_button_start">开始</string>
+    <string name="calibration_button_cancel">取消</string>
+    <string name="calibration_leq_title">测得 Leq：</string>
+    <string name="calibration_measure_title">参考值：</string>
+    <string name="calibration_button_apply">应用</string>
+    <string name="calibration_button_reset">重置</string>
+    <string name="calibration_test_gain_checkbox">增益测量</string>
+    <string name="calibration_mode">校准模式</string>
+    <string-array name="calibrate_type_list_array">
+        <item>全局</item>
+        <item>125 Hz</item>
+        <item>250 Hz</item>
+        <item>500 Hz</item>
+        <item>1 kHz</item>
+        <item>4 kHz</item>
+        <item>8 kHz</item>
+        <item>16 kHz</item>
+    </string-array>
+    <string name="share_message">我使用#NoiseCapture测出%.01fdB(A) @Noise_Planet</string>
+    <string name="summary_settings_measurement_display_window">实时测量窗口函数（最终结果未使用）</string>
+    <string name="title_settings_measurement_display_window">实时窗口</string>
+    <string name="title_settings_map_maxmarker">显示测量极限</string>
+    <string name="summary_settings_map_maxmarker">地图上显示的最大测量个数 （0表示所有测量）</string>
+    <string name="map_title_progress_loading">载入测量定位数据</string>
+    <string name="policy_legal_age">我已经到了使用该应用的合法年龄</string>
+    <string name="policy_agree_statement">我同意 NoiseCapture 的隐私权政策</string>
+    <string name="policy_button_continue">继续</string>
+    <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
+    <string name="privacy_policy_title">隐私权政策</string>
+    <string name="calibration_warning">校准流程需要已被校准的标准声测量仪或者被校准过的手机，更多信息请参考应用内帮助文件<a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">help page</a></string>
+    <string name="notification_record_content">测量进行中...%1$.1fdB(A)</string>
+    <string name="result_title_progress_loading">测量载入中</string>
+    <string name="userinfo_tags_measurement_conditions">测量条件</string>
+    <string name="notification_goto_community_map_title">社区测量数据</string>
+
+    <string-array name="output_mode_labels">
+        <item>通话声</item>
+        <item>设备声</item>
+        <item>铃声</item>
+        <item>音乐</item>
+        <item>警报</item>
+        <item>提示</item>
+        <item>DTMF</item>
+    </string-array>
+    <string-array name="settings_display_measurement_window_labels">
+        <item>矩形窗</item>
+        <item>汉宁窗</item>
+    </string-array>
+    <string name="notification_goto_community_map">前往站点 http://noise-planet.org, 浏览社区记录的声噪地图</string>
+    <string name="title_settings_notification_links">提示</string>
+    <string name="summary_settings_notification_links">选中后显示Noise-Planet站点的提示信息</string>
+    <string name="settings_category_profile">用户信息</string>
+    <string name="title_settings_user_noise_knowledge">用户信息</string>
+    <string name="settings_user_noise_knowledge_description">怎样评价您对环境噪音的知识</string>
+    <string name="hint_userinput_noiseparty_tag">NoiseCapture Party code</string>
+    <string-array name="knowledge">
+        <item>我对外场噪声一无所知</item>
+        <item>我了解一些关于外场噪声方便的知识</item>
+        <item>我是外场噪声专家</item>
+    </string-array>
+</resources>

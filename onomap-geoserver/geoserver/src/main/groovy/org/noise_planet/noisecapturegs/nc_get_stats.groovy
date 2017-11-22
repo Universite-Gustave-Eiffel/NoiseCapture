@@ -172,6 +172,18 @@ def getStatistics(Connection connection) {
     }
     statistics["week_tracks"] = [labels : week_tracks_date, datasets : countries];
 
+
+    // Top contributors last 7 days
+    // The 7 days filter is here in order to limit the database usage
+    def topContributors = []
+    sql.eachRow("select USER_UUID, SUM(TIME_LENGTH) total_length,COUNT(*) total_records from noisecapture_user u, noisecapture_track t where u.pk_user = t.pk_user and record_utc > NOW()::date - 7 group by USER_UUID order by total_length desc LIMIT 100") {
+        record_row ->
+            topContributors.add([userid:record_row.USER_UUID as String,
+                                 total_records : record_row.total_records as Integer,
+                                 total_length : record_row.total_length as Long])
+    }
+    statistics["contributors_7days"] = topContributors
+
     return statistics;
 }
 

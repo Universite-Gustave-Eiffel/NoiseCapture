@@ -31,6 +31,7 @@ package org.noise_planet.noisecapturegs
 import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
 import groovy.sql.Sql
 import groovy.time.TimeCategory
 import org.geotools.jdbc.JDBCDataStore
@@ -62,7 +63,17 @@ def getStatistics(Connection connection, Integer pk_party) {
     // Duration (JJ:HH:MM:SS)
     statistics["total_tracks_duration"] = sql.firstRow("select sum(time_length) timelen from noisecapture_track where pk_party = :pk_party", [pk_party : pk_party]).timelen as Long;
 
-    return statistics;
+    // Top contributors
+    def topContributors = []
+    sql.eachRow("select USER_UUID, SUM(TIME_LENGTH) total_length,COUNT(*) total_records from noisecapture_user u, noisecapture_track t where u.pk_user = t.pk_user and pk_party = :pk_party group by USER_UUID order by total_length desc", [pk_party : pk_party]) {
+        record_row ->
+            topContributors.add([userid:record_row.USER_UUID as String,
+                                 total_records : record_row.total_records as Integer,
+                                 total_length : record_row.total_length as Long])
+    }
+    statistics["contributors"] = topContributors
+
+    return statistics
 }
 
 static def Connection openPostgreSQLDataStoreConnection() {

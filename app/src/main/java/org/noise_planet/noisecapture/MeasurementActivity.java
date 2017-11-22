@@ -846,7 +846,7 @@ public class MeasurementActivity extends MainActivity implements
     }
 
     void doUnbindService() {
-        if (mIsBound) {
+        if (mIsBound && measurementService != null) {
             measurementService.removePropertyChangeListener(doProcessing);
             // Detach our existing connection.
             unbindService(mConnection);

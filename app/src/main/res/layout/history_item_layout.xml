@@ -24,7 +24,7 @@
 
         <LinearLayout
             android:orientation="vertical"
-            android:layout_width="wrap_content"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="0.90">
 
@@ -57,6 +57,8 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:paddingRight="5sp"
+            android:paddingLeft="5sp"
             android:id="@+id/history_uploaded"
             app:srcCompat="@drawable/uploaded"
             android:contentDescription="@string/history_uploadeddescr" />

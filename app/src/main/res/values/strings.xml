@@ -64,8 +64,7 @@
     <string name="title_settings_transfer_wifi_only">Wifi only</string>
     <string name="summary_settings_transfer_wifi_only">Automatic transfer by wifi only</string>
     <string name="title_settings_recording">Recording</string>
-    <string name="summary_settings_recording">Set maximal recording time</string>
-    <string name="title_settings_caution">Caution message</string>
+    <string name="summary_settings_recording">Set maximal recording time</string><string name="title_settings_caution">Caution message</string>
     <string name="summary_settings_tooltip">Check to display tooltip when touching elements in NoiseCapture</string>
     <string name="title_settings_tooltip">Tooltip message</string>
     <string name="summary_settings_caution">Check to display the caution message during the launch of the application</string>
@@ -91,12 +90,6 @@
     <string name="measurement_tab_map">Map</string>
 
     <!--  Ressources for the spinner calibration !-->
-    <string name="title_choice_data_map">Choose data:</string>
-    <string-array name="choice_user_map">
-        <item>Selected record</item>
-        <item>All records</item>
-        <item>Community noise map</item>
-    </string-array>
 
     <!--  Ressources for the spinner map !-->
 
@@ -125,10 +118,6 @@
     <string name="result_share">Share this result</string>
     <string name="result_button_map">Show map</string>
     <string name="result_button_upload">Upload</string>
-    <string name="result_button_user_feedback">Description</string>
-    <string name="result_tooltip_nei">Equivalent noise level in dB(A), on the whole measurement duration [at the center of colored circle]</string>
-    <string name="result_tooltip_rne">This indicator represents the distribution over the time of your noise
-        exposure. Each of the five colors correspond to a given noise level range.</string>
     <string name="result_tooltip_minsl">Minimal 1 second A-weighted noise level</string>
     <string name="result_tooltip_maxsl">Maximal 1 second A-weighted noise level</string>
     <string name="result_tooltip_la10">LA10: A-weighted noise level that is exceeded for 10% of the
@@ -184,6 +173,11 @@
     <string name="title_activity_start">Noise Capture</string>
     <string name="title_activity_calibration_start">Calibration</string>
     <string name="title_activity_calibration_linearity">Linearity correlation test</string>
+    <string name="title_activity_menu_calibration">Calibration methods</string>
+
+    <string name="title_activity_calibration_host">Auto calibration (sender)</string>
+    <string name="title_activity_calibration_peer">Auto calibration (receiver)</string>
+
 
     <string name="start_text_title">NoiseCapture</string>
     <string name="start_text_subtitle">Measuring your sound environment</string>
@@ -197,7 +191,6 @@
     <string name="history_already_uploaded">This measurement is already uploaded</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Upload</string>
-    <string name="map_marker_label">%1$.01f dB(A) Precision: %2$s m</string>
     <string name="history_uploadeddescr">Has this result been uploaded to community database?</string>
 
     <string name="measurement_processlastsamples">Processing remaining %d samples&#8230;</string>
@@ -237,9 +230,11 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="title_activity_comment">Description</string>
     <string name="userinfo_unpleasant">Unpleasant</string>
     <string name="userinfo_pleasant">Pleasant</string>
-    <string name="userinfo_pleasantness">Pleasantness</string>
     <string name="calibration_status_waiting_for_user_start">Waiting for calibration start&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">Calibration is about to start&#8230;</string>
+    <string name="calibration_status_send_parameters">Send calibration parameters&#8230;</string>
+    <string name="calibration_status_receive_reference">Awaiting reference value&#8230;</string>
+    <string name="calibration_status_cooldown">Calibration done, send reference value&#8230;</string>
     <string name="userinfo_button_measure">Measure</string>
     <string name="userinfo_button_results">Valid</string>
     <string name="userinfo_tags">Predominant sources</string>
@@ -307,4 +302,10 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>I have some knowledge in the field of noise</item>
         <item>I am an expert/pro in the field of noise</item>
     </string-array>
+    <string name="calibration_menu_btn_manual">Manual calibration</string>
+    <string name="calibration_menu_btn_guest">Auto calibration (receiver)</string>
+    <string name="calibration_menu_btn_host">Auto calibration (sender)</string>
+    <string name="calibration_menu_text_manual">Use an external reference device (sound level meter, sound calibrator) to calibrate your smartphone.</string>
+    <string name="calibration_menu_text_receive">Calibrate your smartphone from another already calibrated smartphone.</string>
+    <string name="calibration_menu_text_host">Use your own smartphone to calibrate other smartphones.</string>
 </resources>

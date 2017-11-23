@@ -89,6 +89,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     private CheckBox testGainCheckBox;
     private Spinner spinner;
     private Handler timeHandler;
+    private ProgressHandler progressHandler = new ProgressHandler(this);
     private int defaultWarmupTime;
     private int defaultCalibrationTime;
     private LeqStats leqStats;
@@ -98,11 +99,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     private AtomicBoolean recording = new AtomicBoolean(true);
     private AtomicBoolean canceled = new AtomicBoolean(false);
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationActivity.class);
-    private static final int COUNTDOWN_STEP_MILLISECOND = 125;
-    private ProgressHandler progressHandler = new ProgressHandler(this);
-
-    private static final String SETTINGS_CALIBRATION_WARMUP_TIME = "settings_calibration_warmup_time";
-    private static final String SETTINGS_CALIBRATION_TIME = "settings_calibration_time";
+    public static final int COUNTDOWN_STEP_MILLISECOND = 125;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,8 +108,10 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         initDrawer();
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
-        defaultCalibrationTime = getInteger(sharedPref,SETTINGS_CALIBRATION_TIME, 10);
-        defaultWarmupTime = getInteger(sharedPref,SETTINGS_CALIBRATION_WARMUP_TIME, 5);
+        defaultCalibrationTime = getInteger(sharedPref,CalibrationService
+                .SETTINGS_CALIBRATION_TIME, 10);
+        defaultWarmupTime = getInteger(sharedPref,CalibrationService
+                .SETTINGS_CALIBRATION_WARMUP_TIME, 5);
 
         progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
         applyButton = (TextView) findViewById(R.id.btn_apply);
@@ -270,10 +269,12 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if(SETTINGS_CALIBRATION_TIME.equals(key)) {
-            defaultCalibrationTime = getInteger(sharedPreferences, SETTINGS_CALIBRATION_TIME, 10);
-        } else if(SETTINGS_CALIBRATION_WARMUP_TIME.equals(key)) {
-            defaultWarmupTime = getInteger(sharedPreferences, SETTINGS_CALIBRATION_WARMUP_TIME, 5);
+        if(CalibrationService.SETTINGS_CALIBRATION_TIME.equals(key)) {
+            defaultCalibrationTime = getInteger(sharedPreferences, CalibrationService
+                    .SETTINGS_CALIBRATION_TIME, 10);
+        } else if(CalibrationService.SETTINGS_CALIBRATION_WARMUP_TIME.equals(key)) {
+            defaultWarmupTime = getInteger(sharedPreferences, CalibrationService
+                    .SETTINGS_CALIBRATION_WARMUP_TIME, 5);
         }
     }
 
@@ -426,7 +427,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     /**
      * Manage progress timer
      */
-    private static final class ProgressHandler implements Handler.Callback {
+    public static final class ProgressHandler implements Handler.Callback {
         private CalibrationActivity activity;
         private int delay;
         private long beginTime;

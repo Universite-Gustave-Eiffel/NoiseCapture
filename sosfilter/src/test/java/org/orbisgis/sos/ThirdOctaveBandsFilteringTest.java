@@ -27,6 +27,7 @@
 
 package org.orbisgis.sos;
 
+import org.apache.commons.math3.stat.descriptive.moment.StandardDeviation;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -38,6 +39,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
+import static org.junit.Assert.assertEquals;
 
 
 /**
@@ -82,7 +85,7 @@ public class ThirdOctaveBandsFilteringTest {
         ThirdOctaveBandsFiltering.FREQUENCY_BANDS frequencyBands = ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED;
         ThirdOctaveBandsFiltering thirdOctaveBandsFiltering = new ThirdOctaveBandsFiltering(samplingRate, frequencyBands);
         List<ThirdOctaveBandsFiltering.FiltersParameters> filtersCoefficients = thirdOctaveBandsFiltering.getFilterParameters();
-        Assert.assertEquals(24, filtersCoefficients.size());
+        assertEquals(24, filtersCoefficients.size());
     }
 
     @Test
@@ -337,4 +340,23 @@ public class ThirdOctaveBandsFilteringTest {
         Assert.assertArrayEquals(expectedLAeq, actualLAeq, 1E-3);
     }
 
+
+    @Test
+    public void testPinkNoise() {
+        short[] pinkNoise = SOSSignalProcessing.makePinkNoise(441000, (short)2500, 0);
+        FFTSignalProcessing fftSignalProcessing = new FFTSignalProcessing(44100,
+                ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, pinkNoise.length);
+        fftSignalProcessing.addSample(pinkNoise);
+        FFTSignalProcessing.ProcessingResult result = fftSignalProcessing.processSample(false,
+                false,
+                false);
+
+        // Compute
+        StandardDeviation standardDeviation = new StandardDeviation();
+        double[] dArray = new double[result.dBaLevels.length];
+        for(int i = 0; i < result.dBaLevels.length; i++) {
+            dArray[i] = result.dBaLevels[i];
+        }
+        assertEquals(0, standardDeviation.evaluate(dArray), 0.25);
+    }
 }

@@ -64,8 +64,7 @@ per evitare di trasmettere dati se non sei connesso</string>
     <string name="title_settings_transfer_wifi_only">Solo wi-fi</string>
     <string name="summary_settings_transfer_wifi_only">Trasferimento automatico solo con wi-fi</string>
     <string name="title_settings_recording">Registrazione</string>
-    <string name="summary_settings_recording">Indica la durata massima di registrazione</string>
-    <string name="title_settings_caution">Messaggio di avviso</string>
+    <string name="summary_settings_recording">Indica la durata massima di registrazione</string><string name="title_settings_caution">Messaggio di avviso</string>
     <string name="summary_settings_tooltip">Seleziona per mostrare i suggerimenti quando tocchi gli elementi di NoiseCapture</string>
     <string name="title_settings_tooltip">Suggerimento</string>
     <string name="summary_settings_caution">Seleziona per mostrare il messaggio di avviso all\'avvio della app</string>
@@ -91,12 +90,6 @@ per evitare di trasmettere dati se non sei connesso</string>
     <string name="measurement_tab_map">Mappa</string>
 
     <!--  Ressources for the spinner calibration !-->
-    <string name="title_choice_data_map">Scegli i dati:</string>
-    <string-array name="choice_user_map">
-        <item>Misurazione selezionata</item>
-        <item>Tutte le misurazioni</item>
-        <item>Mappa del rumore comunitaria</item>
-    </string-array>
 
     <!--  Ressources for the spinner map !-->
 
@@ -125,10 +118,6 @@ per evitare di trasmettere dati se non sei connesso</string>
     <string name="result_share">Condividi questo risultato</string>
     <string name="result_button_map">Mostra mappa</string>
     <string name="result_button_upload">Carica</string>
-    <string name="result_button_user_feedback">Descrizione</string>
-    <string name="result_tooltip_nei">Livello di rumore equivalente in dB(A), su tutta la durata della misurazione [al centro del cerchio colorato]</string>
-    <string name="result_tooltip_rne">Questo indicatore rappresenta la distribuzione nel tempo dell\'esposizione al rumore.
-Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore.</string>
     <string name="result_tooltip_minsl">Livello minimo di 1 secondo di rumore pesato secondo la curva A</string>
     <string name="result_tooltip_maxsl">Livello massimo di 1 secondo di rumore pesato secondo la curva A</string>
     <string name="result_tooltip_la10">LA10: livello di rumore pesato secondo la curva A che è superato per il 10% del periodo di misurazione. LA10 è un utile descrittore del rumore del traffico stradale, che è correlato con il livello di fastidio del rumore.</string>
@@ -181,6 +170,11 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
     <string name="title_activity_start">Noise Capture</string>
     <string name="title_activity_calibration_start">Calibrazione</string>
     <string name="title_activity_calibration_linearity">Test di correlazione lineare</string>
+    <string name="title_activity_menu_calibration">Metodi di taratura</string>
+
+    <string name="title_activity_calibration_host">Taratura automatica (mittente)</string>
+    <string name="title_activity_calibration_peer">Taratura automatica (ricevitore)</string>
+
 
     <string name="start_text_title">NoiseCapture</string>
     <string name="start_text_subtitle">Misurazione dell\'ambiente sonoro in corso</string>
@@ -194,7 +188,6 @@ Ciascuno dei cinque colori corrisponde a un dato intervallo di livello di rumore
     <string name="history_already_uploaded">Questa misura è già stata inviata</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Carica</string>
-    <string name="map_marker_label">%1$.01f dB(A) Precisione: %2$s m</string>
     <string name="history_uploadeddescr">Questo risultato è stato caricato sul server di mappa della comunità degli utenti ?</string>
 
     <string name="measurement_processlastsamples">Elaborazione dei %d campioni rimanenti&#8230;</string>
@@ -233,9 +226,11 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="title_activity_comment">Descrizione</string>
     <string name="userinfo_unpleasant">Fastidioso</string>
     <string name="userinfo_pleasant">Piacevole</string>
-    <string name="userinfo_pleasantness">Piacevolezza</string>
     <string name="calibration_status_waiting_for_user_start">In attesa dell\'avvio della calibrazione&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">La calibrazione sta per iniziare&#8230;</string>
+    <string name="calibration_status_send_parameters">Inviare i parametri di calibrazione&#8230;</string>
+    <string name="calibration_status_receive_reference">In attesa del valore di riferimento&#8230;</string>
+    <string name="calibration_status_cooldown">Calibrazione eseguita, inviare il valore di riferimento&#8230;</string>
     <string name="userinfo_button_measure">Misura</string>
     <string name="userinfo_button_results">Conferma</string>
     <string name="userinfo_tags">Sorgenti dominanti</string>
@@ -303,4 +298,10 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
         <item>Ho qualche conoscenza nel campo del rumore</item>
         <item>Sono un esperto / pro nel campo del rumore</item>
     </string-array>
+    <string name="calibration_menu_btn_manual">Taratura manuale</string>
+    <string name="calibration_menu_btn_guest">Taratura automatica (ricevitore)</string>
+    <string name="calibration_menu_btn_host">Taratura automatica (mittente)</string>
+    <string name="calibration_menu_text_manual">Utilizzare un dispositivo di riferimento esterno (misuratore del livello sonoro, calibratore del suono) per calibrare lo smartphone.</string>
+    <string name="calibration_menu_text_receive">Calibrare lo smartphone da un altro smartphone già calibrato.</string>
+    <string name="calibration_menu_text_host">Utilizzare il proprio smartphone per calibrare gli altri smartphone.</string>
 </resources>

@@ -74,6 +74,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -95,7 +98,6 @@ public class MainActivity extends AppCompatActivity {
 
     public static final int PERMISSION_RECORD_AUDIO_AND_GPS = 1;
     public static final int PERMISSION_WIFI_STATE = 2;
-    public static final int PERMISSION_INTERNET = 3;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -106,6 +108,7 @@ public class MainActivity extends AppCompatActivity {
                 res.getColor(R.color.R4_SL_level),
                 res.getColor(R.color.R5_SL_level)};
     }
+
 
     /**
      * If necessary request user to acquire permisions for critical ressources (gps and microphone)
@@ -330,7 +333,7 @@ public class MainActivity extends AppCompatActivity {
                     mDrawerLayout.closeDrawer(mDrawerList);
                     break;
                 case 5:
-                    Intent ics = new Intent(getApplicationContext(), CalibrationActivity.class);
+                    Intent ics = new Intent(getApplicationContext(), CalibrationMenu.class);
                     mDrawerLayout.closeDrawer(mDrawerList);
                     startActivity(ics);
                     finish();
@@ -602,11 +605,7 @@ public class MainActivity extends AppCompatActivity {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    new Thread(new DoSendZipToServer(this)).start();
-                } else {
-                    // permission denied
-                    // Ask again
-                    checkAndAskPermissions();
+                    checkTransferResults();
                 }
             }
         }
@@ -664,9 +663,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             MeasurementUploadWPS measurementUploadWPS = new MeasurementUploadWPS(activity);
+            MeasurementManager measurementManager = new MeasurementManager(activity);
             try {
                 for(Integer recordId : recordsId) {
-                    measurementUploadWPS.uploadRecord(recordId);
+                    Storage.Record record = measurementManager.getRecord(recordId);
+                    if(record.getUploadId().isEmpty()) {
+                        measurementUploadWPS.uploadRecord(recordId);
+                    }
                 }
                 if(listener != null) {
                     activity.runOnUiThread(new Runnable() {

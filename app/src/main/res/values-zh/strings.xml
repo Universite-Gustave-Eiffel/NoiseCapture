@@ -64,8 +64,7 @@
     <string name="title_settings_transfer_wifi_only">只用Wifi</string>
     <string name="summary_settings_transfer_wifi_only">自动数据传输仅在wifi连接时进行</string>
     <string name="title_settings_recording">记录中</string>
-    <string name="summary_settings_recording">设置最大记录时间</string>
-    <string name="title_settings_caution">警告信息</string>
+    <string name="summary_settings_recording">设置最大记录时间</string><string name="title_settings_caution">警告信息</string>
     <string name="summary_settings_tooltip">选中后在NoiseCapture中显示帮助提示</string>
     <string name="title_settings_tooltip">提示信息</string>
     <string name="summary_settings_caution">选中后在应用开启时显示警示信息</string>
@@ -91,12 +90,6 @@
     <string name="measurement_tab_map">地图</string>
 
     <!--  Ressources for the spinner calibration !-->
-    <string name="title_choice_data_map">选择数据：</string>
-    <string-array name="choice_user_map">
-        <item>已选记录</item>
-        <item>所有记录</item>
-        <item>社区噪声地图</item>
-    </string-array>
 
     <!--  Ressources for the spinner map !-->
 
@@ -125,10 +118,6 @@
     <string name="result_share">显示此结果</string>
     <string name="result_button_map">显示地图</string>
     <string name="result_button_upload">上传</string>
-    <string name="result_button_user_feedback">描述</string>
-    <string name="result_tooltip_nei">整个测量过程中的等效声强 dB(A) [在着色环中心位置]</string>
-    <string name="result_tooltip_rne">这个参数表现了一定时间内你周围噪声的分布情况
-五种颜色分别表示了不同的噪声级别。</string>
     <string name="result_tooltip_minsl">1秒内最小A计权噪声级</string>
     <string name="result_tooltip_maxsl">1秒内最大A计权噪声级</string>
     <string name="result_tooltip_la10">LA10: 表示在一定时间内10%的时间噪声高出一定的声级
@@ -184,6 +173,9 @@ LA90为背景噪声用于表征背景声噪级别</string>
     <string name="title_activity_start">采集噪声</string>
     <string name="title_activity_calibration_start">校准</string>
     <string name="title_activity_calibration_linearity">线性相关性测试</string>
+    <string name="title_activity_calibration_host">自動校準（發送者）</string>
+    <string name="title_activity_calibration_peer">自動校準（接收器）</string>
+
 
     <string name="start_text_title">NoiseCapture</string>
     <string name="start_text_subtitle">测量您的声音环境</string>
@@ -197,7 +189,6 @@ LA90为背景噪声用于表征背景声噪级别</string>
     <string name="history_already_uploaded">此项测量已经上传</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">上传</string>
-    <string name="map_marker_label">%1$.01f dB(A) 精度: %2$s m</string>
     <string name="history_uploadeddescr">此结果是否已经上传至社区数据库？</string>
 
     <string name="measurement_processlastsamples">剩余处理%d样本&#8230;</string>
@@ -207,7 +198,7 @@ LA90为背景噪声用于表征背景声噪级别</string>
     <string name="measurement_service_disconnected">测量服务断开</string>
     <string name="measurement_pause">暂停测量</string>
     <string name="delete">删除</string>
-    <string name="hint_userinput">点击此处设置一个描述</string>
+    <string name="hint_userinput">点击此处插入描述</string>
     <string name="no_data_text_description">点击记录按钮开始</string>
     <string name="export_zip_info">Export archive description\n\n
 meta.properties file are general info on device and record:\n
@@ -237,7 +228,6 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="title_activity_comment">描述</string>
     <string name="userinfo_unpleasant">不舒适的</string>
     <string name="userinfo_pleasant">舒适的</string>
-    <string name="userinfo_pleasantness">舒适度</string>
     <string name="calibration_status_waiting_for_user_start">等待校准开始&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">校准即将开始&#8230;</string>
     <string name="userinfo_button_measure">测量</string>
@@ -307,4 +297,9 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>我了解一些关于外场噪声方便的知识</item>
         <item>我是外场噪声专家</item>
     </string-array>
+    <string name="calibration_menu_btn_guest">自動校準（接收器）</string>
+    <string name="calibration_menu_btn_host">自動校準（發送者）</string>
+    <string name="calibration_menu_text_manual">使用外部參考設備（聲級計，聲校準器）來校準您的智能手機。</string>
+    <string name="calibration_menu_text_receive">從另一個已校準的智能手機校準您的智能手機。</string>
+    <string name="calibration_menu_text_host">使用您自己的智能手機來校准其他智能手機。</string>
 </resources>

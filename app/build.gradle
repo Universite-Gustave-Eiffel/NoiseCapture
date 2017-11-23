@@ -11,9 +11,6 @@ android {
     if(new File(signingFilePath).exists()) {
         apply from: signingFilePath
     }
-    sourceSets {
-        main.java.srcDirs += '../WiFi-Buddy/wifibuddy/src/main/java'
-    }
     defaultConfig {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
@@ -70,11 +67,6 @@ repositories {
 }
 
 dependencies {
-    // If you have issues with missing WifiBuddy lib dependency
-    // Please init the submodule using the following command under git
-    // git submodule init
-    // git submodule update
-    // compile 'com.github.Crash-Test-Buddies:WiFi-Buddy:v0.8.0'
     compile 'com.github.PhilJay:MPAndroidChart:v2.2.5'
     compile 'org.slf4j:slf4j-simple:1.7.12'
     // multithreaded FFT for realtime visualisation of spectrum only

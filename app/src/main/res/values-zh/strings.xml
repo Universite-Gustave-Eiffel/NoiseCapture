@@ -173,8 +173,10 @@ LA90为背景噪声用于表征背景声噪级别</string>
     <string name="title_activity_start">采集噪声</string>
     <string name="title_activity_calibration_start">校准</string>
     <string name="title_activity_calibration_linearity">线性相关性测试</string>
-    <string name="title_activity_calibration_host">自動校準（發送者）</string>
-    <string name="title_activity_calibration_peer">自動校準（接收器）</string>
+    <string name="title_activity_menu_calibration">校准方法</string>
+
+    <string name="title_activity_calibration_host">自动校准（发送者）</string>
+    <string name="title_activity_calibration_peer">自动校准（接收器）</string>
 
 
     <string name="start_text_title">NoiseCapture</string>
@@ -230,6 +232,9 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="userinfo_pleasant">舒适的</string>
     <string name="calibration_status_waiting_for_user_start">等待校准开始&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">校准即将开始&#8230;</string>
+    <string name="calibration_status_send_parameters">发送校准参数</string>
+    <string name="calibration_status_receive_reference">等待参考价值</string>
+    <string name="calibration_status_cooldown">校准完成后，发送参考值</string>
     <string name="userinfo_button_measure">测量</string>
     <string name="userinfo_button_results">确认</string>
     <string name="userinfo_tags">主要来源</string>
@@ -297,10 +302,11 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>我了解一些关于外场噪声方便的知识</item>
         <item>我是外场噪声专家</item>
     </string-array>
+    <string name="calibration_menu_btn_manual">手动校准</string>
     <string name="calibration_menu_btn_guest">自動校準（接收器）</string>
     <string name="calibration_menu_btn_host">自動校準（發送者）</string>
     <string name="calibration_menu_text_manual">使用外部參考設備（聲級計，聲校準器）來校準您的智能手機。</string>
     <string name="calibration_menu_text_receive">從另一個已校準的智能手機校準您的智能手機。</string>
     <string name="calibration_menu_text_host">使用您自己的智能手機來校准其他智能手機。</string>
-    <string name="calibration_host_warning"/>
+    <string name="calibration_host_warning">发件人手机需要连接外部音频输出。 发送方和接收方设备必须等同于外部音频输出。</string>
 </resources>

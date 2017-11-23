@@ -304,4 +304,5 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="calibration_menu_text_manual">Utilizzare un dispositivo di riferimento esterno (misuratore del livello sonoro, calibratore del suono) per calibrare lo smartphone.</string>
     <string name="calibration_menu_text_receive">Calibrare lo smartphone da un altro smartphone già calibrato.</string>
     <string name="calibration_menu_text_host">Utilizzare il proprio smartphone per calibrare gli altri smartphone.</string>
+    <string name="calibration_host_warning">Il telefono mittente deve essere collegato con un\' uscita audio esterna. Il mittente e il ricevitore devono essere esposti all\' uscita audio esterna.</string>
 </resources>

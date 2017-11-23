@@ -308,4 +308,5 @@ track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.
     <string name="calibration_menu_text_manual">Verwenden Sie ein externes Referenzgerät (Schallpegelmesser, Tonkalibrator), um Ihr Smartphone zu kalibrieren.</string>
     <string name="calibration_menu_text_receive">Kalibrieren Sie Ihr Smartphone von einem anderen bereits kalibrierten Smartphone aus.</string>
     <string name="calibration_menu_text_host">Verwenden Sie Ihr Smartphone, um andere Smartphones zu kalibrieren.</string>
+    <string name="calibration_host_warning">Das Absendertelefon muss mit einem externen Audioausgang verbunden sein. Die Sender- und Empfängergeräte müssen dem externen Audioausgang gleichwertig ausgesetzt sein.</string>
 </resources>

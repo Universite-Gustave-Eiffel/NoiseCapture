@@ -304,4 +304,5 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="calibration_menu_text_manual">Utiliser un appareil de référence externe (sonomètre, calibreur acoustique) pour calibrer votre téléphone.</string>
     <string name="calibration_menu_text_receive">Calibrer votre smartphone à partir d\'un autre smartphone déjà calibré.</string>
     <string name="calibration_menu_text_host">Utiliser votre propre smartphone pour calibrer d\'autres smartphones.</string>
+    <string name="calibration_host_warning">Le téléphone émetteur doit être connecté à une sortie audio externe. Les dispositifs émetteur et récepteur doivent être exposés de la même manière à la sortie audio externe.</string>
 </resources>

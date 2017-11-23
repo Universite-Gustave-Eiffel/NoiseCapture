@@ -27,6 +27,7 @@
 
 package org.noise_planet.noisecapture;
 
+import android.app.AlertDialog;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -66,6 +67,14 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
         startButton = (TextView) findViewById(R.id.btn_start);
 
         doBindService();
+
+
+        AlertDialog alterDialog = new AlertDialog.Builder(this).setTitle(R.string.title_caution)
+                .setMessage(R.string.calibration_host_warning)
+                .setNeutralButton(R.string.text_OK, null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .create();
+        alterDialog.show();
     }
 
     @Override

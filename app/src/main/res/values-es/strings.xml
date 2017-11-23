@@ -304,4 +304,5 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
     <string name="calibration_menu_text_manual">Utilice un dispositivo de referencia externo (nivelímetro de sonido, calibrador de sonido) para calibrar su smartphone.</string>
     <string name="calibration_menu_text_receive">Calibre su smartphone desde otro smartphone ya calibrado.</string>
     <string name="calibration_menu_text_host">Utilice su propio teléfono inteligente para calibrar otros teléfonos inteligentes.</string>
+    <string name="calibration_host_warning">El teléfono emisor debe estar conectado con una salida de audio externa. Los dispositivos emisores y receptores deben estar expuestos de forma igual a la salida de audio externa.</string>
 </resources>

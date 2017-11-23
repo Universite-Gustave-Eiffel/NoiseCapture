@@ -605,17 +605,7 @@ public class MainActivity extends AppCompatActivity {
                 // If request is cancelled, the result arrays are empty.
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    new Thread(new DoSendZipToServer(this)).start();
-                } else {
-                    // permission denied
-                    // Ask again
-                    Timer timer = new Timer();
-                    timer.schedule(new TimerTask() {
-                        @Override
-                        public void run() {
-                            checkAndAskWifiStatePermission();
-                        }
-                    }, 2000);
+                    checkTransferResults();
                 }
             }
         }

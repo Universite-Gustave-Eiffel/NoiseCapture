@@ -52,11 +52,20 @@
         android:id="@+id/linearLayout">
 
 
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <ImageView
+                android:layout_height="100dp"
+                android:layout_width="100dp"
+                android:src="@drawable/calib_manual"/>
         <TextView
             android:layout_height="wrap_content"
             android:text="@string/calibration_menu_text_manual"
             android:textSize="20sp"
             android:layout_width="wrap_content"/>
+        </LinearLayout>
         <Button
             android:id="@+id/BtnManualCalibration"
             android:layout_width="match_parent"
@@ -69,11 +78,21 @@
             android:layout_weight="1"
             android:layout_height="wrap_content" />
 
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <ImageView
+            android:layout_height="100dp"
+            android:layout_width="100dp"
+            android:src="@drawable/calib_guest"/>
         <TextView
             android:layout_height="wrap_content"
             android:text="@string/calibration_menu_text_receive"
             android:textSize="20sp"
             android:layout_width="wrap_content"/>
+        </LinearLayout>
         <Button android:id="@+id/BtnWifiCalibration"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -85,11 +104,21 @@
             android:layout_height="wrap_content" />
 
 
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+        <ImageView
+            android:layout_height="100dp"
+            android:layout_width="100dp"
+            android:src="@drawable/calib_host"/>
         <TextView
             android:layout_height="wrap_content"
             android:text="@string/calibration_menu_text_host"
             android:textSize="20sp"
             android:layout_width="wrap_content"/>
+        </LinearLayout>
         <Button android:id="@+id/BtnHostWifiGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

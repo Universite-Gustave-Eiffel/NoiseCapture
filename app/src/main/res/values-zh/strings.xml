@@ -302,4 +302,5 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_menu_text_manual">使用外部參考設備（聲級計，聲校準器）來校準您的智能手機。</string>
     <string name="calibration_menu_text_receive">從另一個已校準的智能手機校準您的智能手機。</string>
     <string name="calibration_menu_text_host">使用您自己的智能手機來校准其他智能手機。</string>
+    <string name="calibration_host_warning"/>
 </resources>

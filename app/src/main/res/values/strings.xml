@@ -308,4 +308,5 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_menu_text_manual">Use an external reference device (sound level meter, sound calibrator) to calibrate your smartphone.</string>
     <string name="calibration_menu_text_receive">Calibrate your smartphone from another already calibrated smartphone.</string>
     <string name="calibration_menu_text_host">Use your own smartphone to calibrate other smartphones.</string>
+    <string name="calibration_host_warning">The sender phone need to be connected with an external audio output. The sender and receiver devices must be equaly exposed to the external audio output.</string>
 </resources>

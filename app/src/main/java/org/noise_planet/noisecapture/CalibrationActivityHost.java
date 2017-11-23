@@ -31,37 +31,21 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
-import android.net.wifi.p2p.WifiP2pDevice;
-import android.net.wifi.p2p.WifiP2pDeviceList;
-import android.net.wifi.p2p.WifiP2pManager;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.NonNull;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.LinearInterpolator;
-import android.widget.BaseAdapter;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Locale;
 
 import static org.noise_planet.noisecapture.CalibrationService.CALIBRATION_STATE.*;
 
 
-public class CalibrationWifiHost extends MainActivity implements PropertyChangeListener {
+public class CalibrationActivityHost extends MainActivity implements PropertyChangeListener {
     private boolean mIsBound = false;
     private CalibrationService calibrationService;
     private TextView textDeviceLevel;
@@ -72,7 +56,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_calibration_wifi_host);
+        setContentView(R.layout.activity_calibration_host);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         initDrawer();
 
@@ -198,7 +182,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             calibrationService = ((CalibrationService.LocalBinder)service).getService();
-            calibrationService.addPropertyChangeListener(CalibrationWifiHost.this);
+            calibrationService.addPropertyChangeListener(CalibrationActivityHost.this);
         }
 
         public void onServiceDisconnected(ComponentName className) {
@@ -206,7 +190,7 @@ public class CalibrationWifiHost extends MainActivity implements PropertyChangeL
             // unexpectedly disconnected -- that is, its process crashed.
             // Because it is running in our same process, we should never
             // see this happen.
-            calibrationService.removePropertyChangeListener(CalibrationWifiHost.this);
+            calibrationService.removePropertyChangeListener(CalibrationActivityHost.this);
             calibrationService = null;
         }
     };

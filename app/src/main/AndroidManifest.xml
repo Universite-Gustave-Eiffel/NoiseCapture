@@ -111,11 +111,11 @@
             android:label="@string/title_activity_menu_calibration"
             android:screenOrientation="portrait"/>
         <activity
-            android:name=".CalibrationWifiHost"
+            android:name=".CalibrationActivityHost"
             android:label="@string/title_activity_calibration_host"
             android:keepScreenOn="true"
             android:screenOrientation="portrait"/>
-        <activity android:name=".CalibrationWifiGuest"
+        <activity android:name=".CalibrationActivityGuest"
             android:label="@string/title_activity_calibration_peer"
             android:keepScreenOn="true"
           android:screenOrientation="portrait" />

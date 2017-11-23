@@ -31,7 +31,6 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 
 public class CalibrationMenu extends MainActivity {
 
@@ -58,14 +57,14 @@ public class CalibrationMenu extends MainActivity {
     }
 
     public void onWifiGuestCalibration(View view) {
-        Intent ics = new Intent(getApplicationContext(), CalibrationWifiGuest.class);
+        Intent ics = new Intent(getApplicationContext(), CalibrationActivityGuest.class);
         mDrawerLayout.closeDrawer(mDrawerList);
         startActivity(ics);
         finish();
     }
 
     public void onWifiHostCalibration(View view) {
-        Intent ics = new Intent(getApplicationContext(), CalibrationWifiHost.class);
+        Intent ics = new Intent(getApplicationContext(), CalibrationActivityHost.class);
         mDrawerLayout.closeDrawer(mDrawerList);
         startActivity(ics);
         finish();

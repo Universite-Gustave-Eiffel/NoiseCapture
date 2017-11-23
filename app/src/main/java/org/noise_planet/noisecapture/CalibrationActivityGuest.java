@@ -34,7 +34,6 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.WindowManager;
-import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,7 +42,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Locale;
 
-public class CalibrationWifiGuest extends MainActivity implements PropertyChangeListener {
+public class CalibrationActivityGuest extends MainActivity implements PropertyChangeListener {
 
     private boolean mIsBound = false;
     private CalibrationService calibrationService;
@@ -55,7 +54,7 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_calibration_wifi_guest);
+        setContentView(R.layout.activity_calibration_guest);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         initDrawer();
 
@@ -142,7 +141,7 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
     private ServiceConnection mConnection = new ServiceConnection() {
         public void onServiceConnected(ComponentName className, IBinder service) {
             calibrationService = ((CalibrationService.LocalBinder)service).getService();
-            calibrationService.addPropertyChangeListener(CalibrationWifiGuest.this);
+            calibrationService.addPropertyChangeListener(CalibrationActivityGuest.this);
             calibrationService.startCalibration();
         }
 
@@ -151,7 +150,7 @@ public class CalibrationWifiGuest extends MainActivity implements PropertyChange
             // unexpectedly disconnected -- that is, its process crashed.
             // Because it is running in our same process, we should never
             // see this happen.
-            calibrationService.removePropertyChangeListener(CalibrationWifiGuest.this);
+            calibrationService.removePropertyChangeListener(CalibrationActivityGuest.this);
             calibrationService = null;
         }
     };

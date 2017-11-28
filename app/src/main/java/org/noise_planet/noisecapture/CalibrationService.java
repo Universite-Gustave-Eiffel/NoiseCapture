@@ -50,6 +50,7 @@ import org.orbisgis.sos.FFTSignalProcessing;
 import org.orbisgis.sos.LeqStats;
 import org.orbisgis.sos.SOSSignalProcessing;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
+import org.orbisgis.sos.Window;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,6 +106,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationService.class);
 
     public static final int COUNTDOWN_STEP_MILLISECOND = 125;
+
+    public static final double AUDIO_MODEM_WINDOW_TIME = AcousticIndicators.TIMEPERIOD_FAST;
     // Empty audio before playing signal
     public static final int EMPTY_AUDIO_LENGTH = 2000;
     private Handler timeHandler;
@@ -172,11 +175,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
             acousticModem = new AcousticModem(new Settings(audioProcess.getRate(), WORD_TIME_LENGTH,
                     Settings.wordsFrom8frequencies(MODEM_FREQUENCIES)));
-
-            acousticModemListener.setFftSignalProcessing(new FFTSignalProcessing(audioProcess.getRate
-                    (), ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, (int)(AcousticIndicators.TIMEPERIOD_FAST *
-                    audioProcess.getRate
-                            ())));
 
             acousticModemListener.setAcousticModem(acousticModem);
 
@@ -505,13 +503,16 @@ public class CalibrationService extends Service implements PropertyChangeListene
         private final AtomicBoolean canceled;
         private final AtomicBoolean recording;
         private AcousticModem acousticModem;
-        private FFTSignalProcessing fftSignalProcessing = null;
+        private Window window = null;
         private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
-        private long processedSamples = 0;
         private ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         private long lastReceivedWordTime = 0;
         private static final int wordDeprecationTimeFactor = 10;
         private int wordDeprecationTime;
+
+        private long pushedSamples = 0;
+        private long processedSamples = 0;
+        private int lastPushIndex = 0;
 
         public AcousticModemListener(CalibrationService calibrationService, AtomicBoolean
                 canceled, AtomicBoolean recording) {
@@ -520,84 +521,87 @@ public class CalibrationService extends Service implements PropertyChangeListene
             this.recording = recording;
         }
 
-        public void setFftSignalProcessing(FFTSignalProcessing fftSignalProcessing) {
-            this.fftSignalProcessing = fftSignalProcessing;
-        }
-
         public void setAcousticModem(AcousticModem acousticModem) {
             this.acousticModem = acousticModem;
             wordDeprecationTime = (int)(acousticModem.getSettings().wordTimeLength *
                     wordDeprecationTimeFactor * 1000);
+            window = new Window(Window.WINDOW_TYPE.HANN,acousticModem.getSettings().samplingRate,
+                    ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, AUDIO_MODEM_WINDOW_TIME,
+                    false, FFTSignalProcessing.DB_FS_REFERENCE, false, 0);
         }
 
         @Override
         public void addSample(short[] sample) {
             if(recording.get()) {
                 bufferToProcess.add(sample);
+                pushedSamples+=sample.length;
+            }
+        }
+        private void processSample(short[] buffer) {
+            window.pushSample(buffer);
+            if (window.getWindowIndex() != lastPushIndex) {
+                processWindow();
+            }
+            processedSamples += buffer.length;
+        }
+
+        private void processWindow() {
+            FFTSignalProcessing.ProcessingResult measure = window.getLastWindowMean();
+            Byte word = acousticModem.spectrumToWord(acousticModem
+                    .filterSpectrum(Arrays.copyOfRange(measure.getdBaLevels(), FREQ_START, FREQ_START + 8)));
+            if(word != null) {
+                long curTime = System.currentTimeMillis();
+                if( curTime - lastReceivedWordTime > wordDeprecationTime ) {
+                    LOGGER.info("Clear audio modem cache " + wordDeprecationTime + " " +
+                            "ms");
+                    bytes.reset();
+                }
+                LOGGER.info("Receive audio byte :" + word);
+                int[] index = AcousticModem.byteToWordsIndex(word);
+                int[] freq1 = acousticModem.getSettings().words[index[0]];
+                int[] freq2 = acousticModem.getSettings().words[index[1]];
+                calibrationService.listeners.firePropertyChange(CalibrationService
+                        .PROP_CALIBRATION_RECEIVE_WORD, null, CalibrationService
+                        .bytesToHex(new byte[]{word}) + "( " + freq1[0] + "  Hz " +
+                        freq1[1] + " Hz)(" + freq2[0] + "  Hz " +
+                        freq2[1] + " Hz)");
+                bytes.write(word);
+                lastReceivedWordTime = curTime;
+                byte[] message = bytes.toByteArray();
+                while(message.length >= AcousticModem.CRC_SIZE + (Short.SIZE / Byte
+                        .SIZE + Float.SIZE / Byte.SIZE)) {
+                    if(acousticModem.isMessageCheck(message)) {
+                        calibrationService.onNewMessage(bytes.toByteArray());
+                        bytes.reset();
+                        break;
+                    } else {
+                        // Skip old messages that may be not well understood
+                        message = Arrays.copyOfRange(message, 1, message.length);
+                    }
+                }
             }
         }
 
         @Override
         public void run() {
-            while (!canceled.get() && fftSignalProcessing != null) {
+            while (!canceled.get() && window != null) {
                 while(!bufferToProcess.isEmpty()) {
                     short[] buffer = bufferToProcess.poll();
-                    if(buffer.length <= fftSignalProcessing.getWindowSize() - processedSamples) {
-                        // Good buffer size, use it
-                        fftSignalProcessing.addSample(buffer);
-                        processedSamples+=buffer.length;
-                    } else {
-                        // Buffer is too large for the window
-                        // Split the buffer in multiple parts
-                        int cursor = 0;
-                        while(cursor < buffer.length) {
-                            int sampleLen = (int)Math.min(buffer.length - cursor, fftSignalProcessing
-                                    .getWindowSize() - processedSamples);
-                            short[] samples = Arrays.copyOfRange(buffer, cursor, cursor + sampleLen);
-                            cursor += samples.length;
-                            fftSignalProcessing.addSample(samples);
-                            processedSamples+=sampleLen;
-                        }
-                    }
-                    if(processedSamples >= fftSignalProcessing
-                            .getWindowSize()) {
-                        FFTSignalProcessing.ProcessingResult measure = fftSignalProcessing
-                                .processSample
-                                (true, false, false);
-                        Byte word = acousticModem.spectrumToWord(acousticModem
-                                .filterSpectrum(Arrays.copyOfRange(measure.getdBaLevels(), FREQ_START, FREQ_START + 8)));
-                        if(word != null) {
-                            long curTime = System.currentTimeMillis();
-                            if( curTime - lastReceivedWordTime > wordDeprecationTime ) {
-                                LOGGER.info("Clear audio modem cache " + wordDeprecationTime + " " +
-                                        "ms");
-                                bytes.reset();
-                            }
-                            LOGGER.info("Receive audio byte :" + word);
-                            int[] index = AcousticModem.byteToWordsIndex(word);
-                            int[] freq1 = acousticModem.getSettings().words[index[0]];
-                            int[] freq2 = acousticModem.getSettings().words[index[1]];
-                            calibrationService.listeners.firePropertyChange(CalibrationService
-                                    .PROP_CALIBRATION_RECEIVE_WORD, null, CalibrationService
-                                    .bytesToHex(new byte[]{word}) + "( " + freq1[0] + "  Hz " +
-                                     freq1[1] + " Hz)(" + freq2[0] + "  Hz " +
-                                     freq2[1] + " Hz)");
-                            bytes.write(word);
-                            lastReceivedWordTime = curTime;
-                            byte[] message = bytes.toByteArray();
-                            while(message.length >= AcousticModem.CRC_SIZE + (Short.SIZE / Byte
-                                    .SIZE + Float.SIZE / Byte.SIZE)) {
-                                if(acousticModem.isMessageCheck(message)) {
-                                    calibrationService.onNewMessage(bytes.toByteArray());
-                                    bytes.reset();
-                                    break;
-                                } else {
-                                    // Skip old messages that may be not well understood
-                                    message = Arrays.copyOfRange(message, 1, message.length);
-                                }
+                    if(buffer != null) {
+                        if (buffer.length <= window.getMaximalBufferSize()) {
+                            // Good buffer size, use it
+                            processSample(buffer);
+                        } else {
+                            // Buffer is too large for the window
+                            // Split the buffer in multiple parts
+                            int cursor = 0;
+                            while (cursor < buffer.length) {
+                                int sampleLen = Math.min(window.getMaximalBufferSize(), buffer.length - cursor);
+                                short[] samples = Arrays.copyOfRange(buffer, cursor, cursor + sampleLen);
+                                cursor += samples.length;
+                                processSample(samples);
                             }
                         }
-                        processedSamples = 0;
                     }
                 }
                 try {

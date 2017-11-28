@@ -264,7 +264,8 @@ public class AcousticModem {
      */
     public Byte spectrumToWord(float[] spectrum) {
         pushedSpectrumCount++;
-        if(pushedSpectrumCount - lastInputWordCount > FORGET_EXPIRED_WORD) {
+        if(lastInputWord != null && pushedSpectrumCount - lastInputWordCount >
+                FORGET_EXPIRED_WORD) {
             lastInputWordCount = pushedSpectrumCount;
             lastInputWord = null;
         }
@@ -282,7 +283,6 @@ public class AcousticModem {
                 if(lastInputWord != null) {
                     byte val = wordsToByte(lastInputWord, word);
                     lastInputWord = null;
-                    lastInputWordCount = pushedSpectrumCount;
                     return val;
                 } else {
                     lastInputWord = word;
@@ -290,6 +290,7 @@ public class AcousticModem {
                     return null;
                 }
             } else {
+                lastInputWordCount = pushedSpectrumCount;
                 return null;
             }
         } else {

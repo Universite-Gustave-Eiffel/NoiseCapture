@@ -84,6 +84,10 @@ public class CalibrationService extends Service implements PropertyChangeListene
     public static final String PROP_CALIBRATION_STATE = "PROP_CALIBRATION_STATE";
     public static final String PROP_CALIBRATION_PROGRESSION = "PROP_CALIBRATION_PROGRESSION"; // Calibration/Warmup progression 0-100
     public static final String PROP_CALIBRATION_REF_LEVEL = "PROP_CALIBRATION_REF_LEVEL"; //
+    public static final String PROP_CALIBRATION_SEND_MESSAGE = "PROP_CALIBRATION_SEND_MESSAGE";
+    public static final String PROP_CALIBRATION_RECEIVE_WORD = "PROP_CALIBRATION_RECEIVE_WORD";
+    public static final String PROP_CALIBRATION_NEW_MESSAGE = "PROP_CALIBRATION_NEW_MESSAGE";
+
     // received ref level
 
 
@@ -284,6 +288,19 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
         new Thread(new PinkNoiseFeed(this, audioTrack, power, length)).start();
     }
+
+    private final static char[] hexArray = "0123456789ABCDEF".toCharArray();
+
+    public static String bytesToHex(byte[] bytes) {
+        char[] hexChars = new char[bytes.length * 2];
+        for ( int j = 0; j < bytes.length; j++ ) {
+            int v = bytes[j] & 0xFF;
+            hexChars[j * 2] = hexArray[v >>> 4];
+            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
+        }
+        return new String(hexChars);
+    }
+
     private void sendMessage(short id, float... data) {
         ByteBuffer byteBuffer = ByteBuffer.allocate((Short.SIZE + Float.SIZE * data.length) /
                 Byte.SIZE);
@@ -293,6 +310,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
         }
         try {
             byte[] messageBytes = acousticModem.encode(byteBuffer.array());
+            listeners.firePropertyChange(CalibrationService
+                    .PROP_CALIBRATION_SEND_MESSAGE, null, bytesToHex(messageBytes));
             LOGGER.info("Send message: " + id + " - " + Arrays.toString(data) + " " + Arrays
                     .toString(messageBytes));
             playMessage(messageBytes);
@@ -305,6 +324,10 @@ public class CalibrationService extends Service implements PropertyChangeListene
         ByteBuffer byteBuffer = ByteBuffer.wrap(data);
         short id = byteBuffer.getShort();
         LOGGER.info("New message id:" + id);
+
+        listeners.firePropertyChange(CalibrationService
+                .PROP_CALIBRATION_NEW_MESSAGE, null, Short.toString(id) + " ("+bytesToHex(data)
+                +")");
         if(id == MESSAGEID_START_CALIBRATION) {
             if(!isHost) {
                 defaultWarmupTime = Math.max(1, (int)byteBuffer.getFloat());
@@ -551,6 +574,14 @@ public class CalibrationService extends Service implements PropertyChangeListene
                                 bytes.reset();
                             }
                             LOGGER.info("Receive audio byte :" + word);
+                            int[] index = AcousticModem.byteToWordsIndex(word);
+                            int[] freq1 = acousticModem.getSettings().words[index[0]];
+                            int[] freq2 = acousticModem.getSettings().words[index[1]];
+                            calibrationService.listeners.firePropertyChange(CalibrationService
+                                    .PROP_CALIBRATION_RECEIVE_WORD, null, CalibrationService
+                                    .bytesToHex(new byte[]{word}) + "( " + freq1[0] + "  Hz " +
+                                     freq1[1] + " Hz)(" + freq2[0] + "  Hz " +
+                                     freq2[1] + " Hz)");
                             bytes.write(word);
                             lastReceivedWordTime = curTime;
                             byte[] message = bytes.toByteArray();

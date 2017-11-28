@@ -51,8 +51,14 @@ public class AcousticModem {
     public static final int DATA_SHARDS = 4;
     public static final int PARITY_SHARDS = 2;
 
+    private int lastInputWordCount = 0;
     private Integer lastInputWord = null;
+    private int pushedSpectrumCount = 0;
+
     private Integer ignoreDuplicateWord = Integer.MAX_VALUE;
+
+    // Number of blank word necessary to clean the word cache
+    private static final int FORGET_EXPIRED_WORD = 4;
 
     public AcousticModem(Settings settings) {
         this.settings = settings;
@@ -257,6 +263,11 @@ public class AcousticModem {
      * @return Byte from spectrum or null if not a new word
      */
     public Byte spectrumToWord(float[] spectrum) {
+        pushedSpectrumCount++;
+        if(pushedSpectrumCount - lastInputWordCount > FORGET_EXPIRED_WORD) {
+            lastInputWordCount = pushedSpectrumCount;
+            lastInputWord = null;
+        }
         // Sort values by power
         Integer[] indexes = new Integer[spectrum.length];
         for(int i=0; i < spectrum.length; i++) {
@@ -271,9 +282,11 @@ public class AcousticModem {
                 if(lastInputWord != null) {
                     byte val = wordsToByte(lastInputWord, word);
                     lastInputWord = null;
+                    lastInputWordCount = pushedSpectrumCount;
                     return val;
                 } else {
                     lastInputWord = word;
+                    lastInputWordCount = pushedSpectrumCount;
                     return null;
                 }
             } else {

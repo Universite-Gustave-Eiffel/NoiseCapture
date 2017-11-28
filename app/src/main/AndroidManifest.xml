@@ -90,7 +90,8 @@
         <activity
             android:name=".CalibrationActivity"
             android:label="@string/title_activity_calibration_start"
-            android:windowSoftInputMode="stateHidden" />
+            android:windowSoftInputMode="stateHidden"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".CalibrationLinearityActivity"
             android:label="@string/title_activity_calibration_linearity"

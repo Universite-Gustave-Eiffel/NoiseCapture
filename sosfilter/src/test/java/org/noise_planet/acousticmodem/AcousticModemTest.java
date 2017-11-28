@@ -180,4 +180,57 @@ public class AcousticModemTest {
         }
     }
 
+
+
+
+
+    @Test
+    public void testEncodeDecodeWithConferenceNoise() throws IOException {
+        int freqStart = 10;
+
+        final int sampleRate = 44100;
+        AcousticModem acousticModem = new AcousticModem(new Settings(44100, 0.200, Settings.wordsFrom8frequencies(UT_FREQUENCIES)));
+        InputStream inputStream = AcousticModemTest.class.getResourceAsStream("signal_anqes2017" +
+                ".raw");
+        int windowSize = (int)(sampleRate * AcousticIndicators.TIMEPERIOD_FAST);
+        FFTSignalProcessing fftSignalProcessing =
+                new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, windowSize);
+        // Read input signal up to buffer.length
+        short[] signal = SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN);
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        for(int windowId = 0; windowId * windowSize < signal.length; windowId++) {
+            fftSignalProcessing.addSample(Arrays.copyOfRange(signal, windowId * windowSize, Math.min(signal.length, windowId * windowSize + windowSize)));
+            FFTSignalProcessing.ProcessingResult result = fftSignalProcessing.processSample(true, false, false);
+            Byte res = acousticModem.spectrumToWord(acousticModem.filterSpectrum(Arrays.copyOfRange(result.getdBaLevels(), freqStart, freqStart + 8)));
+            if(res != null) {
+                byteArrayOutputStream.write(res);
+            }
+        }
+
+        byte[] receivedBytes = byteArrayOutputStream.toByteArray();
+
+
+        assertTrue(acousticModem.isMessageCheck(receivedBytes));
+
+        Message message = new Message(acousticModem.decode(receivedBytes));
+
+        assertEquals(1, message.id);
+        assertEquals(10, message.args.get(0), 0);
+        assertEquals(10, message.args.get(1), 0);
+
+    }
+
+
+    private static class Message {
+        final short id;
+        final List<Float> args = new ArrayList<>();
+
+        public Message(byte... data) {
+            ByteBuffer byteBuffer = ByteBuffer.wrap(data);
+            id = byteBuffer.getShort();
+            while(byteBuffer.hasRemaining()) {
+                args.add(byteBuffer.getFloat());
+            }
+        }
+    }
 }

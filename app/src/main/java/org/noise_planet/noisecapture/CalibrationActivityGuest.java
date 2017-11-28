@@ -34,6 +34,8 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.WindowManager;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -50,6 +52,8 @@ public class CalibrationActivityGuest extends MainActivity implements PropertyCh
     private TextView textReferenceLevel;
     private TextView textMeasurementLevel;
     private ProgressBar progressBar_wait_calibration_recording;
+    private ListView calibrationLog;
+    private ArrayAdapter<String> listAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,7 +66,9 @@ public class CalibrationActivityGuest extends MainActivity implements PropertyCh
         textStatus = (TextView) findViewById(R.id.calibration_state);
         textMeasurementLevel = (TextView) findViewById(R.id.spl_measured);
         textReferenceLevel = (TextView) findViewById(R.id.spl_ref_measured);
-
+        calibrationLog = (ListView) findViewById(R.id.calibration_log);
+        listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
+        calibrationLog.setAdapter(listAdapter);
 
         if(checkAndAskPermissions()) {
             doBindService();
@@ -133,6 +139,30 @@ public class CalibrationActivityGuest extends MainActivity implements PropertyCh
                     double gain = Math.round((referenceLeq - calibrationService.getleq()) * 100.) / 100.;
                     Toast.makeText(getApplicationContext(),
                             getString(R.string.calibrate_done, gain), Toast.LENGTH_LONG).show();
+                }
+            });
+        } else if(CalibrationService.PROP_CALIBRATION_RECEIVE_WORD.equals(event.getPropertyName())) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    listAdapter.insert(getString(R.string.calibration_log_receive_word, event
+                            .getNewValue()), 0);
+                }
+            });
+        } else if(CalibrationService.PROP_CALIBRATION_SEND_MESSAGE.equals(event.getPropertyName())) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    listAdapter.insert(getString(R.string.calibration_log_send_message, event
+                                    .getNewValue()), 0);
+                }
+            });
+        } else if(CalibrationService.PROP_CALIBRATION_NEW_MESSAGE.equals(event.getPropertyName())) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    listAdapter.insert(getString(R.string.calibration_log_receive_message, event
+                            .getNewValue()), 0);
                 }
             });
         }

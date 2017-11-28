@@ -42,7 +42,7 @@ public class Settings {
         return frequencyTupleToWordIndex.get(new FrequencyIndex(freqA, freqB));
     }
 
-    final int[][] words;
+    public final int[][] words;
 
     public final Integer[] frequencies;
 

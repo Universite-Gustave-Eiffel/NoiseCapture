@@ -309,4 +309,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_menu_text_receive">從另一個已校準的智能手機校準您的智能手機。</string>
     <string name="calibration_menu_text_host">使用您自己的智能手機來校准其他智能手機。</string>
     <string name="calibration_host_warning">发件人手机需要连接外部音频输出。 发送方和接收方设备必须等同于外部音频输出。</string>
+    <string name="calibration_log_receive_word">%s</string>
+    <string name="calibration_log_send_message">Send: %s</string>
+    <string name="calibration_log_receive_message">%s</string>
 </resources>

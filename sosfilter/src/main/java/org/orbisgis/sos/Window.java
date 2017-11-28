@@ -49,9 +49,14 @@ public class Window {
     public Window(WINDOW_TYPE window, int samplingRate, double[] standardFrequencies,
                   double windowTime, boolean aWeighting,
                   double dbFsReference,boolean outputThinFrequency) {
-        if(window == WINDOW_TYPE.HANN) {
-            overlap = 0.63;
-        }
+
+        this(window, samplingRate, standardFrequencies, windowTime, aWeighting, dbFsReference,
+                outputThinFrequency, window == WINDOW_TYPE.HANN ? 0.63 : 0);
+    }
+    public Window(WINDOW_TYPE window, int samplingRate, double[] standardFrequencies,
+                  double windowTime, boolean aWeighting,
+                  double dbFsReference,boolean outputThinFrequency, double overlap) {
+        this.overlap = overlap;
         this.signalProcessing = new FFTSignalProcessing(samplingRate, standardFrequencies,
                 (int)(samplingRate * windowTime), dbFsReference);
         this.window = window;

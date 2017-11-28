@@ -347,12 +347,12 @@ public class AudioProcess implements Runnable {
         private AtomicBoolean processing = new AtomicBoolean(false);
         private Window window;
         private double leq = 0;
-        private int lastPushIndex = 0;
         private String propertyName;
         private double timePeriod;
         private boolean Aweighting;
         private long pushedSamples = 0;
         private long processedSamples = 0;
+        private int lastPushIndex = 0;
 
         // Output only frequency response on this sample rate on the real time result (center + upper band)
         private float[] thirdOctaveSplLevels;

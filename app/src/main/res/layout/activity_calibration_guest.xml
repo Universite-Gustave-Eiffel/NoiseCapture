@@ -124,6 +124,11 @@
             android:text="@string/SL_dB"
             android:textSize="20sp"/>
     </LinearLayout>
+    <ListView
+        android:id="@+id/calibration_log"
+        android:layout_weight="1"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"/>
 </LinearLayout>
 
     <ListView

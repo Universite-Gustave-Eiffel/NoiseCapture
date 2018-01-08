@@ -130,12 +130,9 @@ def getStatistics(Connection connection) {
 
     // Compute last x weeks names
     def week_tracks_date = []
-    for(int i=6; i >= 0; i--) {
-        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("UTC"));
-        use(TimeCategory) {
-            calendar.setTime(new Date() - i.week);
-        }
-        week_tracks_date.add(calendar.get(Calendar.YEAR) + "-" + calendar.get(Calendar.WEEK_OF_YEAR))
+    sql.eachRow("select to_char(record_utc, 'YYYY-WW') year_week from noisecapture_track nt where record_utc > NOW()::date - 7 * 7 group by year_week order by year_week") {
+        record ->
+        week_tracks_date.add(record.year_week as String)
     }
 
     def countries_dict = [:]

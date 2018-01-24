@@ -208,7 +208,12 @@ public class MeasurementManager {
                     Float[] leqArray = new Float[stringTokenizer.countTokens()];
                     int i = 0;
                     while (stringTokenizer.hasMoreTokens()) {
-                        leqArray[i++] = Float.valueOf(stringTokenizer.nextToken());
+                        try {
+                            leqArray[i] = Float.valueOf(stringTokenizer.nextToken());
+                        } catch (NumberFormatException ex) {
+                            leqArray[i] = Float.MIN_VALUE;
+                        }
+                        i++;
                     }
                     leqs.add(leqArray);
                     if(progressionCallBack != null) {

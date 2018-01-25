@@ -1,0 +1,315 @@
+<resources>
+
+    <string name="app_name">NoiseCapture</string>
+
+    <string name="action_settings">Arventennoù</string>
+    <string name="comment_cancel_change">Nullañ</string>
+    <string name="comment_save_change">Enrollañ</string>
+    <string name="comment_delete_record">Dilemel</string>
+    <string name="comment_title_save_change">Enrollañ ar cheñchamantoù?</string>
+    <string name="comment_title_delete">Dilemel ar muzul?</string>
+    <string name="history_title_delete">Dilemel ar muzul(ioù) diuzet?</string>
+
+    <string name="record_message">Pouezit ar bouton enrollañ da gregiñ ganti</string>
+    <string name="calibrate_done">Stalonadur graet, lakaet eo ar gounid da %1$.1f dB</string>
+    <string name="calibration_out_bounds_title">Re izel emañ live an trouz</string>
+    <string name="calibration_out_bounds">Digenglotus eo al live stalonadur son gant bevennoù an dafar, rankout a ra bezañ etre %1$.0f dB ha(g) %2$.0f dB</string>
+    <string name="calibration_save_change">Na ober van hag arloañ</string>
+    <string name="calibration_cancel_change">Nullañ</string>
+    <string name="fail_share">C\'hwitet ez eus bet war c\'heneladur ar restr rannet</string>
+    <string name="no_results">N\'eus disoc\'h ebet. Krogit gant un enrolladenn a-raok.</string>
+    <string name="no_gps_results">Davenn GPS ebet e-barzh an enrolladenn-mañ</string>
+    <string name="no_gps_hint">GPS ebet</string>
+    <string name="gps_hint_precision">%1$d m</string>
+    <string name="loc_hint">Titenn diwar-benn statud al lec\'hiadur</string>
+    <string name="permission_explain_audio_record">NoiseCapture a rekis ur mikrofon a implij un aotre evit muzulioù aodio</string>
+    <string name="permission_explain_gps">NoiseCapture a rekis ul lec\'hiadur GPS evit lec\'helaat al live war ar gartenn</string>
+    <string name="permission_explain_access_wifi_state">NoiseCapture a rekis un aotren da dizhout
+        ar statud wifi evit chom hep treuzkas roadennoù ma n\'hoc\'h ket kevreet en ur implij ar wifi</string>
+
+    <string name="title_menu">Lañser</string>
+    <string name="title_service_measurement">Muzul</string>
+    <string name="title_activity_measurement">Muzul</string>
+    <string name="title_activity_results">Disoc\'hoù</string>
+    <string name="title_activity_history">Rol-Istor</string>
+    <string name="title_activity_about">Diwar-benn</string>
+    <string name="user_id_activity_about">ID an implijer</string>
+    <string name="title_activity_help">Skoazel</string>
+    <string name="title_appversion">Stumm %1$s%2$s r.%3$s</string>
+
+    <!-- Caution dialog box at app launch !-->
+    <string name="text_OK">YA, kompren a ran</string>
+    <string name="title_caution">Taolit evezh</string>
+    <string name="text_caution">Dalc\'hit soñj ne erlec\'hio morse an arload-mañ ur muzulier son sertifiet ha stalonet.</string>
+
+    <!-- Caution dialog box for data transfer !-->
+    <string name="text_CANCEL_data_transfer">Nullañ</string>
+    <string name="no_valid_dba_value">-</string>
+
+    <string name="SL_dBA">dB(A)</string>
+    <string name="SL_dB">dB</string>
+
+    <string name="hello_world">Deiz mat ar bed!</string>
+    <string name="title_settings_calibration_warmup_time">Amzer rak-tommañ ar stalonadur</string>
+    <string name="title_settings_calibration_warmup_time_description">Amzer c\'hortoz en eilennoù a-raok na stalonfe</string>
+    <string name="title_settings_calibration_time">Amzer stalonadur</string>
+    <string name="title_settings_calibration_time_description">Amzer stalonadur en eilennoù</string>
+    <string name="title_settings_calibration_linear_title">Ezvont an aodio</string>
+    <string name="title_settings_calibration_linear_description">Ezvont an trevnad evit an amprouennoù keñverek lineel</string>
+    <string name="setting_general_group">Hollek</string>
+    <string name="setting_measurement_group">Muzul</string>
+    <string name="setting_calibration_group">Stalonadur</string>
+    <string name="title_settings_data_transfer">Treuzkasadenn roadennoù</string>
+    <string name="summary_settings_data_transfer">Em-zreuskasadenn ar muzulioù</string>
+    <string name="title_settings_transfer_wifi_only">Wifi hepken</string>
+    <string name="summary_settings_transfer_wifi_only">Em-zreuskasadenn dre ar wifi hepken</string>
+    <string name="title_settings_recording">Oc\'h enrollañ</string>
+    <string name="summary_settings_recording">Lakait an amzer enrollañ maksimom </string><string name="title_settings_caution">Gerig kemenniñ</string>
+    <string name="summary_settings_tooltip">Kochit evit diskouez al lagadenn-ditouriñ pa douchit elfennoù e-barzh Noisecapture</string>
+    <string name="title_settings_tooltip">Gerig ditouriñ</string>
+    <string name="summary_settings_caution">Kochit evit diskouez ar gemennadenn diwall en ur loc\'hañ an arload</string>
+    <string name="title_settings_recording_duration">Padelezh an enrolladenn</string>
+
+
+    <string name="title_settings_recording_gain">Gounid sinal</string>
+    <string name="summary_settings_recording_gain">Termenit gounid ar signal stalonadur en dB</string>
+
+    <string name="title_settings_spectrogram_logscalemode">Diskwel ar spektrogram</string>
+    <string name="title_settings_delete_leq_on_pause">Dilemel Leq war ehan</string>
+    <string name="title_settings_delete_leq_on_pause_description">War ehan dilemel an eilennoù enrollet da ziwezhañ</string>
+    <string name="summary_settings_spectrogram_logscalemode">Gwirit skeul ar frekañsoù er renabl, digochit evit lineel</string>
+    <string name="summary_settings_recording_duration">Termenit padelezh an enrolladenn (en eilennoù)</string>
+    <string name="measurement_dba_min">Min</string>
+    <string name="measurement_dba_max">Max</string>
+    <string name="measurement_dba_mean">Talvezout</string>
+    <string name="measurement_dba_la10">LA10</string>
+    <string name="measurement_dba_la50">LA50</string>
+    <string name="measurement_dba_la90">LA90</string>
+    <string name="measurement_tab_spectrum">Spektrom</string>
+    <string name="measurement_tab_spectrogram">Spektrogram</string>
+    <string name="measurement_tab_map">Kartenn</string>
+
+    <!--  Ressources for the spinner calibration !-->
+
+    <!--  Ressources for the spinner map !-->
+
+    <!--  Ressources for the spinner history
+          History:HistoryItemListener:onItemClick remove the first entry (upload) !-->
+    <string-array name="choice_user_history">
+        <item>Uskargañ d\'ar gumuniezh</item>
+        <item>Ezporzhiañ an disoc\'h</item>
+        <item>Embann an deskrivadur</item>
+        <item>Diskouez an disoc\'h</item>
+        <item>Diskouez war ar gartenn</item>
+        <item>Dilemel</item>
+    </string-array>
+
+    <!--  Ressources for the Drawer and option menu !-->
+    <string-array name="dm_list_array">
+        <item>Muzul</item>
+        <item>Deskrivadur</item>
+        <item>Disoc\'hoù</item>
+        <item>Rol-Istor</item>
+        <item>Kartenn</item>
+        <item>Stalonadur</item>
+        <item>Skoazell</item>
+        <item>Diwar-benn</item>
+    </string-array>
+    <string name="result_share">Rannañ an disoc\'h-mañ</string>
+    <string name="result_button_map">Diskouez ar gartenn</string>
+    <string name="result_button_upload">Uskargañ</string>
+    <string name="result_tooltip_minsl">1 eilenn minimom a live trouz dazpouezel</string>
+    <string name="result_tooltip_maxsl"> 1 eilenn maksimom a live trouz dazpouezel</string>
+    <string name="result_tooltip_la10">LA10: Live an trouz dazpouezet dibasaet eus 10% evit ar
+          mare muzuliañ. LA10 a zo un deskriver trouz trafik a zo war an hent servijus-kenañ, liammet eo gant an trouz.</string>
+    <string name="result_tooltip_la50">LA50: Live an trouz dazpouezet dibasaet eus 50% evit ar
+          mare muzuliañ. LA50 a zo al live trouz kreiz</string>
+    <string name="result_tooltip_la90">LA50: Live an trouz dazpouezet dibasaet eus 90% evit ar
+          mare muzuliañ. LA90 a zo a zo un deskriver trouz da gementadiñ al live trouz a zo en drek-leur</string>
+    <string name="drawer_open">Digeriñ an diretenn verdeiñ</string>
+    <string name="drawer_close">Serriñ an diretenn verdeiñ</string>
+    <string name="url_about">file:///android_asset/html/about.html</string>
+    <string name="url_help">file:///android_asset/html/help.html</string>
+
+    <!--  Ressources for acoustics !-->
+    <string name="caption_SL">Live ar  son</string>
+    <string-array name="catNE_list_array">
+        <item>Brasañ 75 dB(A)</item>
+        <item>65-75 dB(A)</item>
+        <item>55-65 dB(A)</item>
+        <item>45-55 dB(A)</item>
+        <item>Bihanañ 45 dB(A)</item>
+    </string-array>
+    <!-- Add new tags at the end, update also this array Storage.TAGS -->
+    <string-array name="tags">
+        <item>TEST</item>
+        <item>Glav</item>
+        <item>Avel</item>
+        <item>E-barzh</item>
+        <item>Trouz pazioù</item>
+        <item>Mouezh</item>
+        <item>Naturel</item>
+        <item>Mekanikel</item>
+        <item>Denel</item>
+        <item>Labourioù</item>
+        <item>Aer t.</item>
+        <item>Dudi</item>
+        <item>Bugale</item>
+        <item>Sonerezh</item>
+        <item>Hent</item>
+        <item>Hent-houarn</item>
+        <item>Mor</item>
+        <item>Alarmoù</item>
+        <item>Industriel</item>
+        <item>Dour</item>
+        <item>Loened</item>
+        <item>Glasvez</item>
+    </string-array>
+    <string name="title_activity_main">OberiantizPennañ</string>
+
+    <string name="title_activity_view_html_page">View_html_page</string>
+    <string name="title_activity_settings">Arventennoù</string>
+    <string name="title_activity_map">Kartenn</string>
+    <string name="title_activity_start">Noise Capture</string>
+    <string name="title_activity_calibration_start">Stalonadur</string>
+    <string name="title_activity_calibration_linearity">Amprouenn keñverek lineel</string>
+    <string name="title_activity_menu_calibration">Hentennoù stalonadur</string>
+
+    <string name="title_activity_calibration_host">Em-stalonadur (kaser)</string>
+    <string name="title_activity_calibration_peer">Em-stalonadur (resever)</string>
+
+
+    <string name="start_text_title">NoiseCapture</string>
+    <string name="start_text_subtitle">O vuzuliañ son hoc\'h endro</string>
+    <string name="start_text_developed_by">Diorroet gant</string>
+    <string name="start_text_supported_by">Skoret gant</string>
+    <string name="upload_progress_title">Oc\'h uskargañ&#8230;</string>
+    <string name="upload_progress_message">Uskargañ ar muzul</string>
+
+    <string name="history_length">%d s</string>
+    <string name="history_date">- %s</string>
+    <string name="history_already_uploaded">Ar muzul-mañ a zo uskarget endeo</string>
+    <string name="history_sel">%.01f dB(A)</string>
+    <string name="history_upload_top">Uskargañ</string>
+    <string name="history_uploadeddescr">Hag uskarget eo bet an disoc\'h-mañ e-barzh diaz-roadennoù ar gumuniezh?</string>
+
+    <string name="measurement_processlastsamples">Tretadur a choù %d samples&#8230;</string>
+    <string name="history_item_choice_title">Muzul %s</string>
+    <string name="calibration_select_frequency">Diskouez ar frekañs da ziskouez</string>
+    <string name="local_service_started">Servij lec\'helaat loc\'het</string>
+    <string name="measurement_service_disconnected">Servij muzuliañ digevreet</string>
+    <string name="measurement_pause">Muzul ehanet</string>
+    <string name="delete">Dilemel</string>
+    <string name="hint_userinput">Pouezit amañ evit termeniñ un deskrivadur</string>
+    <string name="no_data_text_description">Krogit en ur bouezañ war ar bouton enrollañ</string>
+    <string name="export_zip_info">Ezporzhiañ an dielloù deskrivadur\n\n
+meta.properties restroù a zo titouroù hollek diwar-benn an trevnadhag hag an enrollennoù:\n
+- version_name Major, minor ha stumm adwel\n
+- build_date Deiziad an emvod APK\n
+- version_number Stumm enframmer Arload\n
+- time_length Hirder an enrolladennoù en eilennoù\n
+- uuid Anaouder dre-zegouezh termenet war loc\'hadur kentañ an arload\n
+- leq_mean Talvezout live sonioù kevatal e dB(A) evit ar muzul\n
+- record_utc Amzer enrollañ epoch en milisegondenn\n
+- device_manufacturer device_model device_product Geneladur Hardware titouroù an trevnad muzulioù\n
+- chalm an Implijer lec\'h chalmoù 1-100\n
+- liketennoù Skej talvoudegezhioù skejet talvoudegezhioù un implijer liketennoù diuzet (saozneg hepken)\n
+- user_profile Gouiziegezh gant an implijer en akoustik MANN, DERAOUAD, MAILHT\n
+- noiseparty_tag Record NoiseParty identifier\n\n
+
+track.geojson 1s samples of measures. Using the geojson format (http://geojson.io)\n
+- leq_mean 1s mean equivalent sound level in dB(A)\n
+- accuracy Localisation precision in m (provided by gps, network or gsm)\n
+- location_utc Localisation fix time in epoch millisecond\n
+- leq_utc Measure time in epoch millisecond\n
+- leq_id Unique identifier of record\n
+- marker_color Color used by geojson.io\n
+- bearing Movement orientation.See https://developer.android.com/reference/android/location/Location.html#getBearing()\n
+- speed Estimated device speed in m/s\n
+- leq_frequency 1s mean equivalent sound level in dB(A) for the specified frequency\n</string>
+    <string name="title_activity_comment">Deskrivadur</string>
+    <string name="userinfo_unpleasant">Displijus</string>
+    <string name="userinfo_pleasant">Plijus</string>
+    <string name="calibration_status_waiting_for_user_start">O c\'hortoz war-lerc\'h stalonadur loc\'hadur&#8230;</string>
+    <string name="calibration_status_waiting_for_start_timer">Ar stalonadur a zo war-nes loc\'hañ&#8230;</string>
+    <string name="calibration_status_send_parameters">Kas stalonadur arventennoù&#8230;</string>
+    <string name="calibration_status_receive_reference">O c\'hortoz war-lerc\'h an dalvoudegezh&#8230;</string>
+    <string name="calibration_status_cooldown">Stalonadur graet, kas menegoù an dalvoudegezh&#8230;</string>
+    <string name="userinfo_button_measure">Muzul</string>
+    <string name="userinfo_button_results">Gwiriek</string>
+    <string name="userinfo_tags">Mammennoù pennañ</string>
+    <string name="calibration_status_on">Stalonadur&#8230;</string>
+    <string name="calibration_linear_status_on">Stalonadur da %1$.0f</string>
+    <string name="calibration_status_end">Stalonadur graet</string>
+    <string name="calibration_status_background_noise">O vuzuliañ trouz an endro</string>
+    <string name="calibration_button_start">Loc\'hañ</string>
+    <string name="calibration_button_cancel">Nullañ</string>
+    <string name="calibration_leq_title">Muzul Leq:</string>
+    <string name="calibration_measure_title">Talvoudegezh referañs:</string>
+    <string name="calibration_button_apply">Arloañ</string>
+    <string name="calibration_button_reset">Adderaouekaat</string>
+    <string name="calibration_test_gain_checkbox">Testiñ adarre</string>
+    <string name="calibration_mode">Mod stalonadur</string>
+    <string-array name="calibrate_type_list_array">
+        <item>Global</item>
+        <item>125 Hz</item>
+        <item>250 Hz</item>
+        <item>500 Hz</item>
+        <item>1 kHz</item>
+        <item>4 kHz</item>
+        <item>8 kHz</item>
+        <item>16 kHz</item>
+    </string-array>
+    <string name="share_message">Muzuliañ a ran %.01f dB(A) oc\'h ober gant #NoiseCapture @Noise_Planet</string>
+    <string name="summary_settings_measurement_display_window">Arc\'hweladur ar prenestr evit ar muzuliadenn en amzer wirion (nann-implijet evit an disoc\'h er fin)</string>
+    <string name="title_settings_measurement_display_window">Prenestr en amzer wirion</string>
+    <string name="title_settings_map_maxmarker">Bevennoù ar muzulioù diskouezet</string>
+    <string name="summary_settings_map_maxmarker">Niver a vuzulioù maksimom diskouezet war ar gartenn (0 evit an holl vuzulioù)</string>
+    <string name="map_title_progress_loading">O kargañ lec\'hiadurioù ar muzulioù</string>
+    <string name="policy_legal_age">Bez em eus an oad rekiset evit ober gant an arload-mañ</string>
+    <string name="policy_agree_statement">Sevel a ran a-du gant Politikerezh Prevezded NoiseCapture</string>
+    <string name="policy_button_continue">Kenderc\'hel</string>
+    <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
+    <string name="privacy_policy_title">Politikerezh ar Vuhez Prevez</string>
+    <string name="calibration_warning">An argerzhadur stalonadur a c\'houlenn an implij un trevnad stalonaet evel ur sonometr pe ur poellgomzer stalonaet. Evit muioc\'h a ditouroù, daveiñ da <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">bajenn skoazell</a> an arload</string>
+    <string name="notification_record_content">Muzuliadenn war ober... %1$.1f dB(A)</string>
+    <string name="result_title_progress_loading">O kargañ ar muzulioù</string>
+    <string name="userinfo_tags_measurement_conditions">Divizoù ar muzulioù</string>
+    <string name="notification_goto_community_map_title">Muzulioù ar gumuniezh</string>
+
+    <string-array name="output_mode_labels">
+        <item>Pellgomzadenn</item>
+        <item>Son ar sistem</item>
+        <item>Son</item>
+        <item>Sonerezh</item>
+        <item>Alarm</item>
+        <item>Kemennoù</item>
+        <item>DTMF</item>
+    </string-array>
+    <string-array name="settings_display_measurement_window_labels">
+        <item>Skouergornek</item>
+        <item>Hann</item>
+    </string-array>
+    <string name="notification_goto_community_map">Gweladennit http://noise-planet.org, merdeit war kartenn an holl vuzuliadennoù bet graet gant ar gumuniezh</string>
+    <string name="title_settings_notification_links">Kemennoù</string>
+    <string name="summary_settings_notification_links">Kochit evit diskouez al liamm kemmennoù betek lec\'hienn Noise-Planet</string>
+    <string name="settings_category_profile">Profil an implijer</string>
+    <string name="title_settings_user_noise_knowledge">Profil an implijer</string>
+    <string name="settings_user_noise_knowledge_description">Penaos e rit evit priziañ ho kouizigezhioù war sonioù an endro?</string>
+    <string name="hint_userinput_noiseparty_tag">Kod party NoiseCapture</string>
+    <string-array name="knowledge">
+        <item>N\'am eus gouiziegezh ebet er vaezienn drouz</item>
+        <item>Bez em un darn a ouiziegezhioù er vaezienn drouz</item>
+        <item>Ur mailh on war ar vaezienn trouz</item>
+    </string-array>
+    <string name="calibration_menu_btn_manual">Dornlevr ar stalonadur</string>
+    <string name="calibration_menu_btn_guest">Em-stalonadur (resever)</string>
+    <string name="calibration_menu_btn_host">Em-stalonadur (kaser)</string>
+    <string name="calibration_menu_text_manual">Implijit un trevnad dave diavaez (sonometr, stalonader son) evit staloniñ ho poellgomzer.</string>
+    <string name="calibration_menu_text_receive">Stalonit ho poellgomzer diouzh ur poellgomzer stalonet endeo.</string>
+    <string name="calibration_menu_text_host">Implijit ho poellgomzer dec\'h-c\'hwi hoc\'h-unan evit staloniñ poellgomzerioù all.</string>
+    <string name="calibration_host_warning">An hezoug kaser en deus ezhomm da vezañ kevreet gant un ezvont aodio diavaez. An trevnadioù kaser ha resever a rank bezañ louc\'het d\'an ezvont aodio diavaez.</string>
+    <string name="calibration_log_receive_word">Ton: %s</string>
+    <string name="calibration_log_send_message">Kaset: %s</string>
+    <string name="calibration_log_receive_message">Gerig: %s</string>
+</resources>

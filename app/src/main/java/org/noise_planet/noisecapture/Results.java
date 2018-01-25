@@ -301,8 +301,17 @@ public class Results extends MainActivity {
             hashtags.append(record.getNoisePartyTag());
         }
         //@see https://dev.twitter.com/web/tweet-button/web-intent
+        // Compute position of this measurement
+        double[] coordinates = measurementManager.getRecordCenterPosition(record.getId(), 15);
+        String append = "";
+        if(coordinates != null) {
+            append += "&url=" + Uri.encode("http://noise-planet.org/map_noisecapture/index" +
+                    ".html#18/"+String.format(Locale.ROOT, "%.5f",
+                    coordinates[0]) +"/" + String.format(Locale.ROOT, "%.5f",coordinates[1])) + "/";
+        }
         String url = "http://www.twitter.com/intent/tweet?via=Noise_Planet&hashtags="+hashtags.toString() +
-                "&text=" + Uri.encode(getString(R.string.share_message, record.getLeqMean()));
+                "&text=" + Uri.encode(getString(R.string.share_message, record.getLeqMean())) +
+                append;
         Intent i = new Intent(Intent.ACTION_VIEW);
         i.setData(Uri.parse(url));
         if (mShareActionProvider == null) {

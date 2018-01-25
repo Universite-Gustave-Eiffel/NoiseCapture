@@ -16,7 +16,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 24
         versionCode 34
-        versionName "1.1.1"
+        versionName "1.1.2"
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""

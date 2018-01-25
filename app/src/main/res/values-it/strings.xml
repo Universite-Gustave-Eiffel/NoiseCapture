@@ -256,7 +256,7 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
         <item>8 kHz</item>
         <item>16 kHz</item>
     </string-array>
-    <string name="share_message">Sto misurando %.01f dB(A) con #NoiseCapture @Noise_Planet</string>
+    <string name="share_message">Sto misurando %.01f dB(A) con #NoiseCapture</string>
     <string name="summary_settings_measurement_display_window">Funzione finestra per misurazione in tempo reale (non utilizzata per il risultato finale)</string>
     <string name="title_settings_measurement_display_window">Finestra in tempo reale</string>
     <string name="title_settings_map_maxmarker">Limiti di misura visualizzati</string>

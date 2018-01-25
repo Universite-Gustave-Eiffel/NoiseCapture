@@ -244,6 +244,32 @@ public class MeasurementManager {
         return getRecordLocations(recordId, withCoordinatesOnly, limitation, null, null);
     }
 
+    /**
+     * Return record center position
+     *
+     * @param recordId    record identifier
+     * @param maxAccuracy ignore measurements with
+     * @return
+     */
+    public double[] getRecordCenterPosition(int recordId, double maxAccuracy) {
+        SQLiteDatabase database = storage.getReadableDatabase();
+        Cursor cursor = database.rawQuery("SELECT AVG(" +
+                Storage.Leq.COLUMN_LATITUDE + ") LATAVG, AVG(" +
+                Storage.Leq.COLUMN_LONGITUDE + ") LONGAVG FROM " + Storage.Leq.TABLE_NAME + " L " +
+                "WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND " + Storage.Leq
+                .COLUMN_ACCURACY + " BETWEEN 1 AND " +
+                "? ", new String[]{String.valueOf(recordId), String.valueOf(maxAccuracy)});
+
+        try {
+            if (cursor.moveToNext()) {
+                return new double[]{cursor.getDouble(0), cursor.getDouble(1)};
+            }
+        } finally {
+            cursor.close();
+        }
+        return null;
+    }
+
 
     public int getRecordLocationsCount(int recordId, boolean withCoordinatesOnly) {
         SQLiteDatabase database = storage.getReadableDatabase();

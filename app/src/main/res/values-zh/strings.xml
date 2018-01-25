@@ -260,7 +260,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>8 kHz</item>
         <item>16 kHz</item>
     </string-array>
-    <string name="share_message">我使用#NoiseCapture测出%.01fdB(A) @Noise_Planet</string>
+    <string name="share_message">我使用#NoiseCapture测出%.01fdB(A)</string>
     <string name="summary_settings_measurement_display_window">实时测量窗口函数（最终结果未使用）</string>
     <string name="title_settings_measurement_display_window">实时窗口</string>
     <string name="title_settings_map_maxmarker">显示测量极限</string>

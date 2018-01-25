@@ -260,7 +260,7 @@ track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.
         <item>8 kHz</item>
         <item>16 kHz</item>
     </string-array>
-    <string name="share_message">Ich messe %.01f dB(A) mit #NoiseCapture @Noise_Planet</string>
+    <string name="share_message">Ich messe %.01f dB(A) mit #NoiseCapture</string>
     <string name="summary_settings_measurement_display_window">Fensterfunktion für Echtzeitmessung (wird für das Endergebnis nicht verwendet)</string>
     <string name="title_settings_measurement_display_window">Echtzeitfenster</string>
     <string name="title_settings_map_maxmarker">Angezeigte Messgrenzen</string>

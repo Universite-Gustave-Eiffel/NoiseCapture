@@ -112,6 +112,10 @@ def static Integer processFile(Connection connection, File zipFile, boolean stor
             Integer.valueOf(meta.getProperty("pleasantness")) <= 100)) {
         throw new InvalidParameterException("Wrong pleasantness \"" + meta.getProperty("pleasantness") + "\"")
     }
+    // Maximum 15 minutes of time ahead of server time
+    if(Long.valueOf(meta.getProperty("record_utc")) > System.currentTimeMillis() + (15*60*1000)) {
+        throw new InvalidParameterException("Wrong time, superior than server time \"" + epochToRFCTime(Long.valueOf(meta.getProperty("record_utc"))) + "\"")
+    }
 
     def noisecaptureVersion = Integer.valueOf(meta.getProperty("version_number"));
 

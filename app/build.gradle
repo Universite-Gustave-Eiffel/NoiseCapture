@@ -6,7 +6,7 @@ def getCheckedOutGitCommitHash() {
 
 android {
     compileSdkVersion 24
-    buildToolsVersion "24.0.2"
+    buildToolsVersion '25.0.2'
     def signingFilePath = System.getProperty("user.home")+ "/.idea/signing.gradle"
     if(new File(signingFilePath).exists()) {
         apply from: signingFilePath
@@ -50,6 +50,10 @@ android {
             }
         }
     }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
 }
 
 // For using the MPAndroidChart package
@@ -57,6 +61,9 @@ android {
 // Apache License, Version 2.0
 
 repositories {
+    flatDir {
+        dirs 'libs'
+    }
     maven {
         url "https://jitpack.io"
     }
@@ -69,6 +76,8 @@ repositories {
 dependencies {
     compile 'com.github.PhilJay:MPAndroidChart:v2.2.5'
     compile 'org.slf4j:slf4j-simple:1.7.12'
+    compile name: 'openwarble-0.1'
+    compile name: 'gcc-runtime-0.9.2616'
     // multithreaded FFT for realtime visualisation of spectrum only
     compile 'com.github.wendykierp:JTransforms:3.1'
     compile 'org.apache.commons:commons-math3:3.5'

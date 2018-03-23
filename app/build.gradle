@@ -59,6 +59,12 @@ android {
 // For using the MPAndroidChart package
 // https://github.com/PhilJay/MPAndroidChart
 // Apache License, Version 2.0
+task listrepos {
+    doLast {
+        println "Repositories:"
+        project.repositories.each { println "Name: " + it.name + "; url: " + it.url }
+    }
+}
 
 repositories {
     flatDir {
@@ -76,8 +82,8 @@ repositories {
 dependencies {
     compile 'com.github.PhilJay:MPAndroidChart:v2.2.5'
     compile 'org.slf4j:slf4j-simple:1.7.12'
-    compile name: 'openwarble-0.1'
-    compile name: 'gcc-runtime-0.9.2616'
+    compile name: 'org/noise-planet/openwarble/1.0-SNAPSHOT/openwarble-1.0-SNAPSHOT'
+    compile name: 'org/noise-planet/gcc-runtime/1.0.0-SNAPSHOT/gcc-runtime-1.0.0-SNAPSHOT'
     // multithreaded FFT for realtime visualisation of spectrum only
     compile 'com.github.wendykierp:JTransforms:3.1'
     compile 'org.apache.commons:commons-math3:3.5'

@@ -82,8 +82,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
     public static final String PROP_CALIBRATION_PROGRESSION = "PROP_CALIBRATION_PROGRESSION"; // Calibration/Warmup progression 0-100
     public static final String PROP_CALIBRATION_REF_LEVEL = "PROP_CALIBRATION_REF_LEVEL"; //
     public static final String PROP_CALIBRATION_SEND_MESSAGE = "PROP_CALIBRATION_SEND_MESSAGE";
-    public static final String PROP_CALIBRATION_RECEIVE_WORD = "PROP_CALIBRATION_RECEIVE_WORD";
     public static final String PROP_CALIBRATION_NEW_MESSAGE = "PROP_CALIBRATION_NEW_MESSAGE";
+    public static final String PROP_CALIBRATION_RECEIVE_PITCH = "PROP_CALIBRATION_RECEIVE_PITCH";
+    public static final String PROP_CALIBRATION_RECEIVE_ERROR = "PROP_CALIBRATION_RECEIVE_ERROR";
 
     // received ref level
 
@@ -95,17 +96,12 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private AtomicBoolean recordingModem = new AtomicBoolean(true);
     private AtomicBoolean canceled = new AtomicBoolean(false);
 
-    private static final double WORD_TIME_LENGTH = 0.200;
-
     private int defaultWarmupTime;
     private int defaultCalibrationTime;
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationService.class);
 
     public static final int COUNTDOWN_STEP_MILLISECOND = 125;
 
-    public static final double AUDIO_MODEM_WINDOW_TIME = AcousticIndicators.TIMEPERIOD_FAST;
-    // Empty audio before playing signal
-    public static final int EMPTY_AUDIO_LENGTH = 2000;
     private Handler timeHandler;
     private AudioTrack audioTrack;
     private OpenWarble acousticModem;
@@ -195,12 +191,12 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     @Override
     public void onPitch(long l) {
-
+        listeners.firePropertyChange(PROP_CALIBRATION_RECEIVE_PITCH, null, l / acousticModem.getSampleRate());
     }
 
     @Override
     public void onError(long l) {
-
+        listeners.firePropertyChange(PROP_CALIBRATION_RECEIVE_ERROR, null, l / acousticModem.getSampleRate());
     }
 
     /**
@@ -347,7 +343,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
             setState(CALIBRATION_STATE.WARMUP);
             recordingModem.set(false);
             runWarmup();
-        } else if(id == MESSAGEID_APPLY_REFERENCE_GAIN) {
+        } else if(id == MESSAGEID_APPLY_REFERENCE_GAIN && state == CALIBRATION_STATE.AWAITING_FOR_APPLY_OR_RESTART) {
             if(!isHost) {
                 float referenceLeq = byteBuffer.getFloat();
                 double gain = Math.round((referenceLeq - leqStats.getLeqMean()) * 100.) / 100.;
@@ -582,10 +578,15 @@ public class CalibrationService extends Service implements PropertyChangeListene
             }
             int cursor = 0;
             while((CALIBRATION_STATE.WARMUP.equals(calibrationService.getState()) ||
-                    CALIBRATION_STATE.CALIBRATION.equals(calibrationService.getState())) &&
+                    CALIBRATION_STATE.CALIBRATION.equals(calibrationService.getState()) ||
+                    CALIBRATION_STATE.HOST_COOLDOWN.equals(calibrationService.getState())) &&
                             !calibrationService.canceled.get()) {
                 int size = Math.min(signal.length - cursor, bufferSize);
-                audioTrack.write(Arrays.copyOfRange(signal, cursor, cursor+size), 0, size);
+                try {
+                    audioTrack.write(Arrays.copyOfRange(signal, cursor, cursor + size), 0, size);
+                } catch (IllegalStateException ex) {
+                    return;
+                }
                 cursor += size;
                 if(cursor >= signal.length) {
                     cursor = 0;

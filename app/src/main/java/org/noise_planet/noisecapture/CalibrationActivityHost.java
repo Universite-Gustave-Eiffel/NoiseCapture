@@ -32,11 +32,13 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -54,8 +56,7 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
     private TextView textDeviceLevel;
     private TextView startButton;
     private ProgressBar progressBar_wait_calibration_recording;
-    private ListView calibrationLog;
-    private ArrayAdapter<String> listAdapter;
+    private LinearLayout pitchColorBar;
     private TextView textStatus;
 
     @Override
@@ -69,11 +70,7 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
         textDeviceLevel = (TextView) findViewById(R.id.spl_ref_measured);
         textStatus = (TextView) findViewById(R.id.calibration_state);
         startButton = (TextView) findViewById(R.id.btn_start);
-
-
-        calibrationLog = (ListView) findViewById(R.id.calibration_log);
-        listAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1);
-        calibrationLog.setAdapter(listAdapter);
+        pitchColorBar = (LinearLayout) findViewById(R.id.pitch_notification);
 
         doBindService();
 
@@ -194,28 +191,33 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
                 }});
         } else if(CalibrationService.PROP_CALIBRATION_PROGRESSION.equals(event.getPropertyName())) {
             progressBar_wait_calibration_recording.setProgress((Integer)event.getNewValue());
-        } else if(CalibrationService.PROP_CALIBRATION_RECEIVE_WORD.equals(event.getPropertyName())) {
+        } else if(CalibrationService.PROP_CALIBRATION_RECEIVE_PITCH.equals(event.getPropertyName())) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    listAdapter.insert(getString(R.string.calibration_log_receive_word, event
-                            .getNewValue()), 0);
+                    pitchColorBar.setBackgroundColor(Color.YELLOW);
                 }
             });
         } else if(CalibrationService.PROP_CALIBRATION_SEND_MESSAGE.equals(event.getPropertyName())) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    listAdapter.insert(getString(R.string.calibration_log_send_message, event
-                            .getNewValue()), 0);
+                    pitchColorBar.setBackgroundColor(Color.BLUE);
                 }
             });
         } else if(CalibrationService.PROP_CALIBRATION_NEW_MESSAGE.equals(event.getPropertyName())) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    listAdapter.insert(getString(R.string.calibration_log_receive_message, event
-                            .getNewValue()), 0);
+                    pitchColorBar.setBackgroundColor(Color.GREEN);
+
+                }
+            });
+        } else if(CalibrationService.PROP_CALIBRATION_RECEIVE_ERROR.equals(event.getPropertyName())) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    pitchColorBar.setBackgroundColor(Color.RED);
                 }
             });
         }

@@ -46,6 +46,7 @@ import android.widget.TextView;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Locale;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.noise_planet.noisecapture.CalibrationService.CALIBRATION_STATE.*;
 
@@ -58,6 +59,8 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
     private ProgressBar progressBar_wait_calibration_recording;
     private LinearLayout pitchColorBar;
     private TextView textStatus;
+    // Helper to switch pitch color using blue/yellow swapping
+    private AtomicBoolean pairPitch = new AtomicBoolean(false);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -195,21 +198,25 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    pitchColorBar.setBackgroundColor(Color.YELLOW);
+                    if(pairPitch.getAndSet(!pairPitch.get())) {
+                        pitchColorBar.setBackgroundResource(R.drawable.round_corner_opaque_yellow);
+                    } else {
+                        pitchColorBar.setBackgroundResource(R.drawable.round_corner_opaque_blue);
+                    }
                 }
             });
         } else if(CalibrationService.PROP_CALIBRATION_SEND_MESSAGE.equals(event.getPropertyName())) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    pitchColorBar.setBackgroundColor(Color.BLUE);
+                    pitchColorBar.setBackgroundResource(R.drawable.round_corner_opaque_green);
                 }
             });
         } else if(CalibrationService.PROP_CALIBRATION_NEW_MESSAGE.equals(event.getPropertyName())) {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    pitchColorBar.setBackgroundColor(Color.GREEN);
+                    pitchColorBar.setBackgroundResource(R.drawable.round_corner_opaque_green);
 
                 }
             });
@@ -217,7 +224,7 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    pitchColorBar.setBackgroundColor(Color.RED);
+                    pitchColorBar.setBackgroundResource(R.drawable.round_corner_opaque_red);
                 }
             });
         }

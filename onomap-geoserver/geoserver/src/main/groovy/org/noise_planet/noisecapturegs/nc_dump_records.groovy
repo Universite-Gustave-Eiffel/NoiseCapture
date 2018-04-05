@@ -31,9 +31,12 @@ import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
+import groovy.json.JsonException
 import groovy.sql.Sql
 import org.geotools.jdbc.JDBCDataStore
 import org.springframework.security.core.context.SecurityContextHolder
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 import java.sql.Connection
 import java.sql.ResultSet

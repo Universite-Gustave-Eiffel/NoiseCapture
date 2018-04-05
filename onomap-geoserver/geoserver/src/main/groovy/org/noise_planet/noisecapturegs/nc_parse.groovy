@@ -30,7 +30,6 @@ package org.noise_planet.noisecapturegs
 
 import geoserver.catalog.Store
 import groovy.json.JsonSlurper
-import groovy.json.JsonException
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import geoserver.GeoServer

@@ -112,6 +112,10 @@ def static Integer processFile(Connection connection, File zipFile, boolean stor
             Integer.valueOf(meta.getProperty("pleasantness")) <= 100)) {
         throw new InvalidParameterException("Wrong pleasantness \"" + meta.getProperty("pleasantness") + "\"")
     }
+    Double gain = Double.valueOf(meta.getProperty("gain_calibration", "0").replace(",", "."))
+    if (!(gain > -150 && gain < 150)) {
+        throw new InvalidParameterException("Wrong gain \"" + gain + "\"")
+    }
     // Maximum 15 minutes of time ahead of server time
     if(Long.valueOf(meta.getProperty("record_utc")) > System.currentTimeMillis() + (15*60*1000)) {
         throw new InvalidParameterException("Wrong time, superior than server time \"" + epochToRFCTime(Long.valueOf(meta.getProperty("record_utc"))) + "\"")
@@ -163,7 +167,7 @@ def static Integer processFile(Connection connection, File zipFile, boolean stor
                   device_manufacturer: meta.get("device_manufacturer"),
                   noise_level        : Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")),
                   time_length        : meta.get("time_length") as int,
-                  gain_calibration   : Double.valueOf(meta.getProperty("gain_calibration", "0").replace(",", ".")),
+                  gain_calibration   : gain,
                   noiseparty_id      : idParty]
     def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
             " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration, pk_party) VALUES (" +

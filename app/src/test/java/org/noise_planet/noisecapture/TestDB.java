@@ -311,4 +311,39 @@ public class TestDB {
         assertTrue(storedLeq.size() <= 25);
     }
 
+    @Test
+    public void testGetCenterRecords()  throws IOException {
+        Storage storage =  new Storage(RuntimeEnvironment.application);
+        // Add dump data
+        SQLiteDatabase db = storage.getWritableDatabase();
+        // Reseting Counter
+
+        // Open the resource
+        InputStream insertsStream = TestDB.class.getResourceAsStream("dump.sql");
+        BufferedReader insertReader = new BufferedReader(new InputStreamReader(insertsStream));
+
+        // Iterate through lines
+        while (insertReader.ready()) {
+            String insertStmt = insertReader.readLine();
+
+            try {
+                db.execSQL(insertStmt);
+            } catch (SQLException ex) {
+                System.err.println("Error while running " + insertStmt);
+                throw ex;
+            }
+        }
+        insertReader.close();
+
+        MeasurementManager measurementManager =
+                new MeasurementManager(RuntimeEnvironment.application);
+
+        // Fetch data
+
+        double[] center = measurementManager.getRecordCenterPosition(29, 15);
+
+        assertEquals(47.641, center[0], 0.001);
+        assertEquals(-3.155, center[1], 0.001);
+    }
+
 }

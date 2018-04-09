@@ -256,7 +256,7 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
         <item>8 kHz</item>
         <item>16 kHz</item>
     </string-array>
-    <string name="share_message">He medido %.01f dB(A) con #NoiseCapture @Noise_Planet</string>
+    <string name="share_message">He medido %.01f dB(A) con #NoiseCapture</string>
     <string name="summary_settings_measurement_display_window">Ventana de la medición en tiempo real (no afecta al resultado final)</string>
     <string name="title_settings_measurement_display_window">Ventana de tiempo real</string>
     <string name="title_settings_map_maxmarker">Número de mediciones mostradas</string>

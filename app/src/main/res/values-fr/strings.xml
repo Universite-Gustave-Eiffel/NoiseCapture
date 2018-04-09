@@ -256,7 +256,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
         <item>8 kHz</item>
         <item>16 kHz</item>
     </string-array>
-    <string name="share_message">J\'ai mesuré %.01f dB(A) avec #NoiseCapture @Noise_Planet</string>
+    <string name="share_message">J\'ai mesuré %.01f dB(A) avec #NoiseCapture</string>
     <string name="summary_settings_measurement_display_window">Fenêtrage de la mesure temps réel (n\'affecte pas le résultat final)</string>
     <string name="title_settings_measurement_display_window">Fenêtrage</string>
     <string name="title_settings_map_maxmarker">Nombre de mesures affichées</string>

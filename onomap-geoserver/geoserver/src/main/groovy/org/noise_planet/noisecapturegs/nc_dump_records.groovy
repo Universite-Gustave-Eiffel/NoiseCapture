@@ -123,7 +123,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
 
             if (exportTracks) {
                 // Export track file
-                sql.eachRow("select name_0, name_1, name_2, tzid, nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_AsGeoJson(te.the_geom) the_geom, record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_track nt,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = nt.pk_track order by name_0, name_1, name_2, record_utc;") {
+                sql.eachRow("select name_0, name_1, name_2, tzid, nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_AsGeoJson(te.the_geom) the_geom, record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags, (select noisecapture_party.tag from noisecapture_party where noisecapture_party.pk_party = nt.pk_party) partycode from noisecapture_dump_track_envelope te, gadm28 ga, noisecapture_track nt,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(ga.the_geom),tz.the_geom) and te.pk_track = nt.pk_track order by name_0, name_1, name_2, record_utc;") {
                     track_row ->
                         def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                         if (thisFileParams != lastFileParams) {
@@ -160,7 +160,8 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                                                                                        time_epoch      : ((Timestamp) track_row.record_utc).time,
                                                                                        noise_level     : track_row.noise_level,
                                                                                        time_length     : track_row.time_length,
-                                                                                       tags            : track_row.tags == null ? null : track_row.tags.tokenize(',')]]
+                                                                                       tags            : track_row.tags == null ? null : track_row.tags.tokenize(','),
+                                                                                       party_tag       : track_row.partycode]]
                         try {                                                               
                             lastFileJsonWriter << JsonOutput.toJson(track)
                         } catch(JsonException ex) {

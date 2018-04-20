@@ -1,0 +1,311 @@
+<resources>
+
+    <string name="app_name">NoiseCapture</string>
+
+    <string name="action_settings">Setări</string>
+    <string name="comment_cancel_change">Anulare</string>
+    <string name="comment_save_change">Salvare</string>
+    <string name="comment_delete_record">Ștergere</string>
+    <string name="comment_title_save_change">Salvați modificările?</string>
+    <string name="comment_title_delete">Ștergeți măsurarea?</string>
+    <string name="history_title_delete">Ștergeți măsurea selectată (măsurările selectate) ? </string>
+
+    <string name="record_message">Apăsați butonul de înregistrare pentru a porni măsurarea</string>
+    <string name="calibrate_done">Calibrarea este finalizată, câștigul setat este de %1$.1fdB</string>
+    <string name="calibration_out_bounds_title">Nivelul de zgomot este prea mic</string>
+    <string name="calibration_out_bounds">Calibrarea nivelului acustic este incompatibilă cu limitele specificate ale achipamentului care trebuie să fie cuprins între %1$.0fdB și %2$.0fdB</string>
+    <string name="calibration_save_change">Ignoră și aplică modificările</string>
+    <string name="calibration_cancel_change">Anulare</string>
+    <string name="fail_share">Generarea fișierului partajat nu a putut fi realizată</string>
+    <string name="no_results">Nu există niciun rezultat al măsurării. Apăsați înainte pe butonul Înregistrare</string>
+    <string name="no_gps_results">Nu există coordonate GPS în această măsurare salvată</string>
+    <string name="no_gps_hint">Nu există semnal GPS</string>
+    <string name="gps_hint_precision">%1$dm</string>
+    <string name="loc_hint">Sugestie privind locația</string>
+    <string name="permission_explain_audio_record">Programul NoiseCapture necesită drepturi de utilizare a microfonului pentu a măsura nivelul audio</string>
+    <string name="permission_explain_gps">Programul Noise Capture necesită activarea GPS pentru a localiza nivelul de zgomot pe hartă</string>
+    <string name="permission_explain_access_wifi_state">Programul NoiseCapture necesită drepturi verificare a stutusului sistemului WiFi pentru a nu transfera date când nu sunteți conectat la nici o rețea WiFi </string>
+
+    <string name="title_menu">Meniu</string>
+    <string name="title_service_measurement">Măsurare</string>
+    <string name="title_activity_measurement">Măsurare</string>
+    <string name="title_activity_results">Rezultate</string>
+    <string name="title_activity_history">Istoric</string>
+    <string name="title_activity_about">Despre</string>
+    <string name="user_id_activity_about">ID utilizator</string>
+    <string name="title_activity_help">Ajutor</string>
+    <string name="title_appversion">Versiunea %1$s %2$s r.%3$s</string>
+
+    <!-- Caution dialog box at app launch !-->
+    <string name="text_OK">DA, înțeleg</string>
+    <string name="title_caution">Atenție</string>
+    <string name="text_caution">Vă rugăm să înțelegeți că această aplicație nu v-a înlocui niciodată un sonometru certificat și calibrat. Un sonometru este un aparat dedicat măsurării nivelului de zgomot</string>
+
+    <!-- Caution dialog box for data transfer !-->
+    <string name="text_CANCEL_data_transfer">Anulare</string>
+    <string name="no_valid_dba_value">-</string>
+
+    <string name="SL_dBA">dB(A)</string>
+    <string name="SL_dB">dB</string>
+
+    <string name="hello_world">Salut!</string>
+    <string name="title_settings_calibration_warmup_time">Timp de așteptare în vederea calibrării</string>
+    <string name="title_settings_calibration_warmup_time_description">Timp de așteptare în secunde până la pornirea calibrării</string>
+    <string name="title_settings_calibration_time">Timp de calibrare</string>
+    <string name="title_settings_calibration_time_description">Timp de calibrare în secunde</string>
+    <string name="title_settings_calibration_linear_title">Ieșire audio</string>
+    <string name="title_settings_calibration_linear_description">Ieșire a dispozitivului pentru testul de corelație lineară</string>
+    <string name="setting_general_group">Global</string>
+    <string name="setting_measurement_group">Măsurare</string>
+    <string name="setting_calibration_group">Calibrare</string>
+    <string name="title_settings_data_transfer">Transfer de date</string>
+    <string name="summary_settings_data_transfer">Transfer automat al măsurărilor</string>
+    <string name="title_settings_transfer_wifi_only">Doar prin WiFi</string>
+    <string name="summary_settings_transfer_wifi_only">Transfer de date automat doar prin WiFi </string>
+    <string name="title_settings_recording">Înregistrare</string>
+    <string name="summary_settings_recording">Setare timp de înregistrare maxim</string><string name="title_settings_caution">Mesaj de atenționare</string>
+    <string name="summary_settings_tooltip">Verificați mesajele de ajutor atunci când alegeți elementele în NoiseCapture</string>
+    <string name="title_settings_tooltip">Mesaj de ajutor</string>
+    <string name="summary_settings_caution">Alegeți posibilitatea de a afișa mesajele de atenționare în timpul pornirii aplicației</string>
+    <string name="title_settings_recording_duration">Timp de înregistrare</string>
+
+
+    <string name="title_settings_recording_gain">Câștigul/amplificarea semnalului </string>
+    <string name="summary_settings_recording_gain">Setarea câștigului/amplificării de semnal în dB</string>
+
+    <string name="title_settings_spectrogram_logscalemode">Afișare spectru</string>
+    <string name="title_settings_delete_leq_on_pause">Ștergere Leq la pauza măsurării</string>
+    <string name="title_settings_delete_leq_on_pause_description">Ștergerea ultimelor secunde înregistrate la pauza măsurării</string>
+    <string name="summary_settings_spectrogram_logscalemode">Selectează pentru afișarea domeniului de frecvență în scară logaritmică sau deselectează pentru scară lineară</string>
+    <string name="summary_settings_recording_duration">Setarea duratei de înregistrare (în secunde)</string>
+    <string name="measurement_dba_min">Min</string>
+    <string name="measurement_dba_max">Max</string>
+    <string name="measurement_dba_mean">Media</string>
+    <string name="measurement_dba_la10">LA10</string>
+    <string name="measurement_dba_la50">LA50</string>
+    <string name="measurement_dba_la90">LA90</string>
+    <string name="measurement_tab_spectrum">Spectru</string>
+    <string name="measurement_tab_spectrogram">Spectrogramă</string>
+    <string name="measurement_tab_map">Hartă</string>
+
+    <!--  Ressources for the spinner calibration !-->
+
+    <!--  Ressources for the spinner map !-->
+
+    <!--  Ressources for the spinner history
+          History:HistoryItemListener:onItemClick remove the first entry (upload) !-->
+    <string-array name="choice_user_history">
+        <item>Încarcă rezultatele în spațiul comun </item>
+        <item>Exportă rezultatele</item>
+        <item>Editare descriere</item>
+        <item>Afișează rezultate</item>
+        <item>Afișează pe hartă</item>
+        <item>Ștergere</item>
+    </string-array>
+
+    <!--  Ressources for the Drawer and option menu !-->
+    <string-array name="dm_list_array">
+        <item>Măsurare</item>
+        <item>Descriere</item>
+        <item>Rezultate</item>
+        <item>Istoric</item>
+        <item>Hartă</item>
+        <item>Calibrare</item>
+        <item>Ajutor</item>
+        <item>Despre</item>
+    </string-array>
+    <string name="result_share">Partajează acest rezultat</string>
+    <string name="result_button_map">Afișează harta</string>
+    <string name="result_button_upload">Încarcă</string>
+    <string name="result_tooltip_minsl">Nivel de zgomot mediat A de minim 1 secundă</string>
+    <string name="result_tooltip_maxsl">Nivel de zgomot mediat A de maxim 1 secundă </string>
+    <string name="result_tooltip_la10">LA10: Nivel de zgomot mediat A care este depășit timp de 10% din perioada totală de măsurare. LA10 este un descriptor util pentru zgomotul provocat de traficul rutier, corelat cu zgomotul care deranjează  </string>
+    <string name="result_tooltip_la50">LA50: Nivel de zgomot mediat A care este depășit timp de 50% din perioada totală de măsurare. L50 reprezintă media nivelului de zgomot</string>
+    <string name="result_tooltip_la90">LA90: Nivel de zgomot mediat A care este depășit timp de 90% din perioada de măsurare. LA90 este util pentru a cuantifica nivelul zgomotului de fond</string>
+    <string name="drawer_open">Deschide editorul de navigare</string>
+    <string name="drawer_close">Închide editorul de navigare</string>
+    <string name="url_about">file:///android_asset/html/about.html</string>
+    <string name="url_help">file:///android_asset/html/help.html</string>
+
+    <!--  Ressources for acoustics !-->
+    <string name="caption_SL">Nivel acustic</string>
+    <string-array name="catNE_list_array">
+        <item>Mai mare de 75dB(A)</item>
+        <item>65-75 dB(A)</item>
+        <item>55-65 dB(A)</item>
+        <item>45-55 dB(A)</item>
+        <item>Mai puțin de 45 dB(A)</item>
+    </string-array>
+    <!-- Add new tags at the end, update also this array Storage.TAGS -->
+    <string-array name="tags">
+        <item>TEST</item>
+        <item>Ploaie</item>
+        <item>Vânt</item>
+        <item>Interior</item>
+        <item>Pași</item>
+        <item>Voce</item>
+        <item>Natural</item>
+        <item>Mecanic</item>
+        <item>Uman</item>
+        <item>Muncă</item>
+        <item>Temperatura aerului</item>
+        <item>Spectacol</item>
+        <item>Copii</item>
+        <item>Muzică</item>
+        <item>Trafic rutier</item>
+        <item>Trafic feroviar</item>
+        <item>Trafic maritim</item>
+        <item>Alarme</item>
+        <item>Industrial</item>
+        <item>Trafic naval</item>
+        <item>Animale</item>
+        <item>Vegetație</item>
+    </string-array>
+    <string name="title_activity_main">Activitate principală</string>
+
+    <string name="title_activity_view_html_page">View_html_page</string>
+    <string name="title_activity_settings">Setări</string>
+    <string name="title_activity_map">Hartă</string>
+    <string name="title_activity_start">Noise Capture</string>
+    <string name="title_activity_calibration_start">Calibrare</string>
+    <string name="title_activity_calibration_linearity">Test de corelare liniară</string>
+    <string name="title_activity_menu_calibration">Metode de calibrare</string>
+
+    <string name="title_activity_calibration_host">Autocalibrare (la sursă)</string>
+    <string name="title_activity_calibration_peer">Autocalibrare (la receptor)</string>
+
+
+    <string name="start_text_title">NoiseCapture</string>
+    <string name="start_text_subtitle">Măsurarea acustică a mediului</string>
+    <string name="start_text_developed_by">Dezvoltat de</string>
+    <string name="start_text_supported_by">Sprijinit de</string>
+    <string name="upload_progress_title">Incărcare&#8230;</string>
+    <string name="upload_progress_message">Încărcare măsurare</string>
+
+    <string name="history_length">%d s</string>
+    <string name="history_date">- %s</string>
+    <string name="history_already_uploaded">Această măsurare este deja încărcată</string>
+    <string name="history_sel">%.01f dB(A)</string>
+    <string name="history_upload_top">Încărcare</string>
+    <string name="history_uploadeddescr">Acest rezultat al măsurării a fost încărcat în baza de date a comunității? </string>
+
+    <string name="measurement_processlastsamples">Prelucrare, mai rămân %d eșantioane&#8230;</string>
+    <string name="history_item_choice_title">Măsurare %s</string>
+    <string name="calibration_select_frequency">Alege frecvența dorită pentru afișare</string>
+    <string name="local_service_started">Serviciul de localizare pornit</string>
+    <string name="measurement_service_disconnected">Serviciul de măsurare dezactivat</string>
+    <string name="measurement_pause">Măsurarea este în mod pauză</string>
+    <string name="delete">Ștergere</string>
+    <string name="hint_userinput">Apasă aici pentru a introduce o descriere</string>
+    <string name="no_data_text_description">Pornește măsurarea prin apăsarea butonului de înregistrare </string>
+    <string name="export_zip_info">Descrierea arhivei de export archive \n\n
+Fișierul meta.properties conținele generalități legate de aparatul de măsură și de înregistrare, conține :\n
+- version_name Versiunea Majoră, minoră și revizia \n
+- build_date Data programului APK \n
+- version_number Versiunea aplicației\n
+- time_length Lungimea înregistrării în secunde\n
+- uuid Identificatorul random setat la prima rulare a aplicației\n
+- leq_mean Nivelul acustic măsurat mediat în dB(A)\n
+- record_utc Timpul de înregistrare în format UTC\n
+- device_manufacturer device_model device_product Informațiile generice de hardware a dispozitivului de măsurare\n
+- pleasantness Nivelul de utilitate oferit de utilizator între 1-100\n
+- tags Valori separeate prin delimitatorul virgulă a elementelor setate de utilizator  (doar în engleză)\n
+- user_profile Nivelul de cunoștințe în acustică al utilizatorului NICIUNA, ÎNCEPĂTOR, EXPERT\n
+- noiseparty_tag Identificatorul  NoiseParty a înregistrării\n\n
+
+Măsuarea se face în eșantionae de 1s salvate în track.geojson. Este utilizat formatul geojson (http://geojson.io)\n
+- leq_mean Nivel echivalent al zgomotului în dB(A) pentru 1s\n
+- accuracy Precizia localizării în m (furnizată de GPS, rețea sau GSM)\n
+- location_utc Timpul de localizare în format UTC\n
+- leq_utc Timp de măsurare în format UTC\n
+- leq_id Identificatorul unic al măsurării\n
+- marker_color Culoarea utilizată de geojson.io\n
+- bearing Orientarea deplasării.See https://developer.android.com/reference/android/location/Location.html#getBearing()\n
+- speed Viteza estimată a dispozitivuluim/s\n
+- leq_frequency Nivelul echivalent mediu în dB(A) pentru 1s la frecvența specifricată\n</string>
+    <string name="title_activity_comment">Descriere</string>
+    <string name="userinfo_unpleasant">Neplăcut</string>
+    <string name="userinfo_pleasant">Plăcut</string>
+    <string name="calibration_status_waiting_for_user_start">Așteptare pentru a porni calibrarea&#8230; </string>
+    <string name="calibration_status_waiting_for_start_timer">Calibrarea este aproape de a porni&#8230;</string>
+    <string name="calibration_status_send_parameters">Trimitere parametrii de calibrare&#8230;</string>
+    <string name="calibration_status_receive_reference">Așteptare pentru a primi valuarea de referință&#8230;</string>
+    <string name="calibration_status_cooldown">Calibrare finalizată, trimitem valoarea de referință&#8230;</string>
+    <string name="userinfo_button_measure">Măsurare</string>
+    <string name="userinfo_button_results">Validare</string>
+    <string name="userinfo_tags">Surse de zgomot predominante</string>
+    <string name="calibration_status_on">Calibrare&#8230;</string>
+    <string name="calibration_linear_status_on">Calibrarea la nivelul %1$.0fdB</string>
+    <string name="calibration_status_end">Calibrare finalizat</string>
+    <string name="calibration_status_background_noise">Măsurarea zgomotului de fond</string>
+    <string name="calibration_button_start">Pornire</string>
+    <string name="calibration_button_cancel">Anulare</string>
+    <string name="calibration_leq_title">Leq măsurat:</string>
+    <string name="calibration_measure_title">Valuarea de referință:</string>
+    <string name="calibration_button_apply">Aplicare</string>
+    <string name="calibration_button_reset">Resetare</string>
+    <string name="calibration_test_gain_checkbox">Câștig de test</string>
+    <string name="calibration_mode">Mod de calibrare</string>
+    <string-array name="calibrate_type_list_array">
+        <item>Global</item>
+        <item>125 Hz</item>
+        <item>250 Hz</item>
+        <item>500 Hz</item>
+        <item>1 kHz</item>
+        <item>4 kHz</item>
+        <item>8 kHz</item>
+        <item>16 kHz</item>
+    </string-array>
+    <string name="share_message">Măsurăm %.01fdB(A) utilizând #NoiseCapture</string>
+    <string name="summary_settings_measurement_display_window">Funcția de filtrare (window) aplicată măsurărilor (nu se utilizează la rezultatul final)</string>
+    <string name="title_settings_measurement_display_window">Fereastra în timp real</string>
+    <string name="title_settings_map_maxmarker">Limitele afișate ale măsurării</string>
+    <string name="summary_settings_map_maxmarker">Numărul maxim de măsurări afișate pe hartă (0 pentru a afișa toate măsurările)</string>
+    <string name="map_title_progress_loading">Incărcarea locațiilor măsurărilor</string>
+    <string name="policy_legal_age">Am vârsta legală pentru a utiliza această aplicație</string>
+    <string name="policy_agree_statement">Sunt de a acord cu NoiseCapture Policy Privacy</string>
+    <string name="policy_button_continue">Continu</string>
+    <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
+    <string name="privacy_policy_title">Privacy Policy</string>
+    <string name="calibration_warning">Procedura de calibrare necesită utilizarea unui dispozitiv de referință calibrat precum un sonometru sau un smartphone. Pentru mai multe informații, vă rog să consultați <a href=\"org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration\">Pagina de help</a> a aplicației</string>
+    <string name="notification_record_content">Măsurare.... %1$.1fdB(A)</string>
+    <string name="result_title_progress_loading">Încărcarea măsurărilor</string>
+    <string name="userinfo_tags_measurement_conditions">Condiții de măsurare</string>
+    <string name="notification_goto_community_map_title">Măsurările din comunitate</string>
+
+    <string-array name="output_mode_labels">
+        <item>Apel vocal</item>
+        <item>Sistemul de sunet</item>
+        <item>Ton de apel</item>
+        <item>Muzic</item>
+        <item>Alarm</item>
+        <item>Notificare</item>
+        <item>DTMF</item>
+    </string-array>
+    <string-array name="settings_display_measurement_window_labels">
+        <item>Dreptunghiular</item>
+        <item>Hann</item>
+    </string-array>
+    <string name="notification_goto_community_map">Vizitează pagina  http://noise-planet.org și navighează pe harta cu toate măsurările realizate de comunitate</string>
+    <string name="title_settings_notification_links">Notificare</string>
+    <string name="summary_settings_notification_links">Selectează pentru a afișa linkul de notificare a paginii web Noise-Planet </string>
+    <string name="settings_category_profile">Profilul utilizatorului</string>
+    <string name="title_settings_user_noise_knowledge">Profilul utilizatorului</string>
+    <string name="settings_user_noise_knowledge_description">Cum evaluați cunoștințele pe care le aveți cu privire la acustica mediului ?</string>
+    <string name="hint_userinput_noiseparty_tag">Codul NoiseCapture Party</string>
+    <string-array name="knowledge">
+        <item>Nu am cunoștințe în domeniul acustic</item>
+        <item>Am câteva cunoștințe în domeniul acustic</item>
+        <item>Sunt un expert/profesionist în domeniul acustic</item>
+    </string-array>
+    <string name="calibration_menu_btn_manual">Calibrare manual</string>
+    <string name="calibration_menu_btn_guest">Autocalibrare (la receptor)</string>
+    <string name="calibration_menu_btn_host">Autocalibrare (la surs)</string>
+    <string name="calibration_menu_text_manual">Utilizați un dispozitiv extern de referință (sonometru, calibrator acustic) pentru a calibra smartphonul dumneavoastr</string>
+    <string name="calibration_menu_text_receive">Calibrați smartphonul dumneavoastră de la un alt smartphone deja calibrat</string>
+    <string name="calibration_menu_text_host">Utilizați propriul smartphone pentru a calibra alt smartphone</string>
+    <string name="calibration_host_warning">Telefonul care emite trebuie conectat la un dispozitiv audio extern. Dispozitivele de emisie și recepție trebuie expuse împreună la dispozitivul extern audio.</string>
+    <string name="calibration_log_receive_word">Tonul: %s</string>
+    <string name="calibration_log_send_message">Trimis: %s</string>
+    <string name="calibration_log_receive_message">Mesaj: %s</string>
+</resources>

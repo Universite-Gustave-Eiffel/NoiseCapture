@@ -260,4 +260,17 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
         assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
         assertEquals(1, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
     }
+
+    void testNoisePartyWithoutDateFilter() {
+        Sql sql = new Sql(connection)
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name,start_time,end_time,filter_area,filter_time) VALUES" +
+                " ('POLYGON((-9.30180644989014 42.4626388549805,-9.30180644989014 43.7915267944336," +
+                "-7.66208219528198 43.7915267944336,-7.66208219528198 42.4626388549805," +
+                "-9.30180644989014 42.4626388549805))','Universidade da Coruña','UDC','This map belongs to the EDUC','UDC','2018-04-17 03:00:00+02','2020-04-18 01:59:59+02',1,1);")
+        def idtrack = new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_f64ffe12-096a-4000-8282-9c7429795997.zip").file))
+        // Read db; check content
+        def result = sql.firstRow("SELECT tag FROM  noisecapture_track nt, noisecapture_party np where nt.pk_party = np.pk_party and nt.pk_track = :pktrack",[pktrack:idtrack])
+        assertEquals("UDC", result.tag)
+    }
 }

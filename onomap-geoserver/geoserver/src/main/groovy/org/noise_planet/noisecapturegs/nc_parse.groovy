@@ -32,7 +32,9 @@ import geoserver.catalog.Store
 import groovy.json.JsonSlurper
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
+import groovy.lang.MissingPropertyException
 import geoserver.GeoServer
+import org.codehaus.groovy.runtime.StackTraceUtils
 import org.geotools.jdbc.JDBCDataStore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -326,7 +328,7 @@ def static int processFiles(Connection connection, File[] files, int processFile
             if(moveFiles) {
                 zipFile.renameTo(new File(processedDir, zipFile.getName()))
             }
-        } catch (SQLException|InvalidParameterException ex) {
+        } catch (SQLException|InvalidParameterException|MissingPropertyException ex) {
             if(moveFiles) {
                 // Move file to error folder
                 File errorDir = new File("data_dir/onomap_archive_error");
@@ -336,22 +338,21 @@ def static int processFiles(Connection connection, File[] files, int processFile
                 zipFile.renameTo(new File(errorDir, zipFile.getName()))
             }
             // Log error
-            logger.error(zipFile.getName() + " Message: " + ex.getMessage());
-
+            StackTraceUtils.printSanitizedStackTrace(ex)
+            logger.error(zipFile.getName() + " Message: " + ex.getMessage())
             if(ex instanceof SQLException) {
                 logger.error("SQLState: " +
                         ex.getSQLState());
 
                 logger.error("Error Code: " +
                         ex.getErrorCode());
-
-                Throwable t = ex.getCause();
-                while (t != null) {
-                    logger.error("Cause: " + t);
-                    t = t.getCause();
-                }
             }
-            connection.rollback();
+            Throwable t = ex.getCause();
+            while (t != null) {
+                StackTraceUtils.printSanitizedStackTrace(t)
+                t = t.getCause()
+            }
+            connection.rollback()
         }
         processed++
         if(processFileLimit > 0 && processed > processFileLimit) {

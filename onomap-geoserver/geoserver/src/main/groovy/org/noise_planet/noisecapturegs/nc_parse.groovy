@@ -34,6 +34,7 @@ import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
 import groovy.lang.MissingPropertyException
 import geoserver.GeoServer
+import org.apache.commons.lang.StringEscapeUtils
 import org.codehaus.groovy.runtime.StackTraceUtils
 import org.geotools.jdbc.JDBCDataStore
 import org.slf4j.Logger
@@ -78,7 +79,7 @@ static def epochToRFCTime(epochMillisec) {
     return Instant.ofEpochMilli(epochMillisec).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))
 }
 
-def static Integer processFile(Connection connection, File zipFile, boolean storeFrequencyLevels = true) throws Exception {
+static Integer processFile(Connection connection, File zipFile,Map trackData = [:], boolean storeFrequencyLevels = true) throws Exception {
     def zipFileName = zipFile.getName()
     def recordUUID = zipFileName.substring("track_".length(), zipFileName.length() - ".zip".length())
     connection.setAutoCommit(false)
@@ -104,6 +105,7 @@ def static Integer processFile(Connection connection, File zipFile, boolean stor
         // Wrong UUID
         throw new InvalidParameterException("Wrong UUID \"" + meta.getProperty("uuid") + "\"")
     }
+    trackData.uuid = meta.getProperty("uuid")
     if (!(Integer.valueOf(meta.getProperty("version_number")) > 0)) {
         throw new InvalidParameterException("Wrong version \"" + meta.getProperty("version_number") + "\"")
     }
@@ -320,25 +322,10 @@ def static int processFiles(Connection connection, File[] files, int processFile
     int processed = 0
     Set<Integer> partyIds = new HashSet<>();
     for (File zipFile : files) {
+        Map trackData = [uuid: '00000000-0000-0000-0000-000000000000']
         try {
-            partyIds.add(processFile(connection, zipFile, false))
-            // Move file to processed folder
-            File processedDir = new File("data_dir/onomap_archive");
-            if (!processedDir.exists() && moveFiles) {
-                processedDir.mkdirs()
-            }
-            if(moveFiles) {
-                zipFile.renameTo(new File(processedDir, zipFile.getName()))
-            }
+            partyIds.add(processFile(connection, zipFile, trackData, false))
         } catch (SQLException|InvalidParameterException|MissingPropertyException ex) {
-            if(moveFiles) {
-                // Move file to error folder
-                File errorDir = new File("data_dir/onomap_archive_error");
-                if (!errorDir.exists()) {
-                    errorDir.mkdirs()
-                }
-                zipFile.renameTo(new File(errorDir, zipFile.getName()))
-            }
             // Log error
             logger.error(zipFile.getName() + " Message: " + ex.getMessage(), StackTraceUtils.sanitize(new Exception(ex)))
             if(ex instanceof SQLException) {
@@ -353,7 +340,21 @@ def static int processFiles(Connection connection, File[] files, int processFile
                 logger.error("Cause:", StackTraceUtils.sanitize(new Exception(t)))
                 t = t.getCause()
             }
+            // Log track in error
+            new File("data_dir/onomap_archive", "track_exception.csv") << zipFile.getName() << "," << StringEscapeUtils.escapeCsv(ex.getMessage()) << "\n"
+            // Cancel transaction
             connection.rollback()
+        }
+        // Move file to processed folder
+        if(moveFiles) {
+            File processedDir = new File("data_dir/onomap_archive", trackData.uuid.substring(0, 2))
+            processedDir = new File(processedDir, trackData.uuid.substring(2, 4))
+            processedDir = new File(processedDir, trackData.uuid.substring(4, 6))
+            processedDir = new File(processedDir, trackData.uuid)
+            if (!processedDir.exists()) {
+                processedDir.mkdirs()
+            }
+            zipFile.renameTo(new File(processedDir, zipFile.getName()))
         }
         processed++
         if(processFileLimit > 0 && processed > processFileLimit) {

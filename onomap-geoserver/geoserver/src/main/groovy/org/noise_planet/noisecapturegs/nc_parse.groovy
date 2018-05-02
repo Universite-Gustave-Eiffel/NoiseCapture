@@ -338,18 +338,17 @@ def static int processFiles(Connection connection, File[] files, int processFile
                 zipFile.renameTo(new File(errorDir, zipFile.getName()))
             }
             // Log error
-            StackTraceUtils.printSanitizedStackTrace(ex)
-            logger.error(zipFile.getName() + " Message: " + ex.getMessage())
+            logger.error(zipFile.getName() + " Message: " + ex.getMessage(), StackTraceUtils.sanitize(new Exception(ex)))
             if(ex instanceof SQLException) {
                 logger.error("SQLState: " +
-                        ex.getSQLState());
+                        ex.getSQLState())
 
                 logger.error("Error Code: " +
-                        ex.getErrorCode());
+                        ex.getErrorCode())
             }
-            Throwable t = ex.getCause();
+            Throwable t = ex.getCause()
             while (t != null) {
-                StackTraceUtils.printSanitizedStackTrace(t)
+                logger.error("Cause:", StackTraceUtils.sanitize(new Exception(t)))
                 t = t.getCause()
             }
             connection.rollback()

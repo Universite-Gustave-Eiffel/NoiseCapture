@@ -135,9 +135,11 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
             def filter_date = lastModificationDaysFilter == 0 ? "" : "where record_utc > NOW()::date - " + String.valueOf(lastModificationDaysFilter)
             sql.eachRow("select name_0,name_1,name_2 from noisecapture_dump_country " + filter_date + " group by name_0 order by name_0") { country ->
                 if (exportTracks) {
+                    // TODO fetch tzid for this region
+                    
                     // Export track file
                     // Loop over region
-                    sql.eachRow("select tzid, nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_AsGeoJson(te.the_geom) the_geom, record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags, (select noisecapture_party.tag from noisecapture_party where noisecapture_party.pk_party = nt.pk_party) partycode from noisecapture_dump_country dc, noisecapture_dump_track_envelope te, noisecapture_track nt,tz_world tz  where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and ga.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(te.the_geom),tz.the_geom) and dc.pk_track = te.pk_track and te.pk_track = nt.pk_track and name_0 = :name0 and name_1=:name1 and name_2 = :name2 order by record_utc;", [name0: country.name_0, name1: country.name_1, name2: country.name_2]) {
+                    sql.eachRow("select nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_AsGeoJson(te.the_geom) the_geom, record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags, (select noisecapture_party.tag from noisecapture_party where noisecapture_party.pk_party = nt.pk_party) partycode from noisecapture_dump_country dc, noisecapture_track nt  where dc.pk_track = nt.pk_track and name_0 = :name0 and name_1=:name1 and name_2 = :name2 order by record_utc;", [name0: country.name_0, name1: country.name_1, name2: country.name_2]) {
                         track_row ->
                             def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                             if (thisFileParams != lastFileParams) {
@@ -194,7 +196,7 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
 
                 // Export measures file
                 if (exportMeasures) {
-                    sql.eachRow("select tzid, np.pk_track, ST_AsGeoJson(np.the_geom) the_geom, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_dump_country dc, noisecapture_dump_track_envelope te, noisecapture_point np,tz_world tz  where te.the_geom && tz.the_geom and st_intersects(ST_PointOnSurface(te.the_geom),tz.the_geom) and dc.pk_track = te.pk_track and te.pk_track = np.pk_track and not ST_ISEMPTY(np.the_geom) and name_0 = :name0 and name_1=:name1 and name_2 = :name2 order by record_utc", [name0: country.name_0, name1: country.name_1, name2: country.name_2]) {
+                    sql.eachRow("select np.pk_track, ST_AsGeoJson(np.the_geom) the_geom, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_dump_country dc, noisecapture_point np  where dc.pk_track = np.pk_track and not ST_ISEMPTY(np.the_geom) and name_0 = 'France' and name_1='Rhône-Alpes' and name_2 = 'Rhône' order by record_utc", [name0: country.name_0, name1: country.name_1, name2: country.name_2]) {
                         track_row ->
                             def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
                             if (thisFileParams != lastFileParams) {

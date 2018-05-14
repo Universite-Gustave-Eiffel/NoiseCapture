@@ -121,8 +121,8 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                 " from noisecapture_point np where not ST_ISEMPTY(the_geom)  group by pk_track having st_area(ST_Transform(ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326), 3857)) < 1e8")
         // Create a table that link location names with tracks
         sql.execute("drop table if exists noisecapture_dump_country")
-        sql.execute("create table noisecapture_dump_country as select name_0, name_1, name_2, te.pk_track, record_utc from NOISECAPTURE_DUMP_TRACK_ENVELOPE te, gadm28 ga, noisecapture_track nt where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and te.pk_track = nt.pk_track group by name_0, name_1, name_2, te.pk_track, record_utc")
-        sql.execute("create index on noisecapture_dump_country(name_0)")
+        sql.execute("create table noisecapture_dump_country as select name_0, name_1, name_2, (select tzid from tz_world tz where tz.the_geom && st_expand(te.the_geom,0.1) order by ST_DISTANCE(tz.the_geom, te.the_geom) ASC LIMIT 1) tzid,te.the_geom, te.pk_track, record_utc from NOISECAPTURE_DUMP_TRACK_ENVELOPE te, gadm28 ga, noisecapture_track nt where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and te.pk_track = nt.pk_track group by name_0, name_1, name_2, tzid, te.the_geom, te.pk_track, record_utc")
+        sql.execute("create index on noisecapture_dump_country(name_0, name_1, name_2)")
 
         // Loop through region level
         // Region table has been downloaded from http://www.gadm.org/version2
@@ -133,15 +133,13 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
         try {
 
             def filter_date = lastModificationDaysFilter == 0 ? "" : "where record_utc > NOW()::date - " + String.valueOf(lastModificationDaysFilter)
-            sql.eachRow("select name_0,name_1,name_2 from noisecapture_dump_country " + filter_date + " group by name_0 order by name_0") { country ->
+            sql.eachRow("select ndc2.name_0,ndc2.name_1,ndc2.name_2, ndc2.tzid from (select ndc.name_0 from noisecapture_dump_country ndc " + filter_date + " group by ndc.name_0) ndc1, noisecapture_dump_country ndc2 where ndc1.name_0 = ndc2.name_0 group by ndc2.name_0,ndc2.name_1,ndc2.name_2 order by ndc2.name_0,ndc2.name_1,ndc2.name_2") { country ->
                 if (exportTracks) {
-                    // TODO fetch tzid for this region
-                    
                     // Export track file
                     // Loop over region
-                    sql.eachRow("select nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_AsGeoJson(te.the_geom) the_geom, record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags, (select noisecapture_party.tag from noisecapture_party where noisecapture_party.pk_party = nt.pk_party) partycode from noisecapture_dump_country dc, noisecapture_track nt  where dc.pk_track = nt.pk_track and name_0 = :name0 and name_1=:name1 and name_2 = :name2 order by record_utc;", [name0: country.name_0, name1: country.name_1, name2: country.name_2]) {
+                    sql.eachRow("select tzid, nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_AsGeoJson(te.the_geom) the_geom, dc.record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags, (select noisecapture_party.tag from noisecapture_party where noisecapture_party.pk_party = nt.pk_party) partycode from noisecapture_dump_country dc, noisecapture_track nt, NOISECAPTURE_DUMP_TRACK_ENVELOPE te  where dc.pk_track = nt.pk_track and nt.pk_track = te.pk_track and name_0 = :name0 and name_1=:name1 and name_2 = :name2 order by dc.record_utc;", [name0: country.name_0, name1: country.name_1, name2: country.name_2]) {
                         track_row ->
-                            def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
+                            def thisFileParams = [country.name_2, country.name_1, country.name_0]
                             if (thisFileParams != lastFileParams) {
                                 if (lastFileJsonWriter != null) {
                                     lastFileJsonWriter << "]\n}\n"
@@ -149,15 +147,15 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                                     lastFileZipOutputStream.closeEntry()
                                 }
                                 lastFileParams = thisFileParams
-                                String fileName = track_row.name_0 + "_" + track_row.name_1 + "_" + track_row.name_2 + ".tracks.geojson"
+                                String fileName = country.name_0 + "_" + country.name_1 + "_" + country.name_2 + ".tracks.geojson"
                                 // Fetch ZipOutputStream for this new country
-                                if (countryZipOutputStream.containsKey(track_row.name_0)) {
-                                    lastFileZipOutputStream = (ZipOutputStream) countryZipOutputStream.get(track_row.name_0)
+                                if (countryZipOutputStream.containsKey(country.name_0)) {
+                                    lastFileZipOutputStream = (ZipOutputStream) countryZipOutputStream.get(country.name_0)
                                 } else {
                                     // Create new file or overwrite it
-                                    def zipFileName = new File(outPath, track_row.name_0 + ".zip")
+                                    def zipFileName = new File(outPath, country.name_0 + ".zip")
                                     lastFileZipOutputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
-                                    countryZipOutputStream.put(track_row.name_0, lastFileZipOutputStream)
+                                    countryZipOutputStream.put(country.name_0, lastFileZipOutputStream)
                                     createdFiles.add(zipFileName.getAbsolutePath())
                                 }
                                 lastFileZipOutputStream.putNextEntry(new ZipEntry(fileName))
@@ -196,9 +194,9 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
 
                 // Export measures file
                 if (exportMeasures) {
-                    sql.eachRow("select np.pk_track, ST_AsGeoJson(np.the_geom) the_geom, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_dump_country dc, noisecapture_point np  where dc.pk_track = np.pk_track and not ST_ISEMPTY(np.the_geom) and name_0 = 'France' and name_1='Rhône-Alpes' and name_2 = 'Rhône' order by record_utc", [name0: country.name_0, name1: country.name_1, name2: country.name_2]) {
+                    sql.eachRow("select tzid, np.pk_track, ST_AsGeoJson(np.the_geom) the_geom, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_dump_country dc, noisecapture_point np  where dc.pk_track = np.pk_track and not ST_ISEMPTY(np.the_geom) and name_0 = :name0 and name_1=:name1 and name_2 = :name2", [name0: country.name_0, name1: country.name_1, name2: country.name_2]) {
                         track_row ->
-                            def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
+                            def thisFileParams = [country.name_2, country.name_1, country.name_0]
                             if (thisFileParams != lastFileParams) {
                                 if (lastFileJsonWriter != null) {
                                     lastFileJsonWriter << "]\n}\n"
@@ -206,15 +204,15 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                                     lastFileZipOutputStream.closeEntry()
                                 }
                                 lastFileParams = thisFileParams
-                                String fileName = track_row.name_0 + "_" + track_row.name_1 + "_" + track_row.name_2 + ".points.geojson"
+                                String fileName = country.name_0 + "_" + country.name_1 + "_" + country.name_2 + ".points.geojson"
                                 // Fetch ZipOutputStream for this new country
-                                if (countryZipOutputStream.containsKey(track_row.name_0)) {
-                                    lastFileZipOutputStream = (ZipOutputStream) countryZipOutputStream.get(track_row.name_0)
+                                if (countryZipOutputStream.containsKey(country.name_0)) {
+                                    lastFileZipOutputStream = (ZipOutputStream) countryZipOutputStream.get(country.name_0)
                                 } else {
                                     // Create new file or overwrite it
-                                    def zipFileName = new File(outPath, track_row.name_0 + ".zip")
+                                    def zipFileName = new File(outPath, country.name_0 + ".zip")
                                     lastFileZipOutputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
-                                    countryZipOutputStream.put(track_row.name_0, lastFileZipOutputStream)
+                                    countryZipOutputStream.put(country.name_0, lastFileZipOutputStream)
                                     createdFiles.add(zipFileName.getAbsolutePath())
                                 }
                                 lastFileZipOutputStream.putNextEntry(new ZipEntry(fileName))
@@ -250,9 +248,9 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                 lastFileJsonWriter = null
                 if (exportAreas) {
                     // Export track file
-                    sql.eachRow("SELECT name_0, name_1, name_2,ST_AsGeoJson(na.the_geom) the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure, string_agg(to_char(nap.laeq, 'FM999.9'), '_') leq_profile, string_agg(to_char(hour, '999'), '_') hour_profile FROM noisecapture_area na, gadm28 ga, (select pk_area, nap.laeq, hour from noisecapture_area_profile nap  order by hour) nap  where ST_Centroid(na.the_geom) && ga.the_geom and st_contains(ga.the_geom, ST_centroid(na.the_geom)) and nap.pk_area = na.pk_area and na.pk_party is null group by name_0, name_1, name_2,na.the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure order by name_0, name_1, name_2, cell_q, cell_r;") {
+                    sql.eachRow("SELECT ST_AsGeoJson(na.the_geom) the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure, string_agg(to_char(nap.laeq, 'FM999.9'), '_') leq_profile, string_agg(to_char(hour, '999'), '_') hour_profile FROM noisecapture_area na, gadm28 ga, (select pk_area, nap.laeq, hour from noisecapture_area_profile nap  order by hour) nap  where ST_Centroid(na.the_geom) && ga.the_geom and st_contains(ga.the_geom, ST_centroid(na.the_geom)) and nap.pk_area = na.pk_area and na.pk_party is null and name_0 = :name0 and name_1=:name1 and name_2 = :name2 group by na.the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure order by cell_q, cell_r;", [name0: country.name_0, name1: country.name_1, name2: country.name_2]) {
                         track_row ->
-                            def thisFileParams = [track_row.name_2, track_row.name_1, track_row.name_0]
+                            def thisFileParams = [country.name_2, country.name_1, country.name_0]
                             if (thisFileParams != lastFileParams) {
                                 if (lastFileJsonWriter != null) {
                                     lastFileJsonWriter << "]\n}\n"
@@ -260,15 +258,15 @@ def getDump(Connection connection, File outPath, boolean exportTracks, boolean e
                                     lastFileZipOutputStream.closeEntry()
                                 }
                                 lastFileParams = thisFileParams
-                                String fileName = track_row.name_0 + "_" + track_row.name_1 + "_" + track_row.name_2 + ".areas.geojson"
+                                String fileName = country.name_0 + "_" + country.name_1 + "_" + country.name_2 + ".areas.geojson"
                                 // Fetch ZipOutputStream for this new country
-                                if (countryZipOutputStream.containsKey(track_row.name_0)) {
-                                    lastFileZipOutputStream = (ZipOutputStream) countryZipOutputStream.get(track_row.name_0)
+                                if (countryZipOutputStream.containsKey(country.name_0)) {
+                                    lastFileZipOutputStream = (ZipOutputStream) countryZipOutputStream.get(country.name_0)
                                 } else {
                                     // Create new file or overwrite it
-                                    def zipFileName = new File(outPath, track_row.name_0 + ".zip")
+                                    def zipFileName = new File(outPath, country.name_0 + ".zip")
                                     lastFileZipOutputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
-                                    countryZipOutputStream.put(track_row.name_0, lastFileZipOutputStream)
+                                    countryZipOutputStream.put(country.name_0, lastFileZipOutputStream)
                                     createdFiles.add(zipFileName.getAbsolutePath())
                                 }
                                 lastFileZipOutputStream.putNextEntry(new ZipEntry(fileName))

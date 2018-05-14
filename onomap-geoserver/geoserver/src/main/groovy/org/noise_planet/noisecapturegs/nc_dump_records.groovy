@@ -104,6 +104,9 @@ private List<String> getDump(Connection connection, File outPath, boolean export
     // gzip then base64 the content (http://www.txtwizard.net/compression)
     final String README_CONTENT = "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"
 
+    long totalDumpTracks = 0
+    long totalDumpPoints = 0
+    long totalDumpAreas = 0
 
     def createdFiles = new ArrayList<String>()
 
@@ -127,6 +130,13 @@ private List<String> getDump(Connection connection, File outPath, boolean export
         sql.execute("create table noisecapture_dump_country as select name_0, name_1, name_2, (select tzid from tz_world tz where tz.the_geom && st_expand(te.the_geom,0.1) order by ST_DISTANCE(tz.the_geom, te.the_geom) ASC LIMIT 1) tzid,te.the_geom, te.pk_track, record_utc from NOISECAPTURE_DUMP_TRACK_ENVELOPE te, gadm28 ga, noisecapture_track nt where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and te.pk_track = nt.pk_track group by name_0, name_1, name_2, tzid, te.the_geom, te.pk_track, record_utc")
         sql.execute("create index on noisecapture_dump_country(name_0, name_1, name_2)")
 
+        if(exportAreas) {
+            sql.execute("drop table if exists noisecapture_dump_areas")
+            sql.execute("create table noisecapture_dump_areas as SELECT na.pk_area, ga.name_0,ga.name_1,ga.name_2  FROM noisecapture_area na, gadm28 ga\n" +
+                    "where na.the_geom && ga.the_geom and st_contains(ga.the_geom, ST_centroid(na.the_geom))")
+            sql.execute("create index on noisecapture_dump_areas(name_0, name_1, name_2)")
+        }
+
         // Loop through region level
         // Region table has been downloaded from http://www.gadm.org/version2
         def lastFileParams = []
@@ -139,6 +149,7 @@ private List<String> getDump(Connection connection, File outPath, boolean export
             sql.eachRow("select ndc2.name_0,ndc2.name_1,ndc2.name_2 from (select ndc.name_0 from noisecapture_dump_country ndc " + filter_date + " group by ndc.name_0) ndc1, noisecapture_dump_country ndc2 where ndc1.name_0 = ndc2.name_0 group by ndc2.name_0,ndc2.name_1,ndc2.name_2 order by ndc2.name_0,ndc2.name_1,ndc2.name_2") {
                 GroovyResultSet country ->
                 if (exportTracks) {
+                    long beginTracks = System.currentTimeMillis()
                     // Export track file
                     // Loop over region
                     sql.eachRow("select tzid, nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_AsGeoJson(te.the_geom) the_geom, dc.record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags, (select noisecapture_party.tag from noisecapture_party where noisecapture_party.pk_party = nt.pk_party) partycode from noisecapture_dump_country dc, noisecapture_track nt, NOISECAPTURE_DUMP_TRACK_ENVELOPE te  where dc.pk_track = nt.pk_track and nt.pk_track = te.pk_track and name_0 = :name0 and name_1=:name1 and name_2 = :name2 order by dc.record_utc;", [name0: country['name_0'], name1: country['name_1'], name2: country['name_2']]) {
@@ -191,6 +202,7 @@ private List<String> getDump(Connection connection, File outPath, boolean export
                         lastFileJsonWriter.flush()
                         lastFileZipOutputStream.closeEntry()
                     }
+                    totalDumpTracks += System.currentTimeMillis() - beginTracks
                 }
                 lastFileParams = []
                 lastFileZipOutputStream = null
@@ -198,6 +210,7 @@ private List<String> getDump(Connection connection, File outPath, boolean export
 
                 // Export measures file
                 if (exportMeasures) {
+                    long beginPoints = System.currentTimeMillis()
                     sql.eachRow("select tzid, np.pk_track, ST_AsGeoJson(np.the_geom) the_geom, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_dump_country dc, noisecapture_point np  where dc.pk_track = np.pk_track and not ST_ISEMPTY(np.the_geom) and name_0 = :name0 and name_1=:name1 and name_2 = :name2", [name0: country.getString('name_0'), name1: country.getString('name_1'), name2: country.getString('name_2')]) {
                         GroovyResultSet track_row ->
                             def thisFileParams = [country['name_2'], country['name_1'], country['name_0']]
@@ -245,14 +258,16 @@ private List<String> getDump(Connection connection, File outPath, boolean export
                         lastFileJsonWriter.flush()
                         lastFileZipOutputStream.closeEntry()
                     }
+                    totalDumpPoints+=System.currentTimeMillis()-beginPoints
                 }
                 // Export hexagons file
                 lastFileParams = []
                 lastFileZipOutputStream = null
                 lastFileJsonWriter = null
                 if (exportAreas) {
+                    long beginArea = System.currentTimeMillis()
                     // Export track file
-                    sql.eachRow("SELECT ST_AsGeoJson(na.the_geom) the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure, string_agg(to_char(nap.laeq, 'FM999.9'), '_') leq_profile, string_agg(to_char(hour, '999'), '_') hour_profile FROM noisecapture_area na, gadm28 ga, (select pk_area, nap.laeq, hour from noisecapture_area_profile nap  order by hour) nap  where ST_Centroid(na.the_geom) && ga.the_geom and st_contains(ga.the_geom, ST_centroid(na.the_geom)) and nap.pk_area = na.pk_area and na.pk_party is null and name_0 = :name0 and name_1=:name1 and name_2 = :name2 group by na.the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure order by cell_q, cell_r;", [name0: country.getString('name_0'), name1: country.getString('name_1'), name2: country.getString('name_2')]) {
+                    sql.eachRow("SELECT ST_AsGeoJson(na.the_geom) the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure, string_agg(to_char(nap.laeq, 'FM999.9'), '_') leq_profile, string_agg(to_char(hour, '999'), '_') hour_profile FROM noisecapture_area na, noisecapture_dump_areas da, (select pk_area, nap.laeq, hour from noisecapture_area_profile nap  order by hour) nap  where da.pk_area=na.pk_area and nap.pk_area = na.pk_area and na.pk_party is null and name_0 = :name0 and name_1=:name1 and name_2 = :name2 group by na.the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure order by cell_q, cell_r;", [name0: country.getString('name_0'), name1: country.getString('name_1'), name2: country.getString('name_2')]) {
                         GroovyResultSet track_row ->
                             def thisFileParams = [country['name_2'], country['name_1'], country['name_0']]
                             if (thisFileParams != lastFileParams) {
@@ -307,6 +322,7 @@ private List<String> getDump(Connection connection, File outPath, boolean export
                         lastFileJsonWriter.flush()
                         lastFileZipOutputStream.closeEntry()
                     }
+                    totalDumpAreas+=System.currentTimeMillis() - beginArea
                 }
                 lastFileParams = []
                 lastFileZipOutputStream = null
@@ -334,6 +350,7 @@ private List<String> getDump(Connection connection, File outPath, boolean export
     } catch (SQLException ex) {
         throw ex
     }
+    logger.info(String.format("Dump complete \nTracks: %d s\nPoints %d seconds\nAreas %d seconds", totalDumpTracks / 1000, totalDumpPoints / 1000, totalDumpAreas / 1000))
     return createdFiles
 }
 

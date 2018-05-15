@@ -63,7 +63,9 @@ inputs = [
         exportMeasures: [name: 'exportMeasures', title: 'Export raw measures boolean',
                          type: Boolean.class],
         exportAreas   : [name: 'exportAreas', title: 'Export post-processed values',
-                         type: Boolean.class]
+                         type: Boolean.class],
+        dayFilter   : [name: 'dayFilter', title: 'Do not export country without update since x days, 0 filter disabled',
+                         type: Integer.class]
 ]
 
 outputs = [
@@ -376,7 +378,7 @@ def run(input) {
     }
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result: JsonOutput.toJson(getDump(connection, dumpDir, input["exportTracks"], input["exportMeasures"], input["exportAreas"], 20))]
+        return [result: JsonOutput.toJson(getDump(connection, dumpDir, input["exportTracks"], input["exportMeasures"], input["exportAreas"], Integer.valueOf(input["dayFilter"])))]
     } finally {
         connection.close()
     }

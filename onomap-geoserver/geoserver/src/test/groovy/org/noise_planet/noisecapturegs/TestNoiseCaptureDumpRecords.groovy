@@ -36,6 +36,7 @@ import org.junit.After
 import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Rule
+import org.junit.Test
 import org.junit.rules.TemporaryFolder
 
 import java.sql.Connection
@@ -339,5 +340,37 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
             assertNull(result.features[0].properties.mean_pleasantness);
             assertEquals(7, result.features[0].properties.measure_count);
         }
+    }
+
+    void testExportDayFilter() {
+        Sql.LOG.level = java.util.logging.Level.SEVERE
+        // Parse file to database
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_f720018a-a5db-4859-bd7d-377d29356c6f.zip").file))
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureDumpRecords.getResource("track_a23261b3-b569-4363-95be-e5578d694238.zip").file))
+        new nc_process().process(connection, 15.0f)
+
+        // Check with all record done today and filter 1 day
+
+        Sql sql = new Sql(connection)
+        // Change records date
+        sql.execute("UPDATE noisecapture_track SET record_utc = NOW()::date")
+        // Insert measure data
+        // insert records
+        File tmpFolder = folder.newFolder()
+        List<String> createdFiles = new nc_dump_records().getDump(connection,tmpFolder, true, true, true, 1)
+        assertEquals(2, createdFiles.size())
+        assertEquals("France.zip", new File((String)createdFiles.get(0)).getName())
+        assertEquals("Italy.zip", new File((String)createdFiles.get(1)).getName())
+
+        // Check with all records older than the set filter
+
+        // Change records date
+        sql.execute("UPDATE noisecapture_track SET record_utc = NOW()::date - 7")
+        createdFiles = new nc_dump_records().getDump(connection,tmpFolder, true, true, true, 1)
+        assertEquals(0, createdFiles.size())
     }
 }

@@ -51,7 +51,6 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.zone.ZoneRulesException
 import java.util.zip.GZIPInputStream
-import java.util.zip.GZIPOutputStream
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -108,7 +107,7 @@ private List<String> getDump(Connection connection, File outPath, boolean export
     long totalDumpPoints = 0
     long totalDumpAreas = 0
 
-    def createdFiles = new ArrayList<String>()
+    List<String> createdFiles = new ArrayList<String>()
 
     // Process export of raw measures
     try {
@@ -168,7 +167,7 @@ private List<String> getDump(Connection connection, File outPath, boolean export
                                     lastFileZipOutputStream = (ZipOutputStream) countryZipOutputStream.get(country['name_0'])
                                 } else {
                                     // Create new file or overwrite it
-                                    def zipFileName = new File(outPath, country.getString('name_0') + ".zip")
+                                    def zipFileName = new File(outPath, country.getString('name_0') + ".zip.tmp")
                                     lastFileZipOutputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
                                     countryZipOutputStream.put(country.getString('name_0'), lastFileZipOutputStream)
                                     createdFiles.add(zipFileName.getAbsolutePath())
@@ -227,7 +226,7 @@ private List<String> getDump(Connection connection, File outPath, boolean export
                                     lastFileZipOutputStream = (ZipOutputStream) countryZipOutputStream.get(country.getString('name_0'))
                                 } else {
                                     // Create new file or overwrite it
-                                    def zipFileName = new File(outPath, country.getString('name_0') + ".zip")
+                                    def zipFileName = new File(outPath, country.getString('name_0') + ".zip.tmp")
                                     lastFileZipOutputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
                                     countryZipOutputStream.put(country.getString('name_0'), lastFileZipOutputStream)
                                     createdFiles.add(zipFileName.getAbsolutePath())
@@ -283,7 +282,7 @@ private List<String> getDump(Connection connection, File outPath, boolean export
                                     lastFileZipOutputStream = (ZipOutputStream) countryZipOutputStream.get(country.getString('name_0'))
                                 } else {
                                     // Create new file or overwrite it
-                                    def zipFileName = new File(outPath, country.getString('name_0') + ".zip")
+                                    def zipFileName = new File(outPath, country.getString('name_0') + ".zip.tmp")
                                     lastFileZipOutputStream = new ZipOutputStream(new FileOutputStream(zipFileName));
                                     countryZipOutputStream.put(country.getString('name_0'), lastFileZipOutputStream)
                                     createdFiles.add(zipFileName.getAbsolutePath())
@@ -350,7 +349,10 @@ private List<String> getDump(Connection connection, File outPath, boolean export
     } catch (SQLException ex) {
         throw ex
     }
-    logger.info(String.format("Dump complete \nTracks: %d s\nPoints %d seconds\nAreas %d seconds", totalDumpTracks / 1000, totalDumpPoints / 1000, totalDumpAreas / 1000))
+    // Move created files
+    createdFiles.each { new File(it).renameTo(new File(it.substring(0, it.length() - 4)))}
+    createdFiles = createdFiles.collect() {it.substring(0, it.length() - 4)}
+    logger.info(String.format("Dump complete \nTracks: %.2f s\nPoints %.2f seconds\nAreas %.2f seconds", totalDumpTracks / 1000, totalDumpPoints / 1000, totalDumpAreas / 1000))
     return createdFiles
 }
 

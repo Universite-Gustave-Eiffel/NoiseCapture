@@ -28,12 +28,11 @@
 
 package org.noise_planet.noisecapturegs
 
+import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.json.JsonSlurper
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
-import groovy.lang.MissingPropertyException
-import geoserver.GeoServer
 import org.apache.commons.lang.StringEscapeUtils
 import org.codehaus.groovy.runtime.StackTraceUtils
 import org.geotools.jdbc.JDBCDataStore
@@ -44,7 +43,6 @@ import java.security.InvalidParameterException
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
-import java.sql.Timestamp
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -325,7 +323,7 @@ def static int processFiles(Connection connection, File[] files, int processFile
         Map trackData = [uuid: '00000000-0000-0000-0000-000000000000']
         try {
             partyIds.add(processFile(connection, zipFile, trackData, false))
-        } catch (SQLException|InvalidParameterException|MissingPropertyException ex) {
+        } catch (SQLException|InvalidParameterException|MissingPropertyException|IOException ex) {
             // Log error
             logger.error(zipFile.getName() + " Message: " + ex.getMessage(), StackTraceUtils.sanitize(new Exception(ex)))
             if(ex instanceof SQLException) {

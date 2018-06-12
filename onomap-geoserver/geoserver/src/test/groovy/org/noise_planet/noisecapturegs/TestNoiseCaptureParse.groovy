@@ -273,4 +273,17 @@ class TestNoiseCaptureParse  extends GroovyTestCase {
         def result = sql.firstRow("SELECT tag FROM  noisecapture_track nt, noisecapture_party np where nt.pk_party = np.pk_party and nt.pk_track = :pktrack",[pktrack:idtrack])
         assertEquals("UDC", result.tag)
     }
+
+    void testFileCorrupt() {
+        Statement st = connection.createStatement()
+        // Load timezone file
+        st.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
+        st.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
+        // ut_deps has been derived from https://www.data.gouv.fr/fr/datasets/contours-des-departements-francais-issus-d-openstreetmap/ (c) osm
+        // See ut_deps.txt for more details
+        st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
+
+        assertEquals(1, new nc_parse().processFiles(connection, [new File(TestNoiseCaptureParse.getResource("track_00a20ba7-35f7-4ac4-923b-9d43dd5348b8.zip").file)] as File[],
+                0, false))
+    }
 }

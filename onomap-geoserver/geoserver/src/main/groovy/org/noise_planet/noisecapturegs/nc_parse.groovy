@@ -315,7 +315,7 @@ def static void buildStatistics(Connection connection, Integer pkParty) {
     connection.setAutoCommit(true)
 }
 
-def static int processFiles(Connection connection, File[] files, int processFileLimit, boolean moveFiles) {
+def static int processFiles(Connection connection, File[] files, int processFileLimit, boolean writeFiles) {
     Logger logger = LoggerFactory.getLogger("logger_nc_parse")
     int processed = 0
     Set<Integer> partyIds = new HashSet<>();
@@ -339,12 +339,14 @@ def static int processFiles(Connection connection, File[] files, int processFile
                 t = t.getCause()
             }
             // Log track in error
-            new File("data_dir/onomap_archive", "track_exception.csv") << zipFile.getName() << "," << StringEscapeUtils.escapeCsv(ex.getMessage()) << "\n"
+            if(writeFiles) {
+                new File("data_dir/onomap_archive", "track_exception.csv") << zipFile.getName() << "," << StringEscapeUtils.escapeCsv(ex.getMessage()) << "\n"
+            }
             // Cancel transaction
             connection.rollback()
         }
         // Move file to processed folder
-        if(moveFiles) {
+        if(writeFiles) {
             File processedDir = new File("data_dir/onomap_archive", trackData.uuid.substring(0, 2))
             processedDir = new File(processedDir, trackData.uuid.substring(2, 4))
             processedDir = new File(processedDir, trackData.uuid.substring(4, 6))

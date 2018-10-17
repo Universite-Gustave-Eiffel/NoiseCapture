@@ -5,8 +5,8 @@ def getCheckedOutGitCommitHash() {
 }
 
 android {
-    compileSdkVersion 26
-    buildToolsVersion "26.0.1"
+    compileSdkVersion 28
+    buildToolsVersion "27.0.3"
     def signingFilePath = System.getProperty("user.home")+ "/.idea/signing.gradle"
     if(new File(signingFilePath).exists()) {
         apply from: signingFilePath
@@ -14,7 +14,7 @@ android {
     defaultConfig {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
-        targetSdkVersion 26
+        targetSdkVersion 28
         versionCode 36
         versionName "1.2.0"
         // Store build date in apk
@@ -87,15 +87,15 @@ dependencies {
     // multithreaded FFT for realtime visualisation of spectrum only
     compile 'com.github.wendykierp:JTransforms:3.1'
     compile 'org.apache.commons:commons-math3:3.5'
-    compile 'com.android.support:appcompat-v7:26.0.1'
-    compile 'com.android.support:design:26.0.1'
-    compile 'com.android.support:support-vector-drawable:26.0.1'
-    compile 'com.android.support:animated-vector-drawable:26.0.1'
+    compile 'com.android.support:appcompat-v7:27.1.1'
+    compile 'com.android.support:design:27.1.1'
+    compile 'com.android.support:support-vector-drawable:27.1.1'
+    compile 'com.android.support:animated-vector-drawable:27.1.1'
     compile 'com.nhaarman.supertooltips:library:3.0.0'
     //compile 'com.android.support:multidex:1.0.0'
     // Testing-only dependencies
     // Force usage of support annotations in the test app, since it is internally used by the runner module.
-    androidTestCompile 'com.android.support:support-annotations:26.0.1'
+    androidTestCompile 'com.android.support:support-annotations:27.1.1'
     androidTestCompile 'com.android.support.test:runner:0.5'
     androidTestCompile 'com.android.support.test:rules:0.5'
     androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.2'

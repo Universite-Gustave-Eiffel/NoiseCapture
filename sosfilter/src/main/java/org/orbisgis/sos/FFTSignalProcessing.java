@@ -136,6 +136,19 @@ public class FFTSignalProcessing {
         return AcousticIndicators.todBspl (rms,  refSoundPressure);
     }
 
+    public double computeSpl(boolean aWeighting) {
+        if(aWeighting) {
+            float[] signal = new float[sampleBuffer.length];
+            for(int i=0; i < signal.length; i++) {
+                signal[i] = sampleBuffer[i];
+            }
+            signal = AWeighting.aWeightingSignal(signal);
+            return AcousticIndicators.todBspl(AcousticIndicators.computeRms(signal),
+                    refSoundPressure);
+        } else {
+            return todBspl(computeRms());
+        }
+    }
     /**
      * Calculation of the equivalent sound pressure level per third octave bands
      * @see "http://stackoverflow.com/questions/18684948/how-to-measure-sound-volume-in-db-scale-android"

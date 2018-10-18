@@ -86,6 +86,9 @@ public class Window {
         return signalProcessing.getSampleDuration();
     }
 
+    public double computeWindowLeq() {
+        return signalProcessing.computeSpl(aWeighting);
+    }
     /**
      * Process the current window
      */

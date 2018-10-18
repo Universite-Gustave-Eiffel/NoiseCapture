@@ -50,6 +50,14 @@ public class AcousticIndicators {
         return Math.sqrt(sampleSum / inputSignal.length);
     }
 
+    public static double computeRms(float[] inputSignal) {
+        double sampleSum = 0;
+        for (float sample : inputSignal) {
+            sampleSum += sample * sample;
+        }
+        return Math.sqrt(sampleSum / inputSignal.length);
+    }
+
     public static double computeRms(short[] inputSignal) {
         double sampleSum = 0;
         for (short sample : inputSignal) {

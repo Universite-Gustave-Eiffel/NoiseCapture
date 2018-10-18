@@ -319,11 +319,12 @@ public class AudioProcess implements Runnable {
         return listeners;
     }
 
+    /**
+     * @return Fast refreshed 1s leq
+     */
     double getLeq() {
-        if(doFastLeq) {
-            return fastLeqProcessing.getLeq();
-        } else if(doOneSecondLeq){
-            return slowLeqProcessing.getLeq();
+        if(doOneSecondLeq){
+            return slowLeqProcessing.computeLeq();
         } else {
             return 0;
         }
@@ -405,6 +406,14 @@ public class AudioProcess implements Runnable {
 
         public double getLeq() {
             return leq;
+        }
+
+
+        /**
+         * @return Compute leq from the last pushed 1s
+         */
+        public double computeLeq() {
+            return window.computeWindowLeq();
         }
 
         /**

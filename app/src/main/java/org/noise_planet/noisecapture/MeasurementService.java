@@ -29,12 +29,14 @@ package org.noise_planet.noisecapture;
 
 import android.Manifest;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
@@ -44,6 +46,8 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.RequiresApi;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.ContextCompat;
 
 import org.orbisgis.sos.LeqStats;
@@ -107,7 +111,7 @@ public class MeasurementService extends Service {
     // Unique Identification Number for the Notification.
     // We use it on Notification start, and to cancel it.
     private int NOTIFICATION = R.string.local_service_started;
-    private Notification.Builder notification;
+    private NotificationCompat.Builder notification;
     private Notification notificationInstance;
 
     /**
@@ -257,6 +261,23 @@ public class MeasurementService extends Service {
         return useWhiteIcon ? R.drawable.ic_measure_notification : R.mipmap.ic_launcher;
     }
 
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private String createNotificationChannel(String channelId, String channelName) {
+        if (android.os.Build.VERSION.SDK_INT >= 26) {
+            NotificationChannel chan = new NotificationChannel(channelId,
+                    channelName, NotificationManager.IMPORTANCE_NONE);
+            chan.setLightColor(Color.BLUE);
+            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            NotificationManager service = (NotificationManager)getSystemService(Context
+                    .NOTIFICATION_SERVICE);
+            service.createNotificationChannel(chan);
+            return channelId;
+        } else {
+            return "";
+        }
+    }
+
     /**
      * Show a notification while this service is running.
      */
@@ -275,17 +296,23 @@ public class MeasurementService extends Service {
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
                     new Intent(this, MeasurementActivity.class), 0);
 
-
-            notification = new Notification.Builder(this).setSmallIcon(getNotificationIcon())  // the status icon
+            String channelId = "";
+            // If earlier version channel ID is not used
+            // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
+            if (android.os.Build.VERSION.SDK_INT >= 26) {
+                channelId = createNotificationChannel("my_service", "My Background Service");
+            }
+            notification = new NotificationCompat.Builder(this, channelId ).setSmallIcon
+                    (getNotificationIcon())  // the status icon
                     .setWhen(System.currentTimeMillis()).setTicker(text)  // the status text
                     .setWhen(System.currentTimeMillis())  // the time stamp
                     .setContentTitle(getString(R.string.title_service_measurement))  // the label
                     // of the
                     // entry
                     .setContentText(text)  // the contents of the entry
-                    .setContentIntent(contentIntent)  // The intent to send when the entry is clicked
+                    .setContentIntent(contentIntent);  // The intent to send when the entry is
+            // clicked
 
-            ;
         } else {
             notification.setContentText(text);
         }

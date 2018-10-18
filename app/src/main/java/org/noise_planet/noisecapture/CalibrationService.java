@@ -592,7 +592,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
                     cursor = 0;
                 }
             }
-            audioTrack.pause();
+            try {
+                audioTrack.pause();
+            } catch (IllegalStateException ex) {
+                // AudioTrack has been unloaded
+            }
         }
     }
 }

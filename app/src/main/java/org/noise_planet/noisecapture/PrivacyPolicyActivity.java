@@ -97,6 +97,10 @@ public class PrivacyPolicyActivity extends AppCompatActivity implements View.OnC
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle(R.string.title_settings_user_noise_knowledge);
         CharSequence[] options = getResources().getTextArray(R.array.knowledge);
+        // Add check box before options
+        for(int idOption=0; idOption < options.length; idOption++) {
+            options[idOption] = "▢ " + options[idOption];
+        }
         builder.setItems(options, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {

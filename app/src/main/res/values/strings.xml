@@ -232,9 +232,9 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="userinfo_pleasant">Pleasant</string>
     <string name="calibration_status_waiting_for_user_start">Waiting for calibration start&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">Calibration is about to start&#8230;</string>
-    <string name="calibration_status_send_parameters">Send calibration parameters&#8230;</string>
+    <string name="calibration_status_send_parameters">Waiting time before sending calibration parameters&#8230;</string>
     <string name="calibration_status_receive_reference">Awaiting reference value&#8230;</string>
-    <string name="calibration_status_cooldown">Calibration done, send reference value&#8230;</string>
+    <string name="calibration_status_cooldown">Waiting time before sending reference value&#8230;</string>
     <string name="userinfo_button_measure">Measure</string>
     <string name="userinfo_button_results">Valid</string>
     <string name="userinfo_tags">Predominant sources</string>

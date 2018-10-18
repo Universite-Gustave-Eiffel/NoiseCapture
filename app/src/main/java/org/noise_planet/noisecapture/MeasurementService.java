@@ -286,7 +286,7 @@ public class MeasurementService extends Service {
         mNM.cancelAll();
         // Text for the ticker
         CharSequence text = isStoring() ? getString(R.string.notification_record_content,
-                audioProcess.getLeq()) :
+                audioProcess.getLeq(false)) :
                 getText(R.string.record_message);
 
         // Set the info for the views that show in the notification panel.
@@ -300,7 +300,7 @@ public class MeasurementService extends Service {
             // If earlier version channel ID is not used
             // https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html#NotificationCompat.Builder(android.content.Context)
             if (android.os.Build.VERSION.SDK_INT >= 26) {
-                channelId = createNotificationChannel("my_service", "My Background Service");
+                channelId = createNotificationChannel("noisecapture", "NoiseCapture measurement");
             }
             notification = new NotificationCompat.Builder(this, channelId ).setSmallIcon
                     (getNotificationIcon())  // the status icon

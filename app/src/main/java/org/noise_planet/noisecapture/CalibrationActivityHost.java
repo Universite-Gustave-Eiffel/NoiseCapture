@@ -172,6 +172,8 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
                         case AWAITING_START:
                             textStatus.setText(R.string.calibration_status_waiting_for_user_start);
                             startButton.setEnabled(true);
+                            progressBar_wait_calibration_recording.setProgress(0);
+                            pitchColorBar.setBackgroundResource(R.drawable.round_corner_opaque);
                             break;
                         case DELAY_BEFORE_SEND_SIGNAL:
                             textStatus.setText(R.string.calibration_status_send_parameters);
@@ -179,6 +181,7 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
                             break;
                         case WARMUP:
                             textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
+                            progressBar_wait_calibration_recording.setProgress(0);
                             startButton.setEnabled(false);
                             break;
                         case CALIBRATION:

@@ -228,9 +228,9 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="userinfo_pleasant">Agréable</string>
     <string name="calibration_status_waiting_for_user_start">En attente du début du calibrage&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">Le calibrage est sur le point de commencer&#8230;</string>
-    <string name="calibration_status_send_parameters">Transfert des paramètres de calibrage&#8230;</string>
+    <string name="calibration_status_send_parameters">Pause avant transfert de données&#8230;</string>
     <string name="calibration_status_receive_reference">En attente de la valeur de référence&#8230;</string>
-    <string name="calibration_status_cooldown">Calibrage effectué, transfert de la valeur de référence&#8230;</string>
+    <string name="calibration_status_cooldown">Attente avant le transfert de la valeur de référence&#8230;</string>
     <string name="userinfo_button_measure">Mesure</string>
     <string name="userinfo_button_results">Valider</string>
     <string name="userinfo_tags">Sources prédominantes</string>

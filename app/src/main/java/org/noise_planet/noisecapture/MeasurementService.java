@@ -283,7 +283,11 @@ public class MeasurementService extends Service {
      */
     private void showNotification() {
         // Do not stack notifications
-        mNM.cancelAll();
+        try {
+            mNM.cancelAll();
+        } catch (SecurityException ex) {
+            // Ignore
+        }
         // Text for the ticker
         CharSequence text = isStoring() ? getString(R.string.notification_record_content,
                 audioProcess.getLeq(false)) :

@@ -262,8 +262,16 @@ public class MeasurementManager {
 
         try {
             if (cursor.moveToNext()) {
-                return new double[]{cursor.getDouble(0), cursor.getDouble(1)};
+                Double latavg = cursor.getDouble(0);
+                Double longavg = cursor.getDouble(1);
+                if(latavg.equals(0.0) && longavg.equals(0.0)) {
+                    return null;
+                } else {
+                    return new double[]{latavg, longavg};
+                }
             }
+        } catch (IllegalStateException ex) {
+            // Ignore
         } finally {
             cursor.close();
         }

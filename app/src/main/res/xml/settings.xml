@@ -74,6 +74,11 @@
         android:inputType="number"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/setting_calibration_group">
+        <CheckBoxPreference
+            android:key="settings_calibration_emit_noise"
+            android:title="@string/title_settings_calibration_emit_noise"
+            android:summary="@string/summary_settings_calibration_emit_noise"
+            android:defaultValue="false" />
         <EditTextPreference
             android:defaultValue="0"
             android:key="settings_recording_gain"

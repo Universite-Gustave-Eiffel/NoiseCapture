@@ -98,6 +98,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     private int defaultWarmupTime;
     private int defaultCalibrationTime;
+    private boolean emitNoise;
     private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationService.class);
 
     public static final int COUNTDOWN_STEP_MILLISECOND = 125;
@@ -120,6 +121,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     public static final String SETTINGS_CALIBRATION_WARMUP_TIME = "settings_calibration_warmup_time";
     public static final String SETTINGS_CALIBRATION_TIME = "settings_calibration_time";
+    public static final String SETTINGS_EMIT_NOISE = "settings_calibration_emit_noise";
 
     private CALIBRATION_STATE state = CALIBRATION_STATE.AWAITING_START;
 
@@ -135,6 +137,8 @@ public class CalibrationService extends Service implements PropertyChangeListene
             } else if (SETTINGS_CALIBRATION_WARMUP_TIME.equals(key)) {
                 defaultWarmupTime = MainActivity.getInteger(sharedPreferences,
                         SETTINGS_CALIBRATION_WARMUP_TIME, 5);
+            } else if(SETTINGS_EMIT_NOISE.equals(key)) {
+                emitNoise = sharedPreferences.getBoolean(SETTINGS_EMIT_NOISE, false);
             }
         }
     }
@@ -442,7 +446,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         // Application have right now all permissions
         if(state.equals(CALIBRATION_STATE.WARMUP)) {
             audioProcess.setDoOneSecondLeq(true);
-            if(isHost) {
+            if(isHost && emitNoise) {
                 playPinkNoise(defaultCalibrationTime + defaultWarmupTime, PINK_POWER);
             }
         } else {

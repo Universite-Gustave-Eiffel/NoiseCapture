@@ -686,7 +686,11 @@ public class MeasurementService extends Service {
         isStorageActivated.set(true);
         showNotification();
         // Set is foreground in order to let this service running without stopping
-        startForeground(NOTIFICATION, notificationInstance);
+        try {
+            startForeground(NOTIFICATION, notificationInstance);
+        } catch (SecurityException ex) {
+            // Ignore, noisecapture can not be run on background on this smartphone
+        }
     }
 
     public static final class MeasurementEventObject {

@@ -74,6 +74,11 @@
         android:inputType="number"/>
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/setting_calibration_group">
+        <CheckBoxPreference
+            android:key="settings_calibration_emit_noise"
+            android:title="@string/title_settings_calibration_emit_noise"
+            android:summary="@string/summary_settings_calibration_emit_noise"
+            android:defaultValue="false" />
         <EditTextPreference
             android:defaultValue="0"
             android:key="settings_recording_gain"
@@ -95,7 +100,7 @@
         <ListPreference
             android:key="settings_calibration_audio_output"
             android:title="@string/title_settings_calibration_linear_title"
-            android:defaultValue="STREAM_RING"
+            android:defaultValue="STREAM_MUSIC"
             android:summary="@string/title_settings_calibration_linear_description"
             android:entryValues="@array/output_mode"
             android:entries="@array/output_mode_labels"

@@ -239,7 +239,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     private int getAudioOutput() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        String value = sharedPref.getString("settings_calibration_audio_output", "STREAM_RING");
+        String value = sharedPref.getString("settings_calibration_audio_output", "STREAM_MUSIC");
 
         if("STREAM_VOICE_CALL".equals(value)) {
             return AudioManager.STREAM_VOICE_CALL;

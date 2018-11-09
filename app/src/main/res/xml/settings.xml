@@ -100,7 +100,7 @@
         <ListPreference
             android:key="settings_calibration_audio_output"
             android:title="@string/title_settings_calibration_linear_title"
-            android:defaultValue="STREAM_RING"
+            android:defaultValue="STREAM_MUSIC"
             android:summary="@string/title_settings_calibration_linear_description"
             android:entryValues="@array/output_mode"
             android:entries="@array/output_mode_labels"

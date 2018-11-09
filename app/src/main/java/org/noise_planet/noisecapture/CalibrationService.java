@@ -405,6 +405,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
                 defaultCalibrationTime = MainActivity.getInteger(sharedPref, SETTINGS_CALIBRATION_TIME, 10);
                 defaultWarmupTime = MainActivity.getInteger(sharedPref, SETTINGS_CALIBRATION_WARMUP_TIME, 5);
+                emitNoise = sharedPref.getBoolean(SETTINGS_EMIT_NOISE, false);
             }
         }
         return mBinder;

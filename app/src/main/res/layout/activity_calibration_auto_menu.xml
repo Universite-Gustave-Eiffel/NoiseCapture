@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.v4.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/drawer_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <!--
+      ~ This file is part of the NoiseCapture application and OnoMap system.
+      ~
+      ~ The 'OnoMaP' system is led by Lab-STICC and Ifsttar and generates noise maps via
+      ~ citizen-contributed noise data.
+      ~
+      ~ This application is co-funded by the ENERGIC-OD Project (European Network for
+      ~ Redistributing Geospatial Information to user Communities - Open Data). ENERGIC-OD
+      ~ (http://www.energic-od.eu/) is partially funded under the ICT Policy Support Programme (ICT
+      ~ PSP) as part of the Competitiveness and Innovation Framework Programme by the European
+      ~ Community. The application work is also supported by the French geographic portal GEOPAL of the
+      ~ Pays de la Loire region (http://www.geopal.org).
+      ~
+      ~ Copyright (C) IFSTTAR - LAE and Lab-STICC – CNRS UMR 6285 Equipe DECIDE Vannes
+      ~
+      ~ NoiseCapture is a free software; you can redistribute it and/or modify it under the terms of the
+      ~ GNU General Public License as published by the Free Software Foundation; either version 3 of
+      ~ the License, or(at your option) any later version. NoiseCapture is distributed in the hope that
+      ~ it will be useful,but WITHOUT ANY WARRANTY; without even the implied warranty of
+      ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+      ~ more details.You should have received a copy of the GNU General Public License along with this
+      ~ program; if not, write to the Free Software Foundation,Inc., 51 Franklin Street, Fifth Floor,
+      ~ Boston, MA 02110-1301  USA or see For more information,  write to Ifsttar,
+      ~ 14-20 Boulevard Newton Cite Descartes, Champs sur Marne F-77447 Marne la Vallee Cedex 2 FRANCE
+      ~  or write to scientific.computing@ifsttar.fr
+      -->
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/activity_calibration_menu"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        tools:context="org.noise_planet.noisecapture.CalibrationMenu">
+
+        <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/linearLayout"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_centerHorizontal="true"
+            android:orientation="vertical"
+            android:weightSum="2">
+
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:onClick="onAutoHostCalibration"
+                    app:srcCompat="@drawable/calibration_auto_host"/>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:onClick="onAutoGuestCalibration"
+                    app:srcCompat="@drawable/calibration_auto_guest"/>
+            </LinearLayout>
+
+
+
+        </LinearLayout>
+    </RelativeLayout>
+
+    <ListView
+        android:id="@+id/left_drawer"
+        android:layout_width="@dimen/list_view_layout_width"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start"
+        android:background="#111"
+        android:choiceMode="singleChoice"
+        android:divider="@android:color/transparent"
+        android:dividerHeight="0dp" />
+</android.support.v4.widget.DrawerLayout>

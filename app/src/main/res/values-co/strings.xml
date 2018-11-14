@@ -1,0 +1,324 @@
+<resources>
+
+    <string name="app_name">NoiseCapture</string>
+
+    <string name="action_settings">Paràmetri</string>
+    <string name="comment_cancel_change">Anullà</string>
+    <string name="comment_save_change">Arregistrà</string>
+    <string name="comment_delete_record">Sguassà</string>
+    <string name="comment_title_save_change">Arregistrà i scambiamenti</string>
+    <string name="comment_title_delete">Sguassà a misura?</string>
+    <string name="history_title_delete">Sguassà a selezzione?</string>
+
+    <string name="record_message">Appughjà nantu à u bòttulu di registramentu per principià</string>
+    <string name="calibrate_done">Calibrera fatta, u guadagnu hè piazzatu à%1$.1f dB</string>
+    <string name="calibration_out_bounds_title">Nivellu sonore troppu dèbule</string>
+    <string name="calibration_out_bounds">U nivellu sonore di calibrera ùn hè micca cumpatìbile cù e specificazione materiale. Deve esse trà %1$.0f dB è %2$.0f dB</string>
+    <string name="calibration_save_change">Ignurà è appiecà</string>
+    <string name="calibration_cancel_change">Anullà</string>
+    <string name="fail_share">A leva di u schedariu di dati hà fiascatu</string>
+    <string name="no_results">Nisunu risultatu à affisà</string>
+    <string name="no_gps_results">Ùn ci sò micca dati GPS nantu à stu registramentu </string>
+    <string name="no_gps_hint">Nisunu signale GPS</string>
+    <string name="gps_hint_precision">%1$d m</string>
+    <string name="loc_hint">Stati di a lucalisazione GPS</string>
+    <string name="permission_explain_audio_record">Ci vole à accettà l\'adopru di u micròfunu per utilizà l\'appiecazione</string>
+    <string name="permission_explain_gps">Ci vole à accettà a lucalisazione GPS per utilizà l\'appiecazione</string>
+    <string name="permission_explain_access_wifi_state">Ci vole dìritti nant\'à u statu di u wifi per pudè trasferisce i dati solamente per wifi</string>
+
+    <string name="title_menu">Listinu</string>
+    <string name="title_service_measurement">Misura</string>
+    <string name="title_activity_measurement">Misura</string>
+    <string name="title_activity_results">Risultati</string>
+    <string name="title_activity_history">Stòricu</string>
+    <string name="title_activity_about">À prupòsitu</string>
+    <string name="user_id_activity_about">U vostru ID</string>
+    <string name="title_activity_help">Aiutu</string>
+    <string name="title_appversion">Versione%1$s%2$s r.%3$s</string>
+
+    <!-- Caution dialog box at app launch !-->
+    <string name="text_OK">Iè, capiscu</string>
+    <string name="title_caution">Attenti</string>
+    <string name="text_caution">St\'appiecazione ùn rimpiazzerà mai un sonometru  prufessiunale calibratu</string>
+
+    <!-- Caution dialog box for data transfer !-->
+    <string name="text_CANCEL_data_transfer">Anullà</string>
+    <string name="no_valid_dba_value">-</string>
+
+    <string name="SL_dBA">dB(A)</string>
+    <string name="SL_dB">dB</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="title_settings_calibration_warmup_time">Durata di u contu à l\'aridrosu</string>
+    <string name="title_settings_calibration_warmup_time_description">Durata di u contu à l\'aridrosu nanzu a calibrera (in siconde)</string>
+    <string name="title_settings_calibration_time">Durata di a calibrera</string>
+    <string name="title_settings_calibration_time_description">Durata di a calibrera in siconde</string>
+    <string name="title_settings_calibration_linear_title">Uscita audio</string>
+    <string name="title_settings_calibration_linear_description">Scelta di l\'uscita audio per a prova di linearità</string>
+    <string name="setting_general_group">Generale</string>
+    <string name="setting_measurement_group">Misura</string>
+    <string name="setting_calibration_group">Calibrera</string>
+    <string name="title_settings_data_transfer">Trasferimentu di dati</string>
+    <string name="summary_settings_data_transfer">Trasferimentu automàticu di e misure</string>
+    <string name="title_settings_transfer_wifi_only">Wifi solamente</string>
+    <string name="summary_settings_transfer_wifi_only">Trasferimentu automàticu solu per Wifi</string>
+    <string name="title_settings_recording">Registramentu</string>
+    <string name="summary_settings_recording">Impone una durata massimale di registramentu</string><string name="title_settings_caution">Accennu</string>
+    <string name="summary_settings_tooltip">Selezzionà per affisà l\'infurmazione bullicine in NoiseCapture</string>
+    <string name="title_settings_tooltip">Infurazione bullicina</string>
+    <string name="summary_settings_caution">Selezzionà per affissà u missaghju d\'accennu à u lnciu di l\'appiecazione</string>
+    <string name="title_settings_recording_duration">Durata di registramentu</string>
+
+
+    <string name="title_settings_recording_gain">Guadagnu di u signale</string>
+    <string name="summary_settings_recording_gain">Fissa u gadagnu di u signale dopu à a calibrera (in dB)</string>
+
+    <string name="title_settings_spectrogram_logscalemode">Affissu di u spettrogramma</string>
+    <string name="title_settings_delete_leq_on_pause">Modu firmata</string>
+    <string name="title_settings_delete_leq_on_pause_description">Durante e firmate, si sgassa l\'ùltime seconde</string>
+    <string name="summary_settings_spectrogram_logscalemode">Selezzionà per affissà una scala lugaritìmica invece di una scala linearia</string>
+    <string name="summary_settings_recording_duration">Fissà a durata di registramentu (in seconde)</string>
+    <string name="measurement_dba_min">Min</string>
+    <string name="measurement_dba_max">Max</string>
+    <string name="measurement_dba_mean">Media</string>
+    <string name="measurement_dba_la10">LA10</string>
+    <string name="measurement_dba_la50">LA50</string>
+    <string name="measurement_dba_la90">LA90</string>
+    <string name="measurement_tab_spectrum">Spettru</string>
+    <string name="measurement_tab_spectrogram">Spettrugramma</string>
+    <string name="measurement_tab_map">Carta</string>
+
+    <!--  Ressources for the spinner calibration !-->
+
+    <!--  Ressources for the spinner map !-->
+
+    <!--  Ressources for the spinner history
+          History:HistoryItemListener:onItemClick remove the first entry (upload) !-->
+    <string-array name="choice_user_history">
+        <item>Trasferisce ver di a cumunità</item>
+        <item>Sputà i risultati</item>
+        <item>Publicà a discrizzione</item>
+        <item>Affissà u risultatu</item>
+        <item>Prisentà nantu a carta</item>
+        <item>Sgassà</item>
+    </string-array>
+
+    <!--  Ressources for the Drawer and option menu !-->
+    <string-array name="dm_list_array">
+        <item>Misura</item>
+        <item>Discrizzione</item>
+        <item>Risultati</item>
+        <item>Stòricu</item>
+        <item>Carta</item>
+        <item>Calibrera</item>
+        <item>Aiutu</item>
+        <item>A prupòsitu</item>
+    </string-array>
+    <string name="result_share">Sparte stu risultatu</string>
+    <string name="result_button_map">Carta</string>
+    <string name="result_button_upload">Mandà</string>
+    <string name="result_tooltip_minsl">Nivellu sonore equivalente LAeq (1 seconda) mìnimu</string>
+    <string name="result_tooltip_maxsl">Nivellu sonore equivalente LAeq (1 seconda) màssimu</string>
+    <string name="result_tooltip_la10">LA10: nivellu sonore suppisatu francatu durante 10% di u tempu. Per essempiu, u LA10 hè ligatu a u rombu d\'una strada, è traduce un incòmudu.</string>
+    <string name="result_tooltip_la50">LA50: nivellu sonore suppisatu francatu durante 50% di u tempu. U LA50 si pò capì cumu u nivellu sonore \"mezzanu\".</string>
+    <string name="result_tooltip_la90">LA90: nivellu sonore suppisatu  francatu durante 90% di u tempu. Per essempiu, u LA10 hè ligatu a u rombu d\'una strada, è trduce un incòmudu.</string>
+    <string name="drawer_open">Apre a barra di navigazione</string>
+    <string name="drawer_close">Chjode a barra di navigazione</string>
+    <string name="url_about">file:///android_asset/html/about_FR.html</string>
+    <string name="url_help">file:///android_asset/html/help_FR.html</string>
+
+    <!--  Ressources for acoustics !-->
+    <string name="caption_SL">Nivellu sonore</string>
+    <string-array name="catNE_list_array">
+        <item>Più di 75 dB(A)</item>
+        <item>65–75 dB(A)</item>
+        <item>55–65 dB(A)</item>
+        <item>45–55 dB(A)</item>
+        <item>Menu chì 45 dB(A)</item>
+    </string-array>
+    <!-- Add new tags at the end, update also this array Storage.TAGS -->
+    <string-array name="tags">
+        <item>PROVA</item>
+        <item>Acqua</item>
+        <item>Ventu</item>
+        <item>Internu</item>
+        <item>Staccu</item>
+        <item>Voce</item>
+        <item>Naturale</item>
+        <item>Miccànicu</item>
+        <item>Umanu</item>
+        <item>Òpere</item>
+        <item>Aereu</item>
+        <item>Sciali</item>
+        <item>Zitelli</item>
+        <item>Mùsica</item>
+        <item>Stradale</item>
+        <item>Ferratu</item>
+        <item>Marìttimu</item>
+        <item>Soni di prevenzione</item>
+        <item>Industriale</item>
+        <item>Acqua</item>
+        <item>Animali</item>
+        <item>Verdura</item>
+    </string-array>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="title_activity_view_html_page">View_html_page</string>
+    <string name="title_activity_settings">Paràmetri</string>
+    <string name="title_activity_map">Carta</string>
+    <string name="title_activity_start">Noise Capture</string>
+    <string name="title_activity_calibration_start">Calibrera</string>
+    <string name="title_activity_calibration_linearity">Prova di linearità</string>
+    <string name="title_activity_menu_calibration">Mètodi di calibrera</string>
+
+    <string name="title_activity_calibration_host">Calibrera automàtica (emettore)</string>
+    <string name="title_activity_calibration_peer">Calibrera automàtica (ricettore)</string>
+
+
+    <string name="start_text_title">NoiseCapture</string>
+    <string name="start_text_subtitle">Misurà u vostru ambiente sonoru</string>
+    <string name="start_text_developed_by">Fattu da</string>
+    <string name="start_text_supported_by">Incù u sustegnu di</string>
+    <string name="upload_progress_title">Trasferimentu&#8230;</string>
+    <string name="upload_progress_message">Trasferiementu di a misura</string>
+
+    <string name="history_length">%d s</string>
+    <string name="history_date">-%s</string>
+    <string name="history_already_uploaded">Sta misura hè digià stata trasferita</string>
+    <string name="history_sel">%.01fdB(A)</string>
+    <string name="history_upload_top">Trasferimentu</string>
+    <string name="history_uploadeddescr">Hè statu trasferitu ver di a cumunità stu risultatu?</string>
+
+    <string name="measurement_processlastsamples">Tratamentu di e %d ùltime mostre&#8230;</string>
+    <string name="history_item_choice_title">Misura %s</string>
+    <string name="calibration_select_frequency">Scelta di a frequenza da affissà</string>
+    <string name="local_service_started">Uffìziu di lucalisazione lanciatu</string>
+    <string name="measurement_service_disconnected">Uffìziu di misura scunettetu</string>
+    <string name="measurement_pause">Misura in firmata</string>
+    <string name="delete">Sguassà</string>
+    <string name="hint_userinput">A vostra discrizzione</string>
+    <string name="no_data_text_description">Appughjà nantu à u bòttulu di registramentu per principià a misura</string>
+    <string name="export_zip_info">Discrizzione di u cuntenutu di l\'archiviu\n\n
+meta.properties file are general info on device and record:\n
+- Nùmaru di versione Maiò, minò è revisione\n
+- build_date Ghjornu d\'appiccera di a versione\n
+- Nùmaru di a versione (sànu)\n
+- Durata di u registramentu in siconde\n
+- uuid: Nùmaru aleatòriu d\'individuazione à l\'apertura di l\'appiecazione\n
+- leq_mean: Média di u Leq (nivellu sonore equivalente) di a misura\n
+- record_utc: Durata di u registramentu in milisiconde\n
+- device_manufacturer device_model device_product Generic: Infurmazione annantu u materiale\n
+- pleasantness: percentuale di piacè 1-100\n
+- tags: Listinu di i tag tramezati da una virgula\n
+- user_profile: Cunniscenze di l\'usadore ind\'è u campu di u sonu/rombu  NUNDA, PRINCIPIANTE, TERCANU\n
+- noiseparty_tag: Cugnome di a NoiseParty\n\n
+
+track.geojson: scadìglie misurate ogni siconda aduprandu u furmatu geojson (http://geojson.io)\n
+- leq_mean: nivellu sonore equivalente 1s in dB(A)\n
+- pricisione di a lucalizazione in m (data da u gps, u rete o u gsm)\n
+- location_utc: Riferenza UTC in milisiconda (epoch)\n
+- leq_utc: Ora di a misura in milisiconda (epoch)\n
+- leq_id: Nùmaru d\'individuazione di a misura\n
+- marker_color: Culore adupratu da geojson.io\n
+- bearing: orientazione urizuntale di u funinu. Vede https://developer.android.com/reference/android/location/Location.html#getBearing()\n
+- speed: stimazione di a vilucezza in m/s\n
+
+- leq_frequency: nivellu sonore equivalente 1s in dB(A) per a frequenza scelta\n</string>
+    <string name="title_activity_comment">Discrizzione</string>
+    <string name="userinfo_unpleasant">Dispiacèvule</string>
+    <string name="userinfo_pleasant">Piacèvule</string>
+    <string name="calibration_status_waiting_for_user_start">S\'aspetta u principiu di a calibrera&#8230;</string>
+    <string name="calibration_status_waiting_for_start_timer">Hà da principià a calibrera&#8230;</string>
+    <string name="calibration_status_send_parameters">Trasferimentu di i paràmetri di calibrera &#8230;</string>
+    <string name="calibration_status_receive_reference">S\'aspetta a valuta di rifirenza&#8230;</string>
+    <string name="calibration_status_cooldown">Calibrera fatta, trasferimentu di a valuta di riferenza&#8230;</string>
+    <string name="userinfo_button_measure">Misura</string>
+    <string name="userinfo_button_results">Cunvalità</string>
+    <string name="userinfo_tags">Fonte supranante</string>
+    <string name="calibration_status_on">Calibrera&#8230;</string>
+    <string name="calibration_linear_status_on">Calibrera à %1$.0f dB</string>
+    <string name="calibration_status_end">Calibrera fatta</string>
+    <string name="calibration_status_background_noise">Misura di u rumore di sottu-fondu</string>
+    <string name="calibration_button_start">Principià</string>
+    <string name="calibration_button_cancel">Anullà</string>
+    <string name="calibration_leq_title">Leq misuratu:</string>
+    <string name="calibration_measure_title">Valuta di rifirenza:</string>
+    <string name="calibration_button_apply">Appiecà</string>
+    <string name="calibration_button_reset">Rimette a postu</string>
+    <string name="calibration_test_gain_checkbox">Prova di u guadagnu</string>
+    <string name="calibration_mode">Modu di calibrera</string>
+    <string-array name="calibrate_type_list_array">
+        <item>Glubale</item>
+        <item>125 Hz</item>
+        <item>250 Hz</item>
+        <item>500 Hz</item>
+        <item>1 kHz</item>
+        <item>4 kHz</item>
+        <item>8 kHz</item>
+        <item>16 kHz</item>
+    </string-array>
+    <string name="share_message">Aghju misuratu %.01fdb(A) incù #NoiseCapture</string>
+    <string name="summary_settings_measurement_display_window">Finestra per a misura in corsu (ùn serà micca aduprata per l\'affissu di i risultati finale)</string>
+    <string name="title_settings_measurement_display_window">Finestra</string>
+    <string name="title_settings_map_maxmarker">Nùmaru màssimu di misure da affissà</string>
+    <string name="summary_settings_map_maxmarker">Nùmaru màssimu di misure da affissà indi una carta (0 per tutte e misure)</string>
+    <string name="map_title_progress_loading">Caricamentu di i dati</string>
+    <string name="policy_legal_age">Aghju l\'età legale per aduprà st\'appiecazione</string>
+    <string name="policy_agree_statement">Aghju lettu è sò d\'accunsente incù a pulìtica di cunfidenzialità</string>
+    <string name="policy_button_continue">Seguente</string>
+    <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy_FR.html</string>
+    <string name="privacy_policy_title">Pulìtica di cunfidenzialità</string>
+    <string name="calibration_warning">Per a calibrera, ci vole à aduprà un dispusitivu di rifirenza digià calibratu, per essempiu un sonometru o un funinu calibratu. Per sapene di più, fighjate <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">a pàgina d\'aiutu </a> di l\'appiecazione</string>
+    <string name="notification_record_content">Misura in corsu… %1$.1f dB(A)</string>
+    <string name="result_title_progress_loading">Caricamentu di i dati</string>
+    <string name="userinfo_tags_measurement_conditions">Cundizione di a misura</string>
+    <string name="notification_goto_community_map_title">Misure di a cumunità</string>
+
+    <string-array name="output_mode_labels">
+        <item>Chjamata telefònica</item>
+        <item>sonu sistema</item>
+        <item>Suneria</item>
+        <item>Mùsica</item>
+        <item>Sonu di prevenzione</item>
+        <item>Nutificazione</item>
+        <item>DTMF</item>
+    </string-array>
+    <string-array name="settings_display_measurement_window_labels">
+        <item>Rettangulare</item>
+        <item>Hann</item>
+    </string-array>
+    <string name="notification_goto_community_map">Andate a vede http://noise-planet.org, percorre a carta incù tutte e misure fatte da a cumunità</string>
+    <string name="title_settings_notification_links">Nutificazione</string>
+    <string name="summary_settings_notification_links">Selezzionà per afissà a nutilicazione di u lìgame ver di a pàgina Noise-Planet</string>
+    <string name="settings_category_profile">Prufilu di l\'usadore</string>
+    <string name="title_settings_user_noise_knowledge">Prufilu di l\'usadore</string>
+    <string name="settings_user_noise_knowledge_description">Qualè sò, sicondu a voi, e vostre cunniscenze ind\'è u campu di u sonu/rombu</string>
+    <string name="hint_userinput_noiseparty_tag">Còdice Noiseapture Party</string>
+    <string-array name="knowledge">
+        <item>Ùn ci cunnoscu nunda ind\'è u campu di u sonu/rombu</item>
+        <item>Aghju qualchì cunniscenze ind\'è u campu di u sonu/rombu</item>
+        <item>Sò un prufeziunale di u campu di u sonu/rombu </item>
+    </string-array>
+    <string name="calibration_menu_btn_manual">Calibrera manuale</string>
+    <string name="calibration_menu_btn_guest">Calibrera automàtica (emettore)</string>
+    <string name="calibration_menu_btn_host">Calibrera automàtica (ricettore)</string>
+    <string name="calibration_menu_text_manual">Per a calibrera di u vostru funinu, aduprate un dispusitivu di rifirenza sternu (sonometru)</string>
+    <string name="calibration_menu_text_receive">Calibrate u vostru funinu incù un funinu digià calibratu</string>
+    <string name="calibration_menu_text_host">Aduprà u vostru funinu per calibrà d\'altri funini</string>
+    <string name="calibration_host_warning">U funinu chì  emette hà da esse cunnettatu ad una uscita audio sterna. I funini emettore et ricettore anu da esse spone à l\'uscita audio sterna di listessa manera</string>
+    <string name="calibration_log_receive_word">Tunalità: %s</string>
+    <string name="calibration_log_send_message">Mandà: %s</string>
+    <string name="calibration_log_receive_message">Missaghju: %s</string>
+    <string name="title_settings_language" />
+    <string name="settings_language_summary" />
+    <string name="calibration_communication" />
+    <string name="calibration_host_hint" />
+    <string name="calibration_noise_source_parameters" />
+    <string name="calibration_noise_pink" />
+    <string name="calibration_noise_ambient" />
+    <string name="calibration_reference" />
+    <string name="manual_calibration" />
+    <string name="calibration_noise_calibrator" />
+    <string name="auto_calibration" />
+    <string name="calibration_guest" />
+</resources>

@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="org.noise_planet.noisecapture">
+    package="org.noise_planet.noisecapture">
 
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
-    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <!-- Required by Android P -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -15,18 +15,18 @@
     <!-- Save shared file permission on privte folder -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="18"/>
+        android:maxSdkVersion="18" />
 
     <permission
         android:name="org.noise_planet.noisecapture.MAPS_RECEIVE"
-        android:protectionLevel="signature"/>
+        android:protectionLevel="signature" />
 
     <uses-feature
         android:name="android.hardware.camera"
-        android:required="false"/>
+        android:required="false" />
     <uses-feature
         android:glEsVersion="0x00020000"
-        android:required="true"/>
+        android:required="true" />
 
     <!-- android:name="android.support.multidex.MultiDexApplication" -->
     <application
@@ -41,88 +41,90 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/filepaths"/>
+                android:resource="@xml/filepaths" />
         </provider>
 
-        <service android:name=".MeasurementService"/>
-        <service android:name=".CalibrationService"/>
+        <service android:name=".MeasurementService" />
+        <service android:name=".CalibrationService" />
 
         <activity
             android:name=".MeasurementActivity"
             android:label="@string/title_activity_measurement"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".Results"
             android:label="@string/title_activity_results"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".MainActivity"
-            android:label="@string/title_activity_main"/>
+            android:label="@string/title_activity_main" />
         <activity
             android:name=".ViewHtmlPage"
             android:label="@string/title_activity_view_html_page"
             android:noHistory="true">
-            <!--  listen to ACTION_VIEW intents (links to this view) -->
+
+            <!-- listen to ACTION_VIEW intents (links to this view) -->
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
+
                 <action android:name="android.intent.action.VIEW" />
+
                 <data android:scheme="org.noise_planet.noisecapture" />
             </intent-filter>
         </activity>
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
-            android:noHistory="true"/>
+            android:noHistory="true" />
         <activity
             android:name=".MapActivity"
-            android:label="@string/title_activity_map"/>
+            android:label="@string/title_activity_map" />
         <activity
             android:name=".Start"
             android:label="@string/title_activity_start"
             android:noHistory="true"
             android:screenOrientation="portrait">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
             android:name=".History"
-            android:label="@string/title_activity_history"/>
+            android:label="@string/title_activity_history" />
         <activity
             android:name=".CalibrationActivity"
             android:label="@string/title_activity_calibration_start"
-            android:windowSoftInputMode="stateHidden"
-            android:screenOrientation="portrait" />
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".CalibrationLinearityActivity"
             android:label="@string/title_activity_calibration_linearity"
             android:screenOrientation="portrait" />
-
         <activity
             android:name=".CommentActivity"
             android:label="@string/title_activity_comment"
-            android:windowSoftInputMode="adjustPan"
-            android:screenOrientation="portrait" />
-
-        <activity android:name=".PrivacyPolicyActivity"
-            android:label="@string/privacy_policy_title">
-        </activity>
-
-    <activity
+            android:screenOrientation="portrait"
+            android:windowSoftInputMode="adjustPan" />
+        <activity
+            android:name=".PrivacyPolicyActivity"
+            android:label="@string/privacy_policy_title"></activity>
+        <activity
             android:name=".CalibrationMenu"
             android:label="@string/title_activity_menu_calibration"
-            android:screenOrientation="portrait"/>
+            android:screenOrientation="portrait" />
         <activity
             android:name=".CalibrationActivityHost"
+            android:keepScreenOn="true"
             android:label="@string/title_activity_calibration_host"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".CalibrationActivityGuest"
             android:keepScreenOn="true"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".CalibrationActivityGuest"
             android:label="@string/title_activity_calibration_peer"
-            android:keepScreenOn="true"
-          android:screenOrientation="portrait" />
+            android:screenOrientation="portrait" />
+        <activity android:name=".CalibrationAutoMenu"></activity>
     </application>
 
 </manifest>

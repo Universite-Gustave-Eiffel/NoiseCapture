@@ -39,14 +39,6 @@ public class CalibrationMenu extends MainActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calibration_menu);
         initDrawer();
-
-        // Disable wifi calibration if device < API 16
-        if (android.os.Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN){
-            View wifiCalibration = findViewById(R.id.BtnWifiCalibration);
-            wifiCalibration.setEnabled(false);
-            View wifiHostCalibration = findViewById(R.id.BtnHostWifiGroup);
-            wifiHostCalibration.setEnabled(false);
-        }
     }
 
     public void onManualCalibration(View view) {
@@ -56,17 +48,11 @@ public class CalibrationMenu extends MainActivity {
         finish();
     }
 
-    public void onWifiGuestCalibration(View view) {
-        Intent ics = new Intent(getApplicationContext(), CalibrationActivityGuest.class);
+    public void onAutoCalibration(View view) {
+        Intent ics = new Intent(getApplicationContext(), CalibrationAutoMenu.class);
         mDrawerLayout.closeDrawer(mDrawerList);
         startActivity(ics);
         finish();
     }
 
-    public void onWifiHostCalibration(View view) {
-        Intent ics = new Intent(getApplicationContext(), CalibrationActivityHost.class);
-        mDrawerLayout.closeDrawer(mDrawerList);
-        startActivity(ics);
-        finish();
-    }
 }

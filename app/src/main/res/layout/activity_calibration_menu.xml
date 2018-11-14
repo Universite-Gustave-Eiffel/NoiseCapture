@@ -55,6 +55,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
+                android:paddingBottom="8dp"
                 android:layout_weight="1">
 
                 <ImageView
@@ -67,6 +68,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
+                android:paddingBottom="8dp"
                 android:layout_weight="1">
                 <ImageView
                     android:layout_width="match_parent"
@@ -78,6 +80,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
+                android:paddingBottom="8dp"
                 android:layout_weight="1">
                 <ImageView
                     android:layout_width="match_parent"
@@ -101,6 +104,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:orientation="vertical"
+                android:paddingBottom="8dp"
                 android:layout_weight="1">
 
                     <TextView
@@ -110,6 +114,7 @@
                         android:textColor="@color/flashy_green"
                         android:textStyle="bold"
                         android:gravity="start"
+                        android:paddingTop="8dp"
                         android:paddingLeft="40dp"
                         android:paddingRight="5dp"
                         android:textSize="20sp" />
@@ -118,14 +123,13 @@
                         android:layout_height="0dp"
                         android:layout_weight="1"/>
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:text="@string/manual_calibration"
-                        android:textColor="@color/black"
+                        android:textColor="@color/white"
                         android:textStyle="bold"
+                        android:paddingBottom="8dp"
                         android:gravity="center"
-                        android:paddingLeft="35dp"
-                        android:paddingRight="5dp"
                         android:textSize="20sp" />
             </LinearLayout>
 
@@ -134,17 +138,18 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:orientation="vertical"
+                android:paddingBottom="8dp"
                 android:layout_weight="1">
 
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/calibration_noise_calibrator"
                     android:textColor="@color/flashy_green"
                     android:textStyle="bold"
-                    android:gravity="center"
-                    android:paddingTop="20dp"
-                    android:paddingLeft="25dp"
+                    android:gravity="center|left"
+                    android:paddingTop="40dp"
+                    android:paddingLeft="40dp"
                     android:paddingRight="5dp"
                     android:textSize="20sp" />
                 <Space
@@ -152,14 +157,13 @@
                     android:layout_height="0dp"
                     android:layout_weight="1"/>
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="@string/manual_calibration"
-                    android:textColor="@color/black"
+                    android:textColor="@color/white"
+                    android:paddingBottom="8dp"
                     android:textStyle="bold"
                     android:gravity="center"
-                    android:paddingLeft="35dp"
-                    android:paddingRight="5dp"
                     android:textSize="20sp" />
             </LinearLayout>
 
@@ -168,6 +172,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:orientation="horizontal"
+                android:paddingBottom="8dp"
                 android:layout_weight="1">
 
                 <TextView
@@ -176,17 +181,18 @@
                     android:text="@string/calibration_reference"
                     android:textColor="@color/black"
                     android:textStyle="bold"
-                    android:gravity="start|top"
-                    android:paddingLeft="25dp"
-                    android:paddingBottom="10dp"
+                    android:gravity="start|bottom"
+                    android:paddingLeft="30dp"
+                    android:paddingBottom="40dp"
                     android:textSize="15sp" />
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:text="@string/auto_calibration"
-                    android:textColor="@color/black"
+                    android:textColor="@color/white"
                     android:textStyle="bold"
                     android:gravity="center|bottom"
+                    android:paddingBottom="8dp"
                     android:textSize="20sp" />
                 <TextView
                     android:layout_width="match_parent"
@@ -194,8 +200,9 @@
                     android:text="@string/calibration_guest"
                     android:textColor="@color/black"
                     android:textStyle="bold"
-                    android:paddingRight="25dp"
-                    android:gravity="right"
+                    android:paddingRight="30dp"
+                    android:paddingBottom="40dp"
+                    android:gravity="bottom|right"
                     android:textSize="15sp" />
             </RelativeLayout>
 

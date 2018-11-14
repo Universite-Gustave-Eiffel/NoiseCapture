@@ -318,11 +318,11 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="calibration_noise_ambient" >Bruit ambiant</string>
     <string name="title_settings_language">Langue</string>
     <string name="calibration_reference" >REFERENCE</string>
-    <string name="manual_calibration" >CALIBRAGE MANUEL</string>
+    <string name="manual_calibration" >MANUEL</string>
     <string name="calibration_noise_calibrator" >CALIBRATEUR</string>
-    <string name="auto_calibration" >CALIBRAGE AUTO</string>
+    <string name="auto_calibration" >AUTOMATIQUE</string>
     <string name="calibration_guest" >A CALIBRER</string>
-    <string name="title_activity_calibration_auto_menu" >Calibrage Auto</string>
+    <string name="title_activity_calibration_auto_menu" >Automatique</string>
     <string name="calibrate_from_reference" >Calibrer votre smartphone à l\'aide d\'un smartphone calibré, avec NoiseCapture</string>
     <string name="calibrate_other_smartphones" >Utilisez votre propre smartphone calibré pour calibrer d\'autres smartphones, en utilisant NoiseCapture</string>
 </resources>

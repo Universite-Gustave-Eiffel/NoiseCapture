@@ -433,6 +433,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
         listeners.addPropertyChangeListener(propertyChangeListener);
     }
 
+    public void cancelCalibration() {
+        setState(CALIBRATION_STATE.AWAITING_START);
+        recordingModem.set(true);
+    }
+
     public void startCalibration() {
         if(CALIBRATION_STATE.AWAITING_START.equals(state) || CALIBRATION_STATE
                 .DELAY_BEFORE_SEND_SIGNAL.equals(state)) {

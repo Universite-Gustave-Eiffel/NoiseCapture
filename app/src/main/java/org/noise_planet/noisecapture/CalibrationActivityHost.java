@@ -126,6 +126,10 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
         startButton.setText(R.string.calibration_button_start);
     }
 
+    public void onCancelCalibration(View v) {
+        calibrationService.cancelCalibration();
+        progressBar_wait_calibration_recording.setProgress(0);
+    }
     public void onStartCalibration(View v) {
         startButton.setEnabled(false);
         textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
@@ -211,7 +215,7 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
                             startButton.setEnabled(false);
                     }
                 }});
-        } else if(CalibrationService.PROP_CALIBRATION_PROGRESSION.equals(event.getPropertyName())) {
+        } else if(CalibrationService.PROP_CALIBRATION_PROGRESSION.equals(event.getPropertyName()) &&  !AWAITING_START.equals(calibrationService.getState())) {
             progressBar_wait_calibration_recording.setProgress((Integer)event.getNewValue());
         } else if(CalibrationService.PROP_CALIBRATION_RECEIVE_PITCH.equals(event.getPropertyName())) {
             runOnUiThread(new Runnable() {

@@ -54,7 +54,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:paddingBottom="1dp"
+                android:paddingBottom="4dp"
                 android:layout_weight="1">
 
                 <ImageView
@@ -67,7 +67,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:paddingTop="1dp"
+                android:paddingTop="4dp"
                 android:layout_weight="1">
                 <ImageView
                     android:layout_width="match_parent"
@@ -91,28 +91,22 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="30dp"
+                    android:paddingLeft="35dp"
+                    android:paddingTop="16dp"
+                    android:gravity="center"
                     android:textSize="14sp"
-                    android:textColor="@color/black"
-                    android:paddingRight="30dp"
+                    android:textColor="@color/white"
+                    android:paddingRight="35dp"
                     android:text="@string/calibrate_other_smartphones"/>
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:text="@string/auto_calibration"
-                    android:textColor="@color/black"
-                    android:textStyle="bold"
-                    android:gravity="center|bottom"
-                    android:textSize="20sp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:text="@string/calibration_reference"
                     android:textColor="@color/black"
                     android:textStyle="bold"
-                    android:gravity="start|center"
-                    android:paddingBottom="50dp"
+                    android:gravity="bottom|center"
+                    android:paddingBottom="35dp"
                     android:paddingLeft="35dp"
                     android:textSize="15sp" />
                 <TextView
@@ -121,8 +115,8 @@
                     android:text="@string/calibration_guest"
                     android:textColor="@color/black"
                     android:textStyle="bold"
-                    android:gravity="end|center"
-                    android:paddingBottom="50dp"
+                    android:gravity="end|bottom"
+                    android:paddingBottom="35dp"
                     android:alpha="0.2"
                     android:paddingRight="35dp"
                     android:textSize="15sp" />
@@ -135,28 +129,22 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:paddingLeft="30dp"
+                    android:paddingLeft="35dp"
                     android:textSize="14sp"
-                    android:textColor="@color/black"
-                    android:paddingRight="30dp"
+                    android:paddingTop="16dp"
+                    android:gravity="center"
+                    android:textColor="@color/white"
+                    android:paddingRight="35dp"
                     android:text="@string/calibrate_from_reference"/>
 
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:text="@string/auto_calibration"
-                    android:textColor="@color/black"
-                    android:textStyle="bold"
-                    android:gravity="center|bottom"
-                    android:textSize="20sp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="match_parent"
                     android:text="@string/calibration_reference"
                     android:textColor="@color/black"
                     android:textStyle="bold"
-                    android:gravity="start|center"
-                    android:paddingBottom="50dp"
+                    android:gravity="bottom|center"
+                    android:paddingBottom="35dp"
                     android:paddingLeft="35dp"
                     android:alpha="0.2"
                     android:textSize="15sp" />
@@ -166,8 +154,8 @@
                     android:text="@string/calibration_guest"
                     android:textColor="@color/black"
                     android:textStyle="bold"
-                    android:gravity="end|center"
-                    android:paddingBottom="50dp"
+                    android:gravity="end|bottom"
+                    android:paddingBottom="35dp"
                     android:paddingRight="35dp"
                     android:textSize="15sp" />
             </RelativeLayout>

@@ -322,4 +322,7 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
     <string name="calibration_noise_calibrator" />
     <string name="auto_calibration" />
     <string name="calibration_guest" />
+    <string name="title_activity_calibration_auto_menu" />
+    <string name="calibrate_from_reference" />
+    <string name="calibrate_other_smartphones" />
 </resources>

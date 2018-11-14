@@ -11,7 +11,7 @@ public class CalibrationAutoMenu extends MainActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_calibration_menu);
+        setContentView(R.layout.activity_calibration_auto_menu);
         initDrawer();
     }
 

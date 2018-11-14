@@ -34,14 +34,13 @@
 
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
-        android:id="@+id/activity_calibration_menu"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingTop="@dimen/activity_vertical_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
         android:paddingBottom="@dimen/activity_vertical_margin"
-        tools:context="org.noise_planet.noisecapture.CalibrationMenu">
+        tools:context="org.noise_planet.noisecapture.CalibrationAutoMenu">
 
         <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@+id/linearLayout"
@@ -54,7 +53,8 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:paddingBottom="1dp"
                 android:layout_weight="1">
 
                 <ImageView
@@ -66,7 +66,8 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="0dp"
+                android:paddingTop="1dp"
                 android:layout_weight="1">
                 <ImageView
                     android:layout_width="match_parent"
@@ -77,6 +78,99 @@
 
 
 
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:weightSum="2"
+            android:orientation="vertical">
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="30dp"
+                    android:textSize="14sp"
+                    android:textColor="@color/black"
+                    android:paddingRight="30dp"
+                    android:text="@string/calibrate_other_smartphones"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="@string/auto_calibration"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:gravity="center|bottom"
+                    android:textSize="20sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="@string/calibration_reference"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:gravity="start|center"
+                    android:paddingBottom="50dp"
+                    android:paddingLeft="35dp"
+                    android:textSize="15sp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="@string/calibration_guest"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:gravity="end|center"
+                    android:paddingBottom="50dp"
+                    android:alpha="0.2"
+                    android:paddingRight="30dp"
+                    android:textSize="15sp" />
+            </RelativeLayout>
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="30dp"
+                    android:textSize="14sp"
+                    android:textColor="@color/black"
+                    android:paddingRight="30dp"
+                    android:text="@string/calibrate_from_reference"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="@string/auto_calibration"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:gravity="center|bottom"
+                    android:textSize="20sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:text="@string/calibration_reference"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:gravity="start|center"
+                    android:paddingBottom="50dp"
+                    android:paddingLeft="35dp"
+                    android:alpha="0.2"
+                    android:textSize="15sp" />
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:text="@string/calibration_guest"
+                    android:textColor="@color/black"
+                    android:textStyle="bold"
+                    android:gravity="end|center"
+                    android:paddingBottom="50dp"
+                    android:paddingRight="35dp"
+                    android:textSize="15sp" />
+            </RelativeLayout>
         </LinearLayout>
     </RelativeLayout>
 

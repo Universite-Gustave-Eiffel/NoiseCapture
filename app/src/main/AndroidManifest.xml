@@ -124,7 +124,11 @@
             android:keepScreenOn="true"
             android:label="@string/title_activity_calibration_peer"
             android:screenOrientation="portrait" />
-        <activity android:name=".CalibrationAutoMenu"></activity>
+        <activity
+            android:name=".CalibrationAutoMenu"
+            android:keepScreenOn="true"
+            android:label="@string/title_activity_calibration_auto_menu"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>

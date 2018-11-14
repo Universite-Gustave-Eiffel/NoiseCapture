@@ -327,4 +327,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_noise_calibrator">NOISE\nCALIBRATOR</string>
     <string name="auto_calibration">AUTO\nCALIBRATION</string>
     <string name="calibration_guest">TO CALIBRATE</string>
+    <string name="title_activity_calibration_auto_menu" >Auto Calibration</string>
+    <string name="calibrate_from_reference">Calibrate your smartphone using a calibrated smartphone, with NoiseCapture</string>
+    <string name="calibrate_other_smartphones">Use you own calibrated smartphone to calibrate other smartphones, using NoiseCapture</string>
 </resources>

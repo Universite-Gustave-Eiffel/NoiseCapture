@@ -124,7 +124,7 @@
                     android:gravity="end|center"
                     android:paddingBottom="50dp"
                     android:alpha="0.2"
-                    android:paddingRight="30dp"
+                    android:paddingRight="35dp"
                     android:textSize="15sp" />
             </RelativeLayout>
             <RelativeLayout

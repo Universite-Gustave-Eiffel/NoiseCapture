@@ -32,12 +32,13 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_weight="1"
-                    android:layout_height="wrap_content">
+                    android:layout_height="0dp">
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:background="@drawable/round_corner_opaque_red"
+                        android:background="@drawable/round_corner_opaque"
+                        android:textColor="@color/white"
                         android:paddingLeft="@dimen/activity_horizontal_margin"
                         android:text="@string/calibration_host_hint"
                         android:textSize="20sp" />
@@ -47,13 +48,13 @@
                     android:layout_width="match_parent"
                     android:layout_weight="1"
                     android:orientation="vertical"
-                    android:layout_height="wrap_content">
+                    android:layout_height="0dp">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/calibration_noise_source_parameters"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
                     <RadioGroup
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
@@ -74,19 +75,18 @@
                 </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
                     android:layout_weight="1"
                     android:layout_gravity="center"
                     android:gravity="center"
-                    android:orientation="vertical"
-                    android:paddingTop="16dp">
+                    android:orientation="vertical">
 
                     <TextView
                         android:id="@+id/calibration_communication_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/calibration_communication"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
 
                     <LinearLayout
                         android:id="@+id/pitch_notification"
@@ -99,7 +99,7 @@
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
                     android:layout_gravity="center"
                     android:gravity="center"
                     android:layout_weight="1"
@@ -111,7 +111,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="@string/calibration_status_waiting_for_user_start"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
                     <ProgressBar
                         android:id="@+id/progressBar_wait_calibration_recording"
                         style="@android:style/Widget.ProgressBar.Horizontal"
@@ -119,37 +119,45 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingTop="15dp"
-                        android:text="@string/calibration_measure_title"
-                        android:textSize="15sp" />
-
                 </LinearLayout>
 
 
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="0dp"
                     android:gravity="center"
                     android:layout_weight="1"
-                    android:orientation="horizontal">
+                    android:orientation="vertical">
+
 
                     <TextView
-                        android:id="@+id/spl_ref_measured"
-                        android:layout_width="80dp"
+                        android:layout_width="match_parent"
+                        android:layout_gravity="left"
                         android:layout_height="wrap_content"
-                        android:gravity="right"
-                        android:textSize="25sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:paddingLeft="15dp"
-                        android:paddingRight="0dp"
-                        android:text="@string/SL_dB"
+                        android:text="@string/calibration_measure_title"
                         android:textSize="20sp" />
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:orientation="horizontal"
+                        android:gravity="center"
+                        android:layout_height="wrap_content">
+
+                        <TextView
+                            android:id="@+id/spl_ref_measured"
+                            android:layout_width="80dp"
+                            android:layout_height="wrap_content"
+                            android:gravity="right"
+                            android:textSize="25sp" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:paddingLeft="15dp"
+                            android:paddingRight="0dp"
+                            android:text="@string/SL_dB"
+                            android:textSize="20sp" />
+
+                    </LinearLayout>
                 </LinearLayout>
             </LinearLayout>
         </ScrollView>

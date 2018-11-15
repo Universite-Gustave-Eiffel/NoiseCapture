@@ -327,4 +327,6 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="calibrate_other_smartphones" >Utilisez votre propre smartphone calibré pour calibrer d\'autres smartphones, en utilisant NoiseCapture</string>
     <string name="manual_calibration_with_calibrator">Manuel avec un calibrateur</string>
     <string name="manual_calibration_with_reference">Manuel avec une référence</string>
+    <string name="auto_calibration_host">Utiliser mon propre smartphone calibré pour calibrer d\'autres smartphones avec NoiseCapture</string>
+    <string name="auto_calibration_guest">Calibrer mon smartphone à l\'aide d\'un smartphone calibré avec NoiseCapture</string>
 </resources>

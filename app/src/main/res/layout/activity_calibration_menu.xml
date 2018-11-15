@@ -57,6 +57,7 @@
                 android:layout_height="0dp"
                 android:background="@drawable/round_corner_opaque"
                 android:layout_margin="5dp"
+                android:onClick="onManualCalibration"
                 android:orientation="vertical"
                 android:layout_weight="1">
 
@@ -68,7 +69,6 @@
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:onClick="onManualCalibration"
                         app:srcCompat="@drawable/calibration" />
                 </LinearLayout>
                 <TextView
@@ -87,6 +87,7 @@
                 android:orientation="vertical"
                 android:background="@drawable/round_corner_opaque"
                 android:layout_margin="5dp"
+                android:onClick="onManualCalibration"
                 android:layout_weight="1">
 
                 <LinearLayout
@@ -97,7 +98,6 @@
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:onClick="onManualCalibration"
                         app:srcCompat="@drawable/calibration2" />
                 </LinearLayout>
                 <TextView
@@ -115,6 +115,7 @@
                 android:orientation="vertical"
                 android:background="@drawable/round_corner_opaque"
                 android:layout_margin="5dp"
+                android:onClick="onAutoCalibration"
                 android:layout_weight="1">
 
                 <LinearLayout
@@ -125,7 +126,6 @@
                     <ImageView
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:onClick="onAutoCalibration"
                         app:srcCompat="@drawable/calibration3" />
                 </LinearLayout>
                 <TextView

@@ -331,4 +331,6 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibrate_other_smartphones" />
     <string name="manual_calibration_with_calibrator" />
     <string name="manual_calibration_with_reference" />
+    <string name="auto_calibration_host" />
+    <string name="auto_calibration_guest" />
 </resources>

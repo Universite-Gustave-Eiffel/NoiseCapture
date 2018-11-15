@@ -325,4 +325,6 @@ Măsuarea se face în eșantionae de 1s salvate în track.geojson. Este utilizat
     <string name="title_activity_calibration_auto_menu" />
     <string name="calibrate_from_reference" />
     <string name="calibrate_other_smartphones" />
+    <string name="manual_calibration_with_calibrator" />
+    <string name="manual_calibration_with_reference" />
 </resources>

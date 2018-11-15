@@ -4,6 +4,15 @@ def getCheckedOutGitCommitHash() {
     'git rev-parse --verify --short HEAD'.execute().text.trim()
 }
 
+def getAvailableLocales() {
+    new File("app/src/main/res").list(new FilenameFilter() {
+        @Override
+        boolean accept(File dir, String name) {
+            return name.startsWith("values-")
+        }
+    }).collect() { fold -> fold.substring("values-".length())}.join(",")
+}
+
 android {
     compileSdkVersion 28
     buildToolsVersion "27.0.3"
@@ -20,6 +29,7 @@ android {
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""
+        buildConfigField "String", "SUPPORTEDLOCALES",  "\"${getAvailableLocales()}\""
         // Enabling multidex support.
         multiDexEnabled false
 

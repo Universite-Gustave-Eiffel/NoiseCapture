@@ -41,6 +41,7 @@ import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
 import android.widget.TextView;
 
 import java.beans.PropertyChangeEvent;
@@ -56,6 +57,8 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
     private CalibrationService calibrationService;
     private TextView textDeviceLevel;
     private TextView startButton;
+    private RadioButton pinkNoiseButton;
+    private RadioButton ambientNoiseButton;
     private ProgressBar progressBar_wait_calibration_recording;
     private LinearLayout pitchColorBar;
     private TextView textStatus;
@@ -73,23 +76,18 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
         textDeviceLevel = (TextView) findViewById(R.id.spl_ref_measured);
         textStatus = (TextView) findViewById(R.id.calibration_state);
         startButton = (TextView) findViewById(R.id.btn_start);
+        pinkNoiseButton = findViewById(R.id.calibration_noise_pink);
+        ambientNoiseButton = findViewById(R.id.calibration_noise_ambient);
         pitchColorBar = (LinearLayout) findViewById(R.id.pitch_notification);
 
         doBindService();
-
-
-        AlertDialog alterDialog = new AlertDialog.Builder(this).setTitle(R.string.title_caution)
-                .setMessage(R.string.calibration_host_warning)
-                .setNeutralButton(R.string.text_OK, null)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .create();
-        alterDialog.show();
     }
 
     @Override
     protected void onResume() {
+        super.onResume();
         doBindService();
-        super.onPostResume();    }
+    }
 
     @Override
     protected void onPause() {
@@ -128,6 +126,10 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
         startButton.setText(R.string.calibration_button_start);
     }
 
+    public void onCancelCalibration(View v) {
+        calibrationService.cancelCalibration();
+        progressBar_wait_calibration_recording.setProgress(0);
+    }
     public void onStartCalibration(View v) {
         startButton.setEnabled(false);
         textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
@@ -136,6 +138,20 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
             // Application have right now all permissions
             calibrationService.startCalibration();
         }
+    }
+
+    public void onClickPinkNoise(View view) {
+        calibrationService.setEmitNoise(true);
+        AlertDialog alterDialog = new AlertDialog.Builder(this).setTitle(R.string.title_caution)
+                .setMessage(R.string.calibration_host_warning)
+                .setNeutralButton(R.string.text_OK, null)
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .create();
+        alterDialog.show();
+    }
+
+    public void onClickAmbientNoise(View view) {
+        calibrationService.setEmitNoise(false);
     }
 
     @Override
@@ -172,12 +188,16 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
                         case AWAITING_START:
                             textStatus.setText(R.string.calibration_status_waiting_for_user_start);
                             startButton.setEnabled(true);
+                            ambientNoiseButton.setEnabled(true);
+                            pinkNoiseButton.setEnabled(true);
                             progressBar_wait_calibration_recording.setProgress(0);
                             pitchColorBar.setBackgroundResource(R.drawable.round_corner_opaque);
                             break;
                         case DELAY_BEFORE_SEND_SIGNAL:
                             textStatus.setText(R.string.calibration_status_send_parameters);
-                            startButton.setEnabled(true);
+                            startButton.setEnabled(false);
+                            ambientNoiseButton.setEnabled(false);
+                            pinkNoiseButton.setEnabled(false);
                             break;
                         case WARMUP:
                             textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
@@ -195,7 +215,7 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
                             startButton.setEnabled(false);
                     }
                 }});
-        } else if(CalibrationService.PROP_CALIBRATION_PROGRESSION.equals(event.getPropertyName())) {
+        } else if(CalibrationService.PROP_CALIBRATION_PROGRESSION.equals(event.getPropertyName()) &&  !AWAITING_START.equals(calibrationService.getState())) {
             progressBar_wait_calibration_recording.setProgress((Integer)event.getNewValue());
         } else if(CalibrationService.PROP_CALIBRATION_RECEIVE_PITCH.equals(event.getPropertyName())) {
             runOnUiThread(new Runnable() {

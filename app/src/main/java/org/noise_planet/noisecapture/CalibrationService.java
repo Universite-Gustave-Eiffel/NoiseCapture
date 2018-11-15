@@ -121,7 +121,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     public static final String SETTINGS_CALIBRATION_WARMUP_TIME = "settings_calibration_warmup_time";
     public static final String SETTINGS_CALIBRATION_TIME = "settings_calibration_time";
-    public static final String SETTINGS_EMIT_NOISE = "settings_calibration_emit_noise";
 
     private CALIBRATION_STATE state = CALIBRATION_STATE.AWAITING_START;
 
@@ -137,8 +136,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
             } else if (SETTINGS_CALIBRATION_WARMUP_TIME.equals(key)) {
                 defaultWarmupTime = MainActivity.getInteger(sharedPreferences,
                         SETTINGS_CALIBRATION_WARMUP_TIME, 5);
-            } else if(SETTINGS_EMIT_NOISE.equals(key)) {
-                emitNoise = sharedPreferences.getBoolean(SETTINGS_EMIT_NOISE, false);
             }
         }
     }
@@ -258,6 +255,13 @@ public class CalibrationService extends Service implements PropertyChangeListene
         } else {
             return AudioManager.STREAM_RING;
         }
+    }
+
+    /**
+     * @param emitNoise If true, will emit pink noise on speaker while calibrating
+     */
+    public void setEmitNoise(boolean emitNoise) {
+        this.emitNoise = emitNoise;
     }
 
     private void playMessage(byte[] data) {
@@ -405,11 +409,12 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
                 defaultCalibrationTime = MainActivity.getInteger(sharedPref, SETTINGS_CALIBRATION_TIME, 10);
                 defaultWarmupTime = MainActivity.getInteger(sharedPref, SETTINGS_CALIBRATION_WARMUP_TIME, 5);
-                emitNoise = sharedPref.getBoolean(SETTINGS_EMIT_NOISE, false);
             }
         }
         return mBinder;
     }
+
+
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
@@ -426,6 +431,11 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     public void addPropertyChangeListener(PropertyChangeListener propertyChangeListener) {
         listeners.addPropertyChangeListener(propertyChangeListener);
+    }
+
+    public void cancelCalibration() {
+        setState(CALIBRATION_STATE.AWAITING_START);
+        recordingModem.set(true);
     }
 
     public void startCalibration() {

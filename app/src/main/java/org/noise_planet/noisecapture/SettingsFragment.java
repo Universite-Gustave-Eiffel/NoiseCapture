@@ -27,17 +27,33 @@
 
 package org.noise_planet.noisecapture;
 
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.AssetManager;
+import android.content.res.Resources;
+import android.content.res.TypedArray;
 import android.os.Bundle;
 import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceGroup;
+import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.support.v7.app.AlertDialog;
+import android.util.ArraySet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
+import android.widget.TextView;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 /**
  * Check new values of preferences before commit in sharedPreferences
@@ -68,6 +84,71 @@ public class SettingsFragment extends PreferenceFragment {
                 preference.setOnPreferenceChangeListener(sharedPreferenceListener);
             }
         }
+    }
+
+    @Override
+    public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+        if("settings_user_language".equals(preference.getKey())) {
+            // TODO Find language list (fetch and store when compiling)
+            /*
+            // Ask the user to choose language
+            AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
+            builder.setTitle(R.string.title_settings_language);
+            final List<CharSequence> availableLanguages = new ArrayList<CharSequence>();
+            final List<Locale> availableLocales = new ArrayList<Locale>();
+            Set<String> langspak = new ArraySet<>(this.getActivity().getAssets().list("stored-locales"));
+            for(String locale : this.getActivity().getAssets().getLocales()) {
+                try {
+                    ;
+                    if (resources != null && resources.length > 0 && resources[0].equals("string.xml")) {
+                        try {
+                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                                Locale locObj = Locale.forLanguageTag(locale);
+                                if (locObj != null) {
+                                    availableLanguages.add(locObj.getDisplayLanguage(locObj));
+                                    availableLocales.add(locObj);
+                                }
+                            } else {
+                                Locale locObj = new Locale(locale);
+                                availableLanguages.add(locObj.getDisplayLanguage(locObj));
+                                availableLocales.add(locObj);
+                            }
+                        } catch (NullPointerException | IllegalArgumentException ex) {
+                            availableLanguages.add(locale);
+                            availableLocales.add(Locale.getDefault());
+                        }
+                    }
+                } catch (IOException ex) {
+                    //ignore
+                }
+            }
+            CharSequence[] options = availableLanguages.toArray(new CharSequence[0]);
+            // Add check box before options
+            for(int idOption=0; idOption < options.length; idOption++) {
+                options[idOption] = "▢ " + options[idOption];
+            }
+            builder.setItems(options, new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Resources resources = SettingsFragment.this.getActivity().getBaseContext().getResources();
+                    Locale locale = availableLocales.get(which - 1);
+                    Locale.setDefault(locale);
+                    resources.getConfiguration().locale = locale;
+                    resources.updateConfiguration(resources.getConfiguration(), resources.getDisplayMetrics());
+                }
+            });
+            AlertDialog dialog = builder.create();
+            TextView description = new TextView(this.getActivity());
+            TypedArray array = this.getActivity().obtainStyledAttributes(new int[]{R.attr.dialogPreferredPadding});
+            int padding = array.getDimensionPixelSize(0, 1);
+            array.recycle();
+            description.setPadding(padding,padding,padding,padding);
+            description.setText(R.string.settings_user_noise_knowledge_description);
+            dialog.getListView().addHeaderView(description, null, false);
+            dialog.show();
+            */
+        }
+        return super.onPreferenceTreeClick(preferenceScreen, preference);
     }
 
     private static final class SharedPreferenceListener implements Preference.OnPreferenceChangeListener {

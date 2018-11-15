@@ -117,7 +117,7 @@
                         android:paddingTop="8dp"
                         android:paddingLeft="40dp"
                         android:paddingRight="5dp"
-                        android:textSize="20sp" />
+                        android:textSize="16sp" />
                     <Space
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
@@ -151,7 +151,7 @@
                     android:paddingTop="40dp"
                     android:paddingLeft="40dp"
                     android:paddingRight="5dp"
-                    android:textSize="20sp" />
+                    android:textSize="16sp" />
                 <Space
                     android:layout_width="match_parent"
                     android:layout_height="0dp"

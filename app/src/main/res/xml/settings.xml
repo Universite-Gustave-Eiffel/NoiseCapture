@@ -10,11 +10,13 @@
             android:entryValues="@array/knowledge_values"
             android:entries="@array/knowledge"
             />
+        <!--
         <Preference
             android:key="settings_user_language"
             android:title="@string/title_settings_language"
             android:summary="@string/settings_language_summary"
         />
+        -->
     </PreferenceCategory>
 
  <PreferenceCategory android:title="@string/setting_general_group">

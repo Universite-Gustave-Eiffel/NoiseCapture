@@ -312,4 +312,6 @@ Măsuarea se face în eșantionae de 1s salvate în track.geojson. Este utilizat
     <string name="manual_calibration_with_reference" />
     <string name="auto_calibration_host" />
     <string name="auto_calibration_guest" />
+    <string name="calibration_manual_ref" />
+    <string name="calibration_manual_calibrator" />
 </resources>

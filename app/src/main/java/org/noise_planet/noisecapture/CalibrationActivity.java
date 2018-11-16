@@ -28,29 +28,20 @@
 package org.noise_planet.noisecapture;
 
 import android.app.AlertDialog;
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.os.Handler;
 import android.os.Bundle;
-import android.os.IBinder;
+import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.text.SpannableString;
 import android.text.method.LinkMovementMethod;
-import android.text.util.Linkify;
-import android.view.GestureDetector;
 import android.view.Menu;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
@@ -60,16 +51,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.orbisgis.sos.LeqStats;
-import org.orbisgis.sos.ThirdOctaveBandsFiltering;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.text.DecimalFormat;
-import java.text.NumberFormat;
 import java.text.ParseException;
-import java.text.ParsePosition;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -77,11 +64,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CalibrationActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
     private enum CALIBRATION_STEP {IDLE, WARMUP, CALIBRATION, END}
+    public static final String CALIBRATION_MODE_SONOMETER = "SONOMETER";
+    public static final String CALIBRATION_MODE_CALIBRATOR = "CALIBRATOR";
+    public static final String INTENT_CALIBRATION_MODE = "calibrationmode";
     private static int[] freq_choice = {0, 125, 250, 500, 1000, 2000, 4000, 8000, 16000};
     private ProgressBar progressBar_wait_calibration_recording;
     private TextView startButton;
     private TextView applyButton;
     private TextView resetButton;
+    private String calibration_mode;
     private CALIBRATION_STEP calibration_step = CALIBRATION_STEP.IDLE;
     private TextView textStatus;
     private TextView textDeviceLevel;
@@ -104,7 +95,16 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_calibration);
+        Intent intent = getIntent();
+        if(intent != null && intent.hasExtra(INTENT_CALIBRATION_MODE)) {
+            if(CALIBRATION_MODE_SONOMETER.equals(intent.getStringExtra(INTENT_CALIBRATION_MODE))) {
+                calibration_mode = CALIBRATION_MODE_SONOMETER;
+                setContentView(R.layout.activity_calibration);
+            } else {
+                setContentView(R.layout.activity_calibration_calibrator);
+                calibration_mode = CALIBRATION_MODE_CALIBRATOR;
+            }
+        }
         initDrawer();
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
@@ -154,15 +154,14 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
         // Set default value to standard calibration mode (Global)
-        spinner.setSelection(0, false);
-
-        AlertDialog alterDialog = new AlertDialog.Builder(this).setTitle(R.string.title_caution)
-                .setMessage(R.string.calibration_warning)
-                .setNeutralButton(R.string.text_OK, null)
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .create();
-        alterDialog.show();
-        TextView message = (TextView) alterDialog.findViewById(android.R.id.message);
+        if(CALIBRATION_MODE_CALIBRATOR.equals(calibration_mode)) {
+            // Calibrator set to 1000 Hz
+            spinner.setSelection(4, false);
+        } else {
+            // Sonometer set to Global
+            spinner.setSelection(0, false);
+        }
+        TextView message = findViewById(R.id.calibration_info_message);
         if(message != null) {
             // Activate links
             message.setMovementMethod(LinkMovementMethod.getInstance());

@@ -41,9 +41,11 @@ import android.webkit.WebViewClient;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class ViewHtmlPage extends MainActivity {
+    private AtomicBoolean refreshed = new AtomicBoolean(false);
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -51,8 +53,8 @@ public class ViewHtmlPage extends MainActivity {
         Intent intent = getIntent();
         setContentView(R.layout.activity_view_html_page);
         initDrawer();
-        final WebView myWebView = (WebView) findViewById(R.id.webview);
-        myWebView.getSettings().setJavaScriptEnabled(true);
+        final WebView webview = (WebView) findViewById(R.id.webview);
+        webview.getSettings().setJavaScriptEnabled(true);
         String url = "";
         if(intent.hasExtra("pagetosee")) {
             url = intent.getStringExtra("pagetosee");
@@ -67,20 +69,24 @@ public class ViewHtmlPage extends MainActivity {
                 onBackPressed();
             }
         }
-        myWebView.loadUrl(url);
+        webview.loadUrl(url);
         runJs();
-        myWebView.setWebViewClient(new WebViewClient(){
+        webview.setWebViewClient(new WebViewClient(){
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view, url);
-                runJs();
+                if(refreshed.compareAndSet(false, true) && url.contains("#")) {
+                    webview.loadUrl(url);
+                } else {
+                    runJs();
+                }
             }
         });
         // Get background color
         TypedValue a = new TypedValue();
         getTheme().resolveAttribute(android.R.attr.windowBackground, a, true);
         if (a.type >= TypedValue.TYPE_FIRST_COLOR_INT && a.type <= TypedValue.TYPE_LAST_COLOR_INT) {
-            myWebView.setBackgroundColor(a.data);
+            webview.setBackgroundColor(a.data);
         }
         ActionBar actionBar = getSupportActionBar();
         if(actionBar != null) {

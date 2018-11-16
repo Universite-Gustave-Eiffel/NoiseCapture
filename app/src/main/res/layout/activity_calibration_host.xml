@@ -40,7 +40,7 @@
                         android:background="@drawable/round_corner_opaque"
                         android:textColor="@color/white"
                         android:text="@string/calibration_host_hint"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -131,7 +131,7 @@
 
                     <TextView
                         android:layout_width="match_parent"
-                        android:layout_gravity="left"
+                        android:gravity="center"
                         android:layout_height="wrap_content"
                         android:text="@string/calibration_measure_title"
                         android:textSize="20sp" />

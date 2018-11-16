@@ -39,7 +39,7 @@
                         android:id="@+id/calibration_info_message"
                         android:background="@drawable/round_corner_opaque"
                         android:gravity="center"
-                        android:text="@string/calibration_manual_ref"
+                        android:text="@string/calibration_manual_calibrator"
                         android:textColor="@color/white"
                         android:textSize="15sp" />
                 </LinearLayout>

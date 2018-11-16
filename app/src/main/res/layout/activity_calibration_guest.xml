@@ -41,7 +41,7 @@
                         android:gravity="center"
                         android:text="@string/calibration_host_hint"
                         android:textColor="@color/white"
-                        android:textSize="20sp" />
+                        android:textSize="15sp" />
                 </LinearLayout>
 
                 <LinearLayout
@@ -98,8 +98,9 @@
                     android:orientation="vertical">
 
                     <TextView
-                        android:layout_width="wrap_content"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:gravity="center"
                         android:text="@string/calibration_leq_title"
                         android:textSize="20sp" />
 
@@ -137,7 +138,7 @@
 
                         <TextView
                             android:layout_width="match_parent"
-                            android:gravity="left"
+                            android:gravity="center"
                             android:layout_height="wrap_content"
                             android:text="@string/calibration_measure_title"
                             android:textSize="20sp" />

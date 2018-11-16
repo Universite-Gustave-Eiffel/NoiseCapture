@@ -317,4 +317,6 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="manual_calibration_with_reference">Manual with a reference</string>
     <string name="auto_calibration_host">Use my own calibrated smartphone to calibrate other smartphones with NoiseCapture</string>
     <string name="auto_calibration_guest">Calibrate my smartphone using a calibrated smartphone with NoiseCapture</string>
+    <string name="calibration_manual_ref">The calibration procedure requires the use of a calibrated reference device such as a sonometer. For more information, refer to the <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">help page</a> of the application</string>
+    <string name="calibration_manual_calibrator">The calibration procedure requires the use of a calibrator. For more information, refer to the <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">help page</a> of the application</string>
 </resources>

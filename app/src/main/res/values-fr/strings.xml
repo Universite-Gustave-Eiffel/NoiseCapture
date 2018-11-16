@@ -312,4 +312,6 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="manual_calibration_with_reference">Manuel avec une référence</string>
     <string name="auto_calibration_host">Utiliser mon propre smartphone calibré pour calibrer d\'autres smartphones avec NoiseCapture</string>
     <string name="auto_calibration_guest">Calibrer mon smartphone à l\'aide d\'un smartphone calibré avec NoiseCapture</string>
+    <string name="calibration_manual_ref">La procédure de calibrage nécessite l\'utilisation d\'un dispositif de référence calibré tel qu\'un sonomètre. Pour plus d\'informations, reportez-vous à <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">la page d\'aide</a> de l\'application</string>
+    <string name="calibration_manual_calibrator">La procédure de calibrage nécessite l\'utilisation d\'un calibrateur acoustique. Pour plus d\'informations, reportez-vous à <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">la page d\'aide</a> de l\'application</string>
 </resources>

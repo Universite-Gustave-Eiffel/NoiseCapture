@@ -41,8 +41,17 @@ public class CalibrationMenu extends MainActivity {
         initDrawer();
     }
 
-    public void onManualCalibration(View view) {
+    public void onManualCalibrationSonometer(View view) {
         Intent ics = new Intent(getApplicationContext(), CalibrationActivity.class);
+        ics.putExtra(CalibrationActivity.INTENT_CALIBRATION_MODE, CalibrationActivity.CALIBRATION_MODE_SONOMETER);
+        mDrawerLayout.closeDrawer(mDrawerList);
+        startActivity(ics);
+        finish();
+    }
+
+    public void onManualCalibrationCalibrator(View view) {
+        Intent ics = new Intent(getApplicationContext(), CalibrationActivity.class);
+        ics.putExtra(CalibrationActivity.INTENT_CALIBRATION_MODE, CalibrationActivity.CALIBRATION_MODE_CALIBRATOR);
         mDrawerLayout.closeDrawer(mDrawerList);
         startActivity(ics);
         finish();

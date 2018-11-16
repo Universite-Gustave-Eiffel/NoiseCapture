@@ -57,7 +57,7 @@
                 android:layout_height="0dp"
                 android:background="@drawable/round_corner_opaque"
                 android:layout_margin="5dp"
-                android:onClick="onManualCalibration"
+                android:onClick="onManualCalibrationSonometer"
                 android:orientation="vertical"
                 android:layout_weight="1">
 
@@ -86,7 +86,7 @@
                 android:orientation="vertical"
                 android:background="@drawable/round_corner_opaque"
                 android:layout_margin="5dp"
-                android:onClick="onManualCalibration"
+                android:onClick="onManualCalibrationCalibrator"
                 android:layout_weight="1">
 
                 <LinearLayout

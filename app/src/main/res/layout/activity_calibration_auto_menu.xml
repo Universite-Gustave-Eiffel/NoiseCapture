@@ -76,8 +76,7 @@
                 android:gravity="bottom|center"
                 android:text="@string/auto_calibration_host"
                 android:textColor="@color/white"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textSize="20sp" />
         </LinearLayout>
 
         <LinearLayout
@@ -104,8 +103,7 @@
                 android:gravity="bottom|center"
                 android:text="@string/auto_calibration_guest"
                 android:textColor="@color/white"
-                android:textSize="20sp"
-                android:textStyle="bold" />
+                android:textSize="20sp"/>
         </LinearLayout>
 
         </LinearLayout>

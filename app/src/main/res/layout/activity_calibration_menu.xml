@@ -77,8 +77,7 @@
                     android:gravity="bottom|center"
                     android:text="@string/manual_calibration_with_reference"
                     android:textColor="@color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:textSize="20sp" />
             </LinearLayout>
 
             <LinearLayout
@@ -106,8 +105,7 @@
                     android:gravity="bottom|center"
                     android:text="@string/manual_calibration_with_calibrator"
                     android:textColor="@color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:textSize="20sp" />
             </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
@@ -134,8 +132,7 @@
                     android:gravity="bottom|center"
                     android:text="@string/auto_calibration"
                     android:textColor="@color/white"
-                    android:textSize="20sp"
-                    android:textStyle="bold" />
+                    android:textSize="20sp" />
             </LinearLayout>
 
 

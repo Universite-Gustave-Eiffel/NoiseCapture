@@ -14,3 +14,5 @@ onomap-geoserver/geoserver/build
 *.bak
 onomap-geoserver/geoserver/data_dir
 gradle.properties
+onomap-geoserver/geoserver/out/
+

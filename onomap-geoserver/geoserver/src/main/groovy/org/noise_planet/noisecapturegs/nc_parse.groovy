@@ -28,11 +28,13 @@
 
 package org.noise_planet.noisecapturegs
 
+import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.json.JsonSlurper
 import groovy.sql.GroovyRowResult
 import groovy.sql.Sql
-import geoserver.GeoServer
+import org.apache.commons.lang.StringEscapeUtils
+import org.codehaus.groovy.runtime.StackTraceUtils
 import org.geotools.jdbc.JDBCDataStore
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -41,7 +43,6 @@ import java.security.InvalidParameterException
 import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
-import java.sql.Timestamp
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -76,7 +77,7 @@ static def epochToRFCTime(epochMillisec) {
     return Instant.ofEpochMilli(epochMillisec).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))
 }
 
-def static Integer processFile(Connection connection, File zipFile, boolean storeFrequencyLevels = true) throws Exception {
+static Integer processFile(Connection connection, File zipFile,Map trackData = [:], boolean storeFrequencyLevels = true) throws Exception {
     def zipFileName = zipFile.getName()
     def recordUUID = zipFileName.substring("track_".length(), zipFileName.length() - ".zip".length())
     connection.setAutoCommit(false)
@@ -102,6 +103,7 @@ def static Integer processFile(Connection connection, File zipFile, boolean stor
         // Wrong UUID
         throw new InvalidParameterException("Wrong UUID \"" + meta.getProperty("uuid") + "\"")
     }
+    trackData.uuid = meta.getProperty("uuid")
     if (!(Integer.valueOf(meta.getProperty("version_number")) > 0)) {
         throw new InvalidParameterException("Wrong version \"" + meta.getProperty("version_number") + "\"")
     }
@@ -261,10 +263,12 @@ def static Integer processFile(Connection connection, File zipFile, boolean stor
 
     // Remove pk_party if the track is out of bounds
     if(idParty != null && startLocation != null) {
-        def queryParty = sql.firstRow("SELECT ST_CONTAINS(THE_GEOM, :geom::geometry) ISCONTAINS, filter_area FROM noisecapture_party WHERE pk_party = :pkparty", [pkparty: idParty, geom : startLocation])
-        if(queryParty.filter_area && !queryParty.iscontains) {
-            sql.execute("UPDATE NOISECAPTURE_TRACK SET PK_PARTY = NULL WHERE PK_TRACK = :pktrack", [pktrack:recordId])
-            idParty = null;
+        sql.eachRow("SELECT ST_CONTAINS(ST_SETSRID(THE_GEOM, 4326), ST_GEOMFROMTEXT(:geom, 4326)) ISCONTAINS, filter_area FROM" +
+                " noisecapture_party WHERE pk_party = :pkparty", [pkparty: idParty, geom : startLocation]) { queryParty ->
+            if(queryParty.filter_area && !queryParty.iscontains) {
+                sql.execute("UPDATE NOISECAPTURE_TRACK SET PK_PARTY = NULL WHERE PK_TRACK = :pktrack", [pktrack:recordId])
+                idParty = null
+            }
         }
     }
 
@@ -311,47 +315,46 @@ def static void buildStatistics(Connection connection, Integer pkParty) {
     connection.setAutoCommit(true)
 }
 
-def static int processFiles(Connection connection, File[] files, int processFileLimit, boolean moveFiles) {
+def static int processFiles(Connection connection, File[] files, int processFileLimit, boolean writeFiles) {
     Logger logger = LoggerFactory.getLogger("logger_nc_parse")
     int processed = 0
     Set<Integer> partyIds = new HashSet<>();
     for (File zipFile : files) {
+        Map trackData = [uuid: '00000000-0000-0000-0000-000000000000']
         try {
-            partyIds.add(processFile(connection, zipFile, false))
-            // Move file to processed folder
-            File processedDir = new File("data_dir/onomap_archive");
-            if (!processedDir.exists() && moveFiles) {
-                processedDir.mkdirs()
-            }
-            if(moveFiles) {
-                zipFile.renameTo(new File(processedDir, zipFile.getName()))
-            }
-        } catch (SQLException|InvalidParameterException ex) {
-            if(moveFiles) {
-                // Move file to error folder
-                File errorDir = new File("data_dir/onomap_archive_error");
-                if (!errorDir.exists()) {
-                    errorDir.mkdirs()
-                }
-                zipFile.renameTo(new File(errorDir, zipFile.getName()))
-            }
+            partyIds.add(processFile(connection, zipFile, trackData, false))
+        } catch (SQLException|InvalidParameterException|MissingPropertyException|IOException ex) {
             // Log error
-            logger.error(zipFile.getName() + " Message: " + ex.getMessage());
-
+            logger.error(zipFile.getName() + " Message: " + ex.getMessage(), StackTraceUtils.sanitize(new Exception(ex)))
             if(ex instanceof SQLException) {
                 logger.error("SQLState: " +
-                        ex.getSQLState());
+                        ex.getSQLState())
 
                 logger.error("Error Code: " +
-                        ex.getErrorCode());
-
-                Throwable t = ex.getCause();
-                while (t != null) {
-                    logger.error("Cause: " + t);
-                    t = t.getCause();
-                }
+                        ex.getErrorCode())
             }
-            connection.rollback();
+            Throwable t = ex.getCause()
+            while (t != null) {
+                logger.error("Cause:", StackTraceUtils.sanitize(new Exception(t)))
+                t = t.getCause()
+            }
+            // Log track in error
+            if(writeFiles) {
+                new File("data_dir/onomap_archive", "track_exception.csv") << zipFile.getName() << "," << StringEscapeUtils.escapeCsv(ex.getMessage()) << "\n"
+            }
+            // Cancel transaction
+            connection.rollback()
+        }
+        // Move file to processed folder
+        if(writeFiles) {
+            File processedDir = new File("data_dir/onomap_archive", trackData.uuid.substring(0, 2))
+            processedDir = new File(processedDir, trackData.uuid.substring(2, 4))
+            processedDir = new File(processedDir, trackData.uuid.substring(4, 6))
+            processedDir = new File(processedDir, trackData.uuid)
+            if (!processedDir.exists()) {
+                processedDir.mkdirs()
+            }
+            zipFile.renameTo(new File(processedDir, zipFile.getName()))
         }
         processed++
         if(processFileLimit > 0 && processed > processFileLimit) {

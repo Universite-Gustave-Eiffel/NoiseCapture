@@ -26,7 +26,7 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:weightSum="5"
+                android:weightSum="4"
                 android:orientation="vertical">
 
                 <LinearLayout
@@ -94,16 +94,6 @@
                         android:background="@drawable/round_corner_opaque"
                         android:orientation="horizontal" />
 
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_gravity="center"
-                    android:gravity="center"
-                    android:layout_weight="1"
-                    android:orientation="vertical"
-                    android:paddingTop="15dp">
 
                     <TextView
                         android:id="@+id/calibration_state"

@@ -307,9 +307,11 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="calibration_noise_pink">Bruit rose</string>
     <string name="calibration_noise_ambient">Bruit ambiant</string>
     <string name="auto_calibration">Auto avec un smartphone calibré</string>
-    <string name="title_activity_calibration_auto_menu" >Automatic</string>
+    <string name="title_activity_calibration_auto_menu" >Automatique</string>
     <string name="manual_calibration_with_calibrator">Manuel avec un calibrateur</string>
     <string name="manual_calibration_with_reference">Manuel avec une référence</string>
     <string name="auto_calibration_host">Utiliser mon propre smartphone (calibré) pour calibrer d\'autres smartphones avec NoiseCapture</string>
     <string name="auto_calibration_guest">Calibrer mon smartphone à partir d\'un autre smartphone déjà calibré avec NoiseCapture</string>
-    </resources>
+    <string name="calibration_manual_ref">La procédure de calibrage nécessite l\'utilisation d\'un appareil de référence déjà calibré, comme un sonomètre. Rendez-vous sur la <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">page d\'aide</a> de l\'application pour plus d\'informations.</string>
+    <string name="calibration_manual_calibrator">La procédure de calibrage nécessite l\'utilisation d\'un calibrateur acoustique. Rendez-vous sur la <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">page d\'aide</a> de l\'application pour plus d\'informations.</string>
+</resources>

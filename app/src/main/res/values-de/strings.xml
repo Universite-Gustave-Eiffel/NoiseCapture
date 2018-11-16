@@ -329,4 +329,8 @@ track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.
     <string name="title_activity_calibration_auto_menu" />
     <string name="calibrate_from_reference" />
     <string name="calibrate_other_smartphones" />
+    <string name="manual_calibration_with_calibrator" />
+    <string name="manual_calibration_with_reference" />
+    <string name="auto_calibration_host" />
+    <string name="auto_calibration_guest" />
 </resources>

@@ -10,6 +10,7 @@
             android:entryValues="@array/knowledge_values"
             android:entries="@array/knowledge"
             />
+
         <!--
         <Preference
             android:key="settings_user_language"

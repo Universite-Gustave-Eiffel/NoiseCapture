@@ -4,6 +4,15 @@ def getCheckedOutGitCommitHash() {
     'git rev-parse --verify --short HEAD'.execute().text.trim()
 }
 
+def getAvailableLocales() {
+    new File("app/src/main/res").list(new FilenameFilter() {
+        @Override
+        boolean accept(File dir, String name) {
+            return name.startsWith("values-") && new File(new File(dir,name), "strings.xml").exists();
+        }
+    }).collect() { fold -> fold.substring("values-".length())}.join(",")
+}
+
 android {
     compileSdkVersion 28
     buildToolsVersion "27.0.3"
@@ -15,11 +24,12 @@ android {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
         targetSdkVersion 28
-        versionCode 39
-        versionName "1.2.3"
+        versionCode 41
+        versionName "1.2.5"
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""
+        buildConfigField "String", "SUPPORTEDLOCALES",  "\"${getAvailableLocales()}\""
         // Enabling multidex support.
         multiDexEnabled false
 

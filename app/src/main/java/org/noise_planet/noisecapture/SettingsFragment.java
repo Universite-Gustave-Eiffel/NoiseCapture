@@ -51,9 +51,11 @@ import android.widget.TextView;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TreeSet;
 
 /**
  * Check new values of preferences before commit in sharedPreferences
@@ -89,37 +91,31 @@ public class SettingsFragment extends PreferenceFragment {
     @Override
     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
         if("settings_user_language".equals(preference.getKey())) {
-            // TODO Find language list (fetch and store when compiling)
-            /*
+
             // Ask the user to choose language
             AlertDialog.Builder builder = new AlertDialog.Builder(this.getActivity());
             builder.setTitle(R.string.title_settings_language);
             final List<CharSequence> availableLanguages = new ArrayList<CharSequence>();
             final List<Locale> availableLocales = new ArrayList<Locale>();
-            Set<String> langspak = new ArraySet<>(this.getActivity().getAssets().list("stored-locales"));
+            Set<String> txLangs = new TreeSet<String>(Arrays.asList(BuildConfig.SUPPORTEDLOCALES.split(",")));
             for(String locale : this.getActivity().getAssets().getLocales()) {
-                try {
-                    ;
-                    if (resources != null && resources.length > 0 && resources[0].equals("string.xml")) {
-                        try {
-                            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                                Locale locObj = Locale.forLanguageTag(locale);
-                                if (locObj != null) {
-                                    availableLanguages.add(locObj.getDisplayLanguage(locObj));
-                                    availableLocales.add(locObj);
-                                }
-                            } else {
-                                Locale locObj = new Locale(locale);
+                if (txLangs.contains(locale)) {
+                    try {
+                        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                            Locale locObj = Locale.forLanguageTag(locale);
+                            if (locObj != null) {
                                 availableLanguages.add(locObj.getDisplayLanguage(locObj));
                                 availableLocales.add(locObj);
                             }
-                        } catch (NullPointerException | IllegalArgumentException ex) {
-                            availableLanguages.add(locale);
-                            availableLocales.add(Locale.getDefault());
+                        } else {
+                            Locale locObj = new Locale(locale);
+                            availableLanguages.add(locObj.getDisplayLanguage(locObj));
+                            availableLocales.add(locObj);
                         }
+                    } catch (NullPointerException | IllegalArgumentException ex) {
+                        availableLanguages.add(locale);
+                        availableLocales.add(Locale.getDefault());
                     }
-                } catch (IOException ex) {
-                    //ignore
                 }
             }
             CharSequence[] options = availableLanguages.toArray(new CharSequence[0]);
@@ -143,10 +139,10 @@ public class SettingsFragment extends PreferenceFragment {
             int padding = array.getDimensionPixelSize(0, 1);
             array.recycle();
             description.setPadding(padding,padding,padding,padding);
-            description.setText(R.string.settings_user_noise_knowledge_description);
+            description.setText(R.string.settings_language_summary);
             dialog.getListView().addHeaderView(description, null, false);
             dialog.show();
-            */
+
         }
         return super.onPreferenceTreeClick(preferenceScreen, preference);
     }

@@ -39,7 +39,6 @@
                         android:gravity="center"
                         android:background="@drawable/round_corner_opaque"
                         android:textColor="@color/white"
-                        android:paddingLeft="@dimen/activity_horizontal_margin"
                         android:text="@string/calibration_host_hint"
                         android:textSize="20sp" />
                 </LinearLayout>

@@ -8,7 +8,7 @@ def getAvailableLocales() {
     new File("app/src/main/res").list(new FilenameFilter() {
         @Override
         boolean accept(File dir, String name) {
-            return name.startsWith("values-")
+            return name.startsWith("values-") && new File(new File(dir,name), "strings.xml").exists();
         }
     }).collect() { fold -> fold.substring("values-".length())}.join(",")
 }
@@ -24,8 +24,8 @@ android {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
         targetSdkVersion 28
-        versionCode 40
-        versionName "1.2.4"
+        versionCode 41
+        versionName "1.2.5"
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""

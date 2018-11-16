@@ -1,7 +1,6 @@
 <resources>
 
     <color name="black_overlay">#66000000</color>
-    <color name="black_opaque_overlay">#99000000</color>
 
 
     <!-- Color for sound level representation !-->
@@ -12,28 +11,10 @@
     <color name="R5_SL_level">#00FF00</color>
 
 
-    <color name="tag_group_condition">#4f81bd</color>
     <color name="tag_group_human">#eeae6e</color>
     <color name="tag_group_traffic">#97b6b9</color>
     <color name="tag_group_work">#aebcdf</color>
     <color name="tag_group_natural">#afb960</color>
 
     <color name="white">#FFFFFF</color>
-    <color name="yellow">#FFFF00</color>
-    <color name="fuchsia">#FF00FF</color>
-    <color name="red">#FF0000</color>
-    <color name="silver">#C0C0C0</color>
-    <color name="gray">#808080</color>
-    <color name="olive">#808000</color>
-    <color name="purple">#800080</color>
-    <color name="maroon">#800000</color>
-    <color name="aqua">#00FFFF</color>
-    <color name="lime">#00FF00</color>
-    <color name="teal">#008080</color>
-    <color name="green">#008000</color>
-    <color name="flashy_green">#00ff00</color>
-    <color name="blue">#0000FF</color>
-    <color name="navy">#000080</color>
-    <color name="dark_blue">#000050</color>
-    <color name="black">#000000</color>
 </resources>

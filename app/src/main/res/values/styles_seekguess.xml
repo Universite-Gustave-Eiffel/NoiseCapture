@@ -3,10 +3,4 @@
 <!-- Generated with http://android-holo-colors.com -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-  <style name="SeekBarseekguess" parent="android:Widget.Holo.SeekBar">
-      <item name="android:progressDrawable">@drawable/seekguess_scrubber_progress_horizontal_holo_dark</item>
-      <item name="android:indeterminateDrawable">@drawable/seekguess_scrubber_progress_horizontal_holo_dark</item>
-      <item name="android:thumb">@drawable/seekguess_scrubber_control_selector_holo_dark</item>
-  </style>
-
 </resources>

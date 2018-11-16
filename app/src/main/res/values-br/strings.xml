@@ -302,18 +302,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>Bez em un darn a ouiziegezhioù er vaezienn drouz</item>
         <item>Ur mailh on war ar vaezienn trouz</item>
     </string-array>
-    <string name="calibration_menu_btn_manual">Dornlevr ar stalonadur</string>
-    <string name="calibration_menu_btn_guest">Em-stalonadur (resever)</string>
-    <string name="calibration_menu_btn_host">Em-stalonadur (kaser)</string>
-    <string name="calibration_menu_text_manual">Implijit un trevnad dave diavaez (sonometr, stalonader son) evit staloniñ ho poellgomzer.</string>
-    <string name="calibration_menu_text_receive">Stalonit ho poellgomzer diouzh ur poellgomzer stalonet endeo.</string>
-    <string name="calibration_menu_text_host">Implijit ho poellgomzer dec\'h-c\'hwi hoc\'h-unan evit staloniñ poellgomzerioù all.</string>
     <string name="calibration_host_warning">An hezoug kaser en deus ezhomm da vezañ kevreet gant un ezvont aodio diavaez. An trevnadioù kaser ha resever a rank bezañ louc\'het d\'an ezvont aodio diavaez.</string>
-    <string name="calibration_log_receive_word">Ton: %s</string>
-    <string name="calibration_log_send_message">Kaset: %s</string>
-    <string name="calibration_log_receive_message">Gerig: %s</string>
-    <string name="title_settings_calibration_emit_noise" />
-    <string name="summary_settings_calibration_emit_noise" />
     <string name="title_settings_language" />
     <string name="settings_language_summary" />
     <string name="calibration_communication" />
@@ -321,14 +310,8 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_noise_source_parameters" />
     <string name="calibration_noise_pink" />
     <string name="calibration_noise_ambient" />
-    <string name="calibration_reference" />
-    <string name="manual_calibration" />
-    <string name="calibration_noise_calibrator" />
     <string name="auto_calibration" />
-    <string name="calibration_guest" />
     <string name="title_activity_calibration_auto_menu" />
-    <string name="calibrate_from_reference" />
-    <string name="calibrate_other_smartphones" />
     <string name="manual_calibration_with_calibrator" />
     <string name="manual_calibration_with_reference" />
     <string name="auto_calibration_host" />

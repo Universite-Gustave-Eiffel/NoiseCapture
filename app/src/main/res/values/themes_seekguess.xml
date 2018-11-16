@@ -3,10 +3,4 @@
 <!-- Generated with http://android-holo-colors.com -->
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-  <style name="seekguess" parent="android:Theme.Holo">
-
-    <item name="android:seekBarStyle">@style/SeekBarseekguess</item>
-
-  </style>
-
 </resources>

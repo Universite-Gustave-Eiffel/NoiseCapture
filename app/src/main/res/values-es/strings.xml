@@ -298,18 +298,7 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
         <item>Tengo algún conocimiento en el dominio del ruido</item>
         <item>Soy un experto o un profesional en el dominio del ruido</item>
     </string-array>
-    <string name="calibration_menu_btn_manual">Calibración manual</string>
-    <string name="calibration_menu_btn_guest">Auto calibración (receptor)</string>
-    <string name="calibration_menu_btn_host">Autocalibración (emisor)</string>
-    <string name="calibration_menu_text_manual">Utilice un dispositivo de referencia externo (nivelímetro de sonido, calibrador de sonido) para calibrar su smartphone.</string>
-    <string name="calibration_menu_text_receive">Calibre su smartphone desde otro smartphone ya calibrado.</string>
-    <string name="calibration_menu_text_host">Utilice su propio teléfono inteligente para calibrar otros teléfonos inteligentes.</string>
     <string name="calibration_host_warning">El teléfono emisor debe estar conectado con una salida de audio externa. Los dispositivos emisores y receptores deben estar expuestos de forma igual a la salida de audio externa.</string>
-    <string name="calibration_log_receive_word">Tono: %s</string>
-    <string name="calibration_log_send_message">Send: %s</string>
-    <string name="calibration_log_receive_message">%s</string>
-    <string name="title_settings_calibration_emit_noise" />
-    <string name="summary_settings_calibration_emit_noise" />
     <string name="title_settings_language" />
     <string name="settings_language_summary" />
     <string name="calibration_communication" />
@@ -317,14 +306,8 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
     <string name="calibration_noise_source_parameters" />
     <string name="calibration_noise_pink" />
     <string name="calibration_noise_ambient" />
-    <string name="calibration_reference" />
-    <string name="manual_calibration" />
-    <string name="calibration_noise_calibrator" />
     <string name="auto_calibration" />
-    <string name="calibration_guest" />
     <string name="title_activity_calibration_auto_menu" />
-    <string name="calibrate_from_reference" />
-    <string name="calibrate_other_smartphones" />
     <string name="manual_calibration_with_calibrator" />
     <string name="manual_calibration_with_reference" />
     <string name="auto_calibration_host" />

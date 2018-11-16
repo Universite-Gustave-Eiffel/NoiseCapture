@@ -303,18 +303,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>I have some knowledge in the field of noise</item>
         <item>I am an expert/pro in the field of noise</item>
     </string-array>
-    <string name="calibration_menu_btn_manual">Manual calibration</string>
-    <string name="calibration_menu_btn_guest">Auto calibration (receiver)</string>
-    <string name="calibration_menu_btn_host">Auto calibration (sender)</string>
-    <string name="calibration_menu_text_manual">Use an external reference device (sound level meter, sound calibrator) to calibrate your smartphone.</string>
-    <string name="calibration_menu_text_receive">Calibrate your smartphone from another already calibrated smartphone.</string>
-    <string name="calibration_menu_text_host">Use your own smartphone to calibrate other smartphones.</string>
     <string name="calibration_host_warning">The sender phone need to be connected with an external audio output. The sender and receiver devices must be equaly exposed to the external audio output.</string>
-    <string name="calibration_log_receive_word">Tone: %s</string>
-    <string name="calibration_log_send_message">Send: %s</string>
-    <string name="calibration_log_receive_message">Message: %s</string>
-    <string name="title_settings_calibration_emit_noise">Calibration noise</string>
-    <string name="summary_settings_calibration_emit_noise">Emit pink noise during calibration procedure, use ambient noise otherwise</string>
     <string name="title_settings_language">Language</string>
     <string name="settings_language_summary">Change default application language</string>
     <string name="calibration_communication">Data transfer</string>
@@ -322,14 +311,8 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_noise_source_parameters">Noise source parameters</string>
     <string name="calibration_noise_pink">Pink noise</string>
     <string name="calibration_noise_ambient">Ambient noise</string>
-    <string name="calibration_reference">REFERENCE</string>
-    <string name="manual_calibration">MANUAL</string>
-    <string name="calibration_noise_calibrator">NOISE\nCALIBRATOR</string>
     <string name="auto_calibration">Auto with a calibrated smartphone</string>
-    <string name="calibration_guest">TO CALIBRATE</string>
     <string name="title_activity_calibration_auto_menu" >Automatic</string>
-    <string name="calibrate_from_reference">Calibrate your smartphone using a calibrated smartphone, with NoiseCapture</string>
-    <string name="calibrate_other_smartphones">Use you own calibrated smartphone to calibrate other smartphones, using NoiseCapture</string>
     <string name="manual_calibration_with_calibrator">Manual with a calibrator</string>
     <string name="manual_calibration_with_reference">Manual with a reference</string>
     <string name="auto_calibration_host">Use my own calibrated smartphone to calibrate other smartphones with NoiseCapture</string>

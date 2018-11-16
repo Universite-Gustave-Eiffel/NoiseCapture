@@ -299,16 +299,7 @@ track.geojson: scadìglie misurate ogni siconda aduprandu u furmatu geojson (htt
         <item>Aghju qualchì cunniscenze ind\'è u campu di u sonu/rombu</item>
         <item>Sò un prufeziunale di u campu di u sonu/rombu </item>
     </string-array>
-    <string name="calibration_menu_btn_manual">Calibrera manuale</string>
-    <string name="calibration_menu_btn_guest">Calibrera automàtica (emettore)</string>
-    <string name="calibration_menu_btn_host">Calibrera automàtica (ricettore)</string>
-    <string name="calibration_menu_text_manual">Per a calibrera di u vostru funinu, aduprate un dispusitivu di rifirenza sternu (sonometru)</string>
-    <string name="calibration_menu_text_receive">Calibrate u vostru funinu incù un funinu digià calibratu</string>
-    <string name="calibration_menu_text_host">Aduprà u vostru funinu per calibrà d\'altri funini</string>
     <string name="calibration_host_warning">U funinu chì  emette hà da esse cunnettatu ad una uscita audio sterna. I funini emettore et ricettore anu da esse spone à l\'uscita audio sterna di listessa manera</string>
-    <string name="calibration_log_receive_word">Tunalità: %s</string>
-    <string name="calibration_log_send_message">Mandà: %s</string>
-    <string name="calibration_log_receive_message">Missaghju: %s</string>
     <string name="title_settings_language" />
     <string name="settings_language_summary" />
     <string name="calibration_communication" />
@@ -316,14 +307,8 @@ track.geojson: scadìglie misurate ogni siconda aduprandu u furmatu geojson (htt
     <string name="calibration_noise_source_parameters" />
     <string name="calibration_noise_pink" />
     <string name="calibration_noise_ambient" />
-    <string name="calibration_reference" />
-    <string name="manual_calibration" />
-    <string name="calibration_noise_calibrator" />
     <string name="auto_calibration" />
-    <string name="calibration_guest" />
     <string name="title_activity_calibration_auto_menu" />
-    <string name="calibrate_from_reference" />
-    <string name="calibrate_other_smartphones" />
     <string name="manual_calibration_with_calibrator" />
     <string name="manual_calibration_with_reference" />
     <string name="auto_calibration_host" />

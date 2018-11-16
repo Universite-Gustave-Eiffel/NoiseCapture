@@ -64,7 +64,8 @@
     <string name="title_settings_transfer_wifi_only">只用Wifi</string>
     <string name="summary_settings_transfer_wifi_only">自动数据传输仅在wifi连接时进行</string>
     <string name="title_settings_recording">记录中</string>
-    <string name="summary_settings_recording">设置最大记录时间</string><string name="title_settings_caution">警告信息</string>
+    <string name="summary_settings_recording">设置最大记录时间</string>
+    <string name="title_settings_caution">警告信息</string>
     <string name="summary_settings_tooltip">选中后在NoiseCapture中显示帮助提示</string>
     <string name="title_settings_tooltip">提示信息</string>
     <string name="summary_settings_caution">选中后在应用开启时显示警示信息</string>
@@ -232,9 +233,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="userinfo_pleasant">舒适的</string>
     <string name="calibration_status_waiting_for_user_start">等待校准开始&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">校准即将开始&#8230;</string>
-    <string name="calibration_status_send_parameters">发送校准参数</string>
     <string name="calibration_status_receive_reference">等待参考价值</string>
-    <string name="calibration_status_cooldown">校准完成后，发送参考值</string>
     <string name="userinfo_button_measure">测量</string>
     <string name="userinfo_button_results">确认</string>
     <string name="userinfo_tags">主要来源</string>
@@ -260,7 +259,6 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>8 kHz</item>
         <item>16 kHz</item>
     </string-array>
-    <string name="share_message">我使用#NoiseCapture测出%.01fdB(A)</string>
     <string name="summary_settings_measurement_display_window">实时测量窗口函数（最终结果未使用）</string>
     <string name="title_settings_measurement_display_window">实时窗口</string>
     <string name="title_settings_map_maxmarker">显示测量极限</string>
@@ -302,19 +300,4 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>我是外场噪声专家</item>
     </string-array>
     <string name="calibration_host_warning">发件人手机需要连接外部音频输出。 发送方和接收方设备必须等同于外部音频输出。</string>
-    <string name="title_settings_language" />
-    <string name="settings_language_summary" />
-    <string name="calibration_communication" />
-    <string name="calibration_host_hint" />
-    <string name="calibration_noise_source_parameters" />
-    <string name="calibration_noise_pink" />
-    <string name="calibration_noise_ambient" />
-    <string name="auto_calibration" />
-    <string name="title_activity_calibration_auto_menu" />
-    <string name="manual_calibration_with_calibrator" />
-    <string name="manual_calibration_with_reference" />
-    <string name="auto_calibration_host" />
-    <string name="auto_calibration_guest" />
-    <string name="calibration_manual_ref" />
-    <string name="calibration_manual_calibrator" />
-</resources>
+    </resources>

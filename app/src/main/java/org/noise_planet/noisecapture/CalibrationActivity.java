@@ -86,6 +86,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     private LeqStats leqStats;
     private static final double MINIMAL_VALID_MEASURED_VALUE = 72;
     private static final double MAXIMAL_VALID_MEASURED_VALUE = 102;
+    private static final String DEFAULT_CALIBRATOR_LEVEL = "94";
     private AudioProcess audioProcess;
     private AtomicBoolean recording = new AtomicBoolean(true);
     private AtomicBoolean canceled = new AtomicBoolean(false);
@@ -416,7 +417,11 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             if(!testGainCheckBox.isChecked()) {
                 applyButton.setEnabled(true);
                 // Change to default locale when fixed https://code.google.com/p/android/issues/detail?id=2626
-                userInput.setText(String.format(Locale.US, "%.1f", leqStats.getLeqMean()));
+                if(CALIBRATION_MODE_CALIBRATOR.equals(calibration_mode)) {
+                    userInput.setText(DEFAULT_CALIBRATOR_LEVEL);
+                } else {
+                    userInput.setText(String.format(Locale.US, "%.1f", leqStats.getLeqMean()));
+                }
                 userInput.setEnabled(true);
             }
             resetButton.setEnabled(true);

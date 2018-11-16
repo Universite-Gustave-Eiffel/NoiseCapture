@@ -63,7 +63,8 @@
     <string name="title_settings_transfer_wifi_only">Doar prin WiFi</string>
     <string name="summary_settings_transfer_wifi_only">Transfer de date automat doar prin WiFi </string>
     <string name="title_settings_recording">Înregistrare</string>
-    <string name="summary_settings_recording">Setare timp de înregistrare maxim</string><string name="title_settings_caution">Mesaj de atenționare</string>
+    <string name="summary_settings_recording">Setare timp de înregistrare maxim</string>
+    <string name="title_settings_caution">Mesaj de atenționare</string>
     <string name="summary_settings_tooltip">Verificați mesajele de ajutor atunci când alegeți elementele în NoiseCapture</string>
     <string name="title_settings_tooltip">Mesaj de ajutor</string>
     <string name="summary_settings_caution">Alegeți posibilitatea de a afișa mesajele de atenționare în timpul pornirii aplicației</string>
@@ -228,9 +229,7 @@ Măsuarea se face în eșantionae de 1s salvate în track.geojson. Este utilizat
     <string name="userinfo_pleasant">Plăcut</string>
     <string name="calibration_status_waiting_for_user_start">Așteptare pentru a porni calibrarea&#8230; </string>
     <string name="calibration_status_waiting_for_start_timer">Calibrarea este aproape de a porni&#8230;</string>
-    <string name="calibration_status_send_parameters">Trimitere parametrii de calibrare&#8230;</string>
     <string name="calibration_status_receive_reference">Așteptare pentru a primi valuarea de referință&#8230;</string>
-    <string name="calibration_status_cooldown">Calibrare finalizată, trimitem valoarea de referință&#8230;</string>
     <string name="userinfo_button_measure">Măsurare</string>
     <string name="userinfo_button_results">Validare</string>
     <string name="userinfo_tags">Surse de zgomot predominante</string>
@@ -298,19 +297,4 @@ Măsuarea se face în eșantionae de 1s salvate în track.geojson. Este utilizat
         <item>Sunt un expert/profesionist în domeniul acustic</item>
     </string-array>
     <string name="calibration_host_warning">Telefonul care emite trebuie conectat la un dispozitiv audio extern. Dispozitivele de emisie și recepție trebuie expuse împreună la dispozitivul extern audio.</string>
-    <string name="title_settings_language" />
-    <string name="settings_language_summary" />
-    <string name="calibration_communication" />
-    <string name="calibration_host_hint" />
-    <string name="calibration_noise_source_parameters" />
-    <string name="calibration_noise_pink" />
-    <string name="calibration_noise_ambient" />
-    <string name="auto_calibration" />
-    <string name="title_activity_calibration_auto_menu" />
-    <string name="manual_calibration_with_calibrator" />
-    <string name="manual_calibration_with_reference" />
-    <string name="auto_calibration_host" />
-    <string name="auto_calibration_guest" />
-    <string name="calibration_manual_ref" />
-    <string name="calibration_manual_calibrator" />
-</resources>
+    </resources>

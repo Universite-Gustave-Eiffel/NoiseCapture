@@ -11,7 +11,7 @@
     <string name="history_title_delete">Sguassà a selezzione?</string>
 
     <string name="record_message">Appughjà nantu à u bòttulu di registramentu per principià</string>
-    <string name="calibrate_done">Calibrera fatta, u guadagnu hè piazzatu à%1$.1f dB</string>
+    <string name="calibrate_done">Calibrera fatta, u guadagnu hè piazzatu à %1$.1f dB</string>
     <string name="calibration_out_bounds_title">Nivellu sonore troppu dèbule</string>
     <string name="calibration_out_bounds">U nivellu sonore di calibrera ùn hè micca cumpatìbile cù e specificazione materiale. Deve esse trà %1$.0f dB è %2$.0f dB</string>
     <string name="calibration_save_change">Ignurà è appiecà</string>
@@ -34,7 +34,7 @@
     <string name="title_activity_about">À prupòsitu</string>
     <string name="user_id_activity_about">U vostru ID</string>
     <string name="title_activity_help">Aiutu</string>
-    <string name="title_appversion">Versione%1$s%2$s r.%3$s</string>
+    <string name="title_appversion">Versione %1$s %2$s r.%3$s</string>
 
     <!-- Caution dialog box at app launch !-->
     <string name="text_OK">Iè, capiscu</string>
@@ -63,7 +63,8 @@
     <string name="title_settings_transfer_wifi_only">Wifi solamente</string>
     <string name="summary_settings_transfer_wifi_only">Trasferimentu automàticu solu per Wifi</string>
     <string name="title_settings_recording">Registramentu</string>
-    <string name="summary_settings_recording">Impone una durata massimale di registramentu</string><string name="title_settings_caution">Accennu</string>
+    <string name="summary_settings_recording">Impone una durata massimale di registramentu</string>
+    <string name="title_settings_caution">Accennu</string>
     <string name="summary_settings_tooltip">Selezzionà per affisà l\'infurmazione bullicine in NoiseCapture</string>
     <string name="title_settings_tooltip">Infurazione bullicina</string>
     <string name="summary_settings_caution">Selezzionà per affissà u missaghju d\'accennu à u lnciu di l\'appiecazione</string>
@@ -124,16 +125,16 @@
     <string name="result_tooltip_la90">LA90: nivellu sonore suppisatu  francatu durante 90% di u tempu. Per essempiu, u LA10 hè ligatu a u rombu d\'una strada, è trduce un incòmudu.</string>
     <string name="drawer_open">Apre a barra di navigazione</string>
     <string name="drawer_close">Chjode a barra di navigazione</string>
-    <string name="url_about">file:///android_asset/html/about_FR.html</string>
-    <string name="url_help">file:///android_asset/html/help_FR.html</string>
+    <string name="url_about">file:///android_asset/html/about.html</string>
+    <string name="url_help">file:///android_asset/html/help.html</string>
 
     <!--  Ressources for acoustics !-->
     <string name="caption_SL">Nivellu sonore</string>
     <string-array name="catNE_list_array">
         <item>Più di 75 dB(A)</item>
-        <item>65–75 dB(A)</item>
-        <item>55–65 dB(A)</item>
-        <item>45–55 dB(A)</item>
+        <item>65-75 dB(A)</item>
+        <item>55-65 dB(A)</item>
+        <item>45-55 dB(A)</item>
         <item>Menu chì 45 dB(A)</item>
     </string-array>
     <!-- Add new tags at the end, update also this array Storage.TAGS -->
@@ -183,9 +184,9 @@
     <string name="upload_progress_message">Trasferiementu di a misura</string>
 
     <string name="history_length">%d s</string>
-    <string name="history_date">-%s</string>
+    <string name="history_date">- %s</string>
     <string name="history_already_uploaded">Sta misura hè digià stata trasferita</string>
-    <string name="history_sel">%.01fdB(A)</string>
+    <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Trasferimentu</string>
     <string name="history_uploadeddescr">Hè statu trasferitu ver di a cumunità stu risultatu?</string>
 
@@ -229,9 +230,7 @@ track.geojson: scadìglie misurate ogni siconda aduprandu u furmatu geojson (htt
     <string name="userinfo_pleasant">Piacèvule</string>
     <string name="calibration_status_waiting_for_user_start">S\'aspetta u principiu di a calibrera&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">Hà da principià a calibrera&#8230;</string>
-    <string name="calibration_status_send_parameters">Trasferimentu di i paràmetri di calibrera &#8230;</string>
     <string name="calibration_status_receive_reference">S\'aspetta a valuta di rifirenza&#8230;</string>
-    <string name="calibration_status_cooldown">Calibrera fatta, trasferimentu di a valuta di riferenza&#8230;</string>
     <string name="userinfo_button_measure">Misura</string>
     <string name="userinfo_button_results">Cunvalità</string>
     <string name="userinfo_tags">Fonte supranante</string>
@@ -257,7 +256,7 @@ track.geojson: scadìglie misurate ogni siconda aduprandu u furmatu geojson (htt
         <item>8 kHz</item>
         <item>16 kHz</item>
     </string-array>
-    <string name="share_message">Aghju misuratu %.01fdb(A) incù #NoiseCapture</string>
+    <string name="share_message">Aghju misuratu %.01f db(A) incù #NoiseCapture</string>
     <string name="summary_settings_measurement_display_window">Finestra per a misura in corsu (ùn serà micca aduprata per l\'affissu di i risultati finale)</string>
     <string name="title_settings_measurement_display_window">Finestra</string>
     <string name="title_settings_map_maxmarker">Nùmaru màssimu di misure da affissà</string>
@@ -268,7 +267,7 @@ track.geojson: scadìglie misurate ogni siconda aduprandu u furmatu geojson (htt
     <string name="policy_button_continue">Seguente</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy_FR.html</string>
     <string name="privacy_policy_title">Pulìtica di cunfidenzialità</string>
-    <string name="notification_record_content">Misura in corsu… %1$.1f dB(A)</string>
+    <string name="notification_record_content">Misura in corsu... %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Caricamentu di i dati</string>
     <string name="userinfo_tags_measurement_conditions">Cundizione di a misura</string>
     <string name="notification_goto_community_map_title">Misure di a cumunità</string>
@@ -299,19 +298,4 @@ track.geojson: scadìglie misurate ogni siconda aduprandu u furmatu geojson (htt
         <item>Sò un prufeziunale di u campu di u sonu/rombu </item>
     </string-array>
     <string name="calibration_host_warning">U funinu chì  emette hà da esse cunnettatu ad una uscita audio sterna. I funini emettore et ricettore anu da esse spone à l\'uscita audio sterna di listessa manera</string>
-    <string name="title_settings_language" />
-    <string name="settings_language_summary" />
-    <string name="calibration_communication" />
-    <string name="calibration_host_hint" />
-    <string name="calibration_noise_source_parameters" />
-    <string name="calibration_noise_pink" />
-    <string name="calibration_noise_ambient" />
-    <string name="auto_calibration" />
-    <string name="title_activity_calibration_auto_menu" />
-    <string name="manual_calibration_with_calibrator" />
-    <string name="manual_calibration_with_reference" />
-    <string name="auto_calibration_host" />
-    <string name="auto_calibration_guest" />
-    <string name="calibration_manual_ref" />
-    <string name="calibration_manual_calibrator" />
-</resources>
+    </resources>

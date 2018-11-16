@@ -306,7 +306,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="title_settings_language">Language</string>
     <string name="settings_language_summary">Change default application language</string>
     <string name="calibration_communication">Data transfer</string>
-    <string name="calibration_host_hint">The reference and receivers smartphones must be equally exposed to the noise environment.</string>
+    <string name="calibration_host_hint">The reference and receivers smartphones must be equally exposed to the noise source. The receivers smartphones must be one the NoiseCapture\'s receiver calibration screen before starting the procedure.</string>
     <string name="calibration_noise_source_parameters">Noise source parameters</string>
     <string name="calibration_noise_pink">Pink noise</string>
     <string name="calibration_noise_ambient">Ambient noise</string>

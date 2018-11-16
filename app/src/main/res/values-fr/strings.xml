@@ -63,7 +63,8 @@
     <string name="title_settings_transfer_wifi_only">Wifi uniquement</string>
     <string name="summary_settings_transfer_wifi_only">Transfert automatique par Wifi uniquement</string>
     <string name="title_settings_recording">Enregistrement</string>
-    <string name="summary_settings_recording">Imposer une durée maximale d\'enregistrement</string><string name="title_settings_caution">Avertissement</string>
+    <string name="summary_settings_recording">Imposer une durée maximale d\'enregistrement</string>
+    <string name="title_settings_caution">Avertissement</string>
     <string name="summary_settings_tooltip">Sélectionner cette option pour afficher les infobulles dans NoiseCapture</string>
     <string name="title_settings_tooltip">Infobulle</string>
     <string name="summary_settings_caution">Sélectionner cette option pour afficher le message d\'avertissement au lancement de l\'application</string>
@@ -228,9 +229,9 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="userinfo_pleasant">Agréable</string>
     <string name="calibration_status_waiting_for_user_start">En attente du début du calibrage&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">Le calibrage est sur le point de commencer&#8230;</string>
-    <string name="calibration_status_send_parameters">Pause avant transfert de données&#8230;</string>
+    <string name="calibration_status_send_parameters">Pause avant transfert des paramètres de calibrage&#8230;</string>
     <string name="calibration_status_receive_reference">En attente de la valeur de référence&#8230;</string>
-    <string name="calibration_status_cooldown">Attente avant le transfert de la valeur de référence&#8230;</string>
+    <string name="calibration_status_cooldown">Pause avant transfert de la valeur de référence&#8230;</string>
     <string name="userinfo_button_measure">Mesure</string>
     <string name="userinfo_button_results">Valider</string>
     <string name="userinfo_tags">Sources prédominantes</string>
@@ -298,19 +299,17 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
         <item>Je suis expert/pro dans le domaine du bruit</item>
     </string-array>
     <string name="calibration_host_warning">Le téléphone émetteur doit être connecté à une sortie audio externe. Les dispositifs émetteur et récepteur doivent être exposés de la même manière à la sortie audio externe.</string>
-    <string name="settings_language_summary" >Modifier la langue par défaut de l\'application</string>
-    <string name="calibration_communication" >Transfert de données</string>
-    <string name="calibration_host_hint" >Le smartphone de référence et les récepteurs doivent être exposés au même environnement sonore.</string>
-    <string name="calibration_noise_source_parameters" >Source sonore</string>
-    <string name="calibration_noise_pink" >Bruit rose</string>
-    <string name="calibration_noise_ambient" >Bruit ambiant</string>
     <string name="title_settings_language">Langue</string>
-    <string name="auto_calibration" >Auto avec un smartphone calibré</string>
-    <string name="title_activity_calibration_auto_menu" >Automatique</string>
+    <string name="settings_language_summary">Changer la langue par défaut</string>
+    <string name="calibration_communication">Transfert des données</string>
+    <string name="calibration_host_hint">Le smartphone de référence et ceux à calibrer doivent être exposés de la même manière à la source sonore. Les smartphones à calibrer doivent être sur la page \"Calibrage auto (récepteur)\" avant le démarrage du calibrage.</string>
+    <string name="calibration_noise_source_parameters">Paramètres d\'émission</string>
+    <string name="calibration_noise_pink">Bruit rose</string>
+    <string name="calibration_noise_ambient">Bruit ambiant</string>
+    <string name="auto_calibration">Auto avec un smartphone calibré</string>
+    <string name="title_activity_calibration_auto_menu" >Automatic</string>
     <string name="manual_calibration_with_calibrator">Manuel avec un calibrateur</string>
     <string name="manual_calibration_with_reference">Manuel avec une référence</string>
-    <string name="auto_calibration_host">Utiliser mon propre smartphone calibré pour calibrer d\'autres smartphones avec NoiseCapture</string>
-    <string name="auto_calibration_guest">Calibrer mon smartphone à l\'aide d\'un smartphone calibré avec NoiseCapture</string>
-    <string name="calibration_manual_ref">La procédure de calibrage nécessite l\'utilisation d\'un dispositif de référence calibré tel qu\'un sonomètre. Pour plus d\'informations, reportez-vous à <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">la page d\'aide</a> de l\'application</string>
-    <string name="calibration_manual_calibrator">La procédure de calibrage nécessite l\'utilisation d\'un calibrateur acoustique. Pour plus d\'informations, reportez-vous à <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">la page d\'aide</a> de l\'application</string>
-</resources>
+    <string name="auto_calibration_host">Utiliser mon propre smartphone (calibré) pour calibrer d\'autres smartphones avec NoiseCapture</string>
+    <string name="auto_calibration_guest">Calibrer mon smartphone à partir d\'un autre smartphone déjà calibré avec NoiseCapture</string>
+    </resources>

@@ -267,7 +267,6 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
     <string name="policy_button_continue">Siguiente</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Política de privacidad</string>
-    <string name="calibration_warning">El proceso de calibración requiere del uso de un dispositivo calibrado de referencia tal como un sonómetro o un teléfono calibrado. Para más información, dirígete a la <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">página de ayuda</a> de la aplicación</string>
     <string name="notification_record_content">Medición en progreso... %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Cargando mediciones</string>
     <string name="userinfo_tags_measurement_conditions">Condiciones de medición</string>

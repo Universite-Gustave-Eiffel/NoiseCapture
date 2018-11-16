@@ -268,7 +268,6 @@ track.geojson: scadìglie misurate ogni siconda aduprandu u furmatu geojson (htt
     <string name="policy_button_continue">Seguente</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy_FR.html</string>
     <string name="privacy_policy_title">Pulìtica di cunfidenzialità</string>
-    <string name="calibration_warning">Per a calibrera, ci vole à aduprà un dispusitivu di rifirenza digià calibratu, per essempiu un sonometru o un funinu calibratu. Per sapene di più, fighjate <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">a pàgina d\'aiutu </a> di l\'appiecazione</string>
     <string name="notification_record_content">Misura in corsu… %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Caricamentu di i dati</string>
     <string name="userinfo_tags_measurement_conditions">Cundizione di a misura</string>

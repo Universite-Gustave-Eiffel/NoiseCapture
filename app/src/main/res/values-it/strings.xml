@@ -267,7 +267,6 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="policy_button_continue">Continuare</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Informativa sulla privacy</string>
-    <string name="calibration_warning">La procedura di calibrazione richiede l\'utilizzo di un dispositivo di riferimento calibrato come un sonometro o uno smartphone calibrato. Per ulteriori informazioni, consultare <a href="org.noise_planet.noisecapture:///android_asset/html/help_IT.html#smartphone_calibration">la pagina di aiuto</a> dell\'applicazione</string>
     <string name="notification_record_content">Misura in corso... %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">Caricamento delle misure</string>
     <string name="userinfo_tags_measurement_conditions">Condizioni di misura</string>

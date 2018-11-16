@@ -271,7 +271,6 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="policy_button_continue">Kenderc\'hel</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Politikerezh ar Vuhez Prevez</string>
-    <string name="calibration_warning">An argerzhadur stalonadur a c\'houlenn an implij un trevnad stalonaet evel ur sonometr pe ur poellgomzer stalonaet. Evit muioc\'h a ditouroù, daveiñ da <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">bajenn skoazell</a> an arload</string>
     <string name="notification_record_content">Muzuliadenn war ober... %1$.1f dB(A)</string>
     <string name="result_title_progress_loading">O kargañ ar muzulioù</string>
     <string name="userinfo_tags_measurement_conditions">Divizoù ar muzulioù</string>

@@ -271,7 +271,6 @@ track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.
     <string name="policy_button_continue">Fortfahren</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Datenschutz-Bestimmungen</string>
-    <string name="calibration_warning">Die Kalibrierung benötigt ein kalibriertes Referenzgerät, wie beispielsweise ein Sonometer oder ein kalibriertes Smartphone. Für mehr Information, siehe <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">Hilfeseite</a>des Programms.</string>
     <string name="notification_record_content">Messung in Arbeit... %1$.1f db(A)</string>
     <string name="result_title_progress_loading">Messungen werden geladen</string>
     <string name="userinfo_tags_measurement_conditions">Messbedingungen</string>

@@ -188,9 +188,7 @@
     <h2> <a name="smartphone_calibration"></a>Calibrate your smartphone</h2>
     <p>On the <span style="font-weight: bold;">Calibration</span> menu item,
       users have the opportunity to calibrate their smartphone.</p>
-    <p class="p_warning">The smartphone calibration is a crucial and necessary
-      step. Without calibration, you can be sure that the measured data will be
-      wrong!</p>
+    
     <ul>
       <li>The methodology is based on the knowledge of a <span style="font-weight: bold;">Reference
           value</span> for the equivalent noise level Leq (in dB, not in dB(A))
@@ -204,32 +202,44 @@
         gives a <span style="font-weight: bold;">correction factor</span> (i.e.
         the signal gain) that will be applied to the input signal.</li>
     </ul>
+	
+	Several calibration methods are available:<br>
+    <ol>
+      <li><a href="#calibrage_reference">Manual calibration from a reference
+          device or a calibrator</a></li>
+      <li><a href="#calibrage_calibrator">Manual calibration from a calibrator
+          device</a></li>
+      <li><a href="#calibrage_auto">Automatic calibration from a calibrated
+          smartphone</a></li>
+    </ol>
+	
+	<p class="p_warning">The smartphone calibration is a crucial and necessary
+      step. Without calibration, you can be sure that the measured data will be
+      wrong!</p>
     <p class="p_warning">The correction factor is applied for the whole signal.
       Multi-frequency calibration is not possible for now.</p>
     <p class="p_warning">The calibration is carried out with dB values, not
       dB(A).</p>
     <ul>
     </ul>
-    Several calibration methods are possible:<br>
-    <ol>
-      <li><a href="#calibrage_reference">Manual calibration from a reference
-          device or a calibrator</a></li>
-      <li><a href="#calibrage_reference">Manual calibration from a calibrator
-          device</a></li>
-      <li><a href="#calibrage_auto">Automatic calibration from a calibrated
-          smartphone</a></li>
-    </ol>
+    
     <p class="p_tip">The correction factor can also be set manually in the
       Settings menu.</p>
-    <h3><a name="calibrage_reference"></a>Calibration from a reference device or
-      a clibrator</h3>
+     <p class="p_inf">When using a 'Global' value for the calibration, make sure
+      that the <span style="font-weight: bold;">Reference value</span> will be
+      obtained using the same frequency range that your smartphone.</p>
+    <p class="p_inf">The 'Calibration warm-up time' and the 'Calibration
+      duration' can be modified in the <span style="font-weight: bold;">Settings</span>.</p>
+    <p class="p_inf">During calibration, the smartphone and the reference device
+      must be used in a similar way.</p>
+	  	  
+    <h3><a name="calibrage_reference"></a>Calibration from a reference device</h3>
     <ul>
       <li><span style="color: #0099cc;"><span style="font-weight: bold;">Performing
             the calibration</span>:</span>
         <ol>
           <li>In the 'Calibration mode' list, choose the frequency on which you
-            want perform the calibration. If you calibrate from a reference
-            device (e. g. sound level meter), you can also choose 'Global' from
+            want perform the calibration. You can also choose 'Global' from
             the list to calibrate over the entire measurement spectrum. In the
             latter case, remember to configure the reference device to perform a
             measurement in the same frequency band as your smartphone.</li>
@@ -252,7 +262,7 @@
         </ol>
       </li>
     </ul>
-    <ul>
+	    <ul>
       <li> <span style="color: #0099cc;"> <span style="font-weight: bold;">Testing
             the calibration</span>:</span>
         <ol>
@@ -273,17 +283,57 @@
         </ol>
       </li>
     </ul>
-    <p class="p_inf">When using a 'Global' value for the calibration, make sure
-      that the <span style="font-weight: bold;">Reference value</span> will be
-      obtained using the same frequency range that your smartphone.</p>
-    <p class="p_inf">The 'Calibration warm-up time' and the 'Calibration
-      duration' can be modified in the <span style="font-weight: bold;">Settings</span>.</p>
-    <p class="p_inf">During calibration, the smartphone and the reference device
-      must be used in a similar way.</p>
+	<h3><a name="calibrage_calibrator"></a>Calibration with a calibrator</h3>
+	<p class="p_warning">To apply this calibration procedure, you need an acoustic calibrator and an external microphone. The diameter
+	of the microphone should be compatible with the calibrator.</p>
+    <ul>
+      <li><span style="color: #0099cc;"><span style="font-weight: bold;">Performing
+            the calibration</span>:</span>
+        <ol>
+          <li>In the 'Calibration mode' list, choose the frequency on which you
+            want perform the calibration.</li>
+          <li>Press the <span style="font-weight: bold;">START button</span>.
+            <ul>
+              <li>Before calibration starts, you have a warm-up time that can
+                help you to prepare your calibration.</li>
+              <li>Then, the calibration measurement starts for a given duration.
+                For a better accuracy, the measurement duration should be the
+                same both for the smartphone and for the reference device.</li>
+            </ul>
+          </li>
+          <li>Once the measurement is done, enter the <span style="font-weight: bold;">Reference
+              value</span> (from the reference device) in the edit box and press
+            the <span style="font-weight: bold;">APPLY button</span>.</li>
+          <li>If you do not want to apply the correction factor, you can press
+            the <span style="font-weight: bold;">RESET button</span> to perform
+            a new calibration or you can leave the Calibration activity.</li>
+        </ol>
+      </li>
+    </ul>
+    <ul>
+      <li> <span style="color: #0099cc;"> <span style="font-weight: bold;">Testing
+            the calibration</span>:</span>
+        <ol>
+          <li>Once a correction factor is applied, you can test the calibration
+            by checking the box 'Test gain'.</li>
+          <li>Press the <span style="font-weight: bold;">START button</span>
+            for performing a new measurement and turn on (if necessary) the
+            calibrator.</li>
+          <li>At the end of the measurement, the <span style="font-weight: bold;">Measured
+              Leq</span> should be equal or quite similar to the reference
+            device.</li>
+          <li>Given the procedure and equipment involved, you may consider
+            acceptable a difference up to 0.5dB between the two values. If the
+            difference is not accetable, restart the Calibration procédure.
+            After several attempts, if you can not calibrate your smartphone
+            phone with a difference of less than 0.5dB, you can restart with an
+            error of 1dB.</li>
+        </ol>
+      </li>
+    </ul>
     <h3><a name="calibrage_auto"></a>Automatic calibration from a calibrated
       smartphone</h3>
-    <p>In this method, a smartphone already calibrated with NoiseCapture, can in
-      turn calibrate one or more smartphones. On the side of the microphones to
+    <p>In this method, a smartphone already calibrated with NoiseCapture, can calibrate one or more smartphones. On the side of the microphones to
       be calibrated, the procedure is fully automatic. The entire system is
       controlled by the reference smartphone.</p>
     <ul>
@@ -292,7 +342,7 @@
         </span> </li>
     </ul>
     <ol style="margin-left: 40px;">
-      <li>The reference smartphone must in "transmitter" mode.</li>
+      <li>The reference smartphone must be in "transmitter" mode.</li>
       <li>The smartphones to be calibrated must be in "receiver" mode.</li>
       <li>On the reference smartphone:</li>
       <ol>

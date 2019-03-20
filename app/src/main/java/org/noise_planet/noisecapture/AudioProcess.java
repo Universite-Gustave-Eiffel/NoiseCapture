@@ -115,12 +115,12 @@ public class AudioProcess implements Runnable {
                         rate = tryRate;
                         this.fastLeqProcessing = new LeqProcessingThread(this,
                                 AcousticIndicators.TIMEPERIOD_FAST, true,
-                                hannWindowFast ? Window.WINDOW_TYPE.HANN :
-                                        Window.WINDOW_TYPE.RECTANGULAR, PROP_MOVING_SPECTRUM, true);
+                                hannWindowFast ? FFTSignalProcessing.WINDOW_TYPE.TUKEY :
+                                        FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, PROP_MOVING_SPECTRUM, true);
                         this.slowLeqProcessing = new LeqProcessingThread(this,
                                 AcousticIndicators.TIMEPERIOD_SLOW, true,
-                                hannWindowOneSecond ? Window.WINDOW_TYPE.HANN :
-                                        Window.WINDOW_TYPE.RECTANGULAR,
+                                hannWindowOneSecond ? FFTSignalProcessing.WINDOW_TYPE.TUKEY :
+                                        FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,
                                 PROP_DELAYED_STANDART_PROCESSING, false);
                         return;
                     }
@@ -135,8 +135,8 @@ public class AudioProcess implements Runnable {
 
     public void setHannWindowFast(boolean hannWindowFast) {
         this.hannWindowFast = hannWindowFast;
-        fastLeqProcessing.setWindowType(hannWindowFast ? Window.WINDOW_TYPE.HANN :
-                Window.WINDOW_TYPE.RECTANGULAR);
+        fastLeqProcessing.setWindowType(hannWindowFast ? FFTSignalProcessing.WINDOW_TYPE.TUKEY :
+                FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR);
     }
 
     public boolean isHannWindowFast() {
@@ -149,8 +149,8 @@ public class AudioProcess implements Runnable {
 
     public void setHannWindowOneSecond(boolean hannWindowOneSecond) {
         this.hannWindowOneSecond = hannWindowOneSecond;
-        fastLeqProcessing.setWindowType(hannWindowOneSecond ? Window.WINDOW_TYPE.HANN :
-                Window.WINDOW_TYPE.RECTANGULAR);
+        fastLeqProcessing.setWindowType(hannWindowOneSecond ? FFTSignalProcessing.WINDOW_TYPE.TUKEY :
+                FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR);
     }
 
     public void setDoFastLeq(boolean doFastLeq) {
@@ -361,7 +361,7 @@ public class AudioProcess implements Runnable {
         private float[] thirdOctaveSplLevels;
 
         public LeqProcessingThread(AudioProcess audioProcess, double timePeriod, boolean Aweighting,
-                                   Window.WINDOW_TYPE window_type, String propertyName, boolean outputSpectrogram) {
+                                   FFTSignalProcessing.WINDOW_TYPE window_type, String propertyName, boolean outputSpectrogram) {
             this.audioProcess = audioProcess;
             this.propertyName = propertyName;
             this.timePeriod = timePeriod;
@@ -372,7 +372,7 @@ public class AudioProcess implements Runnable {
             thirdOctaveSplLevels = new float[audioProcess.getRealtimeCenterFrequency().length];
         }
 
-        public void setWindowType(Window.WINDOW_TYPE windowType) {
+        public void setWindowType(FFTSignalProcessing.WINDOW_TYPE windowType) {
             if(windowType != window.getWindowType()) {
                 this.window = new Window(windowType,
                         audioProcess.getRate(), audioProcess.getRealtimeCenterFrequency(), timePeriod,

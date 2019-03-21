@@ -45,7 +45,7 @@ def triggerParsing():
 	  'https': 'http://137.121.1.26:3128',
 	}
 
-	resp = requests.post('http://onomap-gs.noise-planet.org/geoserver/wps',
+	resp = requests.post('https://onomap-gs.noise-planet.org/geoserver/wps',
 	data = xml_data)
 	#proxies=proxies)
 	
@@ -60,7 +60,7 @@ def triggerProcess():
 	  'https': 'http://137.121.1.26:3128',
 	}
 
-	resp = requests.post('http://onomap-gs.noise-planet.org/geoserver/wps',
+	resp = requests.post('https://onomap-gs.noise-planet.org/geoserver/wps',
 	data = xml_data2)
 	#proxies=proxies)
 	

@@ -240,7 +240,7 @@ track.geojson: scadìglie misurate ogni siconda aduprandu u furmatu geojson (htt
     <string name="calibration_status_background_noise">Misura di u rumore di sottu-fondu</string>
     <string name="calibration_button_start">Principià</string>
     <string name="calibration_button_cancel">Anullà</string>
-    <string name="calibration_leq_title">Leq misuratu:</string>
+    <string name="calibration_laeq_title">LAeq misuratu:</string>
     <string name="calibration_measure_title">Valuta di rifirenza:</string>
     <string name="calibration_button_apply">Appiecà</string>
     <string name="calibration_button_reset">Rimette a postu</string>

@@ -36,9 +36,11 @@ import org.jtransforms.fft.FloatFFT_1D;
  */
 public class FFTSignalProcessing {
 
+    public enum WINDOW_TYPE { RECTANGULAR, HANN, TUKEY }
     public final int samplingRate;
     private short[] sampleBuffer;
     double[] standardFrequencies;
+    double tukeyAlpha = 0.2;
     private final int windowSize;
     private FloatFFT_1D floatFFT_1D;
     private static final double RMS_REFERENCE_90DB = 2500;
@@ -154,15 +156,20 @@ public class FFTSignalProcessing {
      * @see "http://stackoverflow.com/questions/18684948/how-to-measure-sound-volume-in-db-scale-android"
      * @return List of double array of equivalent sound pressure level per third octave bands
      */
-    public ProcessingResult processSample(boolean hanningWindow, boolean aWeighting, boolean outputThinFrequency) {
+    public ProcessingResult processSample(WINDOW_TYPE window, boolean aWeighting, boolean outputThinFrequency) {
         float[] signal = new float[sampleBuffer.length];
         for(int i=0; i < signal.length; i++) {
             signal[i] = sampleBuffer[i];
         }
-        if(hanningWindow) {
-            // Apply Hanning window
-            AcousticIndicators.hannWindow(signal);
+        double energyCorrection = signal.length;
+        switch (window) {
+            case HANN:
+                energyCorrection = AcousticIndicators.hannWindow(signal);
+                break;
+            case TUKEY:
+                energyCorrection = AcousticIndicators.tukeyWindow(signal, tukeyAlpha);
         }
+        energyCorrection = 1.0 / Math.sqrt(energyCorrection / signal.length);
         if(aWeighting) {
             signal = AWeighting.aWeightingSignal(signal);
         }
@@ -179,7 +186,7 @@ public class FFTSignalProcessing {
         }
         //rmsFft = Math.sqrt((rmsFft / 2) / (fftResult.length * fftResult.length));
         // Compute A weighted third octave bands
-        float[] splLevels = thirdOctaveProcessing(squareAbsoluteFFT, false);
+        float[] splLevels = thirdOctaveProcessing(squareAbsoluteFFT, false, energyCorrection);
         // Limit spectrum output by specified frequencies and convert to dBspl
         float[] spectrumSplLevels = null;
         if(outputThinFrequency) {
@@ -187,10 +194,12 @@ public class FFTSignalProcessing {
                     freqByCell)];
             for (int i = 0; i < spectrumSplLevels.length; i++) {
                 spectrumSplLevels[i] = (float) todBspl(squareAbsoluteFFTToRMS(squareAbsoluteFFT[i
-                        ], squareAbsoluteFFT.length));
+                        ], squareAbsoluteFFT.length) * energyCorrection);
             }
         }
-        return new ProcessingResult(sampleAdded, spectrumSplLevels, splLevels, (float)todBspl(squareAbsoluteFFTToRMS(sumRMS, squareAbsoluteFFT.length)));
+        return new ProcessingResult(sampleAdded, spectrumSplLevels, splLevels,
+                (float)todBspl(squareAbsoluteFFTToRMS(sumRMS, squareAbsoluteFFT.length)
+                        * energyCorrection));
     }
 
     private double squareAbsoluteFFTToRMS(double squareAbsoluteFFT, int sampleSize) {
@@ -207,7 +216,7 @@ public class FFTSignalProcessing {
      * @param thirdOctaveAWeighting True to apply a A weighting on bands
      * @return Third octave bands
      */
-    public float[] thirdOctaveProcessing(float[] squareAbsoluteFFT, boolean thirdOctaveAWeighting) {
+    public float[] thirdOctaveProcessing(float[] squareAbsoluteFFT, boolean thirdOctaveAWeighting, double energyCorrection) {
         final double freqByCell = samplingRate / (double)windowSize;
         float[] splLevels = new float[standardFrequencies.length];
         int thirdOctaveId = 0;
@@ -225,7 +234,7 @@ public class FFTSignalProcessing {
             for(int idCell = cellLower; idCell <= cellUpper; idCell++) {
                 sumVal += squareAbsoluteFFT[idCell];
             }
-            sumVal = todBspl(squareAbsoluteFFTToRMS(sumVal, squareAbsoluteFFT.length));
+            sumVal = todBspl(squareAbsoluteFFTToRMS(sumVal, squareAbsoluteFFT.length) * energyCorrection);
             if(thirdOctaveAWeighting) {
                 // Apply A weighting
                 int freqIndex = Arrays.binarySearch(

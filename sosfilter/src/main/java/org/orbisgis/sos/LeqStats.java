@@ -45,15 +45,22 @@ public class LeqStats {
     private double leqMax = Double.MIN_VALUE;
     // Sorted map of leq classes
     private Map<Integer, AtomicInteger> leqClass = new TreeMap<>();
-    private static final double classStep = 0.1;
+    private static final double DEFAULT_CLASS_STEP = 0.1;
+    private double classStep = DEFAULT_CLASS_STEP;
+
 
     public LeqStats() {
+    }
+
+    public LeqStats(double classStep) {
+        this.classStep = classStep;
     }
 
     public LeqStats(LeqStats copyFrom) {
         leqMin = copyFrom.leqMin;
         leqMax = copyFrom.leqMax;
         rmsSum = copyFrom.rmsSum;
+        classStep = copyFrom.classStep;
         rmsSumCount = copyFrom.rmsSumCount;
         leqClass = new TreeMap<>(copyFrom.leqClass);
     }

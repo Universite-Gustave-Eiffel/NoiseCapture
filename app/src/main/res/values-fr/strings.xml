@@ -241,7 +241,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="calibration_status_background_noise">Mesure du bruit de fond</string>
     <string name="calibration_button_start">Démarrer</string>
     <string name="calibration_button_cancel">Annuler</string>
-    <string name="calibration_leq_title">Leq mesuré :</string>
+    <string name="calibration_laeq_title">LAeq mesuré :</string>
     <string name="calibration_measure_title">Valeur de référence :</string>
     <string name="calibration_button_apply">Appliquer</string>
     <string name="calibration_button_reset">Réinitialiser</string>

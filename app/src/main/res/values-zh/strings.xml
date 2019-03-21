@@ -243,7 +243,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_status_background_noise">测量背景噪声</string>
     <string name="calibration_button_start">开始</string>
     <string name="calibration_button_cancel">取消</string>
-    <string name="calibration_leq_title">测得 Leq：</string>
+    <string name="calibration_laeq_title">测得 LAeq：</string>
     <string name="calibration_measure_title">参考值：</string>
     <string name="calibration_button_apply">应用</string>
     <string name="calibration_button_reset">重置</string>

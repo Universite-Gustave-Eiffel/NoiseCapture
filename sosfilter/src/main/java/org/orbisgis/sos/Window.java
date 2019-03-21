@@ -32,9 +32,9 @@ import java.util.Arrays;
 /**
  * Overlaps the window of signal processing.
  */
+
 public class Window {
-    public enum WINDOW_TYPE { RECTANGULAR, HANN }
-    public final WINDOW_TYPE window;
+    public final FFTSignalProcessing.WINDOW_TYPE window;
     private FFTSignalProcessing signalProcessing;
     // processed sample index
     private int lastProcessedSpectrum = 0;
@@ -46,14 +46,26 @@ public class Window {
     private double overlap = 0;
     private FFTSignalProcessing.ProcessingResult[] windowResults;
 
-    public Window(WINDOW_TYPE window, int samplingRate, double[] standardFrequencies,
+    public Window(FFTSignalProcessing.WINDOW_TYPE window, int samplingRate, double[] standardFrequencies,
                   double windowTime, boolean aWeighting,
                   double dbFsReference,boolean outputThinFrequency) {
 
         this(window, samplingRate, standardFrequencies, windowTime, aWeighting, dbFsReference,
-                outputThinFrequency, window == WINDOW_TYPE.HANN ? 0.63 : 0);
+                outputThinFrequency, 0);
     }
-    public Window(WINDOW_TYPE window, int samplingRate, double[] standardFrequencies,
+
+    /**
+     *
+     * @param window
+     * @param samplingRate
+     * @param standardFrequencies
+     * @param windowTime
+     * @param aWeighting
+     * @param dbFsReference
+     * @param outputThinFrequency
+     * @param overlap TODO Fix window overlapping
+     */
+    public Window(FFTSignalProcessing.WINDOW_TYPE window, int samplingRate, double[] standardFrequencies,
                   double windowTime, boolean aWeighting,
                   double dbFsReference,boolean outputThinFrequency, double overlap) {
         this.overlap = overlap;
@@ -74,7 +86,7 @@ public class Window {
         this.aWeighting = aWeighting;
     }
 
-    public WINDOW_TYPE getWindowType() {
+    public FFTSignalProcessing.WINDOW_TYPE getWindowType() {
         return window;
     }
 
@@ -94,7 +106,7 @@ public class Window {
      */
     private void processSample() {
         lastProcessedSpectrum = pushedSamples;
-        FFTSignalProcessing.ProcessingResult result = signalProcessing.processSample(window == WINDOW_TYPE.HANN,
+        FFTSignalProcessing.ProcessingResult result = signalProcessing.processSample(window,
                 aWeighting, true);
         // Move result by 1 backward
         if(windowResults.length > 1) {

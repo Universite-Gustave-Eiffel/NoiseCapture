@@ -510,7 +510,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         FFTSignalProcessing fftSignalProcessing = new FFTSignalProcessing(44100, fftCenterFreq, 44100);
         fftSignalProcessing.addSample(data);
         whiteNoisedB = fftSignalProcessing.computeGlobalLeq();
-        freqLeqStats.add(new LinearCalibrationResult(fftSignalProcessing.processSample(true, false, false)));
+        freqLeqStats.add(new LinearCalibrationResult(fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.TUKEY, false, false)));
         LOGGER.info("Emit white noise of "+whiteNoisedB+" dB");
         if(audioTrack == null) {
             audioTrack = new AudioTrack(getAudioOutput(), 44100, AudioFormat.CHANNEL_OUT_MONO,

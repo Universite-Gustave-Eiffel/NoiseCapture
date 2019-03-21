@@ -31,7 +31,7 @@ def main():
 	  'https': 'http://137.121.1.26:3128',
 	}
 
-	resp = requests.post('http://onomap-gs.noise-planet.org/geoserver/ows?service=wps&version=1.0.0&request=Execute',
+	resp = requests.post('https://onomap-gs.noise-planet.org/geoserver/ows?service=wps&version=1.0.0&request=Execute',
 	data = xml_data,
 	proxies=proxies)
 	

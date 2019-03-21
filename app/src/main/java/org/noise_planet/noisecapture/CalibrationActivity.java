@@ -67,6 +67,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     public static final String CALIBRATION_MODE_SONOMETER = "SONOMETER";
     public static final String CALIBRATION_MODE_CALIBRATOR = "CALIBRATOR";
     public static final String INTENT_CALIBRATION_MODE = "calibrationmode";
+    private static final double CALIBRATION_PRECISION_CLASS_STEP = 0.01;
     private static int[] freq_choice = {0, 125, 250, 500, 1000, 2000, 4000, 8000, 16000};
     private ProgressBar progressBar_wait_calibration_recording;
     private TextView startButton;
@@ -337,7 +338,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         audioProcess = new AudioProcess(recording, canceled);
         audioProcess.setDoFastLeq(false);
         audioProcess.setDoOneSecondLeq(true);
-        audioProcess.setWeightingA(false);
+        audioProcess.setWeightingA(true);
         audioProcess.setHannWindowOneSecond(true);
         if(testGainCheckBox.isChecked()) {
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationActivity.this);
@@ -378,7 +379,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
                 public void run() {
                     double leqToShow;
                     if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
-                        leqToShow = leqStats.getLeqMean();
+                        leqToShow = leqStats.computeLeqOccurrences(null).getLa50();
                     } else {
                         leqToShow = leq;
                     }
@@ -406,7 +407,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             calibration_step = CALIBRATION_STEP.CALIBRATION;
             textStatus.setText(R.string.calibration_status_on);
             // Start calibration
-            leqStats = new LeqStats();
+            leqStats = new LeqStats(CALIBRATION_PRECISION_CLASS_STEP);
             progressHandler.start(defaultCalibrationTime * 1000);
         } else if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
             calibration_step = CALIBRATION_STEP.END;

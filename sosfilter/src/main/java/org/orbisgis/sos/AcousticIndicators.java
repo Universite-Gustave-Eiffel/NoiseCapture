@@ -108,36 +108,44 @@ public class AcousticIndicators {
         return leqT;
     }
 
-    /**
-     * Apply a Hann window to a signal
-     * @param signal time signal
-     * @return the windowed signal
-     */
-    public static double[] hannWindow(double[] signal) {
-
-        // Iterate until the last line of the data buffer
-        for (int n = 1; n < signal.length; n++) {
-            // reduce unnecessarily performed frequency part of each and every frequency
-            signal[n] *= 0.5 * (1 - Math.cos((2 * Math.PI * n) / (signal.length - 1)));
+    public static double tukeyWindow(float[] signal, double tukey_alpha) {
+        double energy_correction = 0;
+        int index_begin_flat = (int)((tukey_alpha / 2) * signal.length);
+        int index_end_flat = signal.length - index_begin_flat;
+        double window_value;
+        // Begin Hann part
+        for(int i=0; i < index_begin_flat; i++) {
+            window_value = (0.5 * (1 + Math.cos(2 * Math.PI / tukey_alpha * ((i / (float)signal.length) - tukey_alpha / 2))));
+            energy_correction += window_value * window_value;
+            signal[i] *= window_value;
         }
-        // Return modified buffer
-        return signal;
+        // Flat part
+        energy_correction += index_end_flat - index_begin_flat;
+        // No changes
+        // End Hann part
+        for(int i=index_end_flat; i < signal.length; i++) {
+            window_value = (0.5 * (1 + Math.cos(2 * Math.PI / tukey_alpha * ((i / (float)signal.length) - 1 + tukey_alpha / 2))));
+            energy_correction += window_value * window_value;
+            signal[i] *= window_value;
+        }
+        return energy_correction;
     }
-
     /**
      * Apply a Hanning window to a signal
      * @param signal time signal
      * @return the windowed signal
      */
-    public static float[] hannWindow(float[] signal) {
-
+    public static double hannWindow(float[] signal) {
+        double energyCorrection = 0;
         // Iterate until the last line of the data buffer
         for (int n = 1; n < signal.length; n++) {
             // reduce unnecessarily performed frequency part of each and every frequency
-            signal[n] *= 0.5 * (1 - Math.cos((2 * Math.PI * n) / (signal.length - 1)));
+            double coeff = 0.5 * (1 - Math.cos((2 * Math.PI * n) / (signal.length - 1)));
+            signal[n] *= coeff;
+            energyCorrection += coeff * coeff;
         }
         // Return modified buffer
-        return signal;
+        return energyCorrection;
     }
 
     /**

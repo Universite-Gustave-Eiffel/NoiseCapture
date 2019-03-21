@@ -128,8 +128,13 @@ public class MeasurementExport {
                 // Add coordinate
                 JSONObject point = new JSONObject();
                 point.put("type", "Point");
-                point.put("coordinates", new JSONArray(Arrays.asList(
-                        leq.getLongitude(), leq.getLatitude(), leq.getAltitude())));
+                if(!Double.isNaN(leq.getAltitude())) {
+                    point.put("coordinates", new JSONArray(Arrays.asList(
+                            leq.getLongitude(), leq.getLatitude(), leq.getAltitude())));
+                } else {
+                    point.put("coordinates", new JSONArray(Arrays.asList(
+                            leq.getLongitude(), leq.getLatitude())));
+                }
                 feature.put("geometry", point);
             } else {
                 feature.put("geometry", JSONObject.NULL);

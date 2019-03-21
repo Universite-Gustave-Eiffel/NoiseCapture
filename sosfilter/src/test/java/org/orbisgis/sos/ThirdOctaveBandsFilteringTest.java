@@ -347,7 +347,7 @@ public class ThirdOctaveBandsFilteringTest {
         FFTSignalProcessing fftSignalProcessing = new FFTSignalProcessing(44100,
                 ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, pinkNoise.length);
         fftSignalProcessing.addSample(pinkNoise);
-        FFTSignalProcessing.ProcessingResult result = fftSignalProcessing.processSample(false,
+        FFTSignalProcessing.ProcessingResult result = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,
                 false,
                 false);
 

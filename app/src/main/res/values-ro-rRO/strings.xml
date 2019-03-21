@@ -239,7 +239,7 @@ Măsuarea se face în eșantionae de 1s salvate în track.geojson. Este utilizat
     <string name="calibration_status_background_noise">Măsurarea zgomotului de fond</string>
     <string name="calibration_button_start">Pornire</string>
     <string name="calibration_button_cancel">Anulare</string>
-    <string name="calibration_leq_title">Leq măsurat:</string>
+    <string name="calibration_laeq_title">LAeq măsurat:</string>
     <string name="calibration_measure_title">Valuarea de referință:</string>
     <string name="calibration_button_apply">Aplicare</string>
     <string name="calibration_button_reset">Resetare</string>

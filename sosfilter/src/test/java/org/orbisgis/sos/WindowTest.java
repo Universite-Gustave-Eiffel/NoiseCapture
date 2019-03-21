@@ -88,7 +88,7 @@ public class WindowTest {
         assertEquals("Deviation of " + err + "\nExpected: \n" + Arrays.toString(expectedLeq) + "\nGot:\n" + Arrays.toString(normalisedDbResult), 0, err, maximalDeviation);
     }
 
-    private float[] testFFTWindow(short[] signal, int sampleRate, double windowTime, Window.WINDOW_TYPE windowType, double dbFsReference) {
+    private float[] testFFTWindow(short[] signal, int sampleRate, double windowTime, FFTSignalProcessing.WINDOW_TYPE windowType, double dbFsReference) {
         Window window = new Window(windowType, sampleRate,
                 STANDARD_FREQUENCIES_UNITTEST, windowTime, false, dbFsReference, false);
 
@@ -150,20 +150,20 @@ public class WindowTest {
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, signal.length, dbFsReference);
         fftSignalProcessing.addSample(signal);
-        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(false, false, false);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, false, false);
 
         assertEquals(refGlobalSpl, fftSignalProcessing.computeGlobalLeq(), 0.01);
         assertEquals(refGlobalSpl, processingResult.getGlobaldBaValue(), 0.01);
 
         // Test FFT windows
 
-        checkSplSpectrum(refSpl, testFFTWindow(signal, sampleRate, 0.125, Window.WINDOW_TYPE.HANN, dbFsReference), 0, 0.63);
+        checkSplSpectrum(refSpl, testFFTWindow(signal, sampleRate, 0.125, FFTSignalProcessing.WINDOW_TYPE.TUKEY, dbFsReference), 0, 1.11);
 
-        checkSplSpectrum(refSpl, testFFTWindow(signal, sampleRate, 0.125, Window.WINDOW_TYPE.RECTANGULAR, dbFsReference), 0, 2.64);
+        checkSplSpectrum(refSpl, testFFTWindow(signal, sampleRate, 0.125, FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, dbFsReference), 0, 2.64);
 
-        checkSplSpectrum(refSpl, testFFTWindow(signal, sampleRate, 1., Window.WINDOW_TYPE.HANN, dbFsReference), 0, 0.192);
+        checkSplSpectrum(refSpl, testFFTWindow(signal, sampleRate, 1., FFTSignalProcessing.WINDOW_TYPE.TUKEY, dbFsReference), 0, 0.36);
 
-        checkSplSpectrum(refSpl, testFFTWindow(signal, sampleRate, 1., Window.WINDOW_TYPE.RECTANGULAR, dbFsReference), 0, 0.774);
+        checkSplSpectrum(refSpl, testFFTWindow(signal, sampleRate, 1., FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, dbFsReference), 0, 0.774);
 
         //Test SOS
 

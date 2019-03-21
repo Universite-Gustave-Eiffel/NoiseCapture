@@ -218,6 +218,10 @@ static Integer processFile(Connection connection, File zipFile,Map trackData = [
     jsonRoot.features.each() { feature ->
         def theGeom = "GEOMETRYCOLLECTION EMPTY"
         if (feature.geometry != null) {
+            if (feature.geometry.coordinates.size() == 2) {
+                def (x, y) = feature.geometry.coordinates
+                feature.geometry.coordinates = [x, y, null]
+            }
             def (x, y, z) = feature.geometry.coordinates
             if (z != null) {
                 theGeom = "POINT($x $y $z)" as String

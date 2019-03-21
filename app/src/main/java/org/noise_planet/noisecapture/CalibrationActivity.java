@@ -337,7 +337,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         audioProcess = new AudioProcess(recording, canceled);
         audioProcess.setDoFastLeq(false);
         audioProcess.setDoOneSecondLeq(true);
-        audioProcess.setWeightingA(false);
+        audioProcess.setWeightingA(true);
         audioProcess.setHannWindowOneSecond(true);
         if(testGainCheckBox.isChecked()) {
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationActivity.this);
@@ -378,7 +378,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
                 public void run() {
                     double leqToShow;
                     if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
-                        leqToShow = leqStats.getLeqMean();
+                        leqToShow = leqStats.computeLeqOccurrences(null).getLa50();
                     } else {
                         leqToShow = leq;
                     }

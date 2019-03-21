@@ -239,7 +239,7 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
     <string name="calibration_status_background_noise">Medida del ruido de fondo</string>
     <string name="calibration_button_start">Iniciar</string>
     <string name="calibration_button_cancel">Cancelar</string>
-    <string name="calibration_leq_title">Leq medido:</string>
+    <string name="calibration_laeq_title">LAeq medido:</string>
     <string name="calibration_measure_title">Valor de referencia:</string>
     <string name="calibration_button_apply">Aplicar</string>
     <string name="calibration_button_reset">Reiniciar</string>

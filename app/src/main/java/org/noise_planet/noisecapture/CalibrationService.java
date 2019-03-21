@@ -152,7 +152,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
             audioProcess = new AudioProcess(recording, canceled, acousticModemListener);
             audioProcess.setDoFastLeq(false);
             audioProcess.setDoOneSecondLeq(false);
-            audioProcess.setWeightingA(false);
+            audioProcess.setWeightingA(true);
             audioProcess.setHannWindowOneSecond(true);
 
             if(isHost) {

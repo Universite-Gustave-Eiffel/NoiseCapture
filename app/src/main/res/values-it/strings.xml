@@ -239,7 +239,7 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="calibration_status_background_noise">Misurazione del rumore di fondo in corso</string>
     <string name="calibration_button_start">Inizia</string>
     <string name="calibration_button_cancel">Annulla</string>
-    <string name="calibration_leq_title">Leq misurato:</string>
+    <string name="calibration_laeq_title">LAeq misurato:</string>
     <string name="calibration_measure_title">Valore di riferimento:</string>
     <string name="calibration_button_apply">Applica</string>
     <string name="calibration_button_reset">Reset</string>

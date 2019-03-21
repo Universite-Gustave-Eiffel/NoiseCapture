@@ -243,7 +243,7 @@ roudenn.geojson 1s standilhonoù eus ar muzulioù. Ober gant ar stumm geojson (h
     <string name="calibration_status_background_noise">O vuzuliañ trouz an endro</string>
     <string name="calibration_button_start">Loc\'hañ</string>
     <string name="calibration_button_cancel">Nullañ</string>
-    <string name="calibration_leq_title">Muzul Leq:</string>
+    <string name="calibration_laeq_title">Muzul LAeq:</string>
     <string name="calibration_measure_title">Talvoudegezh referañs:</string>
     <string name="calibration_button_apply">Arloañ</string>
     <string name="calibration_button_reset">Adderaouekaat</string>

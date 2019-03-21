@@ -93,7 +93,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:text="@string/calibration_leq_title"
+                        android:text="@string/calibration_laeq_title"
                         android:textSize="20sp" />
 
                     <LinearLayout
@@ -115,7 +115,7 @@
                             android:layout_height="wrap_content"
                             android:paddingLeft="15dp"
                             android:paddingRight="0dp"
-                            android:text="@string/SL_dB"
+                            android:text="@string/SL_dBA"
                             android:textSize="20sp" />
 
                     </LinearLayout>
@@ -154,7 +154,7 @@
                                 android:layout_height="wrap_content"
                                 android:paddingLeft="15dp"
                                 android:paddingRight="0dp"
-                                android:text="@string/SL_dB"
+                                android:text="@string/SL_dBA"
                                 android:textSize="20sp" />
                         </LinearLayout>
                 </LinearLayout>

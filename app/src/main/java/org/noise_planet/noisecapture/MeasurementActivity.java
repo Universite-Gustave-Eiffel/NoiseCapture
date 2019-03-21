@@ -751,7 +751,7 @@ public class MeasurementActivity extends MainActivity implements
                         accuracyText.setText(R.string.no_gps_hint);
                     }
                     // Update current location of user
-                    final double leq = activity.measurementService.getAudioProcess().getLeq(true);
+                    final double leq = activity.measurementService.getAudioProcess().getLeq(false);
                     activity.setData(activity.measurementService.getAudioProcess().getLeq(false));
                     // Change the text and the textcolor in the corresponding textview
                     // for the Leqi value

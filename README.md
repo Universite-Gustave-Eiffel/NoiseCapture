@@ -18,7 +18,7 @@ NoiseCapture App features are divided into 3 parts:
 
  - Extented report - Advanced statistics are computed locally on the phone and shown to the user. For each user's measurement the locations of the noise levels are displayed in a map.
 
- - Share results with the community - Anonymous results are transfered to Virtual Hubs (web server) and post-processed in order to build a noise map that merge all community results. Participative noise maps can be displayed within the NoiseCapture App, or online at http://onomap.noise-planet.org/.
+ - Share results with the community - Anonymous results are transfered to Virtual Hubs (web server) and post-processed in order to build a noise map that merge all community results. Participative noise maps can be displayed within the NoiseCapture App, or online at https://onomap.noise-planet.org/.
 
 ## Developments
 NoiseCapture App is a collaboration between the [Environmental Acoustic Research unit](http://www.umrae.fr/en/) ([Ifsttar](http://www.ifsttar.fr)) and the [Lab-STICC](http://www.lab-sticc.fr/) CNRS. If you need more information about the project developped by the Environmental Acoustic Research unit and the Lab-STICC, on this topic, go to [http://www.noise-planet.org](http://noise-planet.org).

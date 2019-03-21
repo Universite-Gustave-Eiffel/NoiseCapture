@@ -48,7 +48,7 @@ import javax.net.ssl.HttpsURLConnection;
  */
 public class MeasurementUploadWPS {
     Activity activity;
-    public static final String BASE_URL = "http://onomap-gs.noise-planet.org";
+    public static final String BASE_URL = "https://onomap-gs.noise-planet.org";
 
     public MeasurementUploadWPS(Activity activity) {
         this.activity = activity;

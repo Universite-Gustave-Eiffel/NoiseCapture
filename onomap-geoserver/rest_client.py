@@ -12,7 +12,7 @@ def main():
 
 	#user = raw_input("User ?")
 	#password = getpass.getpass()
-	resp = requests.get('http://onomap-gs.noise-planet.org/geoserver/rest',
+	resp = requests.get('https://onomap-gs.noise-planet.org/geoserver/rest',
 	proxies=proxies)
 	#data = open("wps/UploadZip.groovy").read(), auth=(user, password),
 	#proxies=proxies)

@@ -128,7 +128,7 @@ public class MeasurementExport {
                 // Add coordinate
                 JSONObject point = new JSONObject();
                 point.put("type", "Point");
-                if(!Double.isNaN(leq.getAltitude())) {
+                if(leq.getAltitude() != null && !Double.isNaN(leq.getAltitude())) {
                     point.put("coordinates", new JSONArray(Arrays.asList(
                             leq.getLongitude(), leq.getLatitude(), leq.getAltitude())));
                 } else {

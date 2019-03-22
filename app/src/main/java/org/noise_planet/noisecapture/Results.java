@@ -309,7 +309,7 @@ public class Results extends MainActivity {
                     ".html#18/"+String.format(Locale.ROOT, "%.5f",
                     coordinates[0]) +"/" + String.format(Locale.ROOT, "%.5f",coordinates[1])) + "/";
         }
-        String url = "http://www.twitter.com/intent/tweet?via=Noise_Planet&hashtags="+hashtags.toString() +
+        String url = "https://www.twitter.com/intent/tweet?via=Noise_Planet&hashtags="+hashtags.toString() +
                 "&text=" + Uri.encode(getString(R.string.share_message, record.getLeqMean())) +
                 append;
         Intent i = new Intent(Intent.ACTION_VIEW);

@@ -28,7 +28,7 @@
 
 package org.noise_planet.noisecapturegs
 
-import com.vividsolutions.jts.geom.Coordinate
+
 import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.json.JsonOutput

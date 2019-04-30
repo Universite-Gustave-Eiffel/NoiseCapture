@@ -30,6 +30,8 @@ package org.noise_planet.noisecapturegs
 
 import groovy.sql.Sql
 import org.h2.Driver
+import org.h2gis.functions.factory.H2GISDBFactory
+import org.h2gis.utilities.SFSUtilities
 import org.junit.After
 import org.junit.Before
 import org.junit.Ignore
@@ -47,29 +49,14 @@ import java.time.ZoneId
 /**
  * Test parsing of zip file using H2GIS database
  */
-class TestNoiseCaptureProcess extends GroovyTestCase {
-    Connection connection;
-
-
-    @Rule
-    public TemporaryFolder folder= new TemporaryFolder(new File("build"));
+class TestNoiseCaptureProcess extends JdbcTestCase {
 
     @Before
     void setUp() {
-        folder.create()
-        connection = Driver.load().connect("jdbc:h2:"+new File(folder.newFolder(),"test;MODE=PostgreSQL").getAbsolutePath(), null)
+        super.setUp()
         Statement st = connection.createStatement()
-        // Init spatial
-        st.execute("CREATE ALIAS IF NOT EXISTS H2GIS_EXTENSION FOR \"org.h2gis.ext.H2GISExtension.load\";\n" +
-                "CALL H2GIS_EXTENSION();")
         // Init schema
         st.execute(new File(TestNoiseCaptureProcess.class.getResource("inith2.sql").getFile()).text)
-    }
-
-    @After
-    void tearDown() {
-        connection.close();
-        folder.delete()
     }
 
     @Ignore

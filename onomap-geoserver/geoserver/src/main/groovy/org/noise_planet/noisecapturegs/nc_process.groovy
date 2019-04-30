@@ -28,11 +28,12 @@
 
 package org.noise_planet.noisecapturegs
 
-import com.vividsolutions.jts.geom.Coordinate
+
 import geoserver.GeoServer
 import geoserver.catalog.Store
 import groovy.sql.Sql
 import org.geotools.jdbc.JDBCDataStore
+import org.locationtech.jts.geom.Coordinate
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -115,7 +116,7 @@ def processArea(Hex hex,float precisionFiler, Sql sql, Integer partyPk) {
     def lastUtc;
     def records = [:]
     def hexaRecord = new Record()
-    sql.eachRow("SELECT p.pk_track, ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY, p.noise_level," +
+    sql.eachRow("SELECT p.pk_track, ST_X(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTX,ST_Y(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTY, p.noise_level," +
             " t.pleasantness,time_date FROM noisecapture_point p, noisecapture_track t WHERE p.pk_track = t.pk_track AND p.accuracy < :precision AND " +
             "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom AND (pk_party = :pk_party::int OR :pk_party::int is NULL) ORDER BY p.pk_track, time_date", [geom: geom.toString(), range: hex.size, precision : precisionFiler, pk_party : partyPk])
             { row ->
@@ -218,7 +219,7 @@ def process(Connection connection, float precisionFilter) {
         }
         // List the area identifier using the new measures coordinates
         def sql = new Sql(connection)
-        sql.eachRow("SELECT ST_X(ST_Transform(p.the_geom, 3857)) PTX,ST_Y(ST_Transform(p.the_geom, 3857)) PTY, pk_party FROM" +
+        sql.eachRow("SELECT ST_X(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTX,ST_Y(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTY, pk_party FROM" +
                 " noisecapture_process_queue q, noisecapture_point p, noisecapture_track t " +
                 "WHERE q.pk_track = p.pk_track and t.pk_track = q.pk_track and p.accuracy < :precision and NOT ST_ISEMPTY(p.the_geom)",
                 [precision: precisionFilter]) { row ->

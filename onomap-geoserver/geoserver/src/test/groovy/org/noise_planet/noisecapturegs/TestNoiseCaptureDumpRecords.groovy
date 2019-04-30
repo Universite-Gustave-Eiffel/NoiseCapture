@@ -28,41 +28,22 @@
 
 package org.noise_planet.noisecapturegs
 
-import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 import groovy.sql.Sql
-import org.h2.Driver
-import org.junit.After
 import org.junit.Before
-import org.junit.BeforeClass
-import org.junit.Rule
-import org.junit.Test
-import org.junit.rules.TemporaryFolder
 
-import java.sql.Connection
 import java.sql.Statement
-import java.sql.Timestamp
-import java.util.zip.GZIPInputStream
 import java.util.zip.ZipInputStream
 
 /**
  * Test parsing of zip file using H2GIS database
  */
-class TestNoiseCaptureDumpRecords extends GroovyTestCase {
-    static Connection connection;
+class TestNoiseCaptureDumpRecords extends JdbcTestCase {
 
-
-    @Rule
-    public static TemporaryFolder folder= new TemporaryFolder(new File("build"));
-
-    @BeforeClass
+    @Before
     void setUp() {
-        folder.create()
-        connection = Driver.load().connect("jdbc:h2:"+new File(folder.newFolder(),"test;USER=sa;MODE=PostgreSQL").getAbsolutePath(), null)
+        super.setUp()
         Statement st = connection.createStatement()
-        // Init spatial
-        st.execute("CREATE ALIAS IF NOT EXISTS H2GIS_EXTENSION FOR \"org.h2gis.ext.H2GISExtension.load\";\n" +
-                "CALL H2GIS_EXTENSION();")
         // Init schema
         st.execute(new File(TestNoiseCaptureDumpRecords.class.getResource("inith2.sql").getFile()).text)
         // Load timezone file
@@ -71,12 +52,6 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         // ut_deps has been derived from https://www.data.gouv.fr/fr/datasets/contours-des-departements-francais-issus-d-openstreetmap/ (c) osm
         // See ut_deps.txt for more details
         st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
-    }
-
-    @After
-    void tearDown() {
-        connection.close();
-        folder.delete()
     }
 
     // Avoid JSonSlurper to close the input stream
@@ -291,7 +266,7 @@ class TestNoiseCaptureDumpRecords extends GroovyTestCase {
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureDumpRecords.getResource("track_f720018a-a5db-4859-bd7d-377d29356c6f.zip").file))
         // convert to hexagons
-        new nc_process().process(connection, 10)
+        assertEquals(43, new nc_process().process(connection, 10))
         File tmpFolder = folder.newFolder()
         List<String> createdFiles = new nc_dump_records().getDump(connection,tmpFolder, false, false, true)
         assertEquals(2, createdFiles.size())

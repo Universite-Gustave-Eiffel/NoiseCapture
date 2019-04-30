@@ -31,7 +31,10 @@ package org.noise_planet.noisecapturegs
 import groovy.json.JsonSlurper
 import groovy.sql.Sql
 import org.h2.Driver
+import org.h2gis.functions.factory.H2GISDBFactory
+import org.h2gis.utilities.SFSUtilities
 import org.junit.After
+import org.junit.Before
 import org.junit.BeforeClass
 import org.junit.Ignore
 import org.junit.Rule
@@ -47,21 +50,12 @@ import java.util.zip.ZipInputStream
 /**
  * Test parsing of zip file using H2GIS database
  */
-class TestNoiseCaptureGetStats extends GroovyTestCase {
-    static Connection connection;
+class TestNoiseCaptureGetStats extends JdbcTestCase {
 
-
-    @Rule
-    public static TemporaryFolder folder= new TemporaryFolder(new File("build"));
-
-    @BeforeClass
+    @Before
     void setUp() {
-        folder.create()
-        connection = Driver.load().connect("jdbc:h2:"+new File(folder.newFolder(),"test;USER=sa;MODE=PostgreSQL").getAbsolutePath(), null)
+        super.setUp()
         Statement st = connection.createStatement()
-        // Init spatial
-        st.execute("CREATE ALIAS IF NOT EXISTS H2GIS_EXTENSION FOR \"org.h2gis.ext.H2GISExtension.load\";\n" +
-                "CALL H2GIS_EXTENSION();")
         // Init schema
         st.execute(new File(TestNoiseCaptureGetStats.class.getResource("inith2.sql").getFile()).text)
         // Load timezone file
@@ -70,12 +64,6 @@ class TestNoiseCaptureGetStats extends GroovyTestCase {
         // ut_deps has been derived from https://www.data.gouv.fr/fr/datasets/contours-des-departements-francais-issus-d-openstreetmap/ (c) osm
         // See ut_deps.txt for more details
         st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
-    }
-
-    @After
-    void tearDown() {
-        connection.close();
-        folder.delete()
     }
 
     @Ignore

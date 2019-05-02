@@ -287,4 +287,21 @@ class TestNoiseCaptureParse  extends JdbcTestCase {
         assertEquals(1, new nc_parse().processFiles(connection, [new File(TestNoiseCaptureParse.getResource("track_00a20ba7-35f7-4ac4-923b-9d43dd5348b8.zip").file)] as File[],
                 0, false))
     }
+
+    void testWrongLatLong() {
+        Statement st = connection.createStatement()
+        Sql sql = new Sql(connection)
+        // Load timezone file
+        st.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
+        st.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
+        // ut_deps has been derived from https://www.data.gouv.fr/fr/datasets/contours-des-departements-francais-issus-d-openstreetmap/ (c) osm
+        // See ut_deps.txt for more details
+        st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
+
+        assertEquals(1, new nc_parse().processFiles(connection, [new File(TestNoiseCaptureParse.getResource("track_1c9d12ee-5a98-4176-bdc2-38afd1075aad.zip").file)] as File[],
+                0, false))
+
+        def pkTrack =  sql.firstRow("SELECT pk_track FROM  noisecapture_track where track_uuid = '1c9d12ee-5a98-4176-bdc2-38afd1075aad'").get("pk_track")
+        assertEquals("GEOMETRYCOLLECTION EMPTY", sql.firstRow("SELECT the_geom FROM  noisecapture_point where pk_track = " + pkTrack).get("the_geom").toString())
+    }
 }

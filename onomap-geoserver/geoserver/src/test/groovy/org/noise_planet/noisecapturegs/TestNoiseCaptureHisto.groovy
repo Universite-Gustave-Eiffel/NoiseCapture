@@ -100,4 +100,19 @@ class TestNoiseCaptureHisto extends JdbcTestCase {
         def arrayData = new nc_last_measures().getStats(connection, 1)
         assertEquals(1, arrayData.size())
     }
+
+
+    void testGetLastMeasuresRawParty() {
+        Sql.LOG.level = java.util.logging.Level.SEVERE
+        // Parse file to database
+        Sql sql = new Sql(connection)
+        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, filter_area) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
+                "'Open Geospatial consortium 2018','OGRS', true);")
+        assertEquals(1, new nc_parse().processFiles(connection,
+                [new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)] as File[], 0, false))
+        // Fetch data
+        def arrayData = new nc_raw_measurements().getStats(connection, 1)
+        assertEquals(1, arrayData.size())
+        assertEquals("http://data.noise-planet.org/raw/ea/8e/cf/ea8ecf6e-3357-4680-bbd9-62389b029ac4/track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip", arrayData.get(0)["data"]);
+    }
 }

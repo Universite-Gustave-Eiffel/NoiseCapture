@@ -80,7 +80,7 @@ def getStats(Connection connection, Integer noise_party_id, String dateFilter) {
         String dateFilterQuery = ""
         def params = [:]
         if(dateFilter != null) {
-            dateFilterQuery = " AND record_utc > :datefilter"
+            dateFilterQuery = " AND record_utc > :datefilter::timestamp"
             params.put("datefilter", dateFilter)
         }
         if(noise_party_id == null) {

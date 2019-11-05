@@ -43,7 +43,9 @@ title = 'nc_raw_measurements'
 description = 'List measurements raw files filtered by noisecapture party'
 
 inputs = [noiseparty: [name: 'noiseparty', title: 'NoiseParty id',
-                       type: Integer.class, min : 0, max : 1]]
+                       type: Integer.class, min : 0, max : 1],
+          datefilter: [name: 'datefilter', title: 'Display records since',
+                       type: String.class, min : 0, max : 1]]
 
 
 outputs = [
@@ -67,20 +69,27 @@ def processRow(sql, record_row) {
     // Fetch the timezone of this point
     def url = "http://data.noise-planet.org/raw/"+record_row.user_uuid.substring(0,2)+"/"+
             record_row.user_uuid.substring(2,4)+"/"+record_row.user_uuid.substring(4,6)+"/"+record_row.user_uuid+"/track_"+record_row.track_uuid+".zip"
-    return [time_length : record_row.time_length as Integer, record_utc : record_row.record_utc, data : url];
+    return [time_length : record_row.time_length as Integer, record_utc : record_row.record_utc, data : url, pk_party: record_row.pk_party]
 }
 
-def getStats(Connection connection, Integer noise_party_id) {
+def getStats(Connection connection, Integer noise_party_id, String dateFilter) {
     def data = []
     try {
         // List the 10 last measurements, with aggregation of points
         def sql = new Sql(connection)
+        String dateFilterQuery = ""
+        def params = [:]
+        if(dateFilter != null) {
+            dateFilterQuery = " AND record_utc > :datefilter"
+            params.put("datefilter", dateFilter)
+        }
         if(noise_party_id == null) {
-            sql.eachRow("select nt.*, nu.user_uuid from noisecapture_track nt, noisecapture_user nu where pk_party is null and nt.pk_user = nu.pk_user order by record_utc desc LIMIT 10000") {
+            sql.eachRow("select nt.*, nu.user_uuid from noisecapture_track nt, noisecapture_user nu where pk_party is null and nt.pk_user = nu.pk_user "+dateFilterQuery+" order by record_utc desc LIMIT 10000", params) {
                 record_row -> data.add(processRow(sql, record_row))
             }
         } else {
-            sql.eachRow("select nt.*, nu.user_uuid from noisecapture_track nt, noisecapture_user nu where nt.pk_user = nu.pk_user and pk_party = :noise_party_id  order by record_utc desc LIMIT 10000", ["noise_party_id" : noise_party_id]) {
+            params.put("noise_party_id", noise_party_id)
+            sql.eachRow("select nt.*, nu.user_uuid from noisecapture_track nt, noisecapture_user nu where nt.pk_user = nu.pk_user and pk_party = :noise_party_id "+dateFilterQuery+" order by record_utc desc LIMIT 10000", params) {
                 record_row -> data.add(processRow(sql, record_row))
             }
         }
@@ -100,7 +109,7 @@ def run(input) {
     // Open PostgreSQL connection
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : JsonOutput.toJson(getStats(connection, input["noiseparty"] as Integer))]
+        return [result : JsonOutput.toJson(getStats(connection, input["noiseparty"] as Integer, input["datefilter"] as String))]
     } finally {
         connection.close()
     }

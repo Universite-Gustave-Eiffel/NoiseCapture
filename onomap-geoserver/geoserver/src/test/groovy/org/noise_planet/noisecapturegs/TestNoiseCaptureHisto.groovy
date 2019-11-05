@@ -111,8 +111,11 @@ class TestNoiseCaptureHisto extends JdbcTestCase {
         assertEquals(1, new nc_parse().processFiles(connection,
                 [new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)] as File[], 0, false))
         // Fetch data
-        def arrayData = new nc_raw_measurements().getStats(connection, 1)
+        def arrayData = new nc_raw_measurements().getStats(connection, 1, null)
         assertEquals(1, arrayData.size())
         assertEquals("http://data.noise-planet.org/raw/ea/8e/cf/ea8ecf6e-3357-4680-bbd9-62389b029ac4/track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip", arrayData.get(0)["data"]);
+
+        arrayData = new nc_raw_measurements().getStats(connection, 1, arrayData[0].record_utc as String)
+        assertEquals(0, arrayData.size())
     }
 }

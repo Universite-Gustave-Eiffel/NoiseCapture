@@ -13,6 +13,7 @@ android:
 
 before_install:
   - yes | sdkmanager "platforms;android-29"
+  - yes | sdkmanager "platforms;android-28"
 
 script:
   - ./gradlew -PdisablePreDex check

@@ -5,15 +5,11 @@ android:
   components:
   - platform-tools
   - tools
-  - build-tools-29
-  - android-29
+  - build-tools-28
+  - android-28
   - extra-android-m2repository
   - extra-google-m2repository
   - extra-google-google_play_services
-
-before_install:
-  - yes | sdkmanager "platforms;android-29"
-  - yes | sdkmanager "platforms;android-28"
 
 script:
   - ./gradlew -PdisablePreDex check

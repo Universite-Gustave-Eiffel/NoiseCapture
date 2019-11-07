@@ -15,6 +15,7 @@ def getAvailableLocales() {
 
 android {
     compileSdkVersion 28
+    buildToolsVersion "28.0.3"
     def signingFilePath = System.getProperty("user.home") + "/.idea/signing.gradle"
     if (new File(signingFilePath).exists()) {
         apply from: signingFilePath

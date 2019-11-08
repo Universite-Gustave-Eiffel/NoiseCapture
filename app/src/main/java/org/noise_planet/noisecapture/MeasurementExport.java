@@ -188,6 +188,9 @@ public class MeasurementExport {
             PackageInfo packageInfo = context.getPackageManager().getPackageInfo(context.getPackageName(), 0);
             versionName = packageInfo.versionName;
             versionCode = packageInfo.versionCode;
+            if(versionName == null) {
+                versionName = "None";
+            }
         } catch (PackageManager.NameNotFoundException ex) {
             LOGGER.error(ex.getLocalizedMessage(), ex);
         }

@@ -1,0 +1,5 @@
+#NOTE: This is a Maven Resolver internal implementation file, its format can be changed without prior notice.
+#Thu Nov 07 14:40:53 CET 2019
+jwarble-0.2.2.pom>=
+jwarble-0.2.2-sources.jar>=
+jwarble-0.2.2.jar>=

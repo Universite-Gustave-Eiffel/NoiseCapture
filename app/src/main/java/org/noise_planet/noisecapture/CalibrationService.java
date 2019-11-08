@@ -42,9 +42,9 @@ import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 
-import org.noise_planet.openwarble.Configuration;
-import org.noise_planet.openwarble.MessageCallback;
-import org.noise_planet.openwarble.OpenWarble;
+import org.noise_planet.jwarble.Configuration;
+import org.noise_planet.jwarble.MessageCallback;
+import org.noise_planet.jwarble.OpenWarble;
 import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.LeqStats;
 import org.orbisgis.sos.SOSSignalProcessing;
@@ -192,12 +192,12 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     @Override
     public void onPitch(long l) {
-        listeners.firePropertyChange(PROP_CALIBRATION_RECEIVE_PITCH, null, l / acousticModem.getSampleRate());
+        listeners.firePropertyChange(PROP_CALIBRATION_RECEIVE_PITCH, null, l / acousticModem.getConfiguration().sampleRate);
     }
 
     @Override
     public void onError(long l) {
-        listeners.firePropertyChange(PROP_CALIBRATION_RECEIVE_ERROR, null, l / acousticModem.getSampleRate());
+        listeners.firePropertyChange(PROP_CALIBRATION_RECEIVE_ERROR, null, l / acousticModem.getConfiguration().sampleRate);
     }
 
     /**
@@ -265,7 +265,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     }
 
     private void playMessage(byte[] data) {
-        double[] signalDouble = acousticModem.generateSignal(data, MESSAGE_RMS);
+        double[] signalDouble = acousticModem.generateSignal(MESSAGE_RMS, data);
         short[] signal = new short[signalDouble.length];
         for(int i = 0; i < signalDouble.length; i++) {
             signal[i] = (short)signalDouble[i];
@@ -551,11 +551,19 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 while(!bufferToProcess.isEmpty()) {
                     short[] buffer = bufferToProcess.poll();
                     if(buffer != null) {
-                        double[] samples = new double[buffer.length];
-                        for(int i=0; i<buffer.length;i++) {
-                            samples[i] = buffer[i];
+                        boolean doProcessBuffer = true;
+                        while(doProcessBuffer) {
+                            doProcessBuffer = false;
+                            double[] samples = new double[Math.min(buffer.length, openWarble.getMaxPushSamplesLength())];
+                            for (int i = 0; i < samples.length; i++) {
+                                samples[i] = buffer[i] / (double)Short.MAX_VALUE;
+                            }
+                            openWarble.pushSamples(samples);
+                            if (buffer.length > samples.length) {
+                                buffer = Arrays.copyOfRange(buffer, samples.length, buffer.length);
+                                doProcessBuffer = true;
+                            }
                         }
-                        openWarble.pushSamples(samples);
                     }
                 }
                 try {

@@ -68,7 +68,6 @@ import static org.junit.Assert.assertNull;
  * Unit test of SQLLite db manager of NoiseCapture
  */
 @RunWith(RobolectricTestRunner.class)
-@Config(constants = BuildConfig.class, sdk = 23)
 public class TestDB {
 
     @Rule
@@ -130,7 +129,7 @@ public class TestDB {
         assertNull(incompleteRecord.getPleasantness());
         assertEquals((float)leqBatch.computeGlobalLeq(), incompleteRecord.getLeqMean(), 0.01);
         assertEquals(2.31f, incompleteRecord.getCalibrationGain(), 0.01);
-        Assert.assertNull(incompleteRecord.getNoisePartyTag());
+        assertNull(incompleteRecord.getNoisePartyTag());
 
         // Check update user input
         measurementManager.updateRecordUserInput(recordId, "This is a description",
@@ -179,7 +178,7 @@ public class TestDB {
         assertTrue(measurementManager.getRecordLeqs(recordId, frequency, leqs, null));
         assertEquals(2, leqs.size());
         Float[] checkLeq = leqs.remove(0);
-        Assert.assertNotNull(checkLeq);
+        assertNotNull(checkLeq);
         assertEquals(65, checkLeq[0], 0.1);
         assertEquals(55, checkLeq[1], 0.1);
         assertEquals(56, checkLeq[2], 0.1);
@@ -238,40 +237,37 @@ public class TestDB {
         History.doBuildZip(testFile, RuntimeEnvironment.application, recordId);
 
         // Check properties of zip file
-        FileInputStream fileInputStream = new FileInputStream(testFile);
-        Properties meta = null;
         boolean foundJson = false;
-        try {
+        Properties meta = null;
+        try (FileInputStream fileInputStream = new FileInputStream(testFile)) {
             ZipInputStream zipInputStream = new ZipInputStream(fileInputStream);
             ZipEntry zipEntry;
-            while((zipEntry = zipInputStream.getNextEntry()) != null) {
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
                 if (MeasurementExport.PROPERTY_FILENAME.equals(zipEntry.getName())) {
                     meta = new Properties();
                     meta.load(zipInputStream);
-                }else if (MeasurementExport.GEOJSON_FILENAME.equals(zipEntry.getName())) {
+                } else if (MeasurementExport.GEOJSON_FILENAME.equals(zipEntry.getName())) {
                     JsonReader jsonReader = new JsonReader(new InputStreamReader(zipInputStream,
                             "UTF-8"));
                     assertTrue(jsonReader.hasNext());
                     assertEquals(JsonToken.BEGIN_OBJECT, jsonReader.peek());
                     jsonReader.beginObject();
                     assertEquals(JsonToken.NAME, jsonReader.peek());
-                    Assert.assertEquals("type" ,jsonReader.nextName());
+                    Assert.assertEquals("type", jsonReader.nextName());
                     assertEquals(JsonToken.STRING, jsonReader.peek());
-                    Assert.assertEquals("FeatureCollection" ,jsonReader.nextString());
+                    Assert.assertEquals("FeatureCollection", jsonReader.nextString());
                     assertEquals(JsonToken.NAME, jsonReader.peek());
-                    Assert.assertEquals("features" ,jsonReader.nextName());
+                    Assert.assertEquals("features", jsonReader.nextName());
                     assertEquals(JsonToken.BEGIN_ARRAY, jsonReader.peek());
                     foundJson = true;
                 }
             }
-        } finally {
-            fileInputStream.close();
         }
         assertTrue(foundJson);
         assertNotNull(meta);
         assertNotNull(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION));
-        Assert.assertEquals("NOVICE", meta.getProperty(MeasurementExport.PROP_USER_PROFILE));
-        Assert.assertEquals("OGRS2018", meta.getProperty(Storage.Record.COLUMN_NOISEPARTY_TAG));
+        assertEquals("NOVICE", meta.getProperty(MeasurementExport.PROP_USER_PROFILE));
+        assertEquals("OGRS2018", meta.getProperty(Storage.Record.COLUMN_NOISEPARTY_TAG));
         assertEquals(-4.76f, Float.valueOf(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
         assertEquals((float)leqBatch.computeGlobalLeq(),
                 Float.valueOf(meta.getProperty(Storage.Record.COLUMN_LEQ_MEAN)), 0.01f);

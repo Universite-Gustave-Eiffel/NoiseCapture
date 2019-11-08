@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.noise-planet</groupId>
+    <artifactId>openwarble-parent</artifactId>
+    <version>0.2.2</version>
+    <packaging>pom</packaging>
+
+    <name>openwarble-parent</name>
+
+
+    <description>OpenWarble data over sound waves</description>
+
+    <!-- Include BeDataDriven's repository, where Renjin GCC-Bridge lives -->
+    <repositories>
+        <repository>
+            <id>bedatadriven</id>
+            <name>bedatadriven public repo</name>
+            <url>https://nexus.bedatadriven.com/content/groups/public/</url>
+        </repository>
+      <repository>
+            <id>project.local</id>
+            <name>project</name>
+            <url>file:${project.basedir}/libs</url>
+      </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>bedatadriven</id>
+            <name>bedatadriven public repo</name>
+            <url>https://nexus.bedatadriven.com/content/groups/public/</url>
+        </pluginRepository>
+      <pluginRepository>
+        <id>project.local</id>
+        <name>project</name>
+        <url>file:${project.basedir}/libs</url>
+      </pluginRepository>
+    </pluginRepositories>
+
+
+
+
+    <properties>
+        <gcc.bridge.version>0.9.2615</gcc.bridge.version>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+
+
+    <modules>
+        <!-- <module>javabindings</module> -->
+        <module>jwarble</module>
+    </modules>
+
+
+    <scm>
+        <connection>scm:git:https://github.com/Ifsttar/NoiseModelling.git</connection>
+        <developerConnection>scm:git:git@github.com:Ifsttar/openwarble.git</developerConnection>
+        <url>git@github.com:Ifsttar/openwarble.git</url>
+        <tag>v0.2.2</tag>
+    </scm>
+</project>

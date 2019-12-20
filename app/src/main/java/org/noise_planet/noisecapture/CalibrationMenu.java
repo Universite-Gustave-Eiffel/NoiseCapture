@@ -64,4 +64,10 @@ public class CalibrationMenu extends MainActivity {
         finish();
     }
 
+    public void onTrafficCalibration(View view) {
+        Intent ics = new Intent(getApplicationContext(), TrafficCalibrationActivity.class);
+        mDrawerLayout.closeDrawer(mDrawerList);
+        startActivity(ics);
+        finish();
+    }
 }

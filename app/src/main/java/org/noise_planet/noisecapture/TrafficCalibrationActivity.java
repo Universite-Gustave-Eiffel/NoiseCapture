@@ -42,11 +42,9 @@ import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
-import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,28 +60,20 @@ import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
-public class CalibrationActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener {
-    private enum CALIBRATION_STEP {IDLE, WARMUP, CALIBRATION, END}
-    public static final String CALIBRATION_MODE_SONOMETER = "SONOMETER";
-    public static final String CALIBRATION_MODE_CALIBRATOR = "CALIBRATOR";
-    public static final String INTENT_CALIBRATION_MODE = "calibrationmode";
+public class TrafficCalibrationActivity extends MainActivity implements PropertyChangeListener {
+    private enum CALIBRATION_STEP {IDLE, MEASUREMENT, END}
     private static final double CALIBRATION_PRECISION_CLASS_STEP = 0.01;
     private static int[] freq_choice = {0, 125, 250, 500, 1000, 2000, 4000, 8000, 16000};
     private ProgressBar progressBar_wait_calibration_recording;
     private TextView startButton;
     private TextView applyButton;
     private TextView resetButton;
-    private String calibration_mode;
     private CALIBRATION_STEP calibration_step = CALIBRATION_STEP.IDLE;
     private TextView textStatus;
     private TextView textDeviceLevel;
     private EditText userInput;
-    private CheckBox testGainCheckBox;
-    private Spinner spinner;
     private Handler timeHandler;
     private ProgressHandler progressHandler = new ProgressHandler(this);
-    private int defaultWarmupTime;
-    private int defaultCalibrationTime;
     private LeqStats leqStats;
     private static final double MINIMAL_VALID_MEASURED_VALUE = 72;
     private static final double MAXIMAL_VALID_MEASURED_VALUE = 102;
@@ -91,29 +81,13 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     private AudioProcess audioProcess;
     private AtomicBoolean recording = new AtomicBoolean(true);
     private AtomicBoolean canceled = new AtomicBoolean(false);
-    private static final Logger LOGGER = LoggerFactory.getLogger(CalibrationActivity.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(TrafficCalibrationActivity.class);
     public static final int COUNTDOWN_STEP_MILLISECOND = 125;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Intent intent = getIntent();
-        if(intent != null && intent.hasExtra(INTENT_CALIBRATION_MODE)) {
-            if(CALIBRATION_MODE_SONOMETER.equals(intent.getStringExtra(INTENT_CALIBRATION_MODE))) {
-                calibration_mode = CALIBRATION_MODE_SONOMETER;
-                setContentView(R.layout.activity_calibration);
-            } else {
-                setContentView(R.layout.activity_calibration_calibrator);
-                calibration_mode = CALIBRATION_MODE_CALIBRATOR;
-            }
-        }
         initDrawer();
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        sharedPref.registerOnSharedPreferenceChangeListener(this);
-        defaultCalibrationTime = getInteger(sharedPref,CalibrationService
-                .SETTINGS_CALIBRATION_TIME, 10);
-        defaultWarmupTime = getInteger(sharedPref,CalibrationService
-                .SETTINGS_CALIBRATION_WARMUP_TIME, 5);
 
         progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
         applyButton = (TextView) findViewById(R.id.btn_apply);
@@ -125,8 +99,6 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         });
         textStatus = (TextView) findViewById(R.id.textView_recording_state);
         textDeviceLevel = (TextView) findViewById(R.id.textView_value_SL_i);
-        testGainCheckBox = (CheckBox) findViewById(R.id.checkbox_test_gain);
-        spinner = (Spinner) findViewById(R.id.spinner_calibration_mode);
         startButton = (TextView) findViewById(R.id.btn_start);
         resetButton = (TextView) findViewById(R.id.btn_reset);
         LinearLayout layout_progress = (LinearLayout) findViewById(R.id.layout_progress);
@@ -153,16 +125,6 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
                 R.array.calibrate_type_list_array, android.R.layout.simple_spinner_item);
         // Specify the layout to use when the list of choices appears
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        // Apply the adapter to the spinner
-        spinner.setAdapter(adapter);
-        // Set default value to standard calibration mode (Global)
-        if(CALIBRATION_MODE_CALIBRATOR.equals(calibration_mode)) {
-            // Calibrator set to 1000 Hz
-            spinner.setSelection(4, false);
-        } else {
-            // Sonometer set to Global
-            spinner.setSelection(0, false);
-        }
         TextView message = findViewById(R.id.calibration_info_message);
         if(message != null) {
             // Activate links
@@ -172,9 +134,9 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     }
 
     private static final class hiddenCalibrationTouchEvent implements View.OnLongClickListener {
-        private CalibrationActivity calibrationActivity;
+        private TrafficCalibrationActivity calibrationActivity;
 
-        public hiddenCalibrationTouchEvent(CalibrationActivity calibrationActivity) {
+        public hiddenCalibrationTouchEvent(TrafficCalibrationActivity calibrationActivity) {
             this.calibrationActivity = calibrationActivity;
         }
 
@@ -228,12 +190,12 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
                 // Add the buttons
                 builder.setPositiveButton(R.string.calibration_save_change, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        CalibrationActivity.this.doApply();
+                        TrafficCalibrationActivity.this.doApply();
                     }
                 });
                 builder.setNegativeButton(R.string.calibration_cancel_change, new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        CalibrationActivity.this.onReset();
+                        TrafficCalibrationActivity.this.onReset();
                     }
                 });
                 // Create the AlertDialog
@@ -268,43 +230,27 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         }
     }
 
-    @Override
-    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
-        if(CalibrationService.SETTINGS_CALIBRATION_TIME.equals(key)) {
-            defaultCalibrationTime = getInteger(sharedPreferences, CalibrationService
-                    .SETTINGS_CALIBRATION_TIME, 10);
-        } else if(CalibrationService.SETTINGS_CALIBRATION_WARMUP_TIME.equals(key)) {
-            defaultWarmupTime = getInteger(sharedPreferences, CalibrationService
-                    .SETTINGS_CALIBRATION_WARMUP_TIME, 5);
-        }
-    }
-
     private void initCalibration() {
         textStatus.setText(R.string.calibration_status_waiting_for_user_start);
         progressBar_wait_calibration_recording.setProgress(progressBar_wait_calibration_recording.getMax());
         userInput.setText("");
         userInput.setEnabled(false);
-        spinner.setEnabled(true);
         textDeviceLevel.setText(R.string.no_valid_dba_value);
         startButton.setEnabled(true);
         applyButton.setEnabled(false);
         resetButton.setEnabled(false);
-        testGainCheckBox.setEnabled(true);
         startButton.setText(R.string.calibration_button_start);
     }
 
     private void onCalibrationStart() {
         if(calibration_step == CALIBRATION_STEP.IDLE) {
             textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
-            calibration_step = CALIBRATION_STEP.WARMUP;
+            calibration_step = CALIBRATION_STEP.MEASUREMENT;
             // Link measurement service with gui
             if (checkAndAskPermissions()) {
                 // Application have right now all permissions
                 initAudioProcess();
             }
-            spinner.setEnabled(false);
-            startButton.setText(R.string.calibration_button_cancel);
-            testGainCheckBox.setEnabled(false);
             timeHandler = new Handler(Looper.getMainLooper(), progressHandler);
             progressHandler.start(defaultWarmupTime * 1000);
         } else {
@@ -336,16 +282,11 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         canceled.set(false);
         recording.set(true);
         audioProcess = new AudioProcess(recording, canceled);
-        audioProcess.setDoFastLeq(false);
-        audioProcess.setDoOneSecondLeq(true);
+        audioProcess.setDoFastLeq(true);
+        audioProcess.setDoOneSecondLeq(false);
         audioProcess.setWeightingA(true);
-        audioProcess.setHannWindowOneSecond(true);
-        if(testGainCheckBox.isChecked()) {
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(CalibrationActivity.this);
-            audioProcess.setGain((float)Math.pow(10, getDouble(sharedPref,"settings_recording_gain", 0) / 20));
-        } else {
-            audioProcess.setGain(1);
-        }
+        audioProcess.setHannWindowOneSecond(false);
+        audioProcess.setGain(1);
         audioProcess.getListeners().addPropertyChangeListener(this);
 
         // Start measurement
@@ -354,8 +295,8 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
-        if((calibration_step == CALIBRATION_STEP.CALIBRATION || calibration_step == CALIBRATION_STEP.WARMUP) &&
-                AudioProcess.PROP_SLOW_LEQ.equals(event.getPropertyName())) {
+        if(calibration_step == CALIBRATION_STEP.MEASUREMENT &&
+                AudioProcess.PROP_FAST_LEQ.equals(event.getPropertyName())) {
             // New leq
             AudioProcess.AudioMeasureResult measure =
                     (AudioProcess.AudioMeasureResult) event.getNewValue();
@@ -433,16 +374,14 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
      * Manage progress timer
      */
     public static final class ProgressHandler implements Handler.Callback {
-        private CalibrationActivity activity;
-        private int delay;
+        private TrafficCalibrationActivity activity;
         private long beginTime;
 
-        public ProgressHandler(CalibrationActivity activity) {
+        public ProgressHandler(TrafficCalibrationActivity activity) {
             this.activity = activity;
         }
 
-        public void start(int delayMilliseconds) {
-            delay = delayMilliseconds;
+        public void start() {
             beginTime = SystemClock.elapsedRealtime();
             activity.timeHandler.sendEmptyMessageDelayed(0, COUNTDOWN_STEP_MILLISECOND);
         }

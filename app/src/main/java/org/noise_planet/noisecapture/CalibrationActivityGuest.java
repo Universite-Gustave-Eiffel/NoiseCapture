@@ -31,13 +31,10 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -45,8 +42,6 @@ import android.widget.Toast;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.Locale;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class CalibrationActivityGuest extends MainActivity implements PropertyChangeListener {
@@ -112,7 +107,7 @@ public class CalibrationActivityGuest extends MainActivity implements PropertyCh
                 }});
         } else if(CalibrationService.PROP_CALIBRATION_PROGRESSION.equals(event.getPropertyName())) {
             progressBar_wait_calibration_recording.setProgress((Integer)event.getNewValue());
-        } else if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName()) &&
+        } else if(AudioProcess.PROP_SLOW_LEQ.equals(event.getPropertyName()) &&
                 (CalibrationService.CALIBRATION_STATE.CALIBRATION.equals(calibrationService
                         .getState()) || CalibrationService.CALIBRATION_STATE.WARMUP.equals
                         (calibrationService

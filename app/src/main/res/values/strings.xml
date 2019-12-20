@@ -322,8 +322,9 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="new_measurement">New measurement</string>
     <string name="meters">metres</string>
     <string name="km_h">km/h</string>
-    <string name="calibration_average_vehicle_speed">Average vehicle speed</string>
+    <string name="calibration_average_vehicle_speed">Estimated vehicle speed</string>
     <string name="calibration_distance_vehicle">Vehicle distance</string>
     <string name="default_vehicle_distance">3.5</string>
     <string name="calibration_manual_traffic">The measuring position for calibration must be close enough to the road while ensuring your safety</string>
+    <string name="default_vehicle_speed">45</string>
 </resources>

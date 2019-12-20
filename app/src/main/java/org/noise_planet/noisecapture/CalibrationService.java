@@ -46,7 +46,6 @@ import android.support.annotation.Nullable;
 import org.noise_planet.jwarble.Configuration;
 import org.noise_planet.jwarble.MessageCallback;
 import org.noise_planet.jwarble.OpenWarble;
-import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.LeqStats;
 import org.orbisgis.sos.SOSSignalProcessing;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
@@ -435,7 +434,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
-        if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName())){
+        if(AudioProcess.PROP_SLOW_LEQ.equals(event.getPropertyName())){
             // New leq
             AudioProcess.AudioMeasureResult measure =
                     (AudioProcess.AudioMeasureResult) event.getNewValue();

@@ -1,30 +1,24 @@
 package org.noise_planet.noisecapture;
 
-
-import org.orbisgis.sos.AcousticIndicators;
-
 /**
  * This class receive the uncalibrated noise level LAeq (125ms) and estimates the number of passing vehicles,
  * With the help of distance to vehicle and average vehicle speed it can estimates
- * the expected noise level with estimated uncertainty.
+ * the expected noise level with an estimated uncertainty.
  */
 public class TrafficNoiseEstimator {
-    final float[] freqs;
-    AcousticIndicators backgroundLevelEstimator = new AcousticIndicators();
-
     /**
-     * @param freqs Nominal frequency bands
+     * Minimum delay between peaks in seconds
      */
-    public TrafficNoiseEstimator(float[] freqs) {
-        this.freqs = freqs;
-    }
+    private double delay = 3;
 
     /**
      *
-     * @param values LAeq for each spectrum band
+     * @param laeq 125ms dB(A) values
      */
-    public void addFastLAeq(float[] values) {
+    public Estimation evaluate(float[] laeq) {
+        Estimation estimation = new Estimation();
 
+        return estimation;
     }
 
     /**

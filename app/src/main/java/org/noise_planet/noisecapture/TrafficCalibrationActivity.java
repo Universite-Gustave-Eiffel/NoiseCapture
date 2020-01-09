@@ -243,20 +243,20 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
     }
 
     private void onCalibrationStart() {
-        if(calibration_step == CALIBRATION_STEP.IDLE) {
-            textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
-            calibration_step = CALIBRATION_STEP.MEASUREMENT;
-            // Link measurement service with gui
-            if (checkAndAskPermissions()) {
-                // Application have right now all permissions
-                initAudioProcess();
-            }
-            timeHandler = new Handler(Looper.getMainLooper(), progressHandler);
-            progressHandler.start(defaultWarmupTime * 1000);
-        } else {
-            calibration_step = CALIBRATION_STEP.IDLE;
-            onReset();
-        }
+//        if(calibration_step == CALIBRATION_STEP.IDLE) {
+//            textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
+//            calibration_step = CALIBRATION_STEP.MEASUREMENT;
+//            // Link measurement service with gui
+//            if (checkAndAskPermissions()) {
+//                // Application have right now all permissions
+//                initAudioProcess();
+//            }
+//            timeHandler = new Handler(Looper.getMainLooper(), progressHandler);
+//            progressHandler.start(defaultWarmupTime * 1000);
+//        } else {
+//            calibration_step = CALIBRATION_STEP.IDLE;
+//            onReset();
+//        }
     }
 
     @Override
@@ -300,34 +300,8 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
             // New leq
             AudioProcess.AudioMeasureResult measure =
                     (AudioProcess.AudioMeasureResult) event.getNewValue();
-            final double leq;
-            // Use global dB value or only the selected frequency band
-            if(spinner.getSelectedItemPosition() == 0) {
-                leq = measure.getGlobaldBaValue();
-            } else {
-                int selectFreq = freq_choice[spinner.getSelectedItemPosition()];
-                int index = Arrays.binarySearch(audioProcess.getDelayedCenterFrequency(), selectFreq);
-                if(index < 0) {
-                    index = Math.min(measure.getLeqs().length -1,  Math.max(0, -index - 1));
-                }
-                leq = measure.getLeqs()[index];
-            }
-            if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
-                leqStats.addLeq(leq);
-            }
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    double leqToShow;
-                    if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
-                        leqToShow = leqStats.computeLeqOccurrences(null).getLa50();
-                    } else {
-                        leqToShow = leq;
-                    }
-                    textDeviceLevel.setText(
-                            String.format(Locale.getDefault(), "%.1f", leqToShow));
-                }
-            });
+            final double leq = measure.getGlobaldBaValue();
+
         }
     }
 
@@ -344,30 +318,30 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
     }
 
     private void onTimerEnd() {
-        if(calibration_step == CALIBRATION_STEP.WARMUP) {
-            calibration_step = CALIBRATION_STEP.CALIBRATION;
-            textStatus.setText(R.string.calibration_status_on);
-            // Start calibration
-            leqStats = new LeqStats(CALIBRATION_PRECISION_CLASS_STEP);
-            progressHandler.start(defaultCalibrationTime * 1000);
-        } else if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
-            calibration_step = CALIBRATION_STEP.END;
-            textStatus.setText(R.string.calibration_status_end);
-            recording.set(false);
-            audioProcess = null;
-            // Activate user input
-            if(!testGainCheckBox.isChecked()) {
-                applyButton.setEnabled(true);
-                // Change to default locale when fixed https://code.google.com/p/android/issues/detail?id=2626
-                if(CALIBRATION_MODE_CALIBRATOR.equals(calibration_mode)) {
-                    userInput.setText(DEFAULT_CALIBRATOR_LEVEL);
-                } else {
-                    userInput.setText(String.format(Locale.US, "%.1f", leqStats.getLeqMean()));
-                }
-                userInput.setEnabled(true);
-            }
-            resetButton.setEnabled(true);
-        }
+//        if(calibration_step == CALIBRATION_STEP.WARMUP) {
+//            calibration_step = CALIBRATION_STEP.CALIBRATION;
+//            textStatus.setText(R.string.calibration_status_on);
+//            // Start calibration
+//            leqStats = new LeqStats(CALIBRATION_PRECISION_CLASS_STEP);
+//            progressHandler.start(defaultCalibrationTime * 1000);
+//        } else if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
+//            calibration_step = CALIBRATION_STEP.END;
+//            textStatus.setText(R.string.calibration_status_end);
+//            recording.set(false);
+//            audioProcess = null;
+//            // Activate user input
+//            if(!testGainCheckBox.isChecked()) {
+//                applyButton.setEnabled(true);
+//                // Change to default locale when fixed https://code.google.com/p/android/issues/detail?id=2626
+//                if(CALIBRATION_MODE_CALIBRATOR.equals(calibration_mode)) {
+//                    userInput.setText(DEFAULT_CALIBRATOR_LEVEL);
+//                } else {
+//                    userInput.setText(String.format(Locale.US, "%.1f", leqStats.getLeqMean()));
+//                }
+//                userInput.setEnabled(true);
+//            }
+//            resetButton.setEnabled(true);
+//        }
     }
 
     /**
@@ -389,14 +363,14 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
         @Override
         public boolean handleMessage(Message msg) {
             long currentTime = SystemClock.elapsedRealtime();
-            int newProg = (int)((((beginTime + delay) - currentTime) / (float)delay) *
-                    activity.progressBar_wait_calibration_recording.getMax());
-            activity.progressBar_wait_calibration_recording.setProgress(newProg);
-            if(currentTime < beginTime + delay && activity.calibration_step != CALIBRATION_STEP.IDLE) {
-                activity.timeHandler.sendEmptyMessageDelayed(0, COUNTDOWN_STEP_MILLISECOND);
-            } else {
-                activity.onTimerEnd();
-            }
+//            int newProg = (int)((((beginTime + delay) - currentTime) / (float)delay) *
+//                    activity.progressBar_wait_calibration_recording.getMax());
+//            activity.progressBar_wait_calibration_recording.setProgress(newProg);
+//            if(currentTime < beginTime + delay && activity.calibration_step != CALIBRATION_STEP.IDLE) {
+//                activity.timeHandler.sendEmptyMessageDelayed(0, COUNTDOWN_STEP_MILLISECOND);
+//            } else {
+//                activity.onTimerEnd();
+//            }
             return true;
         }
     }

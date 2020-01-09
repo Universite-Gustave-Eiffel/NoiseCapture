@@ -120,5 +120,6 @@ dependencies {
     // unit test
     testImplementation group: 'org.robolectric', name: 'robolectric', version: '4.3.1'
     testImplementation 'junit:junit:4.12'
+    testImplementation group: 'com.googlecode.soundlibs', name: 'jorbis', version: '0.0.17.4'
     implementation project(':sosfilter')
 }

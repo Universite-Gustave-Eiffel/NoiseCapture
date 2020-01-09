@@ -327,4 +327,6 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="default_vehicle_distance">3.5</string>
     <string name="calibration_manual_traffic">The measuring position for calibration must be close enough to the road while ensuring your safety</string>
     <string name="default_vehicle_speed">45</string>
+    <string name="title_activity_calibration_history">Calibration history</string>
+    <string name="title_activity_calibration_traffic">Calibration with traffic</string>
 </resources>

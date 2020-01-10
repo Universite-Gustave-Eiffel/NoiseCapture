@@ -10,8 +10,9 @@ import com.jcraft.jorbis.DspState;
 import com.jcraft.jorbis.Info;
 
 import org.junit.Test;
+import org.noise_planet.noisecapture.util.PeakFinder;
+import org.noise_planet.noisecapture.util.TrafficNoiseEstimator;
 import org.orbisgis.sos.FFTSignalProcessing;
-import org.orbisgis.sos.ThirdOctaveBandsFiltering;
 import org.orbisgis.sos.Window;
 
 import java.io.BufferedInputStream;
@@ -24,14 +25,18 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
+
+import static org.junit.Assert.assertTrue;
 
 public class TrafficNoiseEstimatorTest {
 
 
     @Test
-    public void testTrafficCalibration() throws IOException {
+    public void testDetectTrafficPeaks() throws IOException {
         try (BufferedInputStream fos = new BufferedInputStream(TrafficNoiseEstimatorTest.class.getResourceAsStream("traffic_50kmh_3m.ogg"))) {
             OrbisReader reader = new OrbisReader(fos);
             reader.run();
@@ -42,9 +47,8 @@ public class TrafficNoiseEstimatorTest {
                     reader.jorbisInfo.rate, FFTSignalProcessing.computeFFTCenterFrequency(16000),
                     0.125, true, 1, false);
             short[] buffer = new short[(int)(window.getWindowTime() * reader.jorbisInfo.rate)];
-            float minDb = Float.MAX_VALUE;
-            float maxDb = Float.MIN_VALUE;
             TrafficNoiseEstimator trafficNoiseEstimator = new TrafficNoiseEstimator();
+            List<Float> laeqsList = new ArrayList<>();
             while(dos.available() > Short.SIZE / Byte.SIZE) {
                 try {
                     int sampleLen = Math.min(window.getMaximalBufferSize(), buffer.length);
@@ -56,17 +60,32 @@ public class TrafficNoiseEstimatorTest {
                         lastPushIndex = window.getWindowIndex();
                         FFTSignalProcessing.ProcessingResult res = window.getLastWindowMean();
                         float t = lastPushIndex * 0.125f;
-                        minDb = Math.min(minDb, res.getGlobaldBaValue());
-                        maxDb = Math.max(maxDb, res.getGlobaldBaValue());
-                        System.out.println(String.format(Locale.ROOT, "%.3f leq : %.2f dBA", t,res.getGlobaldBaValue()));
+                        laeqsList.add(res.getGlobaldBaValue());
+                        //System.out.println(String.format(Locale.ROOT, "%.3f  %.2f", t, res.getGlobaldBaValue()));
                         window.cleanWindows();
                     }
                 } catch (EOFException ex) {
                     break;
                 }
             }
-            System.out.println(String.format(Locale.ROOT, "Min %.2f dB(A) Max %.2f dB(A)", minDb, maxDb));
+            double[] laeqs = new double[laeqsList.size()];
+            for(int i=0; i < laeqsList.size(); i++) {
+                laeqs[i] = laeqsList.get(i);
+            }
+            List<PeakFinder.Element> peaks = trafficNoiseEstimator.getNoisePeaks(laeqs);
+            double[] expectedPeakTime = new double[] {1.75, 7.88, 13.4, 20.5, 31.6, 44.1, 58.5};
+            for(double v : expectedPeakTime) {
+                boolean found = false;
+                for (PeakFinder.Element el : peaks) {
+                    if (Math.abs(el.index - v * 1000) <= 250) {
+                        found = true;
+                        break;
+                    }
+                }
+                assertTrue(found);
+            }
         }
+        ////System.out.println(String.format(Locale.ROOT, "Find peak at %.3f s spl:  %.2f dB(A)", el.index / 1000.0, el.value));
     }
 
     public static void writeByteToFile(String path, byte[] signal) throws IOException {

@@ -1,6 +1,7 @@
 package org.noise_planet.noisecapture;
 
 import org.junit.Test;
+import org.noise_planet.noisecapture.util.PeakFinder;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -46,7 +47,7 @@ public class PeakFinderTest {
             peakFinder.add(index++, (double)value);
         }
         int[] expectedIndex = new int[]{5, 17 ,27, 38, 50, 61, 69, 78, 87, 104, 116, 130, 137, 148, 160, 170, 183, 193, 205, 217, 228, 237, 247, 257, 268, 279, 290, 299};
-        List<PeakFinder.Element> results = peakFinder.filter(6);
+        List<PeakFinder.Element> results = PeakFinder.filter(peakFinder.getPeaks(),6);
         int[] got = new int[results.size()];
         for(int i=0; i < results.size(); i++) {
             got[i] = (int)results.get(i).index;

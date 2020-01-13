@@ -29,9 +29,14 @@ package org.noise_planet.noisecapture.util;
 
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.apache.commons.math3.stat.descriptive.rank.Percentile;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -40,6 +45,21 @@ import java.util.List;
  * the expected noise level with an estimated uncertainty.
  */
 public class TrafficNoiseEstimator {
+    private JSONObject cnossosData = null;
+
+    public void loadConstants(InputStream inputStream) throws IOException, JSONException {
+        // Resources.getSystem().openRawResource(R.raw.coefficients_cnossos)
+        // Copy beginning of WPS query XML file
+        StringBuilder sb = new StringBuilder();
+        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+        String str;
+        while((str = bufferedReader.readLine())!= null){
+            sb.append(str);
+        }
+        cnossosData = new JSONObject(sb.toString());
+    }
+
     /**
      * Minimum delay between peaks in seconds
      */
@@ -47,6 +67,9 @@ public class TrafficNoiseEstimator {
     private double increaseDelay = 2;
     private double decreaseDelay = 2;
     private double distance = 3.5;
+    private double measurementHeight = 1.5 - 0.05; // Measurement height minus the source equivalent height
+    private int[] frequencies = new int[] {63, 125, 250, 500, 1000, 2000, 4000, 8000};
+
 
     public List<PeakFinder.Element> getNoisePeaks(double[] laeq) {
         if(laeq.length == 0) {
@@ -87,9 +110,9 @@ public class TrafficNoiseEstimator {
     /**
      *
      * @param laeq 125ms dB(A) values
+     * @param speed Average vehicle speed km/h
      */
-    public Estimation evaluate(double[] laeq) {
-        Estimation estimation = new Estimation();
+    public Estimation evaluate(double[] laeq, double speed) {
 
         // Find received noise levels of passing vehicles
         List<PeakFinder.Element> peaks = getNoisePeaks(fastToSlowLeqMax(laeq));
@@ -102,20 +125,73 @@ public class TrafficNoiseEstimator {
 
         double medianPeak = new Median().evaluate(peaksSpl);
 
-        /*
-        double lvRoadLvl = getNoiseLvl(getCoeff("ar", freqParam , "1"  ,coeffVer),
-                getCoeff("br", freqParam , "1"  ,coeffVer), parameters.getSpeedLv(), 70.);
+        double expectedGlobalLvl = 0;
 
-        double lvMotorLvl = getCoeff("ap", freqParam , "1" ,coeffVer ) +
-                getCoeff("bp", freqParam , "1" ,coeffVer ) * (parameters.getSpeedLv()-70)/70 ;
+        try {
+            for (int freqParam = 0; freqParam < frequencies.length; freqParam++) {
+                double lvRoadLvl = getNoiseLvl(getCoeff("ar", freqParam, "1"),
+                        getCoeff("br", freqParam, "1"), speed, 70.);
 
-        double lvCompound = sumDba(lvRoadLvl, lvMotorLvl);
+                double lvMotorLvl = getCoeff("ap", freqParam, "1") +
+                        getCoeff("bp", freqParam, "1") * (speed - 70) / 70;
 
-        double lvLvl = lvCompound + 10 * Math.log10(vperhour / (1000 * speed));
-        */
+                double lvCompound = sumDba(lvRoadLvl, lvMotorLvl);
 
+                expectedGlobalLvl += dbaToW(lvCompound);
+            }
+            expectedGlobalLvl = wToDba(expectedGlobalLvl);
+        }catch (JSONException ex) {
+            return null;
+        }
 
-        return estimation;
+        // Attenuation by distance
+
+        expectedGlobalLvl -= getADiv(Math.sqrt(distance*distance+measurementHeight*measurementHeight));
+
+        return new Estimation(peaks.size(), expectedGlobalLvl, medianPeak);
+    }
+
+    /**
+     * @param numberOfPassingVehicles Average number of passing vehicles for each location.
+     * @param numberOfLocations Number of differend measurement locations (different streets)
+     * @return Estimated calibration uncertainty in dB(A)
+     */
+    double getCalibrationUncertainty(int numberOfPassingVehicles, int numberOfLocations) {
+        final double modelUncertainty = 2.0;
+        final double inputAndProtocolUncertainty = 2.5;
+        final double measurementUncertainty = 6.39 - 2.65 * Math.log10(numberOfLocations) -
+                2.8 * Math.log10(numberOfPassingVehicles);
+        return Math.sqrt(modelUncertainty*modelUncertainty+
+                inputAndProtocolUncertainty*inputAndProtocolUncertainty+
+                measurementUncertainty*measurementUncertainty);
+    }
+
+    /**
+     * Compute attenuation of sound energy by distance. Minimum distance is one
+     * meter.
+     * @param distance Distance in meter
+     * @return Attenuated sound level. Take only account of geometric dispersion
+     * of sound wave.
+     */
+    public static double getADiv(double distance) {
+        return  wToDba(4 * Math.PI * Math.max(1, distance * distance));
+    }
+
+    /** get noise level from speed **/
+    private static Double getNoiseLvl(double base, double adj, double speed,
+                                      double speedBase) {
+        return base + adj * Math.log10(speed / speedBase);
+    }
+
+    /**
+     * Vehicle emission values coefficients
+     * @param coeff ar,br,ap,bp,a,b
+     * @param freq frequence index 0-n
+     * @param vehicleCategory 1,2,3,4a,4b..
+     * @return
+     */
+    public Double getCoeff(String coeff, int freq, String vehicleCategory) throws JSONException {
+        return cnossosData.getJSONObject("vehicles").getJSONObject(vehicleCategory).getJSONArray(coeff).getDouble(freq);
     }
 
     private static Double sumDba(Double dBA1, Double dBA2) {
@@ -178,6 +254,14 @@ public class TrafficNoiseEstimator {
      * Result
      */
     public static class Estimation {
+        public final int numberOfPassby;
+        public final double expectedLevel;
+        public final double measurementLevel;
 
+        public Estimation(int numberOfPassby, double expectedLevel, double measurementLevel) {
+            this.numberOfPassby = numberOfPassby;
+            this.expectedLevel = expectedLevel;
+            this.measurementLevel = measurementLevel;
+        }
     }
 }

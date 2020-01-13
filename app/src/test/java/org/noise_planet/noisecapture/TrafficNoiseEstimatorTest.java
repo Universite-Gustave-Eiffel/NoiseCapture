@@ -9,6 +9,7 @@ import com.jcraft.jorbis.Comment;
 import com.jcraft.jorbis.DspState;
 import com.jcraft.jorbis.Info;
 
+import org.json.JSONException;
 import org.junit.Test;
 import org.noise_planet.noisecapture.util.PeakFinder;
 import org.noise_planet.noisecapture.util.TrafficNoiseEstimator;
@@ -43,9 +44,9 @@ public class TrafficNoiseEstimatorTest {
         List<PeakFinder.Element> peaks = trafficNoiseEstimator.getNoisePeaks(laeqs);
 
 
-        for (PeakFinder.Element el : peaks) {
-            System.out.println(String.format(Locale.ROOT, "Find peak at %.3f s spl:  %.2f dB(A)", el.index / 1000.0, el.value));
-        }
+        //for (PeakFinder.Element el : peaks) {
+        //    System.out.println(String.format(Locale.ROOT, "Find peak at %.3f s spl:  %.2f dB(A)", el.index / 1000.0, el.value));
+        //}
 
         double[] expectedPeakTime = new double[] {1.75, 7.88, 13.4, 20.5, 31.6, 44.1, 58.5};
         for(double v : expectedPeakTime) {
@@ -62,19 +63,18 @@ public class TrafficNoiseEstimatorTest {
 
 
     @Test
-    public void testDetectTrafficPeaksMixed() throws IOException {
+    public void testDetectTrafficPeaksMixed() throws IOException, JSONException {
         TrafficNoiseEstimator trafficNoiseEstimator = new TrafficNoiseEstimator();
         double[] laeqs = getLAeqs(TrafficNoiseEstimatorTest.class.getResourceAsStream("traffic_50kmh_3m_mixed.ogg"), false);
-        laeqs = trafficNoiseEstimator.fastToSlowLeqMax(laeqs);
 
-        for(int i=0; i < laeqs.length; i++) {
-            System.out.println(String.format(Locale.ROOT, "%.3f  %.2f", i * 1.0, laeqs[i]));
-        }
-        List<PeakFinder.Element> peaks = trafficNoiseEstimator.getNoisePeaks(laeqs);
+        trafficNoiseEstimator.loadConstants(TrafficNoiseEstimatorTest.class.getResourceAsStream("coefficients_cnossos.json"));
 
-        for (PeakFinder.Element el : peaks) {
-            System.out.println(String.format(Locale.ROOT, "Find peak at %.3f s spl:  %.2f dB(A)", el.index * 1.0, el.value));
-        }
+        trafficNoiseEstimator.setDistance(3.5);
+
+        TrafficNoiseEstimator.Estimation estimation = trafficNoiseEstimator.evaluate(laeqs, 60.0);
+
+        System.out.println(String.format(Locale.ROOT, "Estimation expected %.2f got %.2f with %d passby", estimation.expectedLevel, estimation.measurementLevel, estimation.numberOfPassby));
+
     }
 
     public static double[] getLAeqs(InputStream oggFile, boolean printValues) throws IOException {

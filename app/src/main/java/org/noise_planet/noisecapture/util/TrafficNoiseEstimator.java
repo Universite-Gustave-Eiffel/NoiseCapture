@@ -29,8 +29,9 @@ package org.noise_planet.noisecapture.util;
 
 import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.apache.commons.math3.stat.descriptive.rank.Percentile;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.NullNode;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -45,19 +46,15 @@ import java.util.List;
  * the expected noise level with an estimated uncertainty.
  */
 public class TrafficNoiseEstimator {
-    private JSONObject cnossosData = null;
+    private JsonNode cnossosData = null;
 
-    public void loadConstants(InputStream inputStream) throws IOException, JSONException {
-        // Resources.getSystem().openRawResource(R.raw.coefficients_cnossos)
-        // Copy beginning of WPS query XML file
-        StringBuilder sb = new StringBuilder();
-        InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
-        BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-        String str;
-        while((str = bufferedReader.readLine())!= null){
-            sb.append(str);
+    public void loadConstants(InputStream inputStream) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            cnossosData = mapper.readTree(inputStream);
+        } catch (IOException ex) {
+            cnossosData = NullNode.getInstance();
         }
-        cnossosData = new JSONObject(sb.toString());
     }
 
     /**
@@ -65,11 +62,12 @@ public class TrafficNoiseEstimator {
      */
     private double delay = 3;
     private double increaseDelay = 2;
+    private double temperature = 20.0;
     private double decreaseDelay = 2;
     private double distance = 3.5;
     private double measurementHeight = 1.5 - 0.05; // Measurement height minus the source equivalent height
     private int[] frequencies = new int[] {63, 125, 250, 500, 1000, 2000, 4000, 8000};
-
+    private String roadSurface = "NL01";
 
     public List<PeakFinder.Element> getNoisePeaks(double[] laeq) {
         if(laeq.length == 0) {
@@ -114,6 +112,8 @@ public class TrafficNoiseEstimator {
      */
     public Estimation evaluate(double[] laeq, double speed) {
 
+        speed = Math.max(20, Math.min(130, speed));
+
         // Find received noise levels of passing vehicles
         List<PeakFinder.Element> peaks = getNoisePeaks(fastToSlowLeqMax(laeq));
 
@@ -123,30 +123,34 @@ public class TrafficNoiseEstimator {
             peaksSpl[i] = peaks.get(i).value;
         }
 
-        double medianPeak = new Median().evaluate(peaksSpl);
+        double freeFieldDistance = Math.sqrt(distance*distance+measurementHeight*measurementHeight);
+
+        // Evaluate level at source location
+        double correction = 20 * Math.log(freeFieldDistance) + 10 * Math.log(2*Math.PI);
+
+        double medianPeak = new Median().evaluate(peaksSpl) + correction;
 
         double expectedGlobalLvl = 0;
 
-        try {
-            for (int freqParam = 0; freqParam < frequencies.length; freqParam++) {
-                double lvRoadLvl = getNoiseLvl(getCoeff("ar", freqParam, "1"),
-                        getCoeff("br", freqParam, "1"), speed, 70.);
+        for (int freqParam = 0; freqParam < frequencies.length; freqParam++) {
+            double lvRoadLvl = getNoiseLvl(getCoeff("ar", freqParam, "1"),
+                    getCoeff("br", freqParam, "1"), speed, 70.);
 
-                double lvMotorLvl = getCoeff("ap", freqParam, "1") +
-                        getCoeff("bp", freqParam, "1") * (speed - 70) / 70;
+            // Correction by temperature p. 36
+            lvRoadLvl = lvRoadLvl+ 0.08*(20-temperature); // K = 0.08  p. 36
 
-                double lvCompound = sumDba(lvRoadLvl, lvMotorLvl);
+            //Road surface correction on rolling noise
+            lvRoadLvl = lvRoadLvl+ getNoiseLvl(getA_Roadcoeff(freqParam,"1", roadSurface),
+                    getB_Roadcoeff("1",roadSurface), speed, 70.);
 
-                expectedGlobalLvl += dbaToW(lvCompound);
-            }
-            expectedGlobalLvl = wToDba(expectedGlobalLvl);
-        }catch (JSONException ex) {
-            return null;
+            double lvMotorLvl = getCoeff("ap", freqParam, "1") +
+                    getCoeff("bp", freqParam, "1") * (speed - 70) / 70;
+
+            double lvCompound = sumDba(lvRoadLvl, lvMotorLvl);
+
+            expectedGlobalLvl += dbaToW(lvCompound);
         }
-
-        // Attenuation by distance
-
-        expectedGlobalLvl -= getADiv(Math.sqrt(distance*distance+measurementHeight*measurementHeight));
+        expectedGlobalLvl = wToDba(expectedGlobalLvl);
 
         return new Estimation(peaks.size(), expectedGlobalLvl, medianPeak);
     }
@@ -166,6 +170,14 @@ public class TrafficNoiseEstimator {
                 measurementUncertainty*measurementUncertainty);
     }
 
+    public double getTemperature() {
+        return temperature;
+    }
+
+    public void setTemperature(double temperature) {
+        this.temperature = temperature;
+    }
+
     /**
      * Compute attenuation of sound energy by distance. Minimum distance is one
      * meter.
@@ -183,6 +195,14 @@ public class TrafficNoiseEstimator {
         return base + adj * Math.log10(speed / speedBase);
     }
 
+    public String getRoadSurface() {
+        return roadSurface;
+    }
+
+    public void setRoadSurface(String roadSurface) {
+        this.roadSurface = roadSurface;
+    }
+
     /**
      * Vehicle emission values coefficients
      * @param coeff ar,br,ap,bp,a,b
@@ -190,9 +210,20 @@ public class TrafficNoiseEstimator {
      * @param vehicleCategory 1,2,3,4a,4b..
      * @return
      */
-    public Double getCoeff(String coeff, int freq, String vehicleCategory) throws JSONException {
-        return cnossosData.getJSONObject("vehicles").getJSONObject(vehicleCategory).getJSONArray(coeff).getDouble(freq);
+    public Double getCoeff(String coeff, int freq, String vehicleCategory) {
+        return cnossosData.get("vehicles").get(vehicleCategory).get(coeff).get(freq).doubleValue();
     }
+
+    /** Get a Road Coeff by Freq **/
+    public double getA_Roadcoeff(int freq, String vehCat, String RoadSurface) {
+        return cnossosData.get("roads").get(RoadSurface).get("ref").get(vehCat).get("spectrum").get(freq).doubleValue();
+    }
+
+    /** Get b Road Coeff by Freq **/
+    public double getB_Roadcoeff(String vehCat, String roadSurface) {
+        return cnossosData.get("roads").get(roadSurface).get("ref").get(vehCat).get("ßm").doubleValue();
+    }
+
 
     private static Double sumDba(Double dBA1, Double dBA2) {
         return wToDba(dbaToW(dBA1) + dbaToW(dBA2));

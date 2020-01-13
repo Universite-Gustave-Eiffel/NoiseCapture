@@ -101,6 +101,9 @@ dependencies {
     implementation 'com.github.PhilJay:MPAndroidChart:v2.2.5'
     implementation 'org.slf4j:slf4j-simple:1.7.12'
     implementation name: 'org/noise-planet/jwarble/0.2.2/jwarble-0.2.2'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.10'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.10'
+
     // multithreaded FFT for realtime visualisation of spectrum only
     implementation 'com.github.wendykierp:JTransforms:3.1'
     implementation 'org.apache.commons:commons-math3:3.5'

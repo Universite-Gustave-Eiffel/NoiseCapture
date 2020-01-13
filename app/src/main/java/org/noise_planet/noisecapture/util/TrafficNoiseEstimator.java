@@ -27,8 +27,10 @@
 
 package org.noise_planet.noisecapture.util;
 
+import org.apache.commons.math3.stat.descriptive.rank.Median;
 import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -41,6 +43,7 @@ public class TrafficNoiseEstimator {
      * Minimum delay between peaks in seconds
      */
     private double delay = 3;
+    private double distance = 3.5;
 
     public List<PeakFinder.Element> getNoisePeaks(double[] laeq) {
         // Evaluate L95 (Quantile 0.05)
@@ -66,8 +69,49 @@ public class TrafficNoiseEstimator {
     public Estimation evaluate(double[] laeq) {
         Estimation estimation = new Estimation();
 
+        // Find received noise levels of passing vehicles
+        List<PeakFinder.Element> peaks = getNoisePeaks(laeq);
+
+        // Take median value of noise levels of passing vehicles
+        double[] peaksSpl = new double[peaks.size()];
+        for (int i = 0; i < peaksSpl.length; i++) {
+            peaksSpl[i] = peaks.get(i).value;
+        }
+        double medianPeak = new Median().evaluate(peaksSpl);
+
+
         return estimation;
     }
+
+
+    /**
+     * @return Distance to closest line of vehicles
+     */
+    public double getDistance() {
+        return distance;
+    }
+
+    /**
+     * @param distance Distance to closest line of vehicles
+     */
+    public void setDistance(double distance) {
+        this.distance = distance;
+    }
+
+    /**
+     * @return Minimum delay in seconds for considering a passing vehicle
+     */
+    public double getDelay() {
+        return delay;
+    }
+
+    /**
+     * @param delay Minimum delay in seconds for considering a passing vehicle
+     */
+    public void setDelay(double delay) {
+        this.delay = delay;
+    }
+
 
     /**
      * Result

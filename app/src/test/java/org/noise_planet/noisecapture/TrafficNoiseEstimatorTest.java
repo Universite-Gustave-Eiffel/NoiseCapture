@@ -37,19 +37,50 @@ public class TrafficNoiseEstimatorTest {
 
     @Test
     public void testDetectTrafficPeaks() throws IOException {
-        try (BufferedInputStream fos = new BufferedInputStream(TrafficNoiseEstimatorTest.class.getResourceAsStream("traffic_50kmh_3m.ogg"))) {
+        TrafficNoiseEstimator trafficNoiseEstimator = new TrafficNoiseEstimator();
+        double[] laeqs = getLAeqs(TrafficNoiseEstimatorTest.class.getResourceAsStream("traffic_50kmh_3m.ogg"), false);
+        List<PeakFinder.Element> peaks = trafficNoiseEstimator.getNoisePeaks(laeqs);
+
+
+        //for (PeakFinder.Element el : peaks) {
+        //    System.out.println(String.format(Locale.ROOT, "Find peak at %.3f s spl:  %.2f dB(A)", el.index / 1000.0, el.value));
+        //}
+
+        double[] expectedPeakTime = new double[] {1.75, 7.88, 13.4, 20.5, 31.6, 44.1, 58.5};
+        for(double v : expectedPeakTime) {
+            boolean found = false;
+            for (PeakFinder.Element el : peaks) {
+                if (Math.abs(el.index - v * 1000) <= 250) {
+                    found = true;
+                    break;
+                }
+            }
+            assertTrue(found);
+        }
+    }
+
+
+    @Test
+    public void testDetectTrafficPeaksMixed() throws IOException {
+        TrafficNoiseEstimator trafficNoiseEstimator = new TrafficNoiseEstimator();
+        double[] laeqs = getLAeqs(TrafficNoiseEstimatorTest.class.getResourceAsStream("traffic_50kmh_3m_mixed.ogg"), false);
+        List<PeakFinder.Element> peaks = trafficNoiseEstimator.getNoisePeaks(laeqs);
+
+    }
+
+    public static double[] getLAeqs(InputStream oggFile, boolean printValues) throws IOException {
+        try (BufferedInputStream fos = new BufferedInputStream(oggFile)) {
             OrbisReader reader = new OrbisReader(fos);
+            reader.setDebugMode(false);
             reader.run();
             int lastPushIndex = 0;
-            //writeByteToFile("build/test.raw", reader.getBytes());
             DataInputStream dos = new DataInputStream(new ByteArrayInputStream(reader.getBytes()));
             Window window = new Window(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,
                     reader.jorbisInfo.rate, FFTSignalProcessing.computeFFTCenterFrequency(16000),
                     0.125, true, 1, false);
-            short[] buffer = new short[(int)(window.getWindowTime() * reader.jorbisInfo.rate)];
-            TrafficNoiseEstimator trafficNoiseEstimator = new TrafficNoiseEstimator();
+            short[] buffer = new short[(int) (window.getWindowTime() * reader.jorbisInfo.rate)];
             List<Float> laeqsList = new ArrayList<>();
-            while(dos.available() > Short.SIZE / Byte.SIZE) {
+            while (dos.available() > Short.SIZE / Byte.SIZE) {
                 try {
                     int sampleLen = Math.min(window.getMaximalBufferSize(), buffer.length);
                     for (int i = 0; i < sampleLen; i++) {
@@ -61,7 +92,9 @@ public class TrafficNoiseEstimatorTest {
                         FFTSignalProcessing.ProcessingResult res = window.getLastWindowMean();
                         float t = lastPushIndex * 0.125f;
                         laeqsList.add(res.getGlobaldBaValue());
-                        //System.out.println(String.format(Locale.ROOT, "%.3f  %.2f", t, res.getGlobaldBaValue()));
+                        if(printValues) {
+                            System.out.println(String.format(Locale.ROOT, "%.3f  %.2f", t, res.getGlobaldBaValue()));
+                        }
                         window.cleanWindows();
                     }
                 } catch (EOFException ex) {
@@ -69,21 +102,10 @@ public class TrafficNoiseEstimatorTest {
                 }
             }
             double[] laeqs = new double[laeqsList.size()];
-            for(int i=0; i < laeqsList.size(); i++) {
+            for (int i = 0; i < laeqsList.size(); i++) {
                 laeqs[i] = laeqsList.get(i);
             }
-            List<PeakFinder.Element> peaks = trafficNoiseEstimator.getNoisePeaks(laeqs);
-            double[] expectedPeakTime = new double[] {1.75, 7.88, 13.4, 20.5, 31.6, 44.1, 58.5};
-            for(double v : expectedPeakTime) {
-                boolean found = false;
-                for (PeakFinder.Element el : peaks) {
-                    if (Math.abs(el.index - v * 1000) <= 250) {
-                        found = true;
-                        break;
-                    }
-                }
-                assertTrue(found);
-            }
+            return laeqs;
         }
         ////System.out.println(String.format(Locale.ROOT, "Find peak at %.3f s spl:  %.2f dB(A)", el.index / 1000.0, el.value));
     }
@@ -105,7 +127,7 @@ public class TrafficNoiseEstimatorTest {
      */
     public static class OrbisReader {
         // If you wish to debug this source, please set the variable below to true.
-        private final boolean debugMode = true;
+        private boolean debugMode = true;
 
         private InputStream inputStream = null;
 
@@ -213,6 +235,14 @@ public class TrafficNoiseEstimatorTest {
             buffer = joggSyncState.data;
 
             debugOutput("Done initializing JOrbis.");
+        }
+
+        public boolean isDebugMode() {
+            return debugMode;
+        }
+
+        public void setDebugMode(boolean debugMode) {
+            this.debugMode = debugMode;
         }
 
         /**

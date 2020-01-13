@@ -65,6 +65,7 @@ public class TrafficNoiseEstimator {
     private double temperature = 20.0;
     private double decreaseDelay = 2;
     private double distance = 3.5;
+    double speed = 45.0;
     private double measurementHeight = 1.5 - 0.05; // Measurement height minus the source equivalent height
     private int[] frequencies = new int[] {63, 125, 250, 500, 1000, 2000, 4000, 8000};
     private String roadSurface = "NL01";
@@ -108,12 +109,9 @@ public class TrafficNoiseEstimator {
     /**
      *
      * @param laeq 125ms dB(A) values
-     * @param speed Average vehicle speed km/h
+     * @return Median pass-by peak and number of peaks
      */
-    public Estimation evaluate(double[] laeq, double speed) {
-
-        speed = Math.max(20, Math.min(130, speed));
-
+    public Estimation getMedianPeak(double[] laeq) {
         // Find received noise levels of passing vehicles
         List<PeakFinder.Element> peaks = getNoisePeaks(fastToSlowLeqMax(laeq));
 
@@ -123,12 +121,20 @@ public class TrafficNoiseEstimator {
             peaksSpl[i] = peaks.get(i).value;
         }
 
+        return new Estimation(peaks.size(), new Median().evaluate(peaksSpl));
+    }
+
+    /**
+     * @param medianPeak Measured level at device location
+     */
+    public double computeGain(double medianPeak) {
+
+        speed = Math.max(20, Math.min(130, speed));
+
         double freeFieldDistance = Math.sqrt(distance*distance+measurementHeight*measurementHeight);
 
         // Evaluate level at source location
         double correction = 20 * Math.log(freeFieldDistance) + 10 * Math.log(2*Math.PI);
-
-        double medianPeak = new Median().evaluate(peaksSpl) + correction;
 
         double expectedGlobalLvl = 0;
 
@@ -152,7 +158,7 @@ public class TrafficNoiseEstimator {
         }
         expectedGlobalLvl = wToDba(expectedGlobalLvl);
 
-        return new Estimation(peaks.size(), expectedGlobalLvl, medianPeak);
+        return (medianPeak + correction) - expectedGlobalLvl;
     }
 
     /**
@@ -176,6 +182,14 @@ public class TrafficNoiseEstimator {
 
     public void setTemperature(double temperature) {
         this.temperature = temperature;
+    }
+
+    public double getSpeed() {
+        return speed;
+    }
+
+    public void setSpeed(double speed) {
+        this.speed = speed;
     }
 
     /**
@@ -286,13 +300,11 @@ public class TrafficNoiseEstimator {
      */
     public static class Estimation {
         public final int numberOfPassby;
-        public final double expectedLevel;
-        public final double measurementLevel;
+        public final double medianPeak;
 
-        public Estimation(int numberOfPassby, double expectedLevel, double measurementLevel) {
+        public Estimation(int numberOfPassby, double medianPeak) {
             this.numberOfPassby = numberOfPassby;
-            this.expectedLevel = expectedLevel;
-            this.measurementLevel = measurementLevel;
+            this.medianPeak = medianPeak;
         }
     }
 }

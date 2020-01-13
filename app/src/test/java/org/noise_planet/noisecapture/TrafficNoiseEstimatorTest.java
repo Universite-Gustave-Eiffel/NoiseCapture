@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class TrafficNoiseEstimatorTest {
@@ -63,17 +64,24 @@ public class TrafficNoiseEstimatorTest {
 
 
     @Test
-    public void testDetectTrafficPeaksMixed() throws IOException, JSONException {
+    public void testDetectTrafficPeaksMixed() throws IOException {
         TrafficNoiseEstimator trafficNoiseEstimator = new TrafficNoiseEstimator();
         double[] laeqs = getLAeqs(TrafficNoiseEstimatorTest.class.getResourceAsStream("traffic_50kmh_3m_mixed.ogg"), false);
 
         trafficNoiseEstimator.loadConstants(TrafficNoiseEstimatorTest.class.getResourceAsStream("coefficients_cnossos.json"));
 
+
+        TrafficNoiseEstimator.Estimation estimation = trafficNoiseEstimator.getMedianPeak(laeqs);
+
+        assertEquals(65.9, estimation.medianPeak, 0.1);
+        assertEquals(3, estimation.numberOfPassby);
+
         trafficNoiseEstimator.setDistance(3.5);
+        trafficNoiseEstimator.setSpeed(65.0);
 
-        TrafficNoiseEstimator.Estimation estimation = trafficNoiseEstimator.evaluate(laeqs, 60.0);
+        double gain = trafficNoiseEstimator.computeGain(estimation.medianPeak);
 
-        System.out.println(String.format(Locale.ROOT, "Estimation expected %.2f got %.2f with %d passby", estimation.expectedLevel, estimation.measurementLevel, estimation.numberOfPassby));
+        assertEquals(9.9, gain, 0.1);
 
     }
 
@@ -116,7 +124,6 @@ public class TrafficNoiseEstimatorTest {
             }
             return laeqs;
         }
-        ////System.out.println(String.format(Locale.ROOT, "Find peak at %.3f s spl:  %.2f dB(A)", el.index / 1000.0, el.value));
     }
 
     public static void writeByteToFile(String path, byte[] signal) throws IOException {

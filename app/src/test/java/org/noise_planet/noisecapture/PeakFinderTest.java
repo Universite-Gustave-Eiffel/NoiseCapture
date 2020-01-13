@@ -55,4 +55,39 @@ public class PeakFinderTest {
         assertArrayEquals(expectedIndex, got);
     }
 
+    @Test
+    public void findPeaksIncreaseCondition() throws IOException {
+        PeakFinder peakFinder = new PeakFinder();
+        peakFinder.setMinIncreaseCount(3);
+        double[] values = new double[] {4, 5, 7, 13, 10, 9, 9, 10, 4, 6, 7, 8, 11 , 3, 2, 2};
+        long index = 0;
+        for(double value : values) {
+            peakFinder.add(index++, value);
+        }
+        int[] expectedIndex = new int[]{3, 12};
+        List<PeakFinder.Element> results = peakFinder.getPeaks();
+        int[] got = new int[results.size()];
+        for(int i=0; i < results.size(); i++) {
+            got[i] = (int)results.get(i).index;
+        }
+        assertArrayEquals(expectedIndex, got);
+    }
+
+    @Test
+    public void findPeaksDecreaseCondition() throws IOException {
+        PeakFinder peakFinder = new PeakFinder();
+        peakFinder.setMinDecreaseCount(2);
+        double[] values = new double[] {4, 5, 7, 13, 10, 9, 9, 10, 4, 6, 7, 8, 11 , 3, 2, 2};
+        long index = 0;
+        for(double value : values) {
+            peakFinder.add(index++, value);
+        }
+        int[] expectedIndex = new int[]{3, 12};
+        List<PeakFinder.Element> results = peakFinder.getPeaks();
+        int[] got = new int[results.size()];
+        for(int i=0; i < results.size(); i++) {
+            got[i] = (int)results.get(i).index;
+        }
+        assertArrayEquals(expectedIndex, got);
+    }
 }

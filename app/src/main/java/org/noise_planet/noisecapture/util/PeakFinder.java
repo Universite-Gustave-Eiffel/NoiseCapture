@@ -44,6 +44,10 @@ public class PeakFinder {
     private double oldVal = Double.MIN_VALUE;
     private long oldIndex = 0;
     private List<Element> peaks = new ArrayList<>();
+    private int increaseCount = 0;
+    private int decreaseCount = 0;
+    private int minIncreaseCount = -1;
+    private int minDecreaseCount = -1;
 
     public List<Element> getPeaks() {
         return peaks;
@@ -55,15 +59,57 @@ public class PeakFinder {
         }
     }
 
+    /**
+     * @return Remove peaks where increase steps count are less than this number
+     */
+    public int getMinIncreaseCount() {
+        return minIncreaseCount;
+    }
+
+    /**
+     * @param minIncreaseCount Remove peaks where increase steps count are less than this number
+     */
+    public void setMinIncreaseCount(int minIncreaseCount) {
+        this.minIncreaseCount = minIncreaseCount;
+    }
+
+    /**
+     * @return Remove peaks where decrease steps count are less than this number
+     */
+    public int getMinDecreaseCount() {
+        return minDecreaseCount;
+    }
+
+    /**
+     * @return Remove peaks where decrease steps count are less than this number
+     */
+    public void setMinDecreaseCount(int minDecreaseCount) {
+        this.minDecreaseCount = minDecreaseCount;
+    }
+
     public boolean add(Long index, double value) {
         boolean ret = false;
         double diff = value - oldVal;
         // Detect switch from increase to decrease/stall
         if(diff <= 0 && increase) {
-            peaks.add(new Element(oldIndex, oldVal));
-            ret = true;
+            if(increaseCount >= minIncreaseCount) {
+                peaks.add(new Element(oldIndex, oldVal));
+                ret = true;
+            }
+        } else if(diff > 0 && !increase) {
+            // Detect switch from decreasing to increase
+            if(!peaks.isEmpty() && minDecreaseCount != -1 && decreaseCount < minDecreaseCount) {
+                peaks.remove(peaks.size() - 1);
+            }
         }
         increase = diff > 0;
+        if(increase) {
+            increaseCount++;
+            decreaseCount = 0;
+        } else {
+            decreaseCount++;
+            increaseCount=0;
+        }
         oldVal = value;
         oldIndex = index;
         return ret;

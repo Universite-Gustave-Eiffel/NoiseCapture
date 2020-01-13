@@ -39,18 +39,19 @@ public class TrafficNoiseEstimatorTest {
     public void testDetectTrafficPeaks() throws IOException {
         TrafficNoiseEstimator trafficNoiseEstimator = new TrafficNoiseEstimator();
         double[] laeqs = getLAeqs(TrafficNoiseEstimatorTest.class.getResourceAsStream("traffic_50kmh_3m.ogg"), false);
+        laeqs = trafficNoiseEstimator.fastToSlowLeqMax(laeqs);
         List<PeakFinder.Element> peaks = trafficNoiseEstimator.getNoisePeaks(laeqs);
 
 
-        //for (PeakFinder.Element el : peaks) {
-        //    System.out.println(String.format(Locale.ROOT, "Find peak at %.3f s spl:  %.2f dB(A)", el.index / 1000.0, el.value));
-        //}
+        for (PeakFinder.Element el : peaks) {
+            System.out.println(String.format(Locale.ROOT, "Find peak at %.3f s spl:  %.2f dB(A)", el.index / 1000.0, el.value));
+        }
 
         double[] expectedPeakTime = new double[] {1.75, 7.88, 13.4, 20.5, 31.6, 44.1, 58.5};
         for(double v : expectedPeakTime) {
             boolean found = false;
             for (PeakFinder.Element el : peaks) {
-                if (Math.abs(el.index - v * 1000) <= 250) {
+                if (Math.abs(el.index - v) <= 250) {
                     found = true;
                     break;
                 }
@@ -64,8 +65,16 @@ public class TrafficNoiseEstimatorTest {
     public void testDetectTrafficPeaksMixed() throws IOException {
         TrafficNoiseEstimator trafficNoiseEstimator = new TrafficNoiseEstimator();
         double[] laeqs = getLAeqs(TrafficNoiseEstimatorTest.class.getResourceAsStream("traffic_50kmh_3m_mixed.ogg"), false);
+        laeqs = trafficNoiseEstimator.fastToSlowLeqMax(laeqs);
+
+        for(int i=0; i < laeqs.length; i++) {
+            System.out.println(String.format(Locale.ROOT, "%.3f  %.2f", i * 1.0, laeqs[i]));
+        }
         List<PeakFinder.Element> peaks = trafficNoiseEstimator.getNoisePeaks(laeqs);
 
+        for (PeakFinder.Element el : peaks) {
+            System.out.println(String.format(Locale.ROOT, "Find peak at %.3f s spl:  %.2f dB(A)", el.index * 1.0, el.value));
+        }
     }
 
     public static double[] getLAeqs(InputStream oggFile, boolean printValues) throws IOException {

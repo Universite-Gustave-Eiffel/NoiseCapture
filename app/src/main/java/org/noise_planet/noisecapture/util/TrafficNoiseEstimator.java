@@ -165,7 +165,7 @@ public class TrafficNoiseEstimator {
      * @param numberOfLocations Number of differend measurement locations (different streets)
      * @return Estimated calibration uncertainty in dB(A)
      */
-    double getCalibrationUncertainty(int numberOfPassingVehicles, int numberOfLocations) {
+    public static double getCalibrationUncertainty(int numberOfPassingVehicles, int numberOfLocations) {
         final double modelUncertainty = 2.0;
         final double inputAndProtocolUncertainty = 2.5;
         final double measurementUncertainty = 6.39 - 2.65 * Math.log10(numberOfLocations) -

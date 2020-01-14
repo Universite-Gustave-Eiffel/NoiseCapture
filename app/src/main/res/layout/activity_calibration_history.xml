@@ -39,8 +39,9 @@
                 android:layout_height="wrap_content">
 
                 <TextView
-                    android:id="@+id/spl_ref_measured"
+                    android:id="@+id/spl_estimated_gain"
                     android:layout_width="80dp"
+                    android:text="@string/no_valid_dba_value"
                     android:layout_height="wrap_content"
                     android:gravity="right"
                     android:textSize="25sp" />
@@ -63,6 +64,7 @@
                     android:id="@+id/spl_uncertainty"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:text="@string/no_valid_dba_value"
                     android:paddingLeft="15dp"
                     android:paddingRight="0dp"
                     android:textSize="20sp" />
@@ -85,6 +87,7 @@
                 android:layout_width="wrap_content"
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
+                android:onClick="onNewMeasurement"
                 android:id="@+id/btn_start"
                 android:text="@string/new_measurement"/>
             <Button
@@ -93,6 +96,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/calibration_button_apply"
+                android:onClick="onApply"
                 android:enabled="false"/>
         </LinearLayout>
     </LinearLayout>

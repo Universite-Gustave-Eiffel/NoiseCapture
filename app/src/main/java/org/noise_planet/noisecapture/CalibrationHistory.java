@@ -31,8 +31,10 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.SparseBooleanArray;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -65,6 +67,8 @@ public class CalibrationHistory extends MainActivity {
     private InformationHistoryAdapter historyListAdapter;
     private MeasurementManager measurementManager;
     private SparseBooleanArray mSelectedItemsIds = new SparseBooleanArray();
+    private TextView textGain;
+    private TextView textUncertainty;
 
 
     @Override
@@ -73,6 +77,10 @@ public class CalibrationHistory extends MainActivity {
         this.measurementManager = new MeasurementManager(getApplicationContext());
         setContentView(R.layout.activity_calibration_history);
         initDrawer();
+
+        textGain = findViewById(R.id.spl_estimated_gain);
+        textGain.setText(String.valueOf(0));
+        textUncertainty = findViewById(R.id.spl_uncertainty);
 
 
         // Fill the listview
@@ -83,6 +91,27 @@ public class CalibrationHistory extends MainActivity {
         infohistory.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
         infohistory.setLongClickable(true);
         infohistory.setOnItemClickListener(new HistoryItemListener(this));
+    }
+
+    public void onApply(View v) {
+        double averageGain = 0;
+        for(Storage.TrafficCalibrationSession session : historyListAdapter.informationHistoryList) {
+            averageGain += session.getComputedGain(historyListAdapter.trafficNoiseEstimator);
+        }
+        averageGain /= historyListAdapter.informationHistoryList.size();
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        SharedPreferences.Editor editor = sharedPref.edit();
+        editor.putString("settings_recording_gain", String.valueOf(averageGain));
+        editor.apply();
+        Toast.makeText(getApplicationContext(),
+                getString(R.string.calibrate_done, averageGain), Toast.LENGTH_LONG).show();
+    }
+
+    public void onNewMeasurement(View v) {
+        Intent ics = new Intent(getApplicationContext(), TrafficCalibrationActivity.class);
+        mDrawerLayout.closeDrawer(mDrawerList);
+        startActivity(ics);
+        finish();
     }
 
     public static class InformationHistoryAdapter extends BaseAdapter {
@@ -144,7 +173,17 @@ public class CalibrationHistory extends MainActivity {
         @Override
         public void notifyDataSetChanged() {
             super.notifyDataSetChanged();
-            // TODO update computation of Gain
+            double averageCount = 0;
+            double averageGain = 0;
+            for(Storage.TrafficCalibrationSession session : informationHistoryList) {
+                averageCount += session.getTrafficCount();
+                averageGain += session.getComputedGain(trafficNoiseEstimator);
+            }
+            averageCount /= informationHistoryList.size();
+            averageGain /= informationHistoryList.size();
+            double uncertaintyEstimation = TrafficNoiseEstimator.getCalibrationUncertainty((int)averageCount, informationHistoryList.size());
+            activity.textGain.setText(String.format(Locale.getDefault(), "%.2f", averageGain));
+            activity.textUncertainty.setText(String.format(Locale.getDefault(), "%.1f", uncertaintyEstimation));
         }
 
         @Override

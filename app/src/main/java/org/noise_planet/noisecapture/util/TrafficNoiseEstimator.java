@@ -27,16 +27,15 @@
 
 package org.noise_planet.noisecapture.util;
 
-import org.apache.commons.math3.stat.descriptive.rank.Median;
-import org.apache.commons.math3.stat.descriptive.rank.Percentile;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.NullNode;
 
-import java.io.BufferedReader;
+import org.apache.commons.math3.stat.descriptive.rank.Median;
+import org.apache.commons.math3.stat.descriptive.rank.Percentile;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -329,4 +329,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="default_vehicle_speed">45</string>
     <string name="title_activity_calibration_history">Calibration history</string>
     <string name="title_activity_calibration_traffic">Calibration with traffic</string>
+    <string name="plusminus">±</string>
+    <string name="traffic_history_count">%d vehicles</string>
+    <string name="calibration_estimated_gain">Gain %.2f dB(A)</string>
 </resources>

@@ -30,7 +30,7 @@
                 android:layout_width="match_parent"
                 android:gravity="center"
                 android:layout_height="wrap_content"
-                android:text="@string/calibration_measure_title"
+                android:text="@string/title_settings_recording_gain"
                 android:textSize="20sp" />
             <LinearLayout
                 android:layout_width="match_parent"
@@ -45,6 +45,27 @@
                     android:gravity="right"
                     android:textSize="25sp" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="15dp"
+                    android:paddingRight="0dp"
+                    android:text="@string/SL_dBA"
+                    android:textSize="20sp" />
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="15dp"
+                    android:paddingRight="0dp"
+                    android:text="@string/plusminus"
+                    android:textSize="20sp" />
+                <TextView
+                    android:id="@+id/spl_uncertainty"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingLeft="15dp"
+                    android:paddingRight="0dp"
+                    android:textSize="20sp" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

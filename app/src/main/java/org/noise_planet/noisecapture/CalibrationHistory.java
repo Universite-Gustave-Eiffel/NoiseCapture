@@ -135,6 +135,8 @@ public class CalibrationHistory extends MainActivity {
                     uncertaintyEstimation));
             applyButton.setEnabled(true);
         } else {
+            textGain.setText(R.string.no_valid_dba_value);
+            textUncertainty.setText(R.string.no_valid_dba_value);
             applyButton.setEnabled(false);
         }
     }
@@ -317,25 +319,6 @@ public class CalibrationHistory extends MainActivity {
                     // Close CAB
                     mode.finish();
                     return true;
-                case R.id.publish:
-                    boolean deleted = false;
-                    if(!selectedRecordIds.isEmpty()) {
-                        for(Integer recordId : new ArrayList<Integer>(selectedRecordIds)) {
-                            Storage.Record record = history.measurementManager.getRecord(recordId);
-                            if (!record.getUploadId().isEmpty()) {
-                                selectedRecordIds.remove(recordId);
-                                deleted = true;
-                            }
-                        }
-                        if(deleted) {
-                            Toast.makeText(history, history.getString(R.string.history_already_uploaded), Toast.LENGTH_LONG).show();
-                        }
-                        // publish selected items following the ids
-                        history.doTransferRecords(selectedRecordIds);
-                    }
-                    // Close CAB
-                    mode.finish();
-                    return true;
                 default:
                     return false;
             }
@@ -368,12 +351,13 @@ public class CalibrationHistory extends MainActivity {
 
         @Override
         public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            final int recordId = (int) id;
             AlertDialog.Builder builder = new AlertDialog.Builder(historyActivity);
             // Add the buttons
             builder.setPositiveButton(R.string.comment_delete_record, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
                     // Delete record
-                    historyActivity.measurementManager.deleteRecord(id);
+                    historyActivity.measurementManager.deleteTrafficCalibrationSession(recordId);
                     historyActivity.historyListAdapter.reload();
                 }
             });

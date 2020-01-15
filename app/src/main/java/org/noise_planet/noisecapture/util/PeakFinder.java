@@ -43,6 +43,7 @@ public class PeakFinder {
     private boolean increase = true;
     private double oldVal = Double.MIN_VALUE;
     private long oldIndex = 0;
+    boolean added = false;
     private List<Element> peaks = new ArrayList<>();
     private int increaseCount = 0;
     private int decreaseCount = 0;
@@ -94,12 +95,14 @@ public class PeakFinder {
         if(diff <= 0 && increase) {
             if(increaseCount >= minIncreaseCount) {
                 peaks.add(new Element(oldIndex, oldVal));
+                added = true;
                 ret = true;
             }
         } else if(diff > 0 && !increase) {
             // Detect switch from decreasing to increase
-            if(!peaks.isEmpty() && minDecreaseCount != -1 && decreaseCount < minDecreaseCount) {
+            if(added && minDecreaseCount != -1 && decreaseCount < minDecreaseCount) {
                 peaks.remove(peaks.size() - 1);
+                added = false;
             }
         }
         increase = diff > 0;
@@ -108,6 +111,9 @@ public class PeakFinder {
             decreaseCount = 0;
         } else {
             decreaseCount++;
+            if(decreaseCount > minDecreaseCount) {
+                added = false;
+            }
             increaseCount=0;
         }
         oldVal = value;

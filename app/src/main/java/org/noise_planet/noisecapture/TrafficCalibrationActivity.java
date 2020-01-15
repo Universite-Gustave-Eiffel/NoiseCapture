@@ -167,7 +167,8 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
         audioProcess.setHannWindowOneSecond(false);
         audioProcess.setGain(1);
         audioProcess.getListeners().addPropertyChangeListener(this);
-
+        inputDistance.setEnabled(false);
+        inputSpeed.setEnabled(false);
         // Start measurement
         new Thread(audioProcess).start();
     }

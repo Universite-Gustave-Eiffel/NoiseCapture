@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -124,6 +125,37 @@ public class TrafficNoiseEstimatorTest {
             }
             return laeqs;
         }
+    }
+
+    @Test
+    public void findPeaksIncreaseDecreaseCondition() throws IOException {
+        TrafficNoiseEstimator trafficNoiseEstimator = new TrafficNoiseEstimator();
+
+        List<Double> leqs = new ArrayList<>();
+        List<Double> peakOk = Arrays.asList(4.0, 11.0, 17.0, 13.0, 10.0);
+        List<Double> noise = Arrays.asList(0.7, 1.0, 1.5, 1.8, 1.1, 1.7, 1.5, 1.1);
+        leqs.addAll(noise);
+        leqs.addAll(noise);
+        leqs.addAll(noise);
+        leqs.addAll(peakOk);
+        leqs.addAll(noise);
+        leqs.addAll(noise);
+        leqs.addAll(peakOk);
+        leqs.addAll(noise);
+        leqs.addAll(peakOk);
+        leqs.addAll(peakOk);
+        leqs.addAll(noise);
+        leqs.addAll(noise);
+        leqs.addAll(peakOk);
+        leqs.addAll(noise);
+        leqs.addAll(noise);
+        int index = 0;
+        double[] maxLeqs = new double[leqs.size()];
+        for(double value : leqs) {
+            maxLeqs[index++] = value;
+        }
+        List<PeakFinder.Element> els = trafficNoiseEstimator.getNoisePeaks(maxLeqs);
+        assertEquals(5, els.size());
     }
 
     public static void writeByteToFile(String path, byte[] signal) throws IOException {

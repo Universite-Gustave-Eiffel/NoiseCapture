@@ -132,6 +132,7 @@
         <activity android:name=".CalibrationHistory"
             android:label="@string/title_activity_calibration_history"/>
         <activity android:name=".TrafficCalibrationActivity"
+            android:screenOrientation="portrait"
             android:label="@string/title_activity_calibration_traffic" />
     </application>
 

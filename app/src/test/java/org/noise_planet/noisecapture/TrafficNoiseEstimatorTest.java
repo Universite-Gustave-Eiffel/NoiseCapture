@@ -71,7 +71,7 @@ public class TrafficNoiseEstimatorTest {
         trafficNoiseEstimator.loadConstants(TrafficNoiseEstimatorTest.class.getResourceAsStream("coefficients_cnossos.json"));
 
 
-        TrafficNoiseEstimator.Estimation estimation = trafficNoiseEstimator.getMedianPeak(laeqs);
+        TrafficNoiseEstimator.Estimation estimation = trafficNoiseEstimator.getMedianPeak(trafficNoiseEstimator.fastToSlowLeqMax(laeqs));
 
         assertEquals(65.9, estimation.medianPeak, 0.1);
         assertEquals(3, estimation.numberOfPassby);

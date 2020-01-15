@@ -130,7 +130,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         startButton = (TextView) findViewById(R.id.btn_start);
         resetButton = (TextView) findViewById(R.id.btn_reset);
         LinearLayout layout_progress = (LinearLayout) findViewById(R.id.layout_progress);
-        userInput = (EditText) findViewById(R.id.edit_text_external_measured);
+        userInput = (EditText) findViewById(R.id.edit_text_vehicle_speed);
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

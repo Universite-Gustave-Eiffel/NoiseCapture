@@ -107,12 +107,12 @@ public class TrafficNoiseEstimator {
 
     /**
      *
-     * @param laeq 125ms dB(A) values
+     * @param laeq 1s max dB(A) values
      * @return Median pass-by peak and number of peaks
      */
     public Estimation getMedianPeak(double[] laeq) {
         // Find received noise levels of passing vehicles
-        List<PeakFinder.Element> peaks = getNoisePeaks(fastToSlowLeqMax(laeq));
+        List<PeakFinder.Element> peaks = getNoisePeaks(laeq);
 
         // Take median value of noise levels of passing vehicles
         double[] peaksSpl = new double[peaks.size()];

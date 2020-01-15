@@ -45,7 +45,6 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -79,13 +78,12 @@ public class CalibrationHistory extends MainActivity {
         initDrawer();
 
         textGain = findViewById(R.id.spl_estimated_gain);
-        textGain.setText(String.valueOf(0));
         textUncertainty = findViewById(R.id.spl_uncertainty);
 
 
         // Fill the listview
         historyListAdapter = new InformationHistoryAdapter(measurementManager, this);
-        infohistory = (ListView)findViewById(R.id.listiew_history);
+        infohistory = (ListView)findViewById(R.id.listview_calibration_history);
         infohistory.setMultiChoiceModeListener(new HistoryMultiChoiceListener(this));
         infohistory.setAdapter(historyListAdapter);
         infohistory.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
@@ -105,6 +103,23 @@ public class CalibrationHistory extends MainActivity {
         editor.apply();
         Toast.makeText(getApplicationContext(),
                 getString(R.string.calibrate_done, averageGain), Toast.LENGTH_LONG).show();
+    }
+
+    public void updateGain() {
+        double averageCount = 0;
+        double averageGain = 0;
+        for(Storage.TrafficCalibrationSession session : historyListAdapter.informationHistoryList) {
+            averageCount += session.getTrafficCount();
+            averageGain += session.getComputedGain(historyListAdapter.trafficNoiseEstimator);
+        }
+        averageCount /= historyListAdapter.informationHistoryList.size();
+        averageGain /= historyListAdapter.informationHistoryList.size();
+        double uncertaintyEstimation =
+                TrafficNoiseEstimator.getCalibrationUncertainty((int)averageCount,
+                        historyListAdapter.informationHistoryList.size());
+        textGain.setText(String.format(Locale.getDefault(), "%.2f", averageGain));
+        textUncertainty.setText(String.format(Locale.getDefault(), "%.1f",
+                uncertaintyEstimation));
     }
 
     public void onNewMeasurement(View v) {
@@ -173,17 +188,7 @@ public class CalibrationHistory extends MainActivity {
         @Override
         public void notifyDataSetChanged() {
             super.notifyDataSetChanged();
-            double averageCount = 0;
-            double averageGain = 0;
-            for(Storage.TrafficCalibrationSession session : informationHistoryList) {
-                averageCount += session.getTrafficCount();
-                averageGain += session.getComputedGain(trafficNoiseEstimator);
-            }
-            averageCount /= informationHistoryList.size();
-            averageGain /= informationHistoryList.size();
-            double uncertaintyEstimation = TrafficNoiseEstimator.getCalibrationUncertainty((int)averageCount, informationHistoryList.size());
-            activity.textGain.setText(String.format(Locale.getDefault(), "%.2f", averageGain));
-            activity.textUncertainty.setText(String.format(Locale.getDefault(), "%.1f", uncertaintyEstimation));
+            activity.updateGain();
         }
 
         @Override
@@ -197,7 +202,9 @@ public class CalibrationHistory extends MainActivity {
             builder.setPositiveButton(R.string.comment_delete_record, new DialogInterface.OnClickListener() {
                 public void onClick(DialogInterface dialog, int id) {
                     // Delete records
-                    activity.measurementManager.deleteRecords(ids);
+                    for(int idcalib : ids) {
+                        activity.measurementManager.deleteTrafficCalibrationSession(idcalib);
+                    }
                     reload();
                 }
             });

@@ -27,57 +27,46 @@
 
 package org.noise_planet.noisecapture;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.os.SystemClock;
-import android.preference.PreferenceManager;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import org.orbisgis.sos.LeqStats;
+import org.noise_planet.noisecapture.util.TrafficNoiseEstimator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.text.ParseException;
-import java.util.Arrays;
-import java.util.Locale;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class TrafficCalibrationActivity extends MainActivity implements PropertyChangeListener {
     private enum CALIBRATION_STEP {IDLE, MEASUREMENT, END}
-    private static final double CALIBRATION_PRECISION_CLASS_STEP = 0.01;
-    private static int[] freq_choice = {0, 125, 250, 500, 1000, 2000, 4000, 8000, 16000};
-    private ProgressBar progressBar_wait_calibration_recording;
+    private static final int EXPECTED_NOISE_PEAKS = 15;
+    // Delay in seconds for computing the number of vehicles passing by the device.
+    public static final int CALIBRATION_REFRESH_DELAY = 5;
+    private List<Double> leqMax = new ArrayList<>();
+    private List<Double> fastLeq = new ArrayList<>();
+    private ProgressBar calibrationProgressBar;
     private TextView startButton;
-    private TextView applyButton;
-    private TextView resetButton;
+    private TextView cancelButton;
     private CALIBRATION_STEP calibration_step = CALIBRATION_STEP.IDLE;
     private TextView textStatus;
-    private TextView textDeviceLevel;
-    private EditText userInput;
+    private EditText inputSpeed;
+    private EditText inputDistance;
     private Handler timeHandler;
     private ProgressHandler progressHandler = new ProgressHandler(this);
-    private LeqStats leqStats;
-    private static final double MINIMAL_VALID_MEASURED_VALUE = 72;
-    private static final double MAXIMAL_VALID_MEASURED_VALUE = 102;
-    private static final String DEFAULT_CALIBRATOR_LEVEL = "94";
     private AudioProcess audioProcess;
     private AtomicBoolean recording = new AtomicBoolean(true);
     private AtomicBoolean canceled = new AtomicBoolean(false);
@@ -87,68 +76,22 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_traffic_calibration);
         initDrawer();
 
-        progressBar_wait_calibration_recording = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
-        applyButton = (TextView) findViewById(R.id.btn_apply);
-        applyButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onApply();
-            }
-        });
+        calibrationProgressBar = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
         textStatus = (TextView) findViewById(R.id.textView_recording_state);
-        textDeviceLevel = (TextView) findViewById(R.id.textView_value_SL_i);
         startButton = (TextView) findViewById(R.id.btn_start);
-        resetButton = (TextView) findViewById(R.id.btn_reset);
-        LinearLayout layout_progress = (LinearLayout) findViewById(R.id.layout_progress);
-        userInput = (EditText) findViewById(R.id.edit_text_external_measured);
-        startButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onCalibrationStart();
-            }
-        });
-        resetButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onReset();
-            }
-        });
+        cancelButton = (TextView) findViewById(R.id.btn_cancel);
+        inputSpeed = (EditText) findViewById(R.id.edit_text_vehicle_speed);
+        inputDistance = (EditText) findViewById(R.id.edit_text_distance_vehicle);
 
-        layout_progress.setLongClickable(true);
-        layout_progress.setOnLongClickListener(new hiddenCalibrationTouchEvent(this));
-
-        // Load spinner values
-        // Create an ArrayAdapter using the string array and a default spinner layout
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
-                R.array.calibrate_type_list_array, android.R.layout.simple_spinner_item);
-        // Specify the layout to use when the list of choices appears
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         TextView message = findViewById(R.id.calibration_info_message);
         if(message != null) {
             // Activate links
             message.setMovementMethod(LinkMovementMethod.getInstance());
         }
         initCalibration();
-    }
-
-    private static final class hiddenCalibrationTouchEvent implements View.OnLongClickListener {
-        private TrafficCalibrationActivity calibrationActivity;
-
-        public hiddenCalibrationTouchEvent(TrafficCalibrationActivity calibrationActivity) {
-            this.calibrationActivity = calibrationActivity;
-        }
-
-
-        @Override
-        public boolean onLongClick(View v) {
-            Intent im = new Intent(calibrationActivity, CalibrationLinearityActivity.class);
-            im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            calibrationActivity.startActivity(im);
-            calibrationActivity.finish();
-            return true;
-        }
     }
 
     @Override
@@ -165,98 +108,34 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
         recording.set(false);
     }
 
-    private Number getCalibrationReferenceLevel() throws ParseException {
-        // Change when https://code.google.com/p/android/issues/detail?id=2626 is fixed
-        return Double.valueOf(userInput.getText().toString().trim());
-        /*
-        String refLevel = userInput.getText().toString().trim();
-        NumberFormat format = NumberFormat.getInstance(Locale.getDefault());
-        ParsePosition position = new ParsePosition(0);
-        Number number = format.parse(refLevel, position);
-        if (position.getIndex() != refLevel.length()) {
-            // Not user lang, try US
-            return Double.valueOf(refLevel);
-        } else {
-            return number;
-        }
-        */
-    }
-
-    private void onApply() {
-        try {
-            Number number = getCalibrationReferenceLevel();
-            if(number.doubleValue() < MINIMAL_VALID_MEASURED_VALUE || number.doubleValue() > MAXIMAL_VALID_MEASURED_VALUE) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(this);
-                // Add the buttons
-                builder.setPositiveButton(R.string.calibration_save_change, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        TrafficCalibrationActivity.this.doApply();
-                    }
-                });
-                builder.setNegativeButton(R.string.calibration_cancel_change, new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int id) {
-                        TrafficCalibrationActivity.this.onReset();
-                    }
-                });
-                // Create the AlertDialog
-                AlertDialog dialog = builder.create();
-                dialog.setTitle(getString(R.string.calibration_out_bounds_title));
-                dialog.setMessage(getString(R.string.calibration_out_bounds,
-                        MINIMAL_VALID_MEASURED_VALUE,MAXIMAL_VALID_MEASURED_VALUE));
-                dialog.show();
-            } else {
-                doApply();
-            }
-        } catch (ParseException ex) {
-            LOGGER.error(ex.getLocalizedMessage(), ex);
-            onReset();
-        }
-    }
-
-    private void doApply() {
-        try {
-            Number number = getCalibrationReferenceLevel();
-            double gain = Math.round((number.doubleValue() - leqStats.getLeqMean()) * 100.) / 100.;
-            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-            SharedPreferences.Editor editor = sharedPref.edit();
-            editor.putString("settings_recording_gain", String.valueOf(gain));
-            editor.apply();
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.calibrate_done, gain), Toast.LENGTH_LONG).show();
-        } catch (ParseException ex) {
-            LOGGER.error(ex.getLocalizedMessage(), ex);
-        } finally {
-            onReset();
-        }
-    }
-
     private void initCalibration() {
         textStatus.setText(R.string.calibration_status_waiting_for_user_start);
-        progressBar_wait_calibration_recording.setProgress(progressBar_wait_calibration_recording.getMax());
-        userInput.setText("");
-        userInput.setEnabled(false);
-        textDeviceLevel.setText(R.string.no_valid_dba_value);
+        calibrationProgressBar.setProgress(calibrationProgressBar.getMax());
+        inputDistance.setEnabled(true);
+        inputSpeed.setEnabled(true);
         startButton.setEnabled(true);
-        applyButton.setEnabled(false);
-        resetButton.setEnabled(false);
-        startButton.setText(R.string.calibration_button_start);
+        cancelButton.setEnabled(false);
+        leqMax.clear();
     }
 
-    private void onCalibrationStart() {
-//        if(calibration_step == CALIBRATION_STEP.IDLE) {
-//            textStatus.setText(R.string.calibration_status_waiting_for_start_timer);
-//            calibration_step = CALIBRATION_STEP.MEASUREMENT;
-//            // Link measurement service with gui
-//            if (checkAndAskPermissions()) {
-//                // Application have right now all permissions
-//                initAudioProcess();
-//            }
-//            timeHandler = new Handler(Looper.getMainLooper(), progressHandler);
-//            progressHandler.start(defaultWarmupTime * 1000);
-//        } else {
-//            calibration_step = CALIBRATION_STEP.IDLE;
-//            onReset();
-//        }
+    public  void onCalibrationCancel(View view) {
+        calibration_step = CALIBRATION_STEP.IDLE;
+        onReset();
+    }
+
+    public void onCalibrationStart(View view) {
+        textStatus.setText(getString(R.string.calibration_awaiting_vehicle_passby,0, EXPECTED_NOISE_PEAKS));
+        startButton.setEnabled(false);
+        cancelButton.setEnabled(true);
+        calibration_step = CALIBRATION_STEP.MEASUREMENT;
+        calibrationProgressBar.setProgress(0);
+        // Link measurement service with gui
+        if (checkAndAskPermissions()) {
+            // Application have right now all permissions
+            initAudioProcess();
+        }
+        timeHandler = new Handler(Looper.getMainLooper(), progressHandler);
+        progressHandler.start(CALIBRATION_REFRESH_DELAY * 1000);
     }
 
     @Override
@@ -301,7 +180,16 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
             AudioProcess.AudioMeasureResult measure =
                     (AudioProcess.AudioMeasureResult) event.getNewValue();
             final double leq = measure.getGlobaldBaValue();
-
+            fastLeq.add(leq);
+            if(fastLeq.size() == 8) {
+                // Add max lvl
+                double lMax = Double.MIN_VALUE;
+                for(double val : fastLeq) {
+                    lMax = Math.max(lMax, val);
+                }
+                leqMax.add(lMax);
+                fastLeq.clear();
+            }
         }
     }
 
@@ -317,31 +205,20 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
         return true;
     }
 
-    private void onTimerEnd() {
-//        if(calibration_step == CALIBRATION_STEP.WARMUP) {
-//            calibration_step = CALIBRATION_STEP.CALIBRATION;
-//            textStatus.setText(R.string.calibration_status_on);
-//            // Start calibration
-//            leqStats = new LeqStats(CALIBRATION_PRECISION_CLASS_STEP);
-//            progressHandler.start(defaultCalibrationTime * 1000);
-//        } else if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
-//            calibration_step = CALIBRATION_STEP.END;
-//            textStatus.setText(R.string.calibration_status_end);
-//            recording.set(false);
-//            audioProcess = null;
-//            // Activate user input
-//            if(!testGainCheckBox.isChecked()) {
-//                applyButton.setEnabled(true);
-//                // Change to default locale when fixed https://code.google.com/p/android/issues/detail?id=2626
-//                if(CALIBRATION_MODE_CALIBRATOR.equals(calibration_mode)) {
-//                    userInput.setText(DEFAULT_CALIBRATOR_LEVEL);
-//                } else {
-//                    userInput.setText(String.format(Locale.US, "%.1f", leqStats.getLeqMean()));
-//                }
-//                userInput.setEnabled(true);
-//            }
-//            resetButton.setEnabled(true);
-//        }
+    private void onInsertMeasurement(final Storage.TrafficCalibrationSession data) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                MeasurementManager measurementManager = new MeasurementManager(getApplicationContext());
+                // Add calibration session
+                measurementManager.addTrafficCalibrationSession(data);
+                // Load history page
+                Intent ics = new Intent(getApplicationContext(), CalibrationHistory.class);
+                mDrawerLayout.closeDrawer(mDrawerList);
+                startActivity(ics);
+                finish();
+            }
+        });
     }
 
     /**
@@ -349,28 +226,41 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
      */
     public static final class ProgressHandler implements Handler.Callback {
         private TrafficCalibrationActivity activity;
-        private long beginTime;
+        private int delay;
 
         public ProgressHandler(TrafficCalibrationActivity activity) {
             this.activity = activity;
         }
 
-        public void start() {
-            beginTime = SystemClock.elapsedRealtime();
-            activity.timeHandler.sendEmptyMessageDelayed(0, COUNTDOWN_STEP_MILLISECOND);
+        public void start(int delay) {
+            this.delay = delay;
+            activity.timeHandler.sendEmptyMessageDelayed(delay, COUNTDOWN_STEP_MILLISECOND);
         }
 
         @Override
         public boolean handleMessage(Message msg) {
-            long currentTime = SystemClock.elapsedRealtime();
-//            int newProg = (int)((((beginTime + delay) - currentTime) / (float)delay) *
-//                    activity.progressBar_wait_calibration_recording.getMax());
-//            activity.progressBar_wait_calibration_recording.setProgress(newProg);
-//            if(currentTime < beginTime + delay && activity.calibration_step != CALIBRATION_STEP.IDLE) {
-//                activity.timeHandler.sendEmptyMessageDelayed(0, COUNTDOWN_STEP_MILLISECOND);
-//            } else {
-//                activity.onTimerEnd();
-//            }
+            if(activity.calibration_step == CALIBRATION_STEP.MEASUREMENT) {
+                // Time to count vehicles
+                TrafficNoiseEstimator trafficNoiseEstimator = new TrafficNoiseEstimator();
+                ArrayList<Double> leqs = new ArrayList<>(activity.leqMax);
+                double[] laeq = new double[leqs.size()];
+                for(int i=0; i < laeq.length; i++) {
+                    laeq[i] = leqs.get(i);
+                }
+                TrafficNoiseEstimator.Estimation estimation = trafficNoiseEstimator.getMedianPeak(laeq);
+                if(estimation.numberOfPassby >= EXPECTED_NOISE_PEAKS) {
+                    activity.onInsertMeasurement(new Storage.TrafficCalibrationSession(0,
+                            estimation.medianPeak, estimation.numberOfPassby,
+                            Double.valueOf(activity.inputSpeed.getText().toString()),
+                            Double.valueOf(activity.inputDistance.getText().toString()),
+                            System.currentTimeMillis()));
+                } else {
+                    double percent = (estimation.numberOfPassby / (double) EXPECTED_NOISE_PEAKS) * 100.0;
+                    activity.textStatus.setText(activity.getString(R.string.calibration_awaiting_vehicle_passby,estimation.numberOfPassby, EXPECTED_NOISE_PEAKS));
+                    activity.calibrationProgressBar.setProgress((int)percent);
+                    activity.timeHandler.sendEmptyMessageDelayed(delay, COUNTDOWN_STEP_MILLISECOND);
+                }
+            }
             return true;
         }
     }

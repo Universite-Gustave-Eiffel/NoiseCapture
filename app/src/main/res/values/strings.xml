@@ -332,4 +332,5 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="plusminus">±</string>
     <string name="traffic_history_count">%d vehicles</string>
     <string name="calibration_estimated_gain">Gain %.2f dB(A)</string>
+    <string name="calibration_awaiting_vehicle_passby">Awaiting vehicle passing by (%d / %d)</string>
 </resources>

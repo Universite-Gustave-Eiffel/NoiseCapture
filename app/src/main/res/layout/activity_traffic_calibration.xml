@@ -114,7 +114,7 @@
                         android:orientation="horizontal">
 
                         <EditText
-                            android:id="@+id/edit_text_external_measured"
+                            android:id="@+id/edit_text_vehicle_speed"
                             android:layout_width="80dp"
                             android:layout_height="wrap_content"
                             android:enabled="false"
@@ -152,6 +152,7 @@
                         android:id="@+id/progressBar_wait_calibration_recording"
                         style="@android:style/Widget.ProgressBar.Horizontal"
                         android:layout_width="match_parent"
+                        android:max="100"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="6dp"/>
                 </LinearLayout>
@@ -168,6 +169,7 @@
             <Button
                 android:id="@+id/btn_start"
                 android:layout_width="wrap_content"
+                android:onClick="onCalibrationStart"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="@string/calibration_button_start"/>
@@ -175,6 +177,7 @@
             <Button
                 android:id="@+id/btn_cancel"
                 android:layout_width="wrap_content"
+                android:onClick="onCalibrationCancel"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:enabled="true"

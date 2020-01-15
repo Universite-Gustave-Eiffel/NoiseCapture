@@ -74,15 +74,15 @@ public class TrafficNoiseEstimatorTest {
 
         TrafficNoiseEstimator.Estimation estimation = trafficNoiseEstimator.getMedianPeak(trafficNoiseEstimator.fastToSlowLeqMax(laeqs));
 
-        assertEquals(65.9, estimation.medianPeak, 0.1);
-        assertEquals(3, estimation.numberOfPassby);
+        assertEquals(67.35, estimation.medianPeak, 0.1);
+        assertEquals(4, estimation.numberOfPassby);
 
         trafficNoiseEstimator.setDistance(3.5);
         trafficNoiseEstimator.setSpeed(65.0);
 
         double gain = trafficNoiseEstimator.computeGain(estimation.medianPeak);
 
-        assertEquals(9.9, gain, 0.1);
+        assertEquals(14.1, gain, 0.1);
 
     }
 

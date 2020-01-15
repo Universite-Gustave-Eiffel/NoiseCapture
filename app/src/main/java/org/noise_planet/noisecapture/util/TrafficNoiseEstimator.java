@@ -133,7 +133,7 @@ public class TrafficNoiseEstimator {
         double freeFieldDistance = Math.sqrt(distance*distance+measurementHeight*measurementHeight);
 
         // Evaluate level at source location
-        double correction = 20 * Math.log(freeFieldDistance) + 10 * Math.log(2*Math.PI);
+        double correction = 20 * Math.log10(freeFieldDistance) + 10 * Math.log10(2*Math.PI);
 
         double expectedGlobalLvl = 0;
 

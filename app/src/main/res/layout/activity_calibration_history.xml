@@ -88,7 +88,7 @@
                 android:layout_weight="1"
                 android:layout_height="wrap_content"
                 android:onClick="onNewMeasurement"
-                android:id="@+id/btn_start"
+                android:id="@+id/btn_new_measurement"
                 android:text="@string/new_measurement"/>
             <Button
                 android:id="@+id/btn_apply"

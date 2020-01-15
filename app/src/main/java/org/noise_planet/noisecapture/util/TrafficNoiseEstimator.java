@@ -157,7 +157,7 @@ public class TrafficNoiseEstimator {
         }
         expectedGlobalLvl = wToDba(expectedGlobalLvl);
 
-        return (medianPeak + correction) - expectedGlobalLvl;
+        return expectedGlobalLvl - (medianPeak + correction);
     }
 
     /**

@@ -45,6 +45,7 @@ import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -68,6 +69,8 @@ public class CalibrationHistory extends MainActivity {
     private SparseBooleanArray mSelectedItemsIds = new SparseBooleanArray();
     private TextView textGain;
     private TextView textUncertainty;
+    private Button newMeasurementButton;
+    private Button applyButton;
 
 
     @Override
@@ -79,6 +82,9 @@ public class CalibrationHistory extends MainActivity {
 
         textGain = findViewById(R.id.spl_estimated_gain);
         textUncertainty = findViewById(R.id.spl_uncertainty);
+
+        newMeasurementButton = findViewById(R.id.btn_new_measurement);
+        applyButton = findViewById(R.id.btn_apply);
 
 
         // Fill the listview
@@ -105,21 +111,32 @@ public class CalibrationHistory extends MainActivity {
                 getString(R.string.calibrate_done, averageGain), Toast.LENGTH_LONG).show();
     }
 
+    @Override
+    protected void onPostResume() {
+        super.onPostResume();
+        updateGain();
+    }
+
     public void updateGain() {
-        double averageCount = 0;
-        double averageGain = 0;
-        for(Storage.TrafficCalibrationSession session : historyListAdapter.informationHistoryList) {
-            averageCount += session.getTrafficCount();
-            averageGain += session.getComputedGain(historyListAdapter.trafficNoiseEstimator);
+        if(historyListAdapter.informationHistoryList.size() > 0) {
+            double averageCount = 0;
+            double averageGain = 0;
+            for (Storage.TrafficCalibrationSession session : historyListAdapter.informationHistoryList) {
+                averageCount += session.getTrafficCount();
+                averageGain += session.getComputedGain(historyListAdapter.trafficNoiseEstimator);
+            }
+            averageCount /= historyListAdapter.informationHistoryList.size();
+            averageGain /= historyListAdapter.informationHistoryList.size();
+            double uncertaintyEstimation =
+                    TrafficNoiseEstimator.getCalibrationUncertainty((int) averageCount,
+                            historyListAdapter.informationHistoryList.size());
+            textGain.setText(String.format(Locale.getDefault(), "%.2f", averageGain));
+            textUncertainty.setText(String.format(Locale.getDefault(), "%.1f",
+                    uncertaintyEstimation));
+            applyButton.setEnabled(true);
+        } else {
+            applyButton.setEnabled(false);
         }
-        averageCount /= historyListAdapter.informationHistoryList.size();
-        averageGain /= historyListAdapter.informationHistoryList.size();
-        double uncertaintyEstimation =
-                TrafficNoiseEstimator.getCalibrationUncertainty((int)averageCount,
-                        historyListAdapter.informationHistoryList.size());
-        textGain.setText(String.format(Locale.getDefault(), "%.2f", averageGain));
-        textUncertainty.setText(String.format(Locale.getDefault(), "%.1f",
-                uncertaintyEstimation));
     }
 
     public void onNewMeasurement(View v) {

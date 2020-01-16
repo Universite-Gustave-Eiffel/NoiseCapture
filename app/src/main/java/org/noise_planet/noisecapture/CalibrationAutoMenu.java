@@ -20,13 +20,11 @@ public class CalibrationAutoMenu extends MainActivity {
         Intent ics = new Intent(getApplicationContext(), CalibrationActivityGuest.class);
         mDrawerLayout.closeDrawer(mDrawerList);
         startActivity(ics);
-        finish();
     }
 
     public void onAutoHostCalibration(View view) {
         Intent ics = new Intent(getApplicationContext(), CalibrationActivityHost.class);
         mDrawerLayout.closeDrawer(mDrawerList);
         startActivity(ics);
-        finish();
     }
 }

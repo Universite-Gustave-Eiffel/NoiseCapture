@@ -74,9 +74,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -262,10 +259,7 @@ public class MainActivity extends AppCompatActivity {
             if(mDrawerLayout != null) {
                 mDrawerLayout.closeDrawer(mDrawerList);
             }
-            Intent im = new Intent(getApplicationContext(),MeasurementActivity.class);
-            im.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-            startActivity(im);
-            finish();
+            super.onBackPressed();
         } else {
             finish();
             // Show home
@@ -614,7 +608,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean checkWifiState() {
 
         // Check connection state
-        WifiManager wifiMgr = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+        WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
         if (wifiMgr.isWifiEnabled()) { // WiFi adapter is ON
             WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
             if (wifiInfo.getNetworkId() == -1) {

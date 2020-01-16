@@ -78,7 +78,6 @@
                             android:id="@+id/edit_text_distance_vehicle"
                             android:layout_width="80dp"
                             android:layout_height="wrap_content"
-                            android:enabled="false"
                             android:gravity="right"
                             android:text="@string/default_vehicle_distance"
                             android:inputType="numberDecimal"
@@ -117,7 +116,6 @@
                             android:id="@+id/edit_text_vehicle_speed"
                             android:layout_width="80dp"
                             android:layout_height="wrap_content"
-                            android:enabled="false"
                             android:text="@string/default_vehicle_speed"
                             android:gravity="right"
                             android:inputType="numberDecimal"
@@ -182,6 +180,14 @@
                 android:layout_weight="1"
                 android:enabled="true"
                 android:text="@string/calibration_cancel_change"/>
+            <Button
+                android:id="@+id/btn_add"
+                android:layout_width="wrap_content"
+                android:onClick="onCalibrationAdd"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:enabled="false"
+                android:text="@string/calibration_add"/>
         </LinearLayout>
     </LinearLayout>
 

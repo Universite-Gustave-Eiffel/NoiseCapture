@@ -15,12 +15,18 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true">
 
+        <TextView
+            android:layout_width="12dp"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/textView_SEL_bar_item_history"
+            android:layout_marginRight="4sp" />
 
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_weight="0.90">
+            android:layout_weight="1">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -48,14 +54,6 @@
                     android:textSize="12sp" />
         </LinearLayout>
 
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:paddingRight="5sp"
-            android:paddingLeft="5sp"
-            android:id="@+id/history_uploaded"
-            app:srcCompat="@drawable/uploaded"
-            android:contentDescription="@string/history_uploadeddescr" />
 
     </LinearLayout>
 

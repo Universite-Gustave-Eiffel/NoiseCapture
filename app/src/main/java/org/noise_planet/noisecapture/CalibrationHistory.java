@@ -247,7 +247,7 @@ public class CalibrationHistory extends MainActivity {
             if(convertView == null) {
                 LayoutInflater inflater = (LayoutInflater) activity.getSystemService(Context
                         .LAYOUT_INFLATER_SERVICE);
-                convertView = inflater.inflate(R.layout.history_item_layout, parent, false);
+                convertView = inflater.inflate(R.layout.calibration_history_item_layout, parent, false);
             }
             TextView description = (TextView) convertView.findViewById(R.id
                     .textView_description_item_history);
@@ -255,8 +255,6 @@ public class CalibrationHistory extends MainActivity {
                     .textView_Date_item_history);
             TextView history_SEL = (TextView) convertView.findViewById(R.id
                     .textView_SEL_item_history);
-            TextView history_SEL_bar = (TextView) convertView.findViewById(R.id
-                    .textView_SEL_bar_item_history);
             Storage.TrafficCalibrationSession record = informationHistoryList.get(position);
 
             // Update history item
@@ -267,9 +265,6 @@ public class CalibrationHistory extends MainActivity {
                     " " + res.getString(R.string.history_date, simpleDateFormat.format(new Date
                     (record.getUtc()))));
             history_SEL.setText(res.getString(R.string.history_sel, record.getMedianPeak()));
-            int nc = getNEcatColors(record.getMedianPeak());
-            history_SEL.setTextColor(activity.NE_COLORS[nc]);
-            history_SEL_bar.setBackgroundColor(activity.NE_COLORS[nc]);
             return convertView;
         }
 

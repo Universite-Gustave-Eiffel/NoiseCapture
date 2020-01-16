@@ -616,8 +616,8 @@ public class Storage extends SQLiteOpenHelper {
         private final int sessionId;
         private final double medianPeak;
         private final int trafficCount;
-        private final double estimatedSpeed;
-        private final double estimatedDistance;
+        private double estimatedSpeed;
+        private double estimatedDistance;
         private final long calibrationUTC;
 
         Double computedGain = null;
@@ -681,6 +681,14 @@ public class Storage extends SQLiteOpenHelper {
          */
         public long getUtc() {
             return calibrationUTC;
+        }
+
+        public void setEstimatedSpeed(double estimatedSpeed) {
+            this.estimatedSpeed = estimatedSpeed;
+        }
+
+        public void setEstimatedDistance(double estimatedDistance) {
+            this.estimatedDistance = estimatedDistance;
         }
 
         public String getUtcDate() {

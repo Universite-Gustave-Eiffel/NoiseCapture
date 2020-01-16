@@ -36,6 +36,8 @@ import android.os.Message;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -52,6 +54,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class TrafficCalibrationActivity extends MainActivity implements PropertyChangeListener {
+
     private enum CALIBRATION_STEP {IDLE, MEASUREMENT, END}
     private static final int EXPECTED_NOISE_PEAKS = 15;
     // Delay in seconds for computing the number of vehicles passing by the device.
@@ -59,8 +62,9 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
     private List<Double> leqMax = new ArrayList<>();
     private List<Double> fastLeq = new ArrayList<>();
     private ProgressBar calibrationProgressBar;
-    private TextView startButton;
-    private TextView cancelButton;
+    private Button startButton;
+    private Button cancelButton;
+    private Button addButton;
     private CALIBRATION_STEP calibration_step = CALIBRATION_STEP.IDLE;
     private TextView textStatus;
     private EditText inputSpeed;
@@ -72,6 +76,7 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
     private AtomicBoolean canceled = new AtomicBoolean(false);
     private static final Logger LOGGER = LoggerFactory.getLogger(TrafficCalibrationActivity.class);
     public static final int COUNTDOWN_STEP_MILLISECOND = 125;
+    private Storage.TrafficCalibrationSession trafficCalibrationSession;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,8 +86,9 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
 
         calibrationProgressBar = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
         textStatus = (TextView) findViewById(R.id.textView_recording_state);
-        startButton = (TextView) findViewById(R.id.btn_start);
-        cancelButton = (TextView) findViewById(R.id.btn_cancel);
+        startButton = findViewById(R.id.btn_start);
+        cancelButton = findViewById(R.id.btn_cancel);
+        addButton = findViewById(R.id.btn_add);
         inputSpeed = (EditText) findViewById(R.id.edit_text_vehicle_speed);
         inputDistance = (EditText) findViewById(R.id.edit_text_distance_vehicle);
 
@@ -110,20 +116,26 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
 
     private void initCalibration() {
         textStatus.setText(R.string.calibration_status_waiting_for_user_start);
+        calibration_step = CALIBRATION_STEP.IDLE;
+        canceled.set(true);
+        recording.set(false);
         calibrationProgressBar.setProgress(calibrationProgressBar.getMax());
-        inputDistance.setEnabled(true);
-        inputSpeed.setEnabled(true);
         startButton.setEnabled(true);
+        addButton.setEnabled(false);
         cancelButton.setEnabled(false);
         leqMax.clear();
     }
 
     public  void onCalibrationCancel(View view) {
-        calibration_step = CALIBRATION_STEP.IDLE;
-        onReset();
+        initCalibration();
     }
 
     public void onCalibrationStart(View view) {
+        InputMethodManager inputMethodManager = (InputMethodManager)
+                getSystemService(INPUT_METHOD_SERVICE);
+        if(getCurrentFocus()!=null && inputMethodManager != null) {
+            inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        }
         textStatus.setText(getString(R.string.calibration_awaiting_vehicle_passby,0, EXPECTED_NOISE_PEAKS));
         startButton.setEnabled(false);
         cancelButton.setEnabled(true);
@@ -158,6 +170,12 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
     }
 
     private void initAudioProcess() {
+        if(audioProcess != null) {
+            recording.set(false);
+            canceled.set(true);
+            recording = new AtomicBoolean(false);
+            canceled = new AtomicBoolean(true);
+        }
         canceled.set(false);
         recording.set(true);
         audioProcess = new AudioProcess(recording, canceled);
@@ -167,8 +185,6 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
         audioProcess.setHannWindowOneSecond(false);
         audioProcess.setGain(1);
         audioProcess.getListeners().addPropertyChangeListener(this);
-        inputDistance.setEnabled(false);
-        inputSpeed.setEnabled(false);
         // Start measurement
         new Thread(audioProcess).start();
     }
@@ -194,11 +210,6 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
         }
     }
 
-
-    public void onReset() {
-        initCalibration();
-    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -206,18 +217,28 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
         return true;
     }
 
-    private void onInsertMeasurement(final Storage.TrafficCalibrationSession data) {
+    public void onCalibrationAdd(View view) {
+        trafficCalibrationSession.setEstimatedSpeed(Double.valueOf(inputSpeed.getText().toString()));
+        trafficCalibrationSession.setEstimatedDistance(Double.valueOf(inputDistance.getText().toString()));
+        MeasurementManager measurementManager = new MeasurementManager(getApplicationContext());
+        // Add calibration session
+        measurementManager.addTrafficCalibrationSession(trafficCalibrationSession);
+        // Load history page
+        Intent ics = new Intent(getApplicationContext(), CalibrationHistory.class);
+        mDrawerLayout.closeDrawer(mDrawerList);
+        startActivity(ics);
+        finish();
+    }
+
+    private void onEndMeasurement(final Storage.TrafficCalibrationSession data) {
+        this.trafficCalibrationSession = data;
+        calibration_step = CALIBRATION_STEP.END;
+        canceled.set(true);
+        recording.set(false);
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                MeasurementManager measurementManager = new MeasurementManager(getApplicationContext());
-                // Add calibration session
-                measurementManager.addTrafficCalibrationSession(data);
-                // Load history page
-                Intent ics = new Intent(getApplicationContext(), CalibrationHistory.class);
-                mDrawerLayout.closeDrawer(mDrawerList);
-                startActivity(ics);
-                finish();
+                addButton.setEnabled(true);
             }
         });
     }
@@ -249,16 +270,17 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
                     laeq[i] = leqs.get(i);
                 }
                 TrafficNoiseEstimator.Estimation estimation = trafficNoiseEstimator.getMedianPeak(laeq);
+                double percent = (estimation.numberOfPassby / (double) EXPECTED_NOISE_PEAKS) * 100.0;
+                activity.calibrationProgressBar.setProgress((int)percent);
                 if(estimation.numberOfPassby >= EXPECTED_NOISE_PEAKS) {
-                    activity.onInsertMeasurement(new Storage.TrafficCalibrationSession(0,
+                    activity.textStatus.setText(R.string.calibration_done_vehicle_passby);
+                    activity.onEndMeasurement(new Storage.TrafficCalibrationSession(0,
                             estimation.medianPeak, estimation.numberOfPassby,
                             Double.valueOf(activity.inputSpeed.getText().toString()),
                             Double.valueOf(activity.inputDistance.getText().toString()),
                             System.currentTimeMillis()));
                 } else {
-                    double percent = (estimation.numberOfPassby / (double) EXPECTED_NOISE_PEAKS) * 100.0;
                     activity.textStatus.setText(activity.getString(R.string.calibration_awaiting_vehicle_passby,estimation.numberOfPassby, EXPECTED_NOISE_PEAKS));
-                    activity.calibrationProgressBar.setProgress((int)percent);
                     activity.timeHandler.sendEmptyMessageDelayed(delay, COUNTDOWN_STEP_MILLISECOND);
                 }
             }

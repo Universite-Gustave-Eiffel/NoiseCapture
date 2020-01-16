@@ -6,6 +6,8 @@ app/build
 sosfilter/build
 onomap-geoserver/geoserver/build
 /build
+app/release
+app/debug
 *.iml
 .idea/
 *target/

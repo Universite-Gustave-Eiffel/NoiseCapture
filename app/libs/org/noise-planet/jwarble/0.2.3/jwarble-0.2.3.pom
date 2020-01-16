@@ -5,7 +5,7 @@
     <parent>
         <artifactId>openwarble-parent</artifactId>
         <groupId>org.noise-planet</groupId>
-        <version>0.2.2</version>
+        <version>0.2.3</version>
         <relativePath>../</relativePath>
     </parent>
 

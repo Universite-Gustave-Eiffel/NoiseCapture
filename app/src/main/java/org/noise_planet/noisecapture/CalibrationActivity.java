@@ -130,7 +130,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
         startButton = (TextView) findViewById(R.id.btn_start);
         resetButton = (TextView) findViewById(R.id.btn_reset);
         LinearLayout layout_progress = (LinearLayout) findViewById(R.id.layout_progress);
-        userInput = (EditText) findViewById(R.id.edit_text_external_measured);
+        userInput = (EditText) findViewById(R.id.edit_text_vehicle_speed);
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -355,7 +355,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
     @Override
     public void propertyChange(PropertyChangeEvent event) {
         if((calibration_step == CALIBRATION_STEP.CALIBRATION || calibration_step == CALIBRATION_STEP.WARMUP) &&
-                AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName())) {
+                AudioProcess.PROP_SLOW_LEQ.equals(event.getPropertyName())) {
             // New leq
             AudioProcess.AudioMeasureResult measure =
                     (AudioProcess.AudioMeasureResult) event.getNewValue();

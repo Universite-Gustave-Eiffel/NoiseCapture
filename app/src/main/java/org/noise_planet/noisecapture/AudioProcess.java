@@ -30,7 +30,6 @@ package org.noise_planet.noisecapture;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
-import android.os.Process;
 import android.util.Log;
 
 import org.orbisgis.sos.AcousticIndicators;
@@ -62,8 +61,8 @@ public class AudioProcess implements Runnable {
     public enum STATE { WAITING, PROCESSING,WAITING_END_PROCESSING, CLOSED }
     private STATE currentState = STATE.WAITING;
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
-    public static final String PROP_MOVING_SPECTRUM = "PROP_MS";
-    public static final String PROP_DELAYED_STANDART_PROCESSING = "PROP_DSP";
+    public static final String PROP_FAST_LEQ = "PROP_MS";
+    public static final String PROP_SLOW_LEQ = "PROP_DSP";
     public static final String PROP_STATE_CHANGED = "PROP_STATE_CHANGED";
     // 1s level evaluation for upload to server
     private final LeqProcessingThread fastLeqProcessing;
@@ -116,12 +115,12 @@ public class AudioProcess implements Runnable {
                         this.fastLeqProcessing = new LeqProcessingThread(this,
                                 AcousticIndicators.TIMEPERIOD_FAST, true,
                                 hannWindowFast ? FFTSignalProcessing.WINDOW_TYPE.TUKEY :
-                                        FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, PROP_MOVING_SPECTRUM, true);
+                                        FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, PROP_FAST_LEQ, true);
                         this.slowLeqProcessing = new LeqProcessingThread(this,
                                 AcousticIndicators.TIMEPERIOD_SLOW, true,
                                 hannWindowOneSecond ? FFTSignalProcessing.WINDOW_TYPE.TUKEY :
                                         FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,
-                                PROP_DELAYED_STANDART_PROCESSING, false);
+                                PROP_SLOW_LEQ, false);
                         return;
                     }
                 }
@@ -185,14 +184,14 @@ public class AudioProcess implements Runnable {
         LOGGER.info("AudioRecord : "+oldState+" -> "+state.toString());
     }
     /**
-     * @return Frequency feed in {@link AudioProcess#PROP_MOVING_SPECTRUM} {@link PropertyChangeEvent#getNewValue()}
+     * @return Frequency feed in {@link AudioProcess#PROP_FAST_LEQ} {@link PropertyChangeEvent#getNewValue()}
     */
     public double[] getRealtimeCenterFrequency() {
         return realTimeCenterFrequency;
     }
 
     /**
-     * @return Frequency feed in {@link AudioProcess#PROP_DELAYED_STANDART_PROCESSING} {@link PropertyChangeEvent#getNewValue()}
+     * @return Frequency feed in {@link AudioProcess#PROP_SLOW_LEQ} {@link PropertyChangeEvent#getNewValue()}
      */
     public double[] getDelayedCenterFrequency() {
         return realTimeCenterFrequency;

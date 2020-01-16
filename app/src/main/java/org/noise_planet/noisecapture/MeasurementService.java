@@ -588,7 +588,7 @@ public class MeasurementService extends Service {
         @Override
         public void propertyChange(PropertyChangeEvent event) {
             // Skip event if we do not record or if the pause is active
-            if (AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName
+            if (AudioProcess.PROP_SLOW_LEQ.equals(event.getPropertyName
                     ())) {
                 if (measurementService.isStoring() && !measurementService.isPaused.get()) {
                     // Delayed audio processing
@@ -623,7 +623,7 @@ public class MeasurementService extends Service {
                     measurementService.leqAdded.addAndGet(1);
                     measurementService.listeners.firePropertyChange(PROP_NEW_MEASUREMENT, null, new MeasurementEventObject(measure, leq));
                 }
-            } else if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
+            } else if(AudioProcess.PROP_FAST_LEQ.equals(event.getPropertyName())) {
                 if (measurementService.isStoring() && !measurementService.isPaused.get()) {
                     AudioProcess.AudioMeasureResult measure =
                             (AudioProcess.AudioMeasureResult) event.getNewValue();

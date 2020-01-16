@@ -83,6 +83,57 @@ public class MeasurementManager {
     }
 
     /**
+     * @return TrafficCalibrationSession list, by time descending order. (most recent first)
+     */
+    public List<Storage.TrafficCalibrationSession> getTrafficCalibrationSessions() {
+        List<Storage.TrafficCalibrationSession> records = new ArrayList<>();
+        SQLiteDatabase database = storage.getReadableDatabase();
+        try {
+            Cursor cursor = database.rawQuery("SELECT * FROM "+Storage.TrafficCalibrationSession.TABLE_NAME +
+                            " ORDER BY " + Storage.TrafficCalibrationSession
+                            .COLUMN_MEASUREMENT_UTC + "  DESC", null);
+            try {
+                while (cursor.moveToNext()) {
+                    records.add(new Storage.TrafficCalibrationSession(cursor));
+                }
+            } finally {
+                cursor.close();
+            }
+        } finally {
+            database.close();
+        }
+        return records;
+    }
+
+    /**
+     * @return Inserted calibration session index
+     */
+    public long addTrafficCalibrationSession(Storage.TrafficCalibrationSession trafficCalibrationSession) {
+        SQLiteDatabase database = storage.getWritableDatabase();
+        try {
+            long index = database.insertOrThrow(Storage.TrafficCalibrationSession.TABLE_NAME,
+                    null, trafficCalibrationSession.getContent());
+            return index;
+        } finally {
+            database.close();
+        }
+    }
+
+    /**
+     * Delete all data associated with a TrafficCalibrationSession
+     * @param recordId Record identifier
+     */
+    public void deleteTrafficCalibrationSession(int recordId) {
+        SQLiteDatabase database = storage.getWritableDatabase();
+        try {
+            database.delete(Storage.TrafficCalibrationSession.TABLE_NAME, Storage.TrafficCalibrationSession.COLUMN_CALIBRATION_ID + " = ?",
+                    new String[]{String.valueOf(recordId)});
+        } finally {
+            database.close();
+        }
+    }
+
+    /**
      * @return Record list, by time descending order. (most recent first)
      */
     public boolean hasNotUploadedRecords() {

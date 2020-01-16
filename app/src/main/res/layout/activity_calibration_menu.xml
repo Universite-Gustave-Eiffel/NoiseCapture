@@ -49,9 +49,36 @@
             android:layout_height="fill_parent"
             android:layout_centerHorizontal="true"
             android:orientation="vertical"
-            android:weightSum="3">
+            android:weightSum="4">
 
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:background="@drawable/round_corner_opaque"
+                android:layout_margin="5dp"
+                android:onClick="onTrafficCalibration"
+                android:orientation="vertical"
+                android:layout_weight="1">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="1">
+
+                    <ImageView
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        app:srcCompat="@drawable/traffic_calib" />
+                </LinearLayout>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="bottom|center"
+                    android:text="@string/traffic_calibration"
+                    android:textColor="@color/white"
+                    android:textSize="20sp" />
+            </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="0dp"

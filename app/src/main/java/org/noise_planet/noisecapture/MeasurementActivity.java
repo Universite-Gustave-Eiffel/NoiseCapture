@@ -69,7 +69,6 @@ import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.formatter.YAxisValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
-import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.LeqStats;
 
 import java.beans.PropertyChangeEvent;
@@ -581,7 +580,7 @@ public class MeasurementActivity extends MainActivity implements
 
         @Override
         public void propertyChange(PropertyChangeEvent event) {
-            if(AudioProcess.PROP_MOVING_SPECTRUM.equals(event.getPropertyName())) {
+            if(AudioProcess.PROP_FAST_LEQ.equals(event.getPropertyName())) {
                 AudioProcess.AudioMeasureResult measure =
                         (AudioProcess.AudioMeasureResult) event.getNewValue();
                 // Realtime audio processing
@@ -609,7 +608,7 @@ public class MeasurementActivity extends MainActivity implements
                 if (AudioProcess.STATE.CLOSED.equals(event.getNewValue())) {
                     activity.runOnUiThread(new UpdateText(activity));
                 }
-            } else if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName())) {
+            } else if(AudioProcess.PROP_SLOW_LEQ.equals(event.getPropertyName())) {
                 if(activity.hasMaximalMeasurementTime && activity.measurementService.isStoring() &&
                         activity.maximalMeasurementTime <= activity.measurementService.getLeqAdded()) {
                     activity.runOnUiThread(new Runnable() {

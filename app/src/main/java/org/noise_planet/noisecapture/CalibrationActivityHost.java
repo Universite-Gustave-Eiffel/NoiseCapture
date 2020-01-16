@@ -32,14 +32,11 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.TextView;
@@ -156,7 +153,7 @@ public class CalibrationActivityHost extends MainActivity implements PropertyCha
 
     @Override
     public void propertyChange(final PropertyChangeEvent event) {
-        if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName()) &&
+        if(AudioProcess.PROP_SLOW_LEQ.equals(event.getPropertyName()) &&
                 (CalibrationService.CALIBRATION_STATE.CALIBRATION.equals(calibrationService
                         .getState()) || CalibrationService.CALIBRATION_STATE.WARMUP.equals
                         (calibrationService

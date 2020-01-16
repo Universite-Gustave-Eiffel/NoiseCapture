@@ -28,6 +28,7 @@
 package org.noise_planet.noisecapture;
 
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.AudioFormat;
@@ -45,7 +46,6 @@ import android.support.annotation.Nullable;
 import org.noise_planet.jwarble.Configuration;
 import org.noise_planet.jwarble.MessageCallback;
 import org.noise_planet.jwarble.OpenWarble;
-import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.LeqStats;
 import org.orbisgis.sos.SOSSignalProcessing;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
@@ -75,7 +75,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
     private static final int FREQ_START = 10;
 
     private static final double PINK_POWER = Short.MAX_VALUE;
-    private static final short MESSAGE_RMS = Short.MAX_VALUE / 4;
+    private static final double MESSAGE_RMS = Short.MAX_VALUE * 3.0/4.0;
 
     // properties
     public static final String PROP_CALIBRATION_STATE = "PROP_CALIBRATION_STATE";
@@ -166,9 +166,13 @@ public class CalibrationService extends Service implements PropertyChangeListene
             audioProcess.getListeners().addPropertyChangeListener(this);
 
             // Init audio modem
+            Configuration configuration = new Configuration(PAYLOAD_SIZE, audioProcess.getRate(),
+                    Configuration.DEFAULT_AUDIBLE_FIRST_FREQUENCY, 0,
+                    Configuration.MULT_SEMITONE, 0.120, 0,
+                    Configuration.DEFAULT_TRIGGER_SNR, Configuration.DEFAULT_DOOR_PEAK_RATIO,
+                    true);
 
-            acousticModem = new OpenWarble(Configuration.getAudible(PAYLOAD_SIZE, audioProcess
-                    .getRate()));
+            acousticModem = new OpenWarble(configuration);
 
             acousticModem.setCallback(this);
 
@@ -265,10 +269,14 @@ public class CalibrationService extends Service implements PropertyChangeListene
     }
 
     private void playMessage(byte[] data) {
-        double[] signalDouble = acousticModem.generateSignal(MESSAGE_RMS, data);
+        double[] signalDouble = acousticModem.generateSignal(1.0, data);
+        double maxValue = Double.MIN_VALUE;
+        for(int i = 0; i < signalDouble.length; i++) {
+            maxValue = Math.max(signalDouble[i], maxValue);
+        }
         short[] signal = new short[signalDouble.length];
         for(int i = 0; i < signalDouble.length; i++) {
-            signal[i] = (short)signalDouble[i];
+            signal[i] = (short)Math.max(Short.MIN_VALUE, Math.min(Short.MAX_VALUE, (signalDouble[i] / maxValue) * MESSAGE_RMS));
         }
         playAudio(signal, 1);
     }
@@ -286,6 +294,14 @@ public class CalibrationService extends Service implements PropertyChangeListene
             audioTrack.setLoopPoints(0, audioTrack.write(signal, 0, signal.length), loop);
         } else {
             audioTrack.write(signal, 0, signal.length);
+        }
+        AudioManager audioManager = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
+        if(audioManager != null) {
+            try {
+                audioManager.setStreamVolume(getAudioOutput(),audioManager.getStreamMaxVolume(getAudioOutput()) / 2 , 0);
+            } catch (SecurityException ex) {
+                // ignore
+            }
         }
         audioTrack.play();
     }
@@ -418,7 +434,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
-        if(AudioProcess.PROP_DELAYED_STANDART_PROCESSING.equals(event.getPropertyName())){
+        if(AudioProcess.PROP_SLOW_LEQ.equals(event.getPropertyName())){
             // New leq
             AudioProcess.AudioMeasureResult measure =
                     (AudioProcess.AudioMeasureResult) event.getNewValue();

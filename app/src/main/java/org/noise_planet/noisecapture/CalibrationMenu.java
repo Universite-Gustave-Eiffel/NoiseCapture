@@ -28,7 +28,6 @@
 package org.noise_planet.noisecapture;
 
 import android.content.Intent;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 
@@ -46,7 +45,6 @@ public class CalibrationMenu extends MainActivity {
         ics.putExtra(CalibrationActivity.INTENT_CALIBRATION_MODE, CalibrationActivity.CALIBRATION_MODE_SONOMETER);
         mDrawerLayout.closeDrawer(mDrawerList);
         startActivity(ics);
-        finish();
     }
 
     public void onManualCalibrationCalibrator(View view) {
@@ -54,14 +52,17 @@ public class CalibrationMenu extends MainActivity {
         ics.putExtra(CalibrationActivity.INTENT_CALIBRATION_MODE, CalibrationActivity.CALIBRATION_MODE_CALIBRATOR);
         mDrawerLayout.closeDrawer(mDrawerList);
         startActivity(ics);
-        finish();
     }
 
     public void onAutoCalibration(View view) {
         Intent ics = new Intent(getApplicationContext(), CalibrationAutoMenu.class);
         mDrawerLayout.closeDrawer(mDrawerList);
         startActivity(ics);
-        finish();
     }
 
+    public void onTrafficCalibration(View view) {
+        Intent ics = new Intent(getApplicationContext(), CalibrationHistory.class);
+        mDrawerLayout.closeDrawer(mDrawerList);
+        startActivity(ics);
+    }
 }

@@ -318,4 +318,21 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="auto_calibration_guest">Calibrate my smartphone using a calibrated smartphone with NoiseCapture</string>
     <string name="calibration_manual_ref">The calibration procedure requires the use of a calibrated reference device such as a sonometer. For more information, refer to the <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">help page</a> of the application</string>
     <string name="calibration_manual_calibrator">The calibration procedure requires the use of a calibrator. For more information, refer to the <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">help page</a> of the application</string>
+    <string name="traffic_calibration">Calibration with the help of road traffic</string>
+    <string name="new_measurement">New measurement</string>
+    <string name="meters">metres</string>
+    <string name="km_h">km/h</string>
+    <string name="calibration_average_vehicle_speed">Estimated vehicle speed</string>
+    <string name="calibration_distance_vehicle">Vehicle distance</string>
+    <string name="default_vehicle_distance">3.5</string>
+    <string name="calibration_manual_traffic">The measuring position for calibration must be close enough to the road while ensuring your safety. The road must be dry and in good conditions.</string>
+    <string name="default_vehicle_speed">45</string>
+    <string name="title_activity_calibration_history">Traffic calibration sessions</string>
+    <string name="title_activity_calibration_traffic">Calibration with traffic</string>
+    <string name="plusminus">±</string>
+    <string name="traffic_history_count">%d vehicles</string>
+    <string name="calibration_estimated_gain">Gain %.2f dB(A)</string>
+    <string name="calibration_awaiting_vehicle_passby">Awaiting vehicle passing by (%d / %d)</string>
+    <string name="calibration_add">Add</string>
+    <string name="calibration_done_vehicle_passby">End of calibration session touch Add button</string>
 </resources>

@@ -27,6 +27,7 @@
 
 package org.noise_planet.noisecapture;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -38,6 +39,8 @@ import android.provider.BaseColumns;
 import android.support.annotation.ColorRes;
 import android.support.annotation.IdRes;
 import android.text.TextUtils;
+
+import org.noise_planet.noisecapture.util.TrafficNoiseEstimator;
 
 import java.text.DateFormat;
 import java.util.Date;
@@ -93,7 +96,7 @@ public class Storage extends SQLiteOpenHelper {
         }
     }
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 9;
+    public static final int DATABASE_VERSION = 10;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -108,6 +111,7 @@ public class Storage extends SQLiteOpenHelper {
         db.execSQL(CREATE_LEQ);
         db.execSQL(CREATE_LEQ_VALUE);
         db.execSQL(CREATE_RECORD_TAG);
+        db.execSQL(CREATE_TRAFFIC_CALIBRATION_SESSION);
     }
 
     @Override
@@ -138,7 +142,7 @@ public class Storage extends SQLiteOpenHelper {
                 db.execSQL("ALTER TABLE leq ADD COLUMN photo_miniature BLOB");
                 db.execSQL("ALTER TABLE leq ADD COLUMN photo_uri TEXT");
                 db.execSQL( "CREATE TABLE record_tag(tag_id INTEGER PRIMARY KEY, record_id INTEGER, " +
-                            "PRIMARY KEY(tag_id, record_id) " +
+                            "PRIMARY KEY(tag_id, record_id), " +
                             "FOREIGN KEY(record_id) REFERENCES  record(record_id) ON DELETE CASCADE);");
             }
             oldVersion = 4;
@@ -173,9 +177,17 @@ public class Storage extends SQLiteOpenHelper {
         }
         if(oldVersion == 8) {
             if(!db.isReadOnly()) {
-                db.execSQL("ALTER TABLE record add column "+Record.COLUMN_NOISEPARTY_TAG + " TEXT");
+                db.execSQL("ALTER TABLE record add column noiseparty_tag TEXT");
             }
             oldVersion = 9;
+        }
+        if(oldVersion == 9) {
+            if(!db.isReadOnly()) {
+                db.execSQL("CREATE TABLE traffic_calibration_session  ( session_id " +
+                        "INTEGER PRIMARY KEY, median_peak  DOUBLE, traffic_count INTEGER," +
+                        " estimated_distance DOUBLE, estimated_speed DOUBLE, calibration_utc LONG)");
+            }
+            oldVersion = 10;
         }
     }
 
@@ -591,5 +603,107 @@ public class Storage extends SQLiteOpenHelper {
             RecordTag.COLUMN_RECORD_ID + " INTEGER, " +
             "FOREIGN KEY(" + RecordTag.COLUMN_RECORD_ID + ") REFERENCES " + Record.TABLE_NAME +
             "(" + Record.COLUMN_ID + ") ON DELETE CASCADE);";
+
+    public static final class TrafficCalibrationSession  implements BaseColumns {
+        public static final String TABLE_NAME = "traffic_calibration_session";
+        public static final String COLUMN_CALIBRATION_ID = "session_id";
+        public static final String COLUMN_MEDIAN_PEAK = "median_peak";
+        public static final String COLUMN_TRAFFIC_COUNT = "traffic_count";
+        public static final String COLUMN_ESTIMATED_SPEED = "estimated_speed";
+        public static final String COLUMN_ESTIMATED_DISTANCE = "estimated_distance";
+        public static final String COLUMN_MEASUREMENT_UTC = "calibration_utc";
+
+        private final int sessionId;
+        private final double medianPeak;
+        private final int trafficCount;
+        private double estimatedSpeed;
+        private double estimatedDistance;
+        private final long calibrationUTC;
+
+        Double computedGain = null;
+
+        public TrafficCalibrationSession(int sessionId, double medianPeak, int trafficCount, double estimatedSpeed, double estimatedDistance, long calibrationUTC) {
+            this.sessionId = sessionId;
+            this.medianPeak = medianPeak;
+            this.trafficCount = trafficCount;
+            this.estimatedSpeed = estimatedSpeed;
+            this.estimatedDistance = estimatedDistance;
+            this.calibrationUTC = calibrationUTC;
+        }
+
+        public ContentValues getContent() {
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(Storage.TrafficCalibrationSession.COLUMN_MEDIAN_PEAK, getMedianPeak());
+            contentValues.put(Storage.TrafficCalibrationSession.COLUMN_TRAFFIC_COUNT, getTrafficCount());
+            contentValues.put(Storage.TrafficCalibrationSession.COLUMN_ESTIMATED_DISTANCE, getEstimatedDistance());
+            contentValues.put(Storage.TrafficCalibrationSession.COLUMN_ESTIMATED_SPEED, getEstimatedSpeed());
+            contentValues.put(Storage.TrafficCalibrationSession.COLUMN_MEASUREMENT_UTC, getUtc());
+            return  contentValues;
+        }
+
+        public Double getComputedGain(TrafficNoiseEstimator trafficNoiseEstimator) {
+            if(computedGain == null) {
+                computedGain = trafficNoiseEstimator.computeGain(medianPeak);
+            }
+            return computedGain;
+        }
+
+        public TrafficCalibrationSession(Cursor cursor) {
+            this(cursor.getInt(cursor.getColumnIndex(COLUMN_CALIBRATION_ID)),
+                    cursor.getDouble(cursor.getColumnIndex(COLUMN_MEDIAN_PEAK)),
+                    cursor.getInt(cursor.getColumnIndex(COLUMN_TRAFFIC_COUNT)),
+                    cursor.getDouble(cursor.getColumnIndex(COLUMN_ESTIMATED_SPEED)),
+                    cursor.getDouble(cursor.getColumnIndex(COLUMN_ESTIMATED_DISTANCE)),
+                    cursor.getLong(cursor.getColumnIndex(COLUMN_MEASUREMENT_UTC)));
+        }
+
+        public int getSessionId() {
+            return sessionId;
+        }
+
+        public double getMedianPeak() {
+            return medianPeak;
+        }
+
+        public int getTrafficCount() {
+            return trafficCount;
+        }
+
+        public double getEstimatedSpeed() {
+            return estimatedSpeed;
+        }
+
+        public double getEstimatedDistance() {
+            return estimatedDistance;
+        }
+        /**
+         * @return Record time
+         */
+        public long getUtc() {
+            return calibrationUTC;
+        }
+
+        public void setEstimatedSpeed(double estimatedSpeed) {
+            this.estimatedSpeed = estimatedSpeed;
+        }
+
+        public void setEstimatedDistance(double estimatedDistance) {
+            this.estimatedDistance = estimatedDistance;
+        }
+
+        public String getUtcDate() {
+            return DateFormat.getDateTimeInstance().format(new Date(calibrationUTC));
+        }
+
+    }
+
+    public static final String CREATE_TRAFFIC_CALIBRATION_SESSION = "CREATE TABLE " + TrafficCalibrationSession.TABLE_NAME +
+            "(" + TrafficCalibrationSession.COLUMN_CALIBRATION_ID +" INTEGER PRIMARY KEY, " +
+            TrafficCalibrationSession.COLUMN_MEDIAN_PEAK+" DOUBLE, " +
+            TrafficCalibrationSession.COLUMN_TRAFFIC_COUNT+" INTEGER, " +
+            TrafficCalibrationSession.COLUMN_ESTIMATED_DISTANCE+" DOUBLE, " +
+            TrafficCalibrationSession.COLUMN_ESTIMATED_SPEED+" DOUBLE," +
+            TrafficCalibrationSession.COLUMN_MEASUREMENT_UTC+" LONG)";
+
 
 }

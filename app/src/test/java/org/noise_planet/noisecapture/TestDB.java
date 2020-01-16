@@ -198,6 +198,7 @@ public class TestDB {
         assertEquals(45, checkLeq[6], 0.1);
         assertEquals(41, checkLeq[7], 0.1);
     }
+
     @Test
     public void testExport() throws URISyntaxException, IOException {
         MeasurementManager measurementManager =
@@ -223,6 +224,82 @@ public class TestDB {
         measurementManager.addLeqBatch(leqBatch);
         leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), 12.01, 15.02, 51.d,
                 12.f, 3.02f, 5f,System.currentTimeMillis());
+        leqBatch = new MeasurementManager.LeqBatch(leq,leqValues);
+        measurementManager.addLeqBatch(leqBatch);
+
+        measurementManager.updateRecordFinal(recordId, (float)leqBatch.computeGlobalLeq(), 2, -4.76f);
+        measurementManager.updateRecordUserInput(recordId, "This is a description",
+                (short)2,new String[]{Storage.TAGS_INFO[0].name, Storage.TAGS_INFO[4].name},
+                Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())),
+                "OGRS2018");
+
+        // Export to zip file
+        File testFile = folder.newFile("testexport.zip");
+        History.doBuildZip(testFile, RuntimeEnvironment.application, recordId);
+
+        // Check properties of zip file
+        boolean foundJson = false;
+        Properties meta = null;
+        try (FileInputStream fileInputStream = new FileInputStream(testFile)) {
+            ZipInputStream zipInputStream = new ZipInputStream(fileInputStream);
+            ZipEntry zipEntry;
+            while ((zipEntry = zipInputStream.getNextEntry()) != null) {
+                if (MeasurementExport.PROPERTY_FILENAME.equals(zipEntry.getName())) {
+                    meta = new Properties();
+                    meta.load(zipInputStream);
+                } else if (MeasurementExport.GEOJSON_FILENAME.equals(zipEntry.getName())) {
+                    JsonReader jsonReader = new JsonReader(new InputStreamReader(zipInputStream,
+                            "UTF-8"));
+                    assertTrue(jsonReader.hasNext());
+                    assertEquals(JsonToken.BEGIN_OBJECT, jsonReader.peek());
+                    jsonReader.beginObject();
+                    assertEquals(JsonToken.NAME, jsonReader.peek());
+                    Assert.assertEquals("type", jsonReader.nextName());
+                    assertEquals(JsonToken.STRING, jsonReader.peek());
+                    Assert.assertEquals("FeatureCollection", jsonReader.nextString());
+                    assertEquals(JsonToken.NAME, jsonReader.peek());
+                    Assert.assertEquals("features", jsonReader.nextName());
+                    assertEquals(JsonToken.BEGIN_ARRAY, jsonReader.peek());
+                    foundJson = true;
+                }
+            }
+        }
+        assertTrue(foundJson);
+        assertNotNull(meta);
+        assertNotNull(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION));
+        assertEquals("NOVICE", meta.getProperty(MeasurementExport.PROP_USER_PROFILE));
+        assertEquals("OGRS2018", meta.getProperty(Storage.Record.COLUMN_NOISEPARTY_TAG));
+        assertEquals(-4.76f, Float.valueOf(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
+        assertEquals((float)leqBatch.computeGlobalLeq(),
+                Float.valueOf(meta.getProperty(Storage.Record.COLUMN_LEQ_MEAN)), 0.01f);
+    }
+
+
+    @Test
+    public void testExportInvalidValues() throws URISyntaxException, IOException {
+        MeasurementManager measurementManager =
+                new MeasurementManager(RuntimeEnvironment.application);
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.application);
+        assertTrue(sharedPref.edit().putString("settings_user_noise_knowledge", "NOVICE").commit());
+
+        int recordId = measurementManager.addRecord();
+        Storage.Leq leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), 12, 15, 50.d,
+                15.f, 4.f, 4.5f,System.currentTimeMillis());
+        List<Storage.LeqValue> leqValues = new ArrayList<Storage.LeqValue>();
+
+        leqValues .add(new Storage.LeqValue(-1, 125, 65));
+        leqValues .add(new Storage.LeqValue(-1, 250, 55));
+        leqValues .add(new Storage.LeqValue(-1, 500, 56));
+        leqValues .add(new Storage.LeqValue(-1, 1000, 58));
+        leqValues .add(new Storage.LeqValue(-1, 2000, Float.NEGATIVE_INFINITY));
+        leqValues .add(new Storage.LeqValue(-1, 4000, 49));
+        leqValues .add(new Storage.LeqValue(-1, 8000, 45));
+        leqValues .add(new Storage.LeqValue(-1, 16000, 41));
+        MeasurementManager.LeqBatch leqBatch = new MeasurementManager.LeqBatch(leq,leqValues);
+        measurementManager.addLeqBatch(leqBatch);
+        leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), Double.NEGATIVE_INFINITY, Double.NEGATIVE_INFINITY, Double.NaN,
+                Float.NaN, Float.NaN, 5f,System.currentTimeMillis());
         leqBatch = new MeasurementManager.LeqBatch(leq,leqValues);
         measurementManager.addLeqBatch(leqBatch);
 

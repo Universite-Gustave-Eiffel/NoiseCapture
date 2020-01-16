@@ -106,6 +106,24 @@ public class MeasurementExport {
             return "#430A4A";
         }
     }
+
+
+    public static Double boundValue(Double value, double min, double max) {
+        if(value.isNaN()) {
+            return null;
+        } else {
+            return Math.max(min, Math.min(max, value));
+        }
+    }
+
+    public static Float boundValue(Float value, float min, float max) {
+        if(value.isNaN()) {
+            return null;
+        } else {
+            return Math.max(min, Math.min(max, value));
+        }
+    }
+
     /**
      * Convert list of measurements into GeoJSON feature array
      * @param records Measurements array
@@ -130,10 +148,13 @@ public class MeasurementExport {
                 point.put("type", "Point");
                 if(leq.getAltitude() != null && !Double.isNaN(leq.getAltitude())) {
                     point.put("coordinates", new JSONArray(Arrays.asList(
-                            leq.getLongitude(), leq.getLatitude(), leq.getAltitude())));
+                            boundValue(leq.getLongitude(), -180.d, 180.d),
+                            boundValue(leq.getLatitude(), -90.d, 90.d),
+                            boundValue(leq.getAltitude(), -1000.d, 30000.d))));
                 } else {
                     point.put("coordinates", new JSONArray(Arrays.asList(
-                            leq.getLongitude(), leq.getLatitude())));
+                            boundValue(leq.getLongitude(), -180.d, 180.d),
+                            boundValue(leq.getLatitude(), -90.d, 90.d))));
                 }
                 feature.put("geometry", point);
             } else {
@@ -143,24 +164,24 @@ public class MeasurementExport {
             // Add properties
             JSONObject featureProperties = new JSONObject();
             double lAeq = entry.computeGlobalLeq();
-            featureProperties.put(Storage.Record.COLUMN_LEQ_MEAN, Float.valueOf((float) lAeq));
+            featureProperties.put(Storage.Record.COLUMN_LEQ_MEAN, boundValue(Float.valueOf((float) lAeq), 0, 150));
             //marker-color tag for geojson.io and leaflet map
             featureProperties.put("marker-color", getColorFromLevel(lAeq));
             if (fullProperties) {
-                featureProperties.put(Storage.Leq.COLUMN_ACCURACY, Float.valueOf(leq.getAccuracy
-                        ()));
+                featureProperties.put(Storage.Leq.COLUMN_ACCURACY,
+                        boundValue(leq.getAccuracy(), -99.f, 20000.f));
                 featureProperties.put(Storage.Leq.COLUMN_LOCATION_UTC, leq.getLocationUTC());
                 featureProperties.put(Storage.Leq.COLUMN_LEQ_UTC, leq.getLeqUtc());
                 featureProperties.put(Storage.Leq.COLUMN_LEQ_ID, leq.getLeqId());
                 if (leq.getBearing() != null) {
-                    featureProperties.put(Storage.Leq.COLUMN_BEARING, leq.getBearing());
+                    featureProperties.put(Storage.Leq.COLUMN_BEARING, boundValue(leq.getBearing(), 0, 360));
                 }
                 if (leq.getSpeed() != null) {
-                    featureProperties.put(Storage.Leq.COLUMN_SPEED, leq.getSpeed());
+                    featureProperties.put(Storage.Leq.COLUMN_SPEED, boundValue(leq.getSpeed(), 0, 1200));
                 }
                 for (Storage.LeqValue leqValue : entry.getLeqValues()) {
-                    featureProperties.put("leq_" + leqValue.getFrequency(), Float.valueOf
-                            (leqValue.getSpl()));
+                    featureProperties.put("leq_" + leqValue.getFrequency(),
+                            boundValue(leqValue.getSpl(),0,150 ));
                 }
             }
             feature.put("properties", featureProperties);

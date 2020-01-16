@@ -79,7 +79,7 @@
                             android:layout_width="80dp"
                             android:layout_height="wrap_content"
                             android:gravity="right"
-                            android:text="@string/default_vehicle_distance"
+                            android:text="3.5"
                             android:inputType="numberDecimal"
                             android:textSize="25sp"/>
 
@@ -116,7 +116,7 @@
                             android:id="@+id/edit_text_vehicle_speed"
                             android:layout_width="80dp"
                             android:layout_height="wrap_content"
-                            android:text="@string/default_vehicle_speed"
+                            android:text="45"
                             android:gravity="right"
                             android:inputType="numberDecimal"
                             android:textSize="25sp"/>

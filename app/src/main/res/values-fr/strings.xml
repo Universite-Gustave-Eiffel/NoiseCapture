@@ -312,6 +312,23 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="manual_calibration_with_reference">Manuel avec une référence</string>
     <string name="auto_calibration_host">Utiliser mon propre smartphone (calibré) pour calibrer d\'autres smartphones avec NoiseCapture</string>
     <string name="auto_calibration_guest">Calibrer mon smartphone à partir d\'un autre smartphone déjà calibré avec NoiseCapture</string>
-    <string name="calibration_manual_ref">La procédure de calibrage nécessite l\'utilisation d\'un appareil de référence déjà calibré, comme un sonomètre. Rendez-vous sur la <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">page d\'aide</a> de l\'application pour plus d\'informations.</string>
-    <string name="calibration_manual_calibrator">La procédure de calibrage nécessite l\'utilisation d\'un calibrateur acoustique. Rendez-vous sur la <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">page d\'aide</a> de l\'application pour plus d\'informations.</string>
+    <string name="calibration_manual_ref">La procédure de calibrage nécessite l\'utilisation d\'un appareil de référence déjà calibré, comme un sonomètre. Rendez-vous sur la <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">page d\'aide</a> de l\'application pour plus d\'informations.</string>
+    <string name="calibration_manual_calibrator">La procédure de calibrage nécessite l\'utilisation d\'un calibrateur acoustique. Rendez-vous sur la <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">page d\'aide</a> de l\'application pour plus d\'informations.</string>
+    <string name="traffic_calibration">Calibration avec le trafic routier</string>
+    <string name="new_measurement">Nouvelle session</string>
+    <string name="meters">mètres</string>
+    <string name="km_h">km/h</string>
+    <string name="calibration_average_vehicle_speed">Vitesse du véhicule</string>
+    <string name="calibration_distance_vehicle">Distance du centre de la voie</string>
+    <string name="default_vehicle_distance">3.5</string>
+    <string name="calibration_manual_traffic">La position de mesure pour le calibrage doit être suffisamment proche de la route tout en assurant votre sécurité. La route doit être sèche et en bon état.</string>
+    <string name="default_vehicle_speed">45</string>
+    <string name="title_activity_calibration_history">Sessions de calibration</string>
+    <string name="title_activity_calibration_traffic">Calibration avec le trafic</string>
+    <string name="plusminus">±</string>
+    <string name="traffic_history_count">%d véhicules</string>
+    <string name="calibration_estimated_gain">Gain %.2f dB(A)</string>
+    <string name="calibration_awaiting_vehicle_passby">Passage de véhicules %d sur %d</string>
+    <string name="calibration_add">Ajout</string>
+    <string name="calibration_done_vehicle_passby">Fin du calibrage, appuyez sur le bouton d\'ajout</string>
 </resources>

@@ -15,6 +15,12 @@
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true">
 
+        <TextView
+            android:layout_width="12dp"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            android:id="@+id/textView_SEL_bar_item_history"
+            android:layout_marginRight="4sp" />
 
         <LinearLayout
             android:orientation="vertical"

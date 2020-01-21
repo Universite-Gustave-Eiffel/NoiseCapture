@@ -20,6 +20,7 @@
             android:layout_height="match_parent"
             android:textAppearance="?android:attr/textAppearanceSmall"
             android:id="@+id/textView_SEL_bar_item_history"
+            android:background="@color/R5_SL_level"
             android:layout_marginRight="4sp" />
 
         <LinearLayout

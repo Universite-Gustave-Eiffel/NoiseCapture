@@ -168,8 +168,9 @@ public class TrafficNoiseEstimator {
     public static double getCalibrationUncertainty(int numberOfPassingVehicles, int numberOfLocations) {
         final double modelUncertainty = 2.0;
         final double inputAndProtocolUncertainty = 2.5;
-        final double measurementUncertainty = 6.39 - 2.65 * Math.log10(numberOfLocations) -
-                2.8 * Math.log10(numberOfPassingVehicles);
+        final double measurementUncertainty = 3.31204-1.13217 * Math.log10(numberOfLocations)
+                - 1.29958 * Math.log10(numberOfPassingVehicles);
+
         return Math.sqrt(modelUncertainty*modelUncertainty+
                 inputAndProtocolUncertainty*inputAndProtocolUncertainty+
                 measurementUncertainty*measurementUncertainty);

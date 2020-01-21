@@ -357,6 +357,81 @@ public class MeasurementManager {
         return 0;
     }
 
+
+
+    /**
+     * Fetch all leq that hold a coordinate
+     * @param recordId Record identifier, -1 for all
+     * @param recordVisitor Visitor of records
+     */
+    public void getRecordLocations(int recordId, RecordVisitor<LeqBatch> recordVisitor) {
+        SQLiteDatabase database = storage.getReadableDatabase();
+        double[] lastLatLng = null;
+        recordVisitor.onCreateCursor(getRecordLocationsCount(recordId, false));
+        try {
+            Cursor cursor;
+            cursor = database.rawQuery("SELECT "+Storage.Leq.getAllFields("L.")+", GROUP_CONCAT(LV." + Storage.LeqValue
+                    .COLUMN_SPL +
+                    ") leq_array FROM " + Storage.Leq.TABLE_NAME + " L, " + Storage.LeqValue
+                    .TABLE_NAME +
+                    " LV WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND L." +
+                    Storage.Leq.COLUMN_LEQ_ID + " = LV." + Storage.LeqValue.COLUMN_LEQ_ID +
+                    " GROUP BY "+Storage.Leq.getAllFields("L.")+" ORDER BY L." +
+                    Storage.Leq.COLUMN_LEQ_ID + ", " +
+                    Storage.LeqValue.COLUMN_FREQUENCY, new String[]{String.valueOf(recordId)});
+
+            try {
+                int lastId = -1;
+                int lastRecordId = -1;
+                LeqBatch lastLeq = null;
+                int leqArrayIndex = cursor.getColumnIndex("leq_array");
+                while (cursor.moveToNext()) {
+                    int cursorRecordId = cursor.getInt(cursor.getColumnIndex(Storage.Leq.COLUMN_RECORD_ID));
+                    if(cursorRecordId != lastRecordId) {
+                        lastRecordId = cursorRecordId;
+                    }
+                    if(lastId != -1) {
+                        // All frequencies for the current measurement are parsed
+                        if(!recordVisitor.next(lastLeq)) {
+                            lastLeq = null;
+                            break;
+                        }
+                        lastLeq = null;
+                    }
+                    if(lastLeq == null) {
+                        lastLeq = new LeqBatch(new Storage.Leq(cursor));
+                        lastId = lastLeq.getLeq().getLeqId();
+                    }
+                    String leqStringArray = cursor.getString(leqArrayIndex);
+                    StringTokenizer stringTokenizer = new StringTokenizer(leqStringArray, ",");
+                    int i = 0;
+                    while (stringTokenizer.hasMoreTokens()) {
+                        try {
+                            String leqValueString = stringTokenizer.nextToken();
+                            if(!leqValueString.isEmpty()) {
+                                Storage.LeqValue leqValue = new Storage.LeqValue(lastId,
+                                        (int) AudioProcess.realTimeCenterFrequency[i++],
+                                        Float.valueOf(leqValueString));
+                                lastLeq.addLeqValue(leqValue);
+                            }
+                        } catch (NumberFormatException ex) {
+                            // Could not read record value, skip
+                        }
+                    }
+                }
+                // Add last leq
+                if(lastLeq != null) {
+                    recordVisitor.next(lastLeq);
+                }
+            } finally {
+                cursor.close();
+            }
+        } finally {
+            database.close();
+        }
+    }
+
+
     /**
      * Fetch all leq that hold a coordinate
      * @param recordId Record identifier, -1 for all
@@ -715,6 +790,11 @@ public class MeasurementManager {
         public List<Storage.LeqValue> getLeqValues() {
             return leqValues;
         }
+    }
+
+    public interface RecordVisitor<El> {
+        void onCreateCursor(int recordCount);
+        boolean next(El record);
     }
 
     public interface ProgressionCallBack {

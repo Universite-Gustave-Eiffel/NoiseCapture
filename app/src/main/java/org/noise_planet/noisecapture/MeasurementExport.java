@@ -34,6 +34,7 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.util.JsonWriter;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -190,6 +191,81 @@ public class MeasurementExport {
         return new JSONArray(features);
     }
 
+
+    /**
+     * Convert list of measurements into GeoJSON feature array
+     * @param outputNullGeometry If true empty geometry are exported (accuracy <= 0)
+     * @param fullProperties If false only the mean LAeq are written, otherwise all available data are written.
+     * @return An array of GeoJSON feature objects.
+     * @throws JSONException
+     */
+    public static void recordToGeoJSON(MeasurementManager.LeqBatch entry, JsonWriter writer , boolean outputNullGeometry, boolean fullProperties) throws IOException {
+            Storage.Leq leq = entry.getLeq();
+            if(!outputNullGeometry && !(leq.getAccuracy() > 0)) {
+                return;
+            }
+            writer.beginObject();
+            writer.name("type");
+            writer.value("Feature");
+
+            writer.name("geometry");
+            if (leq.getAccuracy() > 0) {
+                writer.beginObject();
+                writer.name("type");
+                writer.value("Point");
+                // Add coordinate
+                writer.name("coordinates");
+                writer.beginArray();
+                if(leq.getAltitude() != null && !Double.isNaN(leq.getAltitude())) {
+                    writer.value(boundValue(leq.getLongitude(), -180.d, 180.d));
+                    writer.value(boundValue(leq.getLatitude(), -90.d, 90.d));
+                    writer.value(boundValue(leq.getAltitude(), -1000.d, 30000.d));
+                } else {
+                    writer.value(boundValue(leq.getLongitude(), -180.d, 180.d));
+                    writer.value(boundValue(leq.getLatitude(), -90.d, 90.d));
+                }
+                writer.endArray();
+                writer.endObject();
+            } else {
+                writer.nullValue();
+            }
+
+            // Add properties
+            writer.name("properties");
+            writer.beginObject(); // begin properties
+
+            double lAeq = entry.computeGlobalLeq();
+            writer.name(Storage.Record.COLUMN_LEQ_MEAN);
+            writer.value(boundValue((float) lAeq, 0, 150));
+            writer.name("marker-color");
+            writer.value(getColorFromLevel(lAeq));
+            //marker-color tag for geojson.io and leaflet map
+            if (fullProperties) {
+                writer.name(Storage.Leq.COLUMN_ACCURACY);
+                writer.value(boundValue(leq.getAccuracy(), -99.f, 20000.f));
+                writer.name(Storage.Leq.COLUMN_LOCATION_UTC);
+                writer.value(leq.getLocationUTC());
+                writer.name(Storage.Leq.COLUMN_LEQ_UTC);
+                writer.value(leq.getLeqUtc());
+                writer.name(Storage.Leq.COLUMN_LEQ_ID);
+                writer.value(leq.getLeqId());
+                if (leq.getBearing() != null) {
+                    writer.name(Storage.Leq.COLUMN_BEARING);
+                    writer.value(boundValue(leq.getBearing(), 0, 360));
+                }
+                if (leq.getSpeed() != null) {
+                    writer.name(Storage.Leq.COLUMN_SPEED);
+                    writer.value(boundValue(leq.getSpeed(), 0, 1200));
+                }
+                for (Storage.LeqValue leqValue : entry.getLeqValues()) {
+                    writer.name("leq_" + leqValue.getFrequency());
+                    writer.value(boundValue(leqValue.getSpl(),0,150 ));
+                }
+            }
+            writer.endObject(); // end properties
+            writer.endObject(); // end main dict of entry
+    }
+
     /**
      * Dump measurement into the specified writer
      * @param recordId Record identifier
@@ -248,23 +324,22 @@ public class MeasurementExport {
         zipOutputStream.closeEntry();
 
         // GeoJSON file
-
-        List<MeasurementManager.LeqBatch> records =
-                measurementManager.getRecordLocations(recordId, false, 0);
-        // If Memory problems switch to JSONWriter
-        JSONObject main = new JSONObject();
-
         try {
-
-            // Add measures
-            main.put("type", "FeatureCollection");
-            main.put("features", recordsToGeoJSON(records, true, true));
             zipOutputStream.putNextEntry(new ZipEntry(GEOJSON_FILENAME));
             Writer writer = new OutputStreamWriter(zipOutputStream);
-            writer.write(main.toString(2));
-            writer.flush();
+            JsonWriter main = new JsonWriter(writer);
+            // Add measures
+            main.beginObject(); // {
+            main.name("type"); // "type": "FeatureCollection",
+            main.value("FeatureCollection");
+            main.name("features"); // "features": [
+            main.beginArray();
+            LeqJSONWriter leqJSONWriter = new LeqJSONWriter(main);
+            measurementManager.getRecordLocations(recordId, leqJSONWriter);
+            main.endArray();
+            main.endObject(); // }
+            main.flush();
             zipOutputStream.closeEntry();
-
             if(exportReadme) {
                 // Readme file
                 zipOutputStream.putNextEntry(new ZipEntry(README_FILENAME));
@@ -273,12 +348,36 @@ public class MeasurementExport {
                 writer.flush();
                 zipOutputStream.closeEntry();
             }
-        } catch (JSONException ex ) {
-            throw new IOException(ex);
         } finally {
             zipOutputStream.finish();
         }
     }
 
+    public static class LeqJSONWriter implements MeasurementManager.RecordVisitor<MeasurementManager.LeqBatch> {
+        JsonWriter main;
 
+        LeqJSONWriter(JsonWriter main) {
+            this.main = main;
+        }
+
+        @Override
+        public void onCreateCursor(int recordCount) {
+
+        }
+
+        @Override
+        public boolean next(MeasurementManager.LeqBatch record) {
+            try {
+                MeasurementExport.recordToGeoJSON(record, main, true, true);
+            } catch (IOException ex) {
+                // Ignore
+                LOGGER.error("Error while writing JSON", ex);
+            }
+            return true;
+        }
+
+        public void closeItems() {
+
+        }
+    }
 }

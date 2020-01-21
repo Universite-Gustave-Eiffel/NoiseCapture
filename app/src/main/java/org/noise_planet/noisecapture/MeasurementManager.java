@@ -32,6 +32,8 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteDatabaseLockedException;
+import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.location.Location;
 import android.net.Uri;
@@ -647,60 +649,76 @@ public class MeasurementManager {
      * @param leqBatches List of Leq to add
      */
     public void addLeqBatches(List<LeqBatch> leqBatches) {
+        int retry = 5;
         SQLiteDatabase database = storage.getWritableDatabase();
-        try {
-            database.beginTransaction();
-            SQLiteStatement leqStatement = database.compileStatement(
-                    "INSERT INTO " + Storage.Leq.TABLE_NAME + "(" +
-                            Storage.Leq.COLUMN_RECORD_ID + "," +
-                            Storage.Leq.COLUMN_LEQ_UTC + "," +
-                            Storage.Leq.COLUMN_LATITUDE  + "," +
-                            Storage.Leq.COLUMN_LONGITUDE  + "," +
-                            Storage.Leq.COLUMN_ALTITUDE  + "," +
-                            Storage.Leq.COLUMN_ACCURACY  + "," +
-                            Storage.Leq.COLUMN_LOCATION_UTC + "," +
-                            Storage.Leq.COLUMN_SPEED + "," +
-                            Storage.Leq.COLUMN_BEARING +
-                            ") VALUES (?, ?,?,?,?,?,?,?,?)");
-            SQLiteStatement leqValueStatement = database.compileStatement("INSERT INTO " +
-                    Storage.LeqValue.TABLE_NAME + " VALUES (?,?,?)");
-            for(LeqBatch leqBatch : leqBatches) {
-                Storage.Leq leq = leqBatch.getLeq();
-                leqStatement.clearBindings();
-                leqStatement.bindLong(1, leq.getRecordId());
-                leqStatement.bindLong(2, leq.getLeqUtc());
-                leqStatement.bindDouble(3, leq.getLatitude());
-                leqStatement.bindDouble(4, leq.getLongitude());
-                if(leq.getAltitude() != null) {
-                    leqStatement.bindDouble(5, leq.getAltitude());
+        while(true) {
+            try {
+                database.beginTransaction();
+                SQLiteStatement leqStatement = database.compileStatement(
+                        "INSERT INTO " + Storage.Leq.TABLE_NAME + "(" +
+                                Storage.Leq.COLUMN_RECORD_ID + "," +
+                                Storage.Leq.COLUMN_LEQ_UTC + "," +
+                                Storage.Leq.COLUMN_LATITUDE + "," +
+                                Storage.Leq.COLUMN_LONGITUDE + "," +
+                                Storage.Leq.COLUMN_ALTITUDE + "," +
+                                Storage.Leq.COLUMN_ACCURACY + "," +
+                                Storage.Leq.COLUMN_LOCATION_UTC + "," +
+                                Storage.Leq.COLUMN_SPEED + "," +
+                                Storage.Leq.COLUMN_BEARING +
+                                ") VALUES (?, ?,?,?,?,?,?,?,?)");
+                SQLiteStatement leqValueStatement = database.compileStatement("INSERT INTO " +
+                        Storage.LeqValue.TABLE_NAME + " VALUES (?,?,?)");
+                for (LeqBatch leqBatch : leqBatches) {
+                    Storage.Leq leq = leqBatch.getLeq();
+                    leqStatement.clearBindings();
+                    leqStatement.bindLong(1, leq.getRecordId());
+                    leqStatement.bindLong(2, leq.getLeqUtc());
+                    leqStatement.bindDouble(3, leq.getLatitude());
+                    leqStatement.bindDouble(4, leq.getLongitude());
+                    if (leq.getAltitude() != null) {
+                        leqStatement.bindDouble(5, leq.getAltitude());
+                    } else {
+                        leqStatement.bindNull(5);
+                    }
+                    leqStatement.bindDouble(6, leq.getAccuracy());
+                    leqStatement.bindDouble(7, leq.getLocationUTC());
+                    if (leq.getSpeed() != null) {
+                        leqStatement.bindDouble(8, leq.getSpeed());
+                    } else {
+                        leqStatement.bindNull(8);
+                    }
+                    if (leq.getBearing() != null) {
+                        leqStatement.bindDouble(9, leq.getBearing());
+                    } else {
+                        leqStatement.bindNull(9);
+                    }
+                    long leqId = leqStatement.executeInsert();
+                    for (Storage.LeqValue leqValue : leqBatch.getLeqValues()) {
+                        leqValueStatement.clearBindings();
+                        leqValueStatement.bindLong(1, leqId);
+                        leqValueStatement.bindLong(2, leqValue.getFrequency());
+                        leqValueStatement.bindDouble(3, leqValue.getSpl());
+                        leqValueStatement.execute();
+                    }
+                }
+                database.setTransactionSuccessful();
+                database.endTransaction();
+                break;
+            }catch (SQLiteException ex) {
+                // Sql issue
+                retry -= 1;
+                if(retry <= 0) {
+                    break;
                 } else {
-                    leqStatement.bindNull(5);
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException ex2) {
+                        break;
+                    }
                 }
-                leqStatement.bindDouble(6, leq.getAccuracy());
-                leqStatement.bindDouble(7, leq.getLocationUTC());
-                if(leq.getSpeed() != null) {
-                    leqStatement.bindDouble(8, leq.getSpeed());
-                } else {
-                    leqStatement.bindNull(8);
-                }
-                if(leq.getBearing() != null) {
-                    leqStatement.bindDouble(9, leq.getBearing());
-                } else {
-                    leqStatement.bindNull(9);
-                }
-                long leqId = leqStatement.executeInsert();
-                for(Storage.LeqValue leqValue : leqBatch.getLeqValues()) {
-                    leqValueStatement.clearBindings();
-                    leqValueStatement.bindLong(1, leqId);
-                    leqValueStatement.bindLong(2, leqValue.getFrequency());
-                    leqValueStatement.bindDouble(3, leqValue.getSpl());
-                    leqValueStatement.execute();
-                }
+            } finally {
+                database.close();
             }
-            database.setTransactionSuccessful();
-            database.endTransaction();
-        } finally {
-            database.close();
         }
     }
 

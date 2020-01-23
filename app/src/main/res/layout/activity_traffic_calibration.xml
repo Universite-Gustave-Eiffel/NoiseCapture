@@ -164,30 +164,16 @@
             android:gravity="center"
             android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/btn_start"
-                android:layout_width="wrap_content"
-                android:onClick="onCalibrationStart"
-                android:layout_height="wrap_content"
+            <ImageButton
+                android:id="@+id/mainBtn"
+                android:onClick="onMainButton"
+                android:layout_width="0dp"
+                android:layout_height="64dip"
                 android:layout_weight="1"
-                android:text="@string/calibration_button_start"/>
+                android:background="#00000000"
+                android:scaleType="fitCenter"
+                app:srcCompat="@drawable/button_record" />
 
-            <Button
-                android:id="@+id/btn_cancel"
-                android:layout_width="wrap_content"
-                android:onClick="onCalibrationCancel"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:enabled="true"
-                android:text="@string/calibration_cancel_change"/>
-            <Button
-                android:id="@+id/btn_add"
-                android:layout_width="wrap_content"
-                android:onClick="onCalibrationAdd"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:enabled="false"
-                android:text="@string/calibration_add"/>
         </LinearLayout>
     </LinearLayout>
 

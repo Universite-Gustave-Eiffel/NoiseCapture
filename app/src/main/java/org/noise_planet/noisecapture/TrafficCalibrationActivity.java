@@ -36,9 +36,11 @@ import android.os.Message;
 import android.text.method.LinkMovementMethod;
 import android.view.Menu;
 import android.view.View;
+import android.view.animation.AnimationUtils;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -55,16 +57,16 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 public class TrafficCalibrationActivity extends MainActivity implements PropertyChangeListener {
 
-    private enum CALIBRATION_STEP {IDLE, MEASUREMENT, END}
+    private enum CALIBRATION_STEP {IDLE, MEASUREMENT, PAUSED, END}
     private static final int EXPECTED_NOISE_PEAKS = 15;
+    private static final int CACHED_LEQS = 3; // Number of leqs removed when user touch pause button
     // Delay in seconds for computing the number of vehicles passing by the device.
     public static final int CALIBRATION_REFRESH_DELAY = 5;
     private List<Double> leqMax = new ArrayList<>();
+    private List<Double> leqMaxCached = new ArrayList<>();
     private List<Double> fastLeq = new ArrayList<>();
     private ProgressBar calibrationProgressBar;
-    private Button startButton;
-    private Button cancelButton;
-    private Button addButton;
+    private ImageButton mainButton;
     private CALIBRATION_STEP calibration_step = CALIBRATION_STEP.IDLE;
     private TextView textStatus;
     private EditText inputSpeed;
@@ -75,7 +77,6 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
     private AtomicBoolean recording = new AtomicBoolean(true);
     private AtomicBoolean canceled = new AtomicBoolean(false);
     private static final Logger LOGGER = LoggerFactory.getLogger(TrafficCalibrationActivity.class);
-    public static final int COUNTDOWN_STEP_MILLISECOND = 125;
     private Storage.TrafficCalibrationSession trafficCalibrationSession;
 
     @Override
@@ -86,9 +87,7 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
 
         calibrationProgressBar = (ProgressBar) findViewById(R.id.progressBar_wait_calibration_recording);
         textStatus = (TextView) findViewById(R.id.textView_recording_state);
-        startButton = findViewById(R.id.btn_start);
-        cancelButton = findViewById(R.id.btn_cancel);
-        addButton = findViewById(R.id.btn_add);
+        mainButton = findViewById(R.id.mainBtn);
         inputSpeed = (EditText) findViewById(R.id.edit_text_vehicle_speed);
         inputDistance = (EditText) findViewById(R.id.edit_text_distance_vehicle);
 
@@ -100,9 +99,42 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
         initCalibration();
     }
 
+    public void onMainButton(View view) {
+        switch(calibration_step) {
+            case IDLE:
+                // Calibration not started
+                onCalibrationStart(view);
+                break;
+            case MEASUREMENT:
+                onCalibrationPaused();
+                break;
+            case PAUSED:
+                onCalibrationResume();
+                break;
+            case END:
+                onCalibrationAdd();
+                break;
+        }
+    }
+
+    public void onCalibrationPaused() {
+        calibration_step = CALIBRATION_STEP.PAUSED;
+        mainButton.setImageResource(R.drawable.pause_pressed);
+        textStatus.setText(R.string.measurement_pause);
+        calibrationProgressBar.startAnimation(AnimationUtils.loadAnimation(this, R.anim.pause_anim));
+        leqMaxCached.clear(); // remove last n measured seconds
+    }
+
+    public void onCalibrationResume() {
+        calibration_step = CALIBRATION_STEP.MEASUREMENT;
+        calibrationProgressBar.clearAnimation();
+        mainButton.setImageResource(R.drawable.pause_unpressed);
+    }
+
     @Override
     protected void onPause() {
         super.onPause();
+        onCalibrationPaused();
         canceled.set(true);
         recording.set(false);
     }
@@ -110,6 +142,7 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
     @Override
     protected void onStop() {
         super.onStop();
+        calibration_step = CALIBRATION_STEP.END;
         canceled.set(true);
         recording.set(false);
     }
@@ -120,10 +153,8 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
         canceled.set(true);
         recording.set(false);
         calibrationProgressBar.setProgress(calibrationProgressBar.getMax());
-        startButton.setEnabled(true);
-        addButton.setEnabled(false);
-        cancelButton.setEnabled(false);
         leqMax.clear();
+        leqMaxCached.clear();
     }
 
     public  void onCalibrationCancel(View view) {
@@ -137,8 +168,7 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
             inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
         }
         textStatus.setText(getString(R.string.calibration_awaiting_vehicle_passby,0, EXPECTED_NOISE_PEAKS));
-        startButton.setEnabled(false);
-        cancelButton.setEnabled(true);
+        mainButton.setImageResource(R.drawable.pause_unpressed);
         calibration_step = CALIBRATION_STEP.MEASUREMENT;
         calibrationProgressBar.setProgress(0);
         // Link measurement service with gui
@@ -204,7 +234,10 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
                 for(double val : fastLeq) {
                     lMax = Math.max(lMax, val);
                 }
-                leqMax.add(lMax);
+                leqMaxCached.add(lMax);
+                while(leqMaxCached.size() > CACHED_LEQS) {
+                    leqMax.add(leqMaxCached.remove(0));
+                }
                 fastLeq.clear();
             }
         }
@@ -217,7 +250,7 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
         return true;
     }
 
-    public void onCalibrationAdd(View view) {
+    public void onCalibrationAdd() {
         trafficCalibrationSession.setEstimatedSpeed(Double.valueOf(inputSpeed.getText().toString()));
         trafficCalibrationSession.setEstimatedDistance(Double.valueOf(inputDistance.getText().toString()));
         MeasurementManager measurementManager = new MeasurementManager(getApplicationContext());
@@ -238,7 +271,7 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                addButton.setEnabled(true);
+                mainButton.setImageResource(R.drawable.check_circle);
             }
         });
     }
@@ -256,7 +289,7 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
 
         public void start(int delay) {
             this.delay = delay;
-            activity.timeHandler.sendEmptyMessageDelayed(delay, COUNTDOWN_STEP_MILLISECOND);
+            activity.timeHandler.sendEmptyMessageDelayed(delay, CALIBRATION_REFRESH_DELAY * 1000);
         }
 
         @Override
@@ -281,8 +314,10 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
                             System.currentTimeMillis()));
                 } else {
                     activity.textStatus.setText(activity.getString(R.string.calibration_awaiting_vehicle_passby,estimation.numberOfPassby, EXPECTED_NOISE_PEAKS));
-                    activity.timeHandler.sendEmptyMessageDelayed(delay, COUNTDOWN_STEP_MILLISECOND);
+                    activity.timeHandler.sendEmptyMessageDelayed(delay, CALIBRATION_REFRESH_DELAY * 1000);
                 }
+            } else if(activity.calibration_step == CALIBRATION_STEP.PAUSED) {
+                activity.timeHandler.sendEmptyMessageDelayed(delay, 125);
             }
             return true;
         }

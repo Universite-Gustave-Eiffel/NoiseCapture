@@ -258,6 +258,7 @@ public class CalibrationActivity extends MainActivity implements PropertyChangeL
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
             SharedPreferences.Editor editor = sharedPref.edit();
             editor.putString("settings_recording_gain", String.valueOf(gain));
+            editor.putString("settings_calibration_method", String.valueOf(CALIBRATION_MODE_CALIBRATOR.equals(calibration_mode) ? Storage.Record.CALIBRATION_METHODS.Calibrator : Storage.Record.CALIBRATION_METHODS.Reference));
             editor.apply();
             Toast.makeText(getApplicationContext(),
                     getString(R.string.calibrate_done, gain), Toast.LENGTH_LONG).show();

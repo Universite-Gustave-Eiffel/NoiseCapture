@@ -110,6 +110,12 @@
             android:entries="@array/output_mode_labels"
             />
 
+        <EditTextPreference
+            android:defaultValue="0"
+            android:key="settings_calibration_method"
+            android:visibility="gone"
+            android:inputType="number"/>
+
     </PreferenceCategory>
 
     <PreferenceCategory android:title="@string/title_activity_map">

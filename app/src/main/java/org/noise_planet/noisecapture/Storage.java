@@ -96,7 +96,7 @@ public class Storage extends SQLiteOpenHelper {
         }
     }
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 10;
+    public static final int DATABASE_VERSION = 11;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -188,6 +188,12 @@ public class Storage extends SQLiteOpenHelper {
                         " estimated_distance DOUBLE, estimated_speed DOUBLE, calibration_utc LONG)");
             }
             oldVersion = 10;
+        }
+        if(oldVersion == 10) {
+            if(!db.isReadOnly()) {
+                db.execSQL("ALTER TABLE RECORD ADD COLUMN CALIBRATION_METHOD INTEGER DEFAULT 0");
+            }
+            oldVersion = 11;
         }
     }
 
@@ -282,6 +288,8 @@ public class Storage extends SQLiteOpenHelper {
     }
 
     public static class Record implements BaseColumns {
+        enum CALIBRATION_METHODS {None, ManualSetting, Calibrator, Reference, CalibratedSmartPhone, Traffic}
+
         public static final String TABLE_NAME = "record";
         public static final String COLUMN_ID = "record_id";
         public static final String COLUMN_UTC = "record_utc";
@@ -293,6 +301,7 @@ public class Storage extends SQLiteOpenHelper {
         public static final String COLUMN_PHOTO_URI = "photo_uri";
         public static final String COLUMN_CALIBRATION_GAIN = "calibration_gain";
         public static final String COLUMN_NOISEPARTY_TAG = "noiseparty_tag";
+        public static final String COLUMN_CALIBRATION_METHOD = "calibration_method";
 
         private int id;
         private long utc;
@@ -304,6 +313,8 @@ public class Storage extends SQLiteOpenHelper {
         private Uri photoUri;
         private float calibrationGain;
         private String noisePartyTag;
+        private CALIBRATION_METHODS calibrationMethod;
+
 
         public Record(Cursor cursor) {
             this(cursor.getInt(cursor.getColumnIndex(COLUMN_ID)),
@@ -311,7 +322,8 @@ public class Storage extends SQLiteOpenHelper {
                     cursor.getString(cursor.getColumnIndex(COLUMN_UPLOAD_ID)),
                     cursor.getFloat(cursor.getColumnIndex(COLUMN_LEQ_MEAN)),
                     cursor.getInt(cursor.getColumnIndex(COLUMN_TIME_LENGTH)),
-                    cursor.getFloat(cursor.getColumnIndex(COLUMN_CALIBRATION_GAIN)));
+                    cursor.getFloat(cursor.getColumnIndex(COLUMN_CALIBRATION_GAIN)),
+                    cursor.getInt(cursor.getColumnIndex(COLUMN_CALIBRATION_METHOD)));
             noisePartyTag = getString(cursor, COLUMN_NOISEPARTY_TAG);
             description = getString(cursor, COLUMN_DESCRIPTION);
             String uriString = getString(cursor, COLUMN_PHOTO_URI);
@@ -322,13 +334,14 @@ public class Storage extends SQLiteOpenHelper {
         }
 
         public Record(int id, long utc, String uploadId, float leqMean, int timeLength,
-                      float calibrationGain) {
+                      float calibrationGain, int calibrationMethod) {
             this.id = id;
             this.utc = utc;
             this.uploadId = uploadId;
             this.leqMean = leqMean;
             this.timeLength = timeLength;
             this.calibrationGain = calibrationGain;
+            this.calibrationMethod = CALIBRATION_METHODS.values()[calibrationMethod];
         }
 
         /**
@@ -352,6 +365,14 @@ public class Storage extends SQLiteOpenHelper {
 
         public Uri getPhotoUri() {
             return photoUri;
+        }
+
+        public CALIBRATION_METHODS getCalibrationMethod() {
+            return calibrationMethod;
+        }
+
+        public void setCalibrationMethod(CALIBRATION_METHODS calibrationMethod) {
+            this.calibrationMethod = calibrationMethod;
         }
 
         /**
@@ -408,7 +429,8 @@ public class Storage extends SQLiteOpenHelper {
             Record.COLUMN_PHOTO_URI + " TEXT, " +
             Record.COLUMN_PLEASANTNESS + " SMALLINT," +
             Record.COLUMN_CALIBRATION_GAIN + " FLOAT DEFAULT 0," +
-            Record.COLUMN_NOISEPARTY_TAG + " TEXT" +
+            Record.COLUMN_NOISEPARTY_TAG + " TEXT," +
+            Record.COLUMN_CALIBRATION_METHOD + " INTEGER DEFAULT 0" +
             ")";
 
 

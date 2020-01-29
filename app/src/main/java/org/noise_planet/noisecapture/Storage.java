@@ -191,7 +191,7 @@ public class Storage extends SQLiteOpenHelper {
         }
         if(oldVersion == 10) {
             if(!db.isReadOnly()) {
-                db.execSQL("ALTER TABLE RECORD ADD COLUMN CALIBRATION_METHOD INTEGER DEFAULT 0");
+                db.execSQL("ALTER TABLE RECORD ADD COLUMN calibration_method INTEGER DEFAULT 0");
             }
             oldVersion = 11;
         }
@@ -323,7 +323,7 @@ public class Storage extends SQLiteOpenHelper {
                     cursor.getFloat(cursor.getColumnIndex(COLUMN_LEQ_MEAN)),
                     cursor.getInt(cursor.getColumnIndex(COLUMN_TIME_LENGTH)),
                     cursor.getFloat(cursor.getColumnIndex(COLUMN_CALIBRATION_GAIN)),
-                    cursor.getInt(cursor.getColumnIndex(COLUMN_CALIBRATION_METHOD)));
+                    cursor.getColumnIndex(COLUMN_CALIBRATION_METHOD) != -1 ? cursor.getInt(cursor.getColumnIndex(COLUMN_CALIBRATION_METHOD)) : 0);
             noisePartyTag = getString(cursor, COLUMN_NOISEPARTY_TAG);
             description = getString(cursor, COLUMN_DESCRIPTION);
             String uriString = getString(cursor, COLUMN_PHOTO_URI);

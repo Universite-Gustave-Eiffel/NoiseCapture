@@ -106,6 +106,7 @@ public class CalibrationHistory extends MainActivity {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         SharedPreferences.Editor editor = sharedPref.edit();
         editor.putString("settings_recording_gain", String.valueOf(averageGain));
+        editor.putString("settings_calibration_method", String.valueOf(Storage.Record.CALIBRATION_METHODS.Traffic.ordinal()));
         editor.apply();
         Toast.makeText(getApplicationContext(),
                 getString(R.string.calibrate_done, averageGain), Toast.LENGTH_LONG).show();

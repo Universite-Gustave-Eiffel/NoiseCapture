@@ -99,6 +99,7 @@ public class MeasurementService extends Service {
     // Seconds to delete when pause is activated
     private int deletedLeqOnPause = 0;
     private double dBGain = 0;
+    private int calibrationMethod = 0;
     private PropertyChangeSupport listeners = new PropertyChangeSupport(this);
     private static final Logger LOGGER = LoggerFactory.getLogger(MeasurementService.class);
 
@@ -128,8 +129,9 @@ public class MeasurementService extends Service {
     /**
      * @param dBGain Gain in dB
      */
-    public void setdBGain(double dBGain) {
+    public void setdBGain(double dBGain, int calibrationMethod) {
         this.dBGain = dBGain;
+        this.calibrationMethod = calibrationMethod;
         if(audioProcess != null && Double.compare(0, dBGain) != 0) {
             audioProcess.setGain((float)Math.pow(10, dBGain / 20));
         }
@@ -681,7 +683,7 @@ public class MeasurementService extends Service {
         if(!isRecording()) {
             startRecording();
         }
-        recordId = measurementManager.addRecord();
+        recordId = measurementManager.addRecord(Storage.Record.CALIBRATION_METHODS.values()[calibrationMethod]);
         leqAdded.set(0);
         isStorageActivated.set(true);
         showNotification();

@@ -28,22 +28,34 @@
 package org.noise_planet.noisecapture;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class SettingsActivity extends MainActivity {
+public class SettingsActivity extends MainActivity implements SharedPreferences.OnSharedPreferenceChangeListener{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         Intent intent = getIntent();
         initDrawer(intent != null ? intent.getIntExtra(RESULTS_RECORD_ID, -1) : null);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPref.registerOnSharedPreferenceChangeListener(this);
 
     }
 
-
+    @Override
+    public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
+        if("settings_recording_gain".equals(key)) {
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putString("settings_calibration_method", String.valueOf(Storage.Record.CALIBRATION_METHODS.ManualSetting.ordinal()));
+            editor.apply();
+        }
+    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

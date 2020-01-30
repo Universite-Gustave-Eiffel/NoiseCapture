@@ -83,7 +83,7 @@ public class TestDB {
         MeasurementManager measurementManager =
                 new MeasurementManager(RuntimeEnvironment.application);
 
-        int recordId = measurementManager.addRecord();
+        int recordId = measurementManager.addRecord(Storage.Record.CALIBRATION_METHODS.None);
         Storage.Leq leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), 12, 15, 50.d,
                 15.f, 4.f, 4.5f,System.currentTimeMillis());
         List<Storage.LeqValue> leqValues = new ArrayList<Storage.LeqValue>();
@@ -152,7 +152,7 @@ public class TestDB {
         MeasurementManager measurementManager =
                 new MeasurementManager(RuntimeEnvironment.application);
 
-        int recordId = measurementManager.addRecord();
+        int recordId = measurementManager.addRecord(Storage.Record.CALIBRATION_METHODS.None);
         Storage.Leq leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), 12, 15, 50.d,
                 15.f, 4.f, 4.5f,System.currentTimeMillis());
         List<Storage.LeqValue> leqValues = new ArrayList<Storage.LeqValue>();
@@ -207,7 +207,7 @@ public class TestDB {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.application);
         assertTrue(sharedPref.edit().putString("settings_user_noise_knowledge", "NOVICE").commit());
 
-        int recordId = measurementManager.addRecord();
+        int recordId = measurementManager.addRecord(Storage.Record.CALIBRATION_METHODS.Traffic);
         Storage.Leq leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), 12, 15, 50.d,
                 15.f, 4.f, 4.5f,System.currentTimeMillis());
         List<Storage.LeqValue> leqValues = new ArrayList<Storage.LeqValue>();
@@ -254,11 +254,11 @@ public class TestDB {
                     assertEquals(JsonToken.BEGIN_OBJECT, jsonReader.peek());
                     jsonReader.beginObject();
                     assertEquals(JsonToken.NAME, jsonReader.peek());
-                    Assert.assertEquals("type", jsonReader.nextName());
+                    assertEquals("type", jsonReader.nextName());
                     assertEquals(JsonToken.STRING, jsonReader.peek());
-                    Assert.assertEquals("FeatureCollection", jsonReader.nextString());
+                    assertEquals("FeatureCollection", jsonReader.nextString());
                     assertEquals(JsonToken.NAME, jsonReader.peek());
-                    Assert.assertEquals("features", jsonReader.nextName());
+                    assertEquals("features", jsonReader.nextName());
                     assertEquals(JsonToken.BEGIN_ARRAY, jsonReader.peek());
                     foundJson = true;
                 }
@@ -268,6 +268,7 @@ public class TestDB {
         assertNotNull(meta);
         assertNotNull(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION));
         assertEquals("NOVICE", meta.getProperty(MeasurementExport.PROP_USER_PROFILE));
+        assertEquals(Storage.Record.CALIBRATION_METHODS.Traffic.name(), meta.getProperty(MeasurementExport.PROP_METHOD_CALIBRATION));
         assertEquals("OGRS2018", meta.getProperty(Storage.Record.COLUMN_NOISEPARTY_TAG));
         assertEquals(-4.76f, Float.valueOf(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
         assertEquals((float)leqBatch.computeGlobalLeq(),
@@ -283,7 +284,7 @@ public class TestDB {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.application);
         assertTrue(sharedPref.edit().putString("settings_user_noise_knowledge", "NOVICE").commit());
 
-        int recordId = measurementManager.addRecord();
+        int recordId = measurementManager.addRecord(Storage.Record.CALIBRATION_METHODS.None);
         Storage.Leq leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), 12, 15, 50.d,
                 15.f, 4.f, 4.5f,System.currentTimeMillis());
         List<Storage.LeqValue> leqValues = new ArrayList<Storage.LeqValue>();

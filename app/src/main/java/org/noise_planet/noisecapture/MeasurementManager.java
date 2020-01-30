@@ -208,12 +208,13 @@ public class MeasurementManager {
     /**
      * @return Record
      */
-    public int addRecord() {
+    public int addRecord(Storage.Record.CALIBRATION_METHODS calibrationMethod) {
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
             ContentValues contentValues = new ContentValues();
             contentValues.put(Storage.Record.COLUMN_UTC, System.currentTimeMillis());
             contentValues.put(Storage.Record.COLUMN_UPLOAD_ID, "");
+            contentValues.put(Storage.Record.COLUMN_CALIBRATION_METHOD, calibrationMethod.ordinal());
             try {
                 return (int) database.insertOrThrow(Storage.Record.TABLE_NAME, null, contentValues);
             } catch (SQLException sqlException) {

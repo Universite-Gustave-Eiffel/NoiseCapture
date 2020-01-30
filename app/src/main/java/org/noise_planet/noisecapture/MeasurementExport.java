@@ -27,7 +27,6 @@
 
 package org.noise_planet.noisecapture;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -70,6 +69,7 @@ public class MeasurementExport {
     public static final String PROP_MODEL  = "device_model";
     public static final String PROP_TAGS  = "tags";
     public static final String PROP_GAIN_CALIBRATION  = "gain_calibration";
+    public static final String PROP_METHOD_CALIBRATION  = "method_calibration";
     public static final String PROP_UUID = "uuid"; // Random anonymous ID that link non identified user's measure.
     public static final String PROP_VERSION_NAME  = "version_name";
     public static final String PROP_BUILD_TIME  = "build_date";
@@ -301,6 +301,7 @@ public class MeasurementExport {
         properties.setProperty(Storage.Record.COLUMN_UTC, String.valueOf(record.getUtc()));
         properties.setProperty(Storage.Record.COLUMN_LEQ_MEAN, String.format(Locale.US, "%.02f", record.getLeqMean()));
         properties.setProperty(PROP_GAIN_CALIBRATION, String.format(Locale.US, "%.02f", record.getCalibrationGain()));
+        properties.setProperty(PROP_METHOD_CALIBRATION, String.valueOf(record.getCalibrationMethod().name()));
         properties.setProperty(Storage.Record.COLUMN_TIME_LENGTH, String.valueOf(record.getTimeLength()));
         if(record.getPleasantness() != null) {
             properties.setProperty(Storage.Record.COLUMN_PLEASANTNESS, String.valueOf(record.getPleasantness()));

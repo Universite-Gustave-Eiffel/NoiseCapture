@@ -376,6 +376,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
                 SharedPreferences.Editor editor = sharedPref.edit();
                 editor.putString("settings_recording_gain", String.valueOf(gain));
+                editor.putString("settings_calibration_method", String.valueOf(Storage.Record.CALIBRATION_METHODS.CalibratedSmartPhone.ordinal()));
                 editor.apply();
                 setState(CALIBRATION_STATE.AWAITING_START);
             }

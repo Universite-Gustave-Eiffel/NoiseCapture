@@ -209,7 +209,7 @@ public class MeasurementActivity extends MainActivity implements
         } else if(MAXIMAL_MEASURE_TIME_SETTING.equals(key)) {
             maximalMeasurementTime = getInteger(sharedPreferences,MAXIMAL_MEASURE_TIME_SETTING, DEFAULT_MAXIMAL_MEASURE_TIME_SETTING);
         } else if("settings_recording_gain".equals(key) && measurementService != null) {
-            measurementService.setdBGain(getDouble(sharedPreferences, key, 0));
+            measurementService.setdBGain(getDouble(sharedPreferences, key, 0), getInteger(sharedPreferences, "settings_calibration_method", 0));
         } else if(SETTINGS_MEASUREMENT_DISPLAY_WINDOW.equals(key) && measurementService != null) {
             measurementService.getAudioProcess().setHannWindowFast(sharedPreferences.getString(SETTINGS_MEASUREMENT_DISPLAY_WINDOW, "RECTANGULAR").equals("HANN"));
             if(BuildConfig.DEBUG) {
@@ -806,7 +806,7 @@ public class MeasurementActivity extends MainActivity implements
             measurementService.setDeletedLeqOnPause(getInteger(sharedPref,MeasurementActivity.DELETE_LEQ_ON_PAUSE_SETTING,
                             MeasurementActivity.DEFAULT_DELETE_LEQ_ON_PAUSE));
             measurementService.setdBGain(
-                    getDouble(sharedPref,"settings_recording_gain", 0));
+                    getDouble(sharedPref,"settings_recording_gain", 0), getInteger(sharedPref, "settings_calibration_method", 0));
             // Init gui if recording is ongoing
             measurementService.addPropertyChangeListener(doProcessing);
 

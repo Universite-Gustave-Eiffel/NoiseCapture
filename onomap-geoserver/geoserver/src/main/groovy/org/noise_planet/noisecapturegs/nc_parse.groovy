@@ -158,6 +158,10 @@ static Integer processFile(Connection connection, File zipFile,Map trackData = [
             idParty = result.pk_party as Integer
         }
     }
+    String calibrationMethod = meta.getProperty("method_calibration")
+    if(calibrationMethod == null) {
+        calibrationMethod = "None"
+    }
     // insert record
     Map record = [track_uuid         : recordUUID,
                   pk_user            : idUser,
@@ -171,7 +175,7 @@ static Integer processFile(Connection connection, File zipFile,Map trackData = [
                   time_length        : meta.get("time_length") as int,
                   gain_calibration   : gain,
                   noiseparty_id      : idParty,
-                  method_calibration : meta.getProperty("method_calibration")]
+                  method_calibration : calibrationMethod]
     def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
             " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration, pk_party, calibration_method) VALUES (" +
             ":track_uuid, :pk_user, :version_number,:record_utc::timestamptz, :pleasantness, :device_product, :device_model," +

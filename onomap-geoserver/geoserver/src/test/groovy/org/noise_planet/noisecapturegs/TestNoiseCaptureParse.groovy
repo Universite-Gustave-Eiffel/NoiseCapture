@@ -304,4 +304,13 @@ class TestNoiseCaptureParse  extends JdbcTestCase {
         def pkTrack =  sql.firstRow("SELECT pk_track FROM  noisecapture_track where track_uuid = '1c9d12ee-5a98-4176-bdc2-38afd1075aad'").get("pk_track")
         assertEquals("GEOMETRYCOLLECTION EMPTY", sql.firstRow("SELECT the_geom FROM  noisecapture_point where pk_track = " + pkTrack).get("the_geom").toString())
     }
+
+    void testParseCalibrationMethods() {
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_88a20ba7-22f7-4ac4-923b-9d43dd5348b8.zip").file))
+        // Read db; check content
+        Sql sql = new Sql(connection)
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals("Traffic", sql.firstRow("SELECT calibration_method::varchar calibration_method FROM  noisecapture_track").calibration_method)
+    }
 }

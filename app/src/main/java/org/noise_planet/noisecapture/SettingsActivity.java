@@ -31,6 +31,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,6 +43,8 @@ public class SettingsActivity extends MainActivity implements SharedPreferences.
         setContentView(R.layout.activity_settings);
         Intent intent = getIntent();
         initDrawer(intent != null ? intent.getIntExtra(RESULTS_RECORD_ID, -1) : null);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        sharedPref.registerOnSharedPreferenceChangeListener(this);
 
     }
 

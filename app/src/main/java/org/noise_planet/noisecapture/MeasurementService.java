@@ -36,6 +36,7 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.pm.ServiceInfo;
 import android.graphics.Color;
 import android.location.GpsStatus;
 import android.location.Location;
@@ -46,9 +47,9 @@ import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.support.annotation.RequiresApi;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.content.ContextCompat;
+import androidx.annotation.RequiresApi;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 
 import org.orbisgis.sos.LeqStats;
 import org.slf4j.Logger;
@@ -517,9 +518,6 @@ public class MeasurementService extends Service {
             res = low != null ? low.getValue() : high.getValue();
             key = low != null ? low.getKey() : high.getKey();
         }
-        if(BuildConfig.DEBUG) {
-            System.out.println("Fetch time offset "+(utcTime-key)+" ms");
-        }
         return res;
     }
 
@@ -689,7 +687,7 @@ public class MeasurementService extends Service {
         showNotification();
         // Set is foreground in order to let this service running without stopping
         try {
-            startForeground(NOTIFICATION, notificationInstance);
+            startForeground(NOTIFICATION, notificationInstance, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
         } catch (SecurityException ex) {
             // Ignore, noisecapture can not be run on background on this smartphone
         }

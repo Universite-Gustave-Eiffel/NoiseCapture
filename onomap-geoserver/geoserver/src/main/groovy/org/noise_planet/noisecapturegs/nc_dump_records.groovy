@@ -122,10 +122,17 @@ private List<String> getDump(Connection connection, File outPath, boolean export
         // This variable host the opened connection to all files
         Map<String, ZipOutputStream> countryZipOutputStream = [:]
         // Create a table that contains track envelopes
-        sql.execute("TRUNCATE TABLE NOISECAPTURE_DUMP_TRACK_ENVELOPE")
-        sql.execute("INSERT INTO NOISECAPTURE_DUMP_TRACK_ENVELOPE SELECT pk_track, " +
-                "ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom,  COUNT(np.pk_point) measure_count" +
-                " from noisecapture_point np where not ST_ISEMPTY(the_geom)  group by pk_track having st_area(ST_Transform(ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326), 3857)) < 1e8")
+        def lastpktrack = sql.firstRow("SELECT MAX(PK_TRACK) FROM NOISECAPTURE_DUMP_TRACK_ENVELOPE")[0] as Integer
+        if(lastpktrack != null) {
+            // resume analyze of receivers extents
+            sql.execute("INSERT INTO NOISECAPTURE_DUMP_TRACK_ENVELOPE SELECT pk_track, " +
+                    "ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom,  COUNT(np.pk_point) measure_count" +
+                    " from noisecapture_point np where pk_track > :maxpktrack and not ST_ISEMPTY(the_geom)  group by pk_track having st_area(ST_Transform(ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326), 3857)) < 1e8", [maxpktrack: lastpktrack])
+        } else {
+            sql.execute("INSERT INTO NOISECAPTURE_DUMP_TRACK_ENVELOPE SELECT pk_track, " +
+                    "ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom,  COUNT(np.pk_point) measure_count" +
+                    " from noisecapture_point np where not ST_ISEMPTY(the_geom)  group by pk_track having st_area(ST_Transform(ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326), 3857)) < 1e8")
+        }
         // Create a table that link location names with tracks
         sql.execute("drop table if exists noisecapture_dump_country")
         sql.execute("create table noisecapture_dump_country as select name_0, name_1, name_2, (select tzid from tz_world tz where tz.the_geom && st_expand(te.the_geom,0.1) order by ST_DISTANCE(tz.the_geom, te.the_geom) ASC LIMIT 1) tzid,te.the_geom, te.pk_track, record_utc from NOISECAPTURE_DUMP_TRACK_ENVELOPE te, gadm28 ga, noisecapture_track nt where te.the_geom && ga.the_geom and st_intersects(te.the_geom, ga.the_geom) and te.pk_track = nt.pk_track group by name_0, name_1, name_2, tzid, te.the_geom, te.pk_track, record_utc")

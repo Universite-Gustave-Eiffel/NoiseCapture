@@ -170,7 +170,7 @@
     <string name="title_activity_start">Noise Capture</string>
     <string name="title_activity_calibration_start">Calibrage</string>
     <string name="title_activity_calibration_linearity">Test de linéarité</string>
-    <string name="title_activity_menu_calibration">Méthodes de calibration</string>
+    <string name="title_activity_menu_calibration">Méthodes de calibrage</string>
 
     <string name="title_activity_calibration_host">Calibrage auto (émetteur)</string>
     <string name="title_activity_calibration_peer">Calibrage auto (récepteur)</string>
@@ -321,8 +321,8 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="calibration_average_vehicle_speed">Vitesse du véhicule</string>
     <string name="calibration_distance_vehicle">Distance du centre de la voie</string>
     <string name="calibration_manual_traffic">La position de mesure pour le calibrage doit être suffisamment proche de la route tout en assurant votre sécurité. La route doit être sèche et en bon état.</string>
-    <string name="title_activity_calibration_history">Sessions de calibration</string>
-    <string name="title_activity_calibration_traffic">Calibration avec le trafic</string>
+    <string name="title_activity_calibration_history">Sessions de calibrage</string>
+    <string name="title_activity_calibration_traffic">Calibrage avec le trafic</string>
     <string name="plusminus">±</string>
     <string name="traffic_history_count">%d véhicules</string>
     <string name="calibration_estimated_gain">Gain %.2f dB(A)</string>

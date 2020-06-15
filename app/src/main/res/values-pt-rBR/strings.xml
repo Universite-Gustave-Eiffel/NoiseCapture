@@ -1,0 +1,321 @@
+<resources>
+
+    <string name="app_name">NoiseCapture</string>
+
+    <string name="action_settings">Configurações</string>
+    <string name="comment_cancel_change">Cancelar</string>
+    <string name="comment_save_change">Salvar</string>
+    <string name="comment_delete_record">Excluir</string>
+    <string name="comment_title_save_change">Salvar alterações?</string>
+    <string name="comment_title_delete">Excluir a medição?</string>
+    <string name="history_title_delete">Excluir as medições selecionadas?</string>
+
+    <string name="record_message">Pressione o botão de gravação para começar</string>
+    <string name="calibrate_done">Calibração pronta, ganho definido em %1$.1f dB</string>
+    <string name="calibration_out_bounds_title">Nível de ruído muito baixo</string>
+    <string name="calibration_out_bounds">Nível sonoro da calibração incompatível com as especificações do hardware, deve estar entre %1$.0f dB e %2$.0f dB</string>
+    <string name="calibration_save_change">Ignorar e aplicar</string>
+    <string name="calibration_cancel_change">Cancelar</string>
+    <string name="fail_share">Geração do arquivo compartilhado falhou</string>
+    <string name="no_results">Não há resultados. Comece uma gravação antes.</string>
+    <string name="no_gps_results">Não há coordenadas GPS nesta gravação</string>
+    <string name="no_gps_hint">Sem GPS</string>
+    <string name="gps_hint_precision">%1$d m</string>
+    <string name="loc_hint">Indicação do status da posição</string>
+    <string name="permission_explain_audio_record">NoiseCapture requer permissão de uso do microfone para medições de áudio</string>
+    <string name="permission_explain_gps">NoiseCapture requer posição GPS para posicionamento de níveis de ruído no mapa</string>
+    <string name="permission_explain_access_wifi_state">NoiseCapture requer permissão de acesso
+ ao status do wifi para não transferir dados se o dispositivo não estiver conectado via wifi</string>
+
+    <string name="title_menu">Menu</string>
+    <string name="title_service_measurement">Medição</string>
+    <string name="title_activity_measurement">Medição</string>
+    <string name="title_activity_results">Resultados</string>
+    <string name="title_activity_history">Histórico</string>
+    <string name="title_activity_about">Sobre</string>
+    <string name="user_id_activity_about">ID do usuário</string>
+    <string name="title_activity_help">Ajuda</string>
+    <string name="title_appversion">Versão %1$s %2$s r.%3$s</string>
+
+    <!-- Caution dialog box at app launch !-->
+    <string name="text_OK">SIM, eu entendo</string>
+    <string name="title_caution">Cuidado</string>
+    <string name="text_caution">Lembre-se que esta aplicação não substitui um medidor de nível sonoro certificado e calibrado</string>
+
+    <!-- Caution dialog box for data transfer !-->
+    <string name="text_CANCEL_data_transfer">Cancelar</string>
+    <string name="no_valid_dba_value">-</string>
+
+    <string name="SL_dBA">dB(A)</string>
+    <string name="SL_dB">dB</string>
+
+    <string name="hello_world">Olá, mundo!</string>
+    <string name="title_settings_calibration_warmup_time">Tempo de preparação da calibração</string>
+    <string name="title_settings_calibration_warmup_time_description">Tempo de espera em segundos antes da calibração</string>
+    <string name="title_settings_calibration_time">Tempo de calibração</string>
+    <string name="title_settings_calibration_time_description">Tempo de calibração em segundos</string>
+    <string name="title_settings_calibration_linear_title">Saída de áudio</string>
+    <string name="title_settings_calibration_linear_description">Saída do dispositivo para teste de correlação linear</string>
+    <string name="setting_general_group">Geral</string>
+    <string name="setting_measurement_group">Medição</string>
+    <string name="setting_calibration_group">Calibração</string>
+    <string name="title_settings_data_transfer">Transferência de dados</string>
+    <string name="summary_settings_data_transfer">Transferência automática de medições</string>
+    <string name="title_settings_transfer_wifi_only">Apenas wifi</string>
+    <string name="summary_settings_transfer_wifi_only">Transferência automática apenas por wifi</string>
+    <string name="title_settings_recording">Gravando</string>
+    <string name="summary_settings_recording">Configurar tempo máximo de gravação</string>
+    <string name="title_settings_caution">Mensagem de alerta</string>
+    <string name="summary_settings_tooltip">Marque para exibir o tooltip ao tocar elementos no NoiseCapture</string>
+    <string name="title_settings_tooltip">Mensagem do tooltip</string>
+    <string name="summary_settings_caution">Marque para exibir a mensagem de alerta durante o lançamento da aplicação</string>
+    <string name="title_settings_recording_duration">Duração da gravação</string>
+
+
+    <string name="title_settings_recording_gain">Ganho do sinal</string>
+    <string name="summary_settings_recording_gain">Configurar ganho do sinal de calibração em dB</string>
+
+    <string name="title_settings_spectrogram_logscalemode">Apresentação do espectrograma</string>
+    <string name="title_settings_delete_leq_on_pause">Excluir Leq ao pausar</string>
+    <string name="title_settings_delete_leq_on_pause_description">Excluir os últimos segundos gravados ao pausar</string>
+    <string name="summary_settings_spectrogram_logscalemode">Marque para escala de frequências logarítmica, desmarque para linear</string>
+    <string name="summary_settings_recording_duration">Configurar a duração da gravação (em segundos)</string>
+    <string name="measurement_dba_min">Min</string>
+    <string name="measurement_dba_max">Max</string>
+    <string name="measurement_dba_mean">Médio</string>
+    <string name="measurement_dba_la10">LA10</string>
+    <string name="measurement_dba_la50">LA50</string>
+    <string name="measurement_dba_la90">LA90</string>
+    <string name="measurement_tab_spectrum">Espectro</string>
+    <string name="measurement_tab_spectrogram">Espectrograma</string>
+    <string name="measurement_tab_map">Mapa</string>
+
+    <!--  Ressources for the spinner calibration !-->
+
+    <!--  Ressources for the spinner map !-->
+
+    <!--  Ressources for the spinner history
+          History:HistoryItemListener:onItemClick remove the first entry (upload) !-->
+    <string-array name="choice_user_history">
+        <item>Enviar para a comunidade</item>
+        <item>Exportar resultado</item>
+        <item>Editar descrição</item>
+        <item>Mostrar resultado</item>
+        <item>Mostrar no mapa</item>
+        <item>Excluir</item>
+    </string-array>
+
+    <!--  Ressources for the Drawer and option menu !-->
+    <string-array name="dm_list_array">
+        <item>Medição</item>
+        <item>Descrição</item>
+        <item>Resultados</item>
+        <item>Histórico</item>
+        <item>Mapa</item>
+        <item>Calibração</item>
+        <item>Ajuda</item>
+        <item>Sobre</item>
+    </string-array>
+    <string name="result_share">Compartilhar este resultado</string>
+    <string name="result_button_map">Mostrar mapa</string>
+    <string name="result_button_upload">Enviar para o servidor</string>
+    <string name="result_tooltip_minsl">Nível de ruído mínimo, 1 segundo A-ponderado</string>
+    <string name="result_tooltip_maxsl">Nível de ruído máximo, 1 segundo A-ponderado</string>
+    <string name="result_tooltip_la10">LA10: nível de ruído A-ponderado excedido durante 10% do
+ período de medição. LA10 é útil para quantificar o ruído do tráfego em rodovias, o qual está correlacionado à perturbação causada pelo ruído.</string>
+    <string name="result_tooltip_la50">LA50: nível de ruído A-ponderado excedido durante 50% do
+ período de medição. LA50 é o nível sonoro mediano.</string>
+    <string name="result_tooltip_la90">LA90: nível de ruído A-ponderado excedido durante 90% do
+ período de medição. LA90 é útil para quantificar o nível de ruído de fundo.</string>
+    <string name="drawer_open">Abrir drawer de navegação</string>
+    <string name="drawer_close">Fechar drawer de navegação</string>
+    <string name="url_about">file:///android_asset/html/about.html</string>
+    <string name="url_help">file:///android_asset/html/help.html</string>
+
+    <!--  Ressources for acoustics !-->
+    <string name="caption_SL">Nível sonoro</string>
+    <string-array name="catNE_list_array">
+        <item>Maior que 75 dB(A)</item>
+        <item>65-75 dB(A)</item>
+        <item>55-65 dB(A)</item>
+        <item>45-55 dB(A)</item>
+        <item>Menor que 45 dB(A)</item>
+    </string-array>
+    <!-- Add new tags at the end, update also this array Storage.TAGS -->
+    <string-array name="tags">
+        <item>TESTE</item>
+        <item>Chuva</item>
+        <item>Vento</item>
+        <item>Interior</item>
+        <item>Passos</item>
+        <item>Voz</item>
+        <item>Natural</item>
+        <item>Mecânico</item>
+        <item>Humano</item>
+        <item>Obra</item>
+        <item>Avião</item>
+        <item>Entretenimento</item>
+        <item>Crianças</item>
+        <item>Música</item>
+        <item>Rodovia</item>
+        <item>Trem</item>
+        <item>Barco</item>
+        <item>Alarmes</item>
+        <item>Industrial</item>
+        <item>Água</item>
+        <item>Animais</item>
+        <item>Vegetação</item>
+    </string-array>
+    <string name="title_activity_main">AtividadePrincipal</string>
+
+    <string name="title_activity_view_html_page">View_html_page</string>
+    <string name="title_activity_settings">Configurações</string>
+    <string name="title_activity_map">Mapa</string>
+    <string name="title_activity_start">Noise Capture</string>
+    <string name="title_activity_calibration_start">Calibração</string>
+    <string name="title_activity_calibration_linearity">Teste de correlação linear</string>
+    <string name="title_activity_menu_calibration">Métodos de calibração</string>
+
+    <string name="title_activity_calibration_host">Auto-calibração (fonte)</string>
+    <string name="title_activity_calibration_peer">Auto-calibração (receptor)</string>
+
+
+    <string name="start_text_title">NoiseCapture</string>
+    <string name="start_text_subtitle">Medindo seu ambiente sonoro</string>
+    <string name="start_text_developed_by">Desenvolvido por</string>
+    <string name="start_text_supported_by">Suportado por</string>
+    <string name="upload_progress_title">Enviando para o servidor</string>
+    <string name="upload_progress_message">Enviando medição para o servidor</string>
+
+    <string name="history_length">%d s</string>
+    <string name="history_date">%s</string>
+    <string name="history_already_uploaded">Esta medição já foi enviada para o servidor</string>
+    <string name="history_sel">%.01f dB(A)</string>
+    <string name="history_upload_top">Enviar para o servidor</string>
+    <string name="history_uploadeddescr">Este resultado foi enviado para a base de dados da comunidade?</string>
+
+    <string name="measurement_processlastsamples">Processando as %d amostras restantes</string>
+    <string name="history_item_choice_title">Medição %s</string>
+    <string name="calibration_select_frequency">Escolha a frequência a ser mostrada</string>
+    <string name="local_service_started">Serviço de localização iniciado</string>
+    <string name="measurement_service_disconnected">Serviço de medição desconectado</string>
+    <string name="measurement_pause">Medição pausada</string>
+    <string name="delete">Excluir</string>
+    <string name="hint_userinput">Toque aqui para definir uma descrição</string>
+    <string name="no_data_text_description">Inicie pressionando o botão de gravação</string>
+    <string name="export_zip_info">Descrição do arquivo de exportação\n\n
+meta.properties Arquivo com informações sobre o dispositivo e a gravação:\n
+- version_name Versão maior, menor e revisão\n
+- build_date Data da montagem do APK\n
+- version_number Inteiro indicando a versão da aplicação\n
+- time_length Duração da gravação em segundos\n
+- uuid Identificador aleatório definido no primeiro início da aplicação\n
+- leq_mean Nível sonoro equivalente médio da medição em dB(A)\n
+- record_utc Data da gravação em milisegundos decorridos desde 01-01-1970\n
+- device_manufacturer device_model device_product Informações sobre o hardware do dispositivo\n
+- pleasantness Qualidade do som (desagradável-agradável) definida pelo usuário 1-100\n
+- tags Tags selecionadas pelo usuário (em inglês) separadas por vírgulas\n
+- user_profile Conhecimento do usuário em Acústica NONE, NOVICE, EXPERT\n
+- noiseparty_tag Identificador NoiseParty da gravação\n\n
+
+track.geojson Arquivo com amostras das medições, 1s. Formato geojson  (http://geojson.io)\n
+- leq_mean Nível sonoro equivalente médio, 1s, em dB(A)\n
+- accuracy Precisão da localização em m (fornecida por GPS, rede ou GSM)\n
+- location_utc Data da definição da localização em milisegundos decorridos desde 01-01-1970\n
+- leq_utc Data da medição em milisegundos decorridos desde 01-01-1970\n
+- leq_id Identificador único da gravação\n
+- marker_color Cor usada por geojson.io\n
+- bearing Orientação do movimento. Veja  https://developer.android.com/reference/android/location/Location.html#getBearing()\n
+- speed Velocidade estimada do dispositivo em m/s\n
+- leq_frequency Nível sonoro equivalente médio, 1s, em dB(A), para a frequência especificada\n</string>
+    <string name="title_activity_comment">Descrição</string>
+    <string name="userinfo_unpleasant">Desagradável</string>
+    <string name="userinfo_pleasant">Agradável</string>
+    <string name="calibration_status_waiting_for_user_start">Esperando pelo início da calibração</string>
+    <string name="calibration_status_waiting_for_start_timer">Calibração está para começar</string>
+    <string name="calibration_status_send_parameters">Tempo de espera antes do envio dos parâmetros de calibração</string>
+    <string name="calibration_status_receive_reference">Aguardando valor de referência</string>
+    <string name="calibration_status_cooldown">Tempo de espera antes do envio do valor de referência</string>
+    <string name="userinfo_button_measure">Medida</string>
+    <string name="userinfo_button_results">Válido</string>
+    <string name="userinfo_tags">Fontes predominantes</string>
+    <string name="calibration_status_on">Calibração</string>
+    <string name="calibration_linear_status_on">Calibração em %1$.0f dB</string>
+    <string name="calibration_status_end">Calibração pronta</string>
+    <string name="calibration_status_background_noise">Medindo o ruído de fundo</string>
+    <string name="calibration_button_start">Iniciar</string>
+    <string name="calibration_button_cancel">Cancelar</string>
+    <string name="calibration_laeq_title">LAeq medido:</string>
+    <string name="calibration_measure_title">Valor de referência:</string>
+    <string name="calibration_button_apply">Aplicar</string>
+    <string name="calibration_button_reset">Reconfigurar</string>
+    <string name="calibration_test_gain_checkbox">Ganho de teste</string>
+    <string name="calibration_mode">Modo de calibração</string>
+    <string-array name="calibrate_type_list_array">
+        <item>Global</item>
+        <item>125 Hz</item>
+        <item>250 Hz</item>
+        <item>500 Hz</item>
+        <item>1 kHz</item>
+        <item>4 kHz</item>
+        <item>8 kHz</item>
+        <item>16 kHz</item>
+    </string-array>
+    <string name="share_message">Estou medindo %.01f dB(A) usando #NoiseCapture</string>
+    <string name="summary_settings_measurement_display_window">Função de janela para medição em tempo real (não é usada no resultado final)</string>
+    <string name="title_settings_measurement_display_window">Janela de tempo real</string>
+    <string name="title_settings_map_maxmarker">Limites de medição apresentados</string>
+    <string name="summary_settings_map_maxmarker">Número máximo de medições mostradas no mapa (0 para todas as medições)</string>
+    <string name="map_title_progress_loading">Carregando posição das medições</string>
+    <string name="policy_legal_age">Tenho idade legal para usar este aplicativo</string>
+    <string name="policy_agree_statement">Concordo com a Política de Privacidade do NoiseCapture</string>
+    <string name="policy_button_continue">Continuar</string>
+    <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
+    <string name="privacy_policy_title">Política de Privacidade</string>
+    <string name="notification_record_content">Medição em progresso... %1$.1f dB(A)</string>
+    <string name="result_title_progress_loading">Carregando as medições</string>
+    <string name="userinfo_tags_measurement_conditions">Condições de medição</string>
+    <string name="notification_goto_community_map_title">Medições da comunidade</string>
+
+    <string-array name="output_mode_labels">
+        <item>Chamada de voz</item>
+        <item>Som do sistema</item>
+        <item>Toque</item>
+        <item>Música</item>
+        <item>Alarme</item>
+        <item>Notificação</item>
+        <item>DTMF</item>
+    </string-array>
+    <string-array name="settings_display_measurement_window_labels">
+        <item>Retangular</item>
+        <item>Hann</item>
+    </string-array>
+    <string name="notification_goto_community_map">Visite http://noise-planet.org e explore o mapa com todas as medições feitas pela comunidade</string>
+    <string name="title_settings_notification_links">Notificação</string>
+    <string name="summary_settings_notification_links">Marque para apresentar o link de notificação ao site do projeto Noise-Planet</string>
+    <string name="settings_category_profile">Perfil do usuário</string>
+    <string name="title_settings_user_noise_knowledge">Perfil do usuário</string>
+    <string name="settings_user_noise_knowledge_description">Como avalia seu conhecimento sobre ambientes sonoros?</string>
+    <string name="hint_userinput_noiseparty_tag">Código da NoiseCapture Party</string>
+    <string-array name="knowledge">
+        <item>Não tenho conhecimento no campo do ruído</item>
+        <item>Tenho algum conhecimento no campo do ruído</item>
+        <item>Sou um especialista/profissional no campo do ruído</item>
+    </string-array>
+    <string name="calibration_host_warning">O dispositivo fonte deve estar conectado a uma saída de áudio externa. Os dispositivos fonte e receptor devem estar igualmente expostos à saída de áudio externa.</string>
+    <string name="title_settings_language">Linguagem</string>
+    <string name="settings_language_summary">Mudar linguagem padrão do aplicativo</string>
+    <string name="calibration_communication">Transferência de dados</string>
+    <string name="calibration_host_hint">O dispositivo de referência e os receptores devem estar igualmente expostos à fonte de ruído. Os dispositivos receptores devem estar na tela de calibração antes de iniciar o procedimento.</string>
+    <string name="calibration_noise_source_parameters">Parâmetros da fonte de ruído</string>
+    <string name="calibration_noise_pink">Ruído rosa</string>
+    <string name="calibration_noise_ambient">Ruído ambiente</string>
+    <string name="auto_calibration">Automática com um dispositivo calibrado</string>
+    <string name="title_activity_calibration_auto_menu" >Automática</string>
+    <string name="manual_calibration_with_calibrator">Manual com um calibrador</string>
+    <string name="manual_calibration_with_reference">Manual com uma referência</string>
+    <string name="auto_calibration_host">Usar meu próprio dispositivo calibrado para calibrar outros dispositivos com NoiseCapture</string>
+    <string name="auto_calibration_guest">Calibrar meu dispositivo usando um outro já calibrado com NoiseCapture</string>
+    <string name="calibration_manual_ref">O procedimento de calibração requer o uso de um dispositivo calibrado de referência, tal como um sonômetro. Para mais informações, consulte a <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">página de ajuda</a> da aplicação</string>
+    <string name="calibration_manual_calibrator">O procedimento de calibração requer o uso de um calibrador. Para mais informações, consulte a <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">página de ajuda</a> da aplicação</string>
+</resources>

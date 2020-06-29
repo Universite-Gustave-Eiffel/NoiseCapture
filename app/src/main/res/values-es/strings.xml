@@ -229,7 +229,9 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
     <string name="userinfo_pleasant">Agradable</string>
     <string name="calibration_status_waiting_for_user_start">Esperando para iniciar la calibración&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">La calibración está a punto de comenzar&#8230;</string>
+    <string name="calibration_status_send_parameters">Tiempo de espera antes de enviar los parámetros de calibración&#8230;</string>
     <string name="calibration_status_receive_reference">A la espera del valor de referencia&#8230;</string>
+    <string name="calibration_status_cooldown">Tiempo de espera antes de enviar el valor de referencia&#8230;</string>
     <string name="userinfo_button_measure">Medida</string>
     <string name="userinfo_button_results">Validar</string>
     <string name="userinfo_tags">Fuentes predominantes</string>
@@ -255,6 +257,7 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
         <item>8 kHz</item>
         <item>16 kHz</item>
     </string-array>
+    <string name="share_message">Yo mido %.01fdB(A) utilizando #NoiseCapture</string>
     <string name="summary_settings_measurement_display_window">Ventana de la medición en tiempo real (no afecta al resultado final)</string>
     <string name="title_settings_measurement_display_window">Ventana de tiempo real</string>
     <string name="title_settings_map_maxmarker">Número de mediciones mostradas</string>
@@ -296,4 +299,35 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
         <item>Soy un experto o un profesional en el dominio del ruido</item>
     </string-array>
     <string name="calibration_host_warning">El teléfono emisor debe estar conectado con una salida de audio externa. Los dispositivos emisores y receptores deben estar expuestos de forma igual a la salida de audio externa.</string>
-    </resources>
+    <string name="title_settings_language">Idioma</string>
+    <string name="settings_language_summary">Cambiar el idioma de la aplicación por defecto</string>
+    <string name="calibration_communication">Transferencia de datos</string>
+    <string name="calibration_host_hint">Los teléfonos de referencia y receptores deben estar igualmente expuestos a la fuente de ruido. Los teléfonos receptores deben estar en la pantalla de calibración \"receptor\" del NoiseCapture antes de iniciar el procedimiento.</string>
+    <string name="calibration_noise_source_parameters">Parámetros de la fuente de ruido</string>
+    <string name="calibration_noise_pink">Ruido rosado</string>
+    <string name="calibration_noise_ambient">Ruido ambiental</string>
+    <string name="auto_calibration">Auto con un smartphone calibrado</string>
+    <string name="title_activity_calibration_auto_menu" >Automático</string>
+    <string name="manual_calibration_with_calibrator">Manual con un calibrador</string>
+    <string name="manual_calibration_with_reference">Manual con una referencia</string>
+    <string name="auto_calibration_host"> 75% match 
+Utilice su propio smartphone para calibrar otros smartphones.</string>
+    <string name="auto_calibration_guest">Calibrar mi smartphone con un smartphone calibrado con NoiseCapture</string>
+    <string name="calibration_manual_ref">El procedimiento de calibración requiere el uso de un dispositivo de referencia calibrado, como un sonómetro. Para más información, consulte la <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">página de ayuda</a> de la aplicación</string>
+    <string name="calibration_manual_calibrator">El procedimiento de calibración requiere el uso de un calibrador. Para más información, consulte la <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">página de ayuda</a> de la aplicación</string>
+    <string name="traffic_calibration">La calibración con la ayuda del tráfico rodado</string>
+    <string name="new_measurement">Nueva medición</string>
+    <string name="meters">metros</string>
+    <string name="km_h">km/h</string>
+    <string name="calibration_average_vehicle_speed">Velocidad media estimada del vehículo</string>
+    <string name="calibration_distance_vehicle">Distancia del vehículo</string>
+    <string name="calibration_manual_traffic">La posición de medición para la calibración debe estar lo suficientemente cerca de la carretera y a la vez garantizar su seguridad. La carretera debe estar seca y en buenas condiciones.</string>
+    <string name="title_activity_calibration_history">Sesiones de calibración de tráfico</string>
+    <string name="title_activity_calibration_traffic">Calibración con el tráfico</string>
+    <string name="plusminus">±</string>
+    <string name="traffic_history_count">%d vehículos</string>
+    <string name="calibration_estimated_gain">Ganancia %.2f dB(A)</string>
+    <string name="calibration_awaiting_vehicle_passby">Vehículo en espera de pasar (%d / %d)</string>
+    <string name="calibration_add">Añade</string>
+    <string name="calibration_done_vehicle_passby">Fin de la sesión de calibración, toque el botón de añadir</string>
+</resources>

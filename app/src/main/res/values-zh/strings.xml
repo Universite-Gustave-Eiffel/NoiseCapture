@@ -233,7 +233,9 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="userinfo_pleasant">舒适的</string>
     <string name="calibration_status_waiting_for_user_start">等待校准开始&#8230;</string>
     <string name="calibration_status_waiting_for_start_timer">校准即将开始&#8230;</string>
+    <string name="calibration_status_send_parameters">发送校准参数前的等待时间&#8230;。</string>
     <string name="calibration_status_receive_reference">等待参考价值</string>
+    <string name="calibration_status_cooldown">发送参考值前的等待时间&#8230;。</string>
     <string name="userinfo_button_measure">测量</string>
     <string name="userinfo_button_results">确认</string>
     <string name="userinfo_tags">主要来源</string>
@@ -243,7 +245,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_status_background_noise">测量背景噪声</string>
     <string name="calibration_button_start">开始</string>
     <string name="calibration_button_cancel">取消</string>
-    <string name="calibration_laeq_title">测得 LAeq：</string>
+    <string name="calibration_laeq_title">测量的LAeq:</string>
     <string name="calibration_measure_title">参考值：</string>
     <string name="calibration_button_apply">应用</string>
     <string name="calibration_button_reset">重置</string>
@@ -259,6 +261,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>8 kHz</item>
         <item>16 kHz</item>
     </string-array>
+    <string name="share_message">我使用#NoiseCapture测出%.01fdB(A) @Noise_Planet</string>
     <string name="summary_settings_measurement_display_window">实时测量窗口函数（最终结果未使用）</string>
     <string name="title_settings_measurement_display_window">实时窗口</string>
     <string name="title_settings_map_maxmarker">显示测量极限</string>
@@ -300,4 +303,34 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
         <item>我是外场噪声专家</item>
     </string-array>
     <string name="calibration_host_warning">发件人手机需要连接外部音频输出。 发送方和接收方设备必须等同于外部音频输出。</string>
-    </resources>
+    <string name="title_settings_language">语种</string>
+    <string name="settings_language_summary">更改默认的应用程序语言</string>
+    <string name="calibration_communication">数据传输</string>
+    <string name="calibration_host_hint">参考和接收器的智能手机必须同样暴露在噪声源下。接收器的智能手机必须是一个NoiseCapture的接收器校准屏幕，然后才开始程序。</string>
+    <string name="calibration_noise_source_parameters">噪声源参数</string>
+    <string name="calibration_noise_pink">粉色噪音</string>
+    <string name="calibration_noise_ambient">环境噪音</string>
+    <string name="auto_calibration">自动与校准的智能手机</string>
+    <string name="title_activity_calibration_auto_menu" >自动</string>
+    <string name="manual_calibration_with_calibrator">带校准器的手册</string>
+    <string name="manual_calibration_with_reference">有参考价值的手册</string>
+    <string name="auto_calibration_host">使用我自己的校准智能手机，用NoiseCapture校准其他智能手机。</string>
+    <string name="auto_calibration_guest">使用带有NoiseCapture的校准智能手机来校准我的智能手机。</string>
+    <string name="calibration_manual_ref">校准程序需要使用校准过的参考设备，如声波计。更多信息，请参阅应用程序的<a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">帮助页</a>面。</string>
+    <string name="calibration_manual_calibrator">校准程序需要使用校准器。更多信息，请参阅应用程序的<a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">帮助页</a>面</string>
+    <string name="traffic_calibration">借助道路交通进行校准</string>
+    <string name="new_measurement">新的测量方法</string>
+    <string name="meters">米数</string>
+    <string name="km_h">km/h</string>
+    <string name="calibration_average_vehicle_speed">估计车速</string>
+    <string name="calibration_distance_vehicle">车距</string>
+    <string name="calibration_manual_traffic">校验的测量位置必须在保证安全的前提下，足够靠近道路。道路必须干燥且状况良好。</string>
+    <string name="title_activity_calibration_history">交通校准会议</string>
+    <string name="title_activity_calibration_traffic">用流量进行校准</string>
+    <string name="plusminus">±</string>
+    <string name="traffic_history_count">%d 车辆</string>
+    <string name="calibration_estimated_gain">增益%.2f dB(A)</string>
+    <string name="calibration_awaiting_vehicle_passby">等待车辆经过 (%d / %d)</string>
+    <string name="calibration_add">添加</string>
+    <string name="calibration_done_vehicle_passby">校准会话结束，触摸添加按钮</string>
+</resources>

@@ -229,7 +229,9 @@ Măsuarea se face în eșantionae de 1s salvate în track.geojson. Este utilizat
     <string name="userinfo_pleasant">Plăcut</string>
     <string name="calibration_status_waiting_for_user_start">Așteptare pentru a porni calibrarea&#8230; </string>
     <string name="calibration_status_waiting_for_start_timer">Calibrarea este aproape de a porni&#8230;</string>
+    <string name="calibration_status_send_parameters">Timp de așteptare pentru a trimite parametrii de calibrare&#8230;</string>
     <string name="calibration_status_receive_reference">Așteptare pentru a primi valuarea de referință&#8230;</string>
+    <string name="calibration_status_cooldown">Timp de așteptare pentru a trimite valorile de referință&#8230;</string>
     <string name="userinfo_button_measure">Măsurare</string>
     <string name="userinfo_button_results">Validare</string>
     <string name="userinfo_tags">Surse de zgomot predominante</string>
@@ -297,4 +299,19 @@ Măsuarea se face în eșantionae de 1s salvate în track.geojson. Este utilizat
         <item>Sunt un expert/profesionist în domeniul acustic</item>
     </string-array>
     <string name="calibration_host_warning">Telefonul care emite trebuie conectat la un dispozitiv audio extern. Dispozitivele de emisie și recepție trebuie expuse împreună la dispozitivul extern audio.</string>
+    <string name="title_settings_language">Limba</string>
+    <string name="settings_language_summary">Alegerea limbii implicite pentru aplicație</string>
+    <string name="calibration_communication">Transfer de date</string>
+    <string name="calibration_host_hint">Telefoanele de tip smartphone de referință și de înregistrare trebuie să fie expuse la sursa de zgomot</string>
+    <string name="calibration_noise_source_parameters">Parametrii sursei de zgomot</string>
+    <string name="calibration_noise_pink">Zgomot de tip roz</string>
+    <string name="calibration_noise_ambient">Zgomot ambiental</string>
+    <string name="auto_calibration">Automat cu un telefon smartphone calibrat</string>
+    <string name="title_activity_calibration_auto_menu" >Automat</string>
+    <string name="manual_calibration_with_calibrator">Manual cu un calibrator</string>
+    <string name="manual_calibration_with_reference">Manual cu un dispozitiv de referință</string>
+    <string name="auto_calibration_host">Utilizează propriul telefon smartphone calibrat pentru a calibra alt telefon smartphone care folosește NoiseCapture</string>
+    <string name="auto_calibration_guest">Calibrează telefonul propriu utilizând alt telefon care rulează NoiseCapture</string>
+    <string name="calibration_manual_ref">Procedura de calibrare necesită utilizarea unui dispozitiv de referință precum un sonometru. Pentru mai multe informații, vă rugăm să consultați <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">pagina de ajutor</a>al aplicației</string>
+    <string name="calibration_manual_calibrator">Procedura de calibrare necesită utilizarea unui calibrator. Pentru mai multe informații, vă rugăm să consultați <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">pagina de ajutor</a>al aplicației</string>
     </resources>

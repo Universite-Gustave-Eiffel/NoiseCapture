@@ -257,6 +257,7 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
         <item>8 kHz</item>
         <item>16 kHz</item>
     </string-array>
+    <string name="share_message">Sto misurando %.01f dB(A) con #NoiseCapture @Noise_Planet</string>
     <string name="summary_settings_measurement_display_window">Funzione finestra per misurazione in tempo reale (non utilizzata per il risultato finale)</string>
     <string name="title_settings_measurement_display_window">Finestra in tempo reale</string>
     <string name="title_settings_map_maxmarker">Limiti di misura visualizzati</string>
@@ -301,6 +302,7 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="title_settings_language">Lingua</string>
     <string name="settings_language_summary">Cambia lingua predefinita dell\'applicazione</string>
     <string name="calibration_communication">Trasferimento dati</string>
+    <string name="calibration_host_hint">Gli smartphone di riferimento e i ricevitori devono essere ugualmente esposti alla sorgente di rumore. Gli smartphone ricevitori devono essere uno dei ricevitori della schermata di calibrazione del ricevitore NoiseCapture prima di iniziare la procedura.</string>
     <string name="calibration_noise_source_parameters">Parametri della fonte del rumore</string>
     <string name="calibration_noise_pink">Pink noise</string>
     <string name="calibration_noise_ambient">Rumore ambiente</string>
@@ -312,4 +314,19 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="auto_calibration_guest">Calibra il mio smartphone utilizzando un device calibrato con NoiseCapture</string>
     <string name="calibration_manual_ref">La calibrazione richiede l\'utilizzo di un dispositivo di riferimento calibrato, ad esempio un sonometro. Per ulteriori informazioni,  consultare <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration"> la pagina di aiuto </a> dell\'applicazione</string>
     <string name="calibration_manual_calibrator">La procedura di calibrazione richiede l\'utilizzo di un calibratore. Per ulteriori informazioni, consultare <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration"> la pagina di aiuto </a> dell\'applicazione</string>
-    </resources>
+    <string name="traffic_calibration">Calibrazione con l\'aiuto del traffico stradale</string>
+    <string name="new_measurement">Nuova misurazione</string>
+    <string name="meters">metri</string>
+    <string name="km_h">km/h</string>
+    <string name="calibration_average_vehicle_speed">Velocità media stimata del veicolo</string>
+    <string name="calibration_distance_vehicle">Distanza del veicolo</string>
+    <string name="calibration_manual_traffic">La posizione di misura per la taratura deve essere sufficientemente vicina alla strada, garantendo al contempo la vostra sicurezza. La strada deve essere asciutta e in buone condizioni.</string>
+    <string name="title_activity_calibration_history">Sessioni di calibrazione del traffico</string>
+    <string name="title_activity_calibration_traffic">Calibrazione con il traffico</string>
+    <string name="plusminus">±</string>
+    <string name="traffic_history_count">%d veicoli</string>
+    <string name="calibration_estimated_gain">Guadagno %.2f dB(A)</string>
+    <string name="calibration_awaiting_vehicle_passby">Veicolo in attesa di passaggio (%d / %d)</string>
+    <string name="calibration_add">Aggiungi</string>
+    <string name="calibration_done_vehicle_passby">Fine della sessione di calibrazione, toccare il tasto aggiungi</string>
+</resources>

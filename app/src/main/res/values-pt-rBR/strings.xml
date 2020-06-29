@@ -318,4 +318,19 @@ track.geojson Arquivo com amostras das medições, 1s. Formato geojson  (http://
     <string name="auto_calibration_guest">Calibrar meu dispositivo usando um outro já calibrado com NoiseCapture</string>
     <string name="calibration_manual_ref">O procedimento de calibração requer o uso de um dispositivo calibrado de referência, tal como um sonômetro. Para mais informações, consulte a <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">página de ajuda</a> da aplicação</string>
     <string name="calibration_manual_calibrator">O procedimento de calibração requer o uso de um calibrador. Para mais informações, consulte a <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">página de ajuda</a> da aplicação</string>
+    <string name="traffic_calibration">Calibração com a ajuda do tráfego rodoviário</string>
+    <string name="new_measurement">Nova medição</string>
+    <string name="meters">metros</string>
+    <string name="km_h">km/h</string>
+    <string name="calibration_average_vehicle_speed">Velocidade média estimada do veículo</string>
+    <string name="calibration_distance_vehicle">Distância do veículo</string>
+    <string name="calibration_manual_traffic">A posição de medição para a calibração deve estar suficientemente próxima à estrada, garantindo ao mesmo tempo sua segurança. A estrada deve estar seca e em boas condições.</string>
+    <string name="title_activity_calibration_history">Sessões de calibração de tráfego</string>
+    <string name="title_activity_calibration_traffic">Calibração com tráfego</string>
+    <string name="plusminus">±</string>
+    <string name="traffic_history_count">%d veículos</string>
+    <string name="calibration_estimated_gain">Ganho %.2f dB(A)</string>
+    <string name="calibration_awaiting_vehicle_passby">Aguardando a passagem do veículo  (%d / %d)</string>
+    <string name="calibration_add">Adicionar</string>
+    <string name="calibration_done_vehicle_passby">Fim da sessão de calibração, toque no botão adicionar.</string>
 </resources>

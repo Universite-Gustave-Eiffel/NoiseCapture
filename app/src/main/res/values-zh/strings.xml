@@ -320,7 +320,6 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_manual_calibrator">校准程序需要使用校准器。更多信息，请参阅应用程序的<a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">帮助页</a>面</string>
     <string name="traffic_calibration">借助道路交通进行校准</string>
     <string name="new_measurement">新的测量方法</string>
-    <string name="meters">米数</string>
     <string name="km_h">km/h</string>
     <string name="calibration_average_vehicle_speed">估计车速</string>
     <string name="calibration_distance_vehicle">车距</string>

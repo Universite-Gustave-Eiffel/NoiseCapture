@@ -320,7 +320,6 @@ track.geojson Arquivo com amostras das medições, 1s. Formato geojson  (http://
     <string name="calibration_manual_calibrator">O procedimento de calibração requer o uso de um calibrador. Para mais informações, consulte a <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">página de ajuda</a> da aplicação</string>
     <string name="traffic_calibration">Calibração com a ajuda do tráfego rodoviário</string>
     <string name="new_measurement">Nova medição</string>
-    <string name="meters">metros</string>
     <string name="km_h">km/h</string>
     <string name="calibration_average_vehicle_speed">Velocidade média estimada do veículo</string>
     <string name="calibration_distance_vehicle">Distância do veículo</string>

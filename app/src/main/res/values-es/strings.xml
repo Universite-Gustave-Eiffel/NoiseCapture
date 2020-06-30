@@ -317,7 +317,6 @@ Utilice su propio smartphone para calibrar otros smartphones.</string>
     <string name="calibration_manual_calibrator">El procedimiento de calibración requiere el uso de un calibrador. Para más información, consulte la <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">página de ayuda</a> de la aplicación</string>
     <string name="traffic_calibration">La calibración con la ayuda del tráfico rodado</string>
     <string name="new_measurement">Nueva medición</string>
-    <string name="meters">metros</string>
     <string name="km_h">km/h</string>
     <string name="calibration_average_vehicle_speed">Velocidad media estimada del vehículo</string>
     <string name="calibration_distance_vehicle">Distancia del vehículo</string>

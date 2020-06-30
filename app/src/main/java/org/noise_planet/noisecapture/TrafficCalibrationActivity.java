@@ -282,6 +282,7 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
     public static final class ProgressHandler implements Handler.Callback {
         private TrafficCalibrationActivity activity;
         private int delay;
+        private int lastProgress = 0;
 
         public ProgressHandler(TrafficCalibrationActivity activity) {
             this.activity = activity;
@@ -304,7 +305,10 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
                 }
                 TrafficNoiseEstimator.Estimation estimation = trafficNoiseEstimator.getMedianPeak(laeq);
                 double percent = (estimation.numberOfPassby / (double) EXPECTED_NOISE_PEAKS) * 100.0;
-                activity.calibrationProgressBar.setProgress((int)percent);
+                if(lastProgress < (int)percent) {
+                    activity.calibrationProgressBar.setProgress((int) percent);
+                    lastProgress = (int) percent;
+                }
                 if(estimation.numberOfPassby >= EXPECTED_NOISE_PEAKS) {
                     activity.textStatus.setText(R.string.calibration_done_vehicle_passby);
                     activity.onEndMeasurement(new Storage.TrafficCalibrationSession(0,
@@ -313,7 +317,7 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
                             Double.valueOf(activity.inputDistance.getText().toString()),
                             System.currentTimeMillis()));
                 } else {
-                    activity.textStatus.setText(activity.getString(R.string.calibration_awaiting_vehicle_passby,estimation.numberOfPassby, EXPECTED_NOISE_PEAKS));
+                    activity.textStatus.setText(activity.getString(R.string.calibration_awaiting_vehicle_passby));
                     activity.timeHandler.sendEmptyMessageDelayed(delay, CALIBRATION_REFRESH_DELAY * 1000);
                 }
             } else if(activity.calibration_step == CALIBRATION_STEP.PAUSED) {

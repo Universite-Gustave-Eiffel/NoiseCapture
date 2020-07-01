@@ -66,8 +66,8 @@
     <string name="title_settings_recording">Gravando</string>
     <string name="summary_settings_recording">Configurar tempo máximo de gravação</string>
     <string name="title_settings_caution">Mensagem de alerta</string>
-    <string name="summary_settings_tooltip">Marque para exibir o tooltip ao tocar elementos no NoiseCapture</string>
-    <string name="title_settings_tooltip">Mensagem do tooltip</string>
+    <string name="summary_settings_tooltip">Marque para exibir a dica de contexto ao tocar elementos no NoiseCapture</string>
+    <string name="title_settings_tooltip">Dica de contexto</string>
     <string name="summary_settings_caution">Marque para exibir a mensagem de alerta durante o lançamento da aplicação</string>
     <string name="title_settings_recording_duration">Duração da gravação</string>
 
@@ -119,8 +119,8 @@
     <string name="result_share">Compartilhar este resultado</string>
     <string name="result_button_map">Mostrar mapa</string>
     <string name="result_button_upload">Enviar para o servidor</string>
-    <string name="result_tooltip_minsl">Nível de ruído mínimo, 1 segundo A-ponderado</string>
-    <string name="result_tooltip_maxsl">Nível de ruído máximo, 1 segundo A-ponderado</string>
+    <string name="result_tooltip_minsl">Nível de ruído mínimo A-ponderado, 1 segundo</string>
+    <string name="result_tooltip_maxsl">Nível de ruído máximo A-ponderado, 1 segundo</string>
     <string name="result_tooltip_la10">LA10: nível de ruído A-ponderado excedido durante 10% do
  período de medição. LA10 é útil para quantificar o ruído do tráfego em rodovias, o qual está correlacionado à perturbação causada pelo ruído.</string>
     <string name="result_tooltip_la50">LA50: nível de ruído A-ponderado excedido durante 50% do
@@ -157,7 +157,7 @@
         <item>Entretenimento</item>
         <item>Crianças</item>
         <item>Música</item>
-        <item>Rodovia</item>
+        <item>Estrada</item>
         <item>Trem</item>
         <item>Barco</item>
         <item>Alarmes</item>
@@ -184,17 +184,17 @@
     <string name="start_text_subtitle">Medindo seu ambiente sonoro</string>
     <string name="start_text_developed_by">Desenvolvido por</string>
     <string name="start_text_supported_by">Suportado por</string>
-    <string name="upload_progress_title">Enviando para o servidor</string>
+    <string name="upload_progress_title">Enviando para o servidor&#8230;</string>
     <string name="upload_progress_message">Enviando medição para o servidor</string>
 
     <string name="history_length">%d s</string>
-    <string name="history_date">%s</string>
+    <string name="history_date">- %s</string>
     <string name="history_already_uploaded">Esta medição já foi enviada para o servidor</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Enviar para o servidor</string>
     <string name="history_uploadeddescr">Este resultado foi enviado para a base de dados da comunidade?</string>
 
-    <string name="measurement_processlastsamples">Processando as %d amostras restantes</string>
+    <string name="measurement_processlastsamples">Processando as %d amostras restantes&#8230;</string>
     <string name="history_item_choice_title">Medição %s</string>
     <string name="calibration_select_frequency">Escolha a frequência a ser mostrada</string>
     <string name="local_service_started">Serviço de localização iniciado</string>
@@ -231,15 +231,15 @@ track.geojson Arquivo com amostras das medições, 1s. Formato geojson  (http://
     <string name="title_activity_comment">Descrição</string>
     <string name="userinfo_unpleasant">Desagradável</string>
     <string name="userinfo_pleasant">Agradável</string>
-    <string name="calibration_status_waiting_for_user_start">Esperando pelo início da calibração</string>
-    <string name="calibration_status_waiting_for_start_timer">Calibração está para começar</string>
-    <string name="calibration_status_send_parameters">Tempo de espera antes do envio dos parâmetros de calibração</string>
-    <string name="calibration_status_receive_reference">Aguardando valor de referência</string>
-    <string name="calibration_status_cooldown">Tempo de espera antes do envio do valor de referência</string>
+    <string name="calibration_status_waiting_for_user_start">Esperando pelo início da calibração&#8230;</string>
+    <string name="calibration_status_waiting_for_start_timer">Calibração está para começar&#8230;</string>
+    <string name="calibration_status_send_parameters">Tempo de espera antes do envio dos parâmetros de calibração&#8230;</string>
+    <string name="calibration_status_receive_reference">Aguardando valor de referência&#8230;</string>
+    <string name="calibration_status_cooldown">Tempo de espera antes do envio do valor de referência&#8230;</string>
     <string name="userinfo_button_measure">Medida</string>
     <string name="userinfo_button_results">Válido</string>
     <string name="userinfo_tags">Fontes predominantes</string>
-    <string name="calibration_status_on">Calibração</string>
+    <string name="calibration_status_on">Calibração&#8230;</string>
     <string name="calibration_linear_status_on">Calibração em %1$.0f dB</string>
     <string name="calibration_status_end">Calibração pronta</string>
     <string name="calibration_status_background_noise">Medindo o ruído de fundo</string>
@@ -320,6 +320,7 @@ track.geojson Arquivo com amostras das medições, 1s. Formato geojson  (http://
     <string name="calibration_manual_calibrator">O procedimento de calibração requer o uso de um calibrador. Para mais informações, consulte a <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">página de ajuda</a> da aplicação</string>
     <string name="traffic_calibration">Calibração com a ajuda do tráfego rodoviário</string>
     <string name="new_measurement">Nova medição</string>
+    <string name="meters">metros</string>
     <string name="km_h">km/h</string>
     <string name="calibration_average_vehicle_speed">Velocidade média estimada do veículo</string>
     <string name="calibration_distance_vehicle">Distância do veículo</string>
@@ -329,7 +330,7 @@ track.geojson Arquivo com amostras das medições, 1s. Formato geojson  (http://
     <string name="plusminus">±</string>
     <string name="traffic_history_count">%d veículos</string>
     <string name="calibration_estimated_gain">Ganho %.2f dB(A)</string>
-    <string name="calibration_awaiting_vehicle_passby">Aguardando a passagem do veículo  (%d / %d)</string>
+    <string name="calibration_awaiting_vehicle_passby">Aguardando veículo passar</string>
     <string name="calibration_add">Adicionar</string>
-    <string name="calibration_done_vehicle_passby">Fim da sessão de calibração, toque no botão adicionar.</string>
+    <string name="calibration_done_vehicle_passby">Fim da sessão de calibração, pressione o botão abaixo</string>
 </resources>

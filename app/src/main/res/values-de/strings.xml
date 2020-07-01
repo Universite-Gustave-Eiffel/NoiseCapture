@@ -320,6 +320,7 @@ track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.
     <string name="calibration_manual_calibrator">Das Kalibrierverfahren erfordert die Verwendung eines Kalibriergeräts. Weitere Informationen finden Sie auf der <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">Hilfeseite</a> der Anwendung</string>
     <string name="traffic_calibration">Kalibrierung mit Hilfe des Straßenverkehrs</string>
     <string name="new_measurement">Neue Messung</string>
+    <string name="meters">Zähler</string>
     <string name="km_h">km/h</string>
     <string name="calibration_average_vehicle_speed">Geschätzte Fahrzeuggeschwindigkeit</string>
     <string name="calibration_distance_vehicle">Abstand zum Fahrzeug</string>
@@ -329,7 +330,7 @@ track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.
     <string name="plusminus">±</string>
     <string name="traffic_history_count">%d Fahrzeuge</string>
     <string name="calibration_estimated_gain">Gewinn%.2f dB(A)</string>
-    <string name="calibration_awaiting_vehicle_passby">Wartendes vorbeifahrendes Fahrzeug (%d / %d)</string>
+    <string name="calibration_awaiting_vehicle_passby">Wartendes vorbeifahrendes Fahrzeug</string>
     <string name="calibration_add">Hinzufügen</string>
     <string name="calibration_done_vehicle_passby">Ende der Kalibrierungssitzung Schaltfläche Hinzufügen drücken</string>
 </resources>

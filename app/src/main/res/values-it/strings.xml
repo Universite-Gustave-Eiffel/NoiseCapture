@@ -316,6 +316,7 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="calibration_manual_calibrator">La procedura di calibrazione richiede l\'utilizzo di un calibratore. Per ulteriori informazioni, consultare <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration"> la pagina di aiuto </a> dell\'applicazione</string>
     <string name="traffic_calibration">Calibrazione con l\'aiuto del traffico stradale</string>
     <string name="new_measurement">Nuova misurazione</string>
+    <string name="meters">metri</string>
     <string name="km_h">km/h</string>
     <string name="calibration_average_vehicle_speed">Velocità media stimata del veicolo</string>
     <string name="calibration_distance_vehicle">Distanza del veicolo</string>
@@ -325,7 +326,7 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="plusminus">±</string>
     <string name="traffic_history_count">%d veicoli</string>
     <string name="calibration_estimated_gain">Guadagno %.2f dB(A)</string>
-    <string name="calibration_awaiting_vehicle_passby">Veicolo in attesa di passaggio (%d / %d)</string>
+    <string name="calibration_awaiting_vehicle_passby">Veicolo in attesa di passaggio</string>
     <string name="calibration_add">Aggiungi</string>
     <string name="calibration_done_vehicle_passby">Fine della sessione di calibrazione, toccare il tasto aggiungi</string>
 </resources>

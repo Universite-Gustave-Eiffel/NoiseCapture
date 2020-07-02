@@ -463,7 +463,7 @@ public class MainActivity extends AppCompatActivity {
      */
     public boolean isOnline() {
         try {
-            URL url = new URL(MeasurementUploadWPS.BASE_URL);
+            URL url = new URL(MeasurementUploadWPS.CHECK_UPLOAD_AVAILABILITY);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             int code = urlConnection.getResponseCode();
             return code == 200 || code == 301 || code == 302;

@@ -49,6 +49,7 @@ import javax.net.ssl.HttpsURLConnection;
 public class MeasurementUploadWPS {
     Activity activity;
     public static final String BASE_URL = "https://onomap-gs.noise-planet.org";
+    public static final String CHECK_UPLOAD_AVAILABILITY = "https://onomap-gs.noise-planet.org/geoserver/ows?service=wps&version=1.0.0&request=GetCapabilities";
 
     public MeasurementUploadWPS(Activity activity) {
         this.activity = activity;

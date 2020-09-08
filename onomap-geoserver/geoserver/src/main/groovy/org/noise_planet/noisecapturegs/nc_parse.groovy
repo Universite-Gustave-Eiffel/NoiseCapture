@@ -140,6 +140,10 @@ static Integer processFile(Connection connection, File zipFile,Map trackData = [
             sql.executeUpdate("UPDATE noisecapture_user set profile = :profile where user_uuid = :uuid", [profile: meta.getProperty("user_profile"), uuid : meta.getProperty("uuid")])
         }
     }
+    def noiseLevel = Double.valueOf(meta.getProperty("leq_mean").replace(",", "."))
+    if (!(noiseLevel > -150 && noiseLevel < 150)) {
+        throw new InvalidParameterException("Wrong noise level \"" + noiseLevel + "\"")
+    }
     // Check if this measurement has not been already uploaded
     def oldTrackCount = sql.firstRow("SELECT count(*) cpt FROM  noisecapture_track where record_utc=:recordutc::timestamptz and pk_user=:userid",
             [recordutc: epochToRFCTime(Long.valueOf(meta.getProperty("record_utc"))), userid: idUser]).cpt as Integer
@@ -171,7 +175,7 @@ static Integer processFile(Connection connection, File zipFile,Map trackData = [
                   device_product     : meta.get("device_product"),
                   device_model       : meta.get("device_model"),
                   device_manufacturer: meta.get("device_manufacturer"),
-                  noise_level        : Double.valueOf(meta.getProperty("leq_mean").replace(",", ".")),
+                  noise_level        : noiseLevel,
                   time_length        : meta.get("time_length") as int,
                   gain_calibration   : gain,
                   noiseparty_id      : idParty,

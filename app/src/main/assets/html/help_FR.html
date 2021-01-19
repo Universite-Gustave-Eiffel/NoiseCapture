@@ -178,9 +178,6 @@
     <h2> <a name="smartphone_calibration"></a>Calibrer votre smartphone</h2>
     <p>À partir du menu <span style="font-weight: bold;">Calibrage</span>, vous
       avez la possibilité de calibrer votre smartphone.</p>
-    <p class="p_warning">Le calibrage du smartphone est une étape cruciale. Sans
-      calibrage, soyez assuré que la mesure que vous aurez réalisée a peu de
-      chance d'être pertinente!</p>
     <ul>
       <li>La méthodologie de calibrage est basée sur la connaissance d'une <span
           style="font-weight: bold;">Valeur de référence</span> pour le niveau
@@ -194,24 +191,32 @@
         avec le smartphone, afin d'établir un facteur de correction, également
         appelé le 'Gain', qui sera appliqué par la suite, sur le signal mesuré.</li>
     </ul>
-    <p class="p_warning">Le facteur de correction est appliqué sur tout le
-      signal. Un calibrage multi-fréquence n'est pour l'instant pas possible.</p>
-    <p class="p_warning">Le calibrage est réalisé sur les valeurs en dB et non
-      en dB(A).</p>
-    <p> Plusieurs méthodes de calibrage sont possibles: </p>
+	    <p> Plusieurs méthodes de calibrage sont possibles: </p>
     <ol>
       <li><a href="#calibrage_reference">Calibrage manuel à partir d'un appareil
           de référence ou d'un calibrateur<br>
         </a></li>
-      <li><a href="#calibrage_reference">Calibrage manuel à partir d'un appareil
+      <li><a href="#calibrage_calibrator">Calibrage manuel à partir d'un appareil
           d'un calibrateur</a></li>
       <li><a href="#calibrage_auto">Calibrage automatique à partir d'un
           smartphone calibré</a></li>
     </ol>
+	
+	<p class="p_warning">Le calibrage du smartphone est une étape cruciale. Sans
+      calibrage, soyez assuré que la mesure que vous aurez réalisée a peu de
+      chance d'être pertinente!</p>
+    <p class="p_warning">Le facteur de correction est appliqué sur tout le
+      signal. Un calibrage multi-fréquence n'est pour l'instant pas possible.</p>
+    <p class="p_warning">Le calibrage est réalisé sur les valeurs en dB et non
+      en dB(A).</p>
+	<p class="p_inf">Les durées du compte-à-rebours et du calibrage peuvent être
+      paramétrées dans le menu <span style="font-weight: bold;">Paramètres</span>.</p>
+    <p class="p_inf">Lors du calibrage, le smartphone et l'appareil de référence
+      doivent être utilisés de manière similaire à la source de bruit.</p>
     <p class="p_tip">Le facteur de correction peut aussi être défini
       manuellement dans le menu <span style="font-weight: bold;">Paramètres</span>.</p>
     <h3><a name="calibrage_reference"></a>Calibrage à partir d'un appareil de
-      référence ou d'un calibrateur</h3>
+      référence</h3>
     <ol>
     </ol>
     <ul>
@@ -263,10 +268,55 @@
         </ol>
       </li>
     </ul>
-    <p class="p_inf">Les durées du compte-à-rebours et du calibrage peuvent être
-      paramétrées dans le menu <span style="font-weight: bold;">Paramètres</span>.</p>
-    <p class="p_inf">Lors du calibrage, le smartphone et l'appareil de référence
-      doivent être utilisés de manière similaire à la source de bruit.</p>
+<h3><a name="calibrage_calibrator"></a>Calibrage à partir d'un calibrateur</h3>
+
+	<p class="p_warning">Pour appliquer cette procédure, vous devez disposer d'un calibrateur acoustique
+	et d'un microphone externe connecté sur votre smartphone. Le diamètre du smartphone doit être compatible
+	avec le calibrateur.</p>
+    <ul>
+      <li> <span style="color: #0099cc;"> <span style="font-weight: bold;">Réaliser
+            le calibrage</span> </span> <span style="color: #0099cc;"> <span
+
+            style="font-weight: bold;">:</span> </span>
+        <ol>
+          <li>Dans les options de calibrage proposées, choisissez la fréquence
+            sur laquelle vous souhaitez réaliser le calibrage:</li>
+          <li>Appuyer sur le bouton <span style="font-weight: bold;">Démarrer</span>:
+            <ul>
+              <li>un compte-à-rebours vous permet de vous préparer si
+                nécessaire;</li>
+              <li>une mesure est réalisée automatiquement sur une certaine
+                durée. Cette durée doit si possible être la même entre
+                l'appareil de référence et le smartphone;</li>
+            </ul>
+          </li>
+          <li>Une fois la mesure terminée, entrez la Valeur de référence mesurée
+            par l'appareil de référence, puis appuyez sur le bouton <span style="font-weight: bold;">Appliquer</span>;</li>
+          <li>Si vous ne souhaitez pas appliquer la correction obtenue, appuyez
+            sur le bouton <span style="font-weight: bold;">Réinitialiser</span>.</li>
+        </ol>
+      </li>
+    </ul>
+    <ul>
+      <li> <span style="color: #0099cc;"> <span style="font-weight: bold;">Tester
+            le résultat du calibrage</span> </span> <span style="color: #0099cc;">
+          <span style="font-weight: bold;">:</span> </span>
+        <ol>
+          <li>Une fois le facteur de correction obtenu, vous pouvez tester le
+            calibrage en mode test, en cochant la case 'Test du gain';</li>
+          <li>Appuyez sur le bouton <span style="font-weight: bold;">Commencer</span>
+            pour réaliser une nouvelle mesure et faites de même avec le calibrateur;</li>
+          <li>A la fin de la mesure, la <span style="font-weight: bold;">Valeur
+              mesurée</span> devrait être équivalente à la <span style="font-weight: bold;">Valeur
+              de référence</span>.</li>
+          <li>Compte-tenu de la procédure et des appareils mis en jeu, vous
+            pouvez considérer comme acceptable une différence jusqu'à 0.5dB,
+            entre les deux valeurs. Si ce n'est pas le cas, recommencez la
+            procédure. Si vous ne parvenez pas à réaliser un calibrage avec une
+            erreur de 0.5dB, vous pouvez accepter une erreur jusqu'à 1dB.</li>
+        </ol>
+      </li>
+    </ul>
     <h3><a name="calibrage_auto"></a>Calibrage à partir d'un smartphone déjà
       calibré</h3>
     <p>Dans cette méthode, un smartphone déjà calibré avec NoiseCapture, peut à
@@ -288,7 +338,7 @@
           <ol>
             <li>Choisir la source sonore de référence</li>
             <ol>
-              <li>"Bruit rose" : dans ce cas, le smartphone génére un signal de
+              <li>"Bruit rose" : dans ce cas, le smartphone génère un signal de
                 référence. Il est nécessaire d'utiliser une source sonore
                 connectée en sans fil avec le smartphone de référence, la source
                 étant à égale distance de tous les smartphones;</li>

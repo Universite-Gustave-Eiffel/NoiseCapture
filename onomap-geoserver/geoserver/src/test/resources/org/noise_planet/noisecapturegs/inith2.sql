@@ -70,7 +70,7 @@ COMMENT ON COLUMN NOISECAPTURE_TRACK.TIME_LENGTH IS 'Length of measurement in se
 -- Table: NOISECAPTURE_POINT
 CREATE TABLE NOISECAPTURE_POINT (
     PK_POINT serial NOT NULL,
-    THE_GEOM geometry,
+    THE_GEOM geometry, -- POSTGIS ONLY the_geom geometry(GeometryZ,4326),
     PK_TRACK int NOT NULL REFERENCES noisecapture_track (pk_track) ON UPDATE CASCADE ON DELETE CASCADE,
     NOISE_LEVEL float  NOT NULL,
     SPEED float,

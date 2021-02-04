@@ -42,7 +42,7 @@ COMMENT ON COLUMN NOISECAPTURE_PARTY.layer_name IS 'Layer name in leaflet url, m
 COMMENT ON COLUMN NOISECAPTURE_PARTY.filter_time IS 'If enabled, reject track with time out of start_time end_time range';
 COMMENT ON COLUMN NOISECAPTURE_PARTY.filter_area IS 'If enabled, reject track that does not intersects with the_geom';
 
--- NoiseCapture party data POSRTTGIS only
+-- NoiseCapture party data POSTGIS only
 --INSERT INTO public.noisecapture_party (pk_party, the_geom, layer_name, title, tag, description, start_time, end_time, filter_time, filter_area) VALUES (9, '0103000020E61000000100000005000000000000C02D05FFBF10000020176E4740000000C02D05FFBF080000E064B24740000000003FD9F1BF080000E064B24740000000003FD9F1BF10000020176E4740000000C02D05FFBF10000020176E4740', 'TEST44', 'Test noisecapture party', 'TEST44', 'NoiseCapture party for test purposes', '2018-03-17 01:00:00+00', '2030-03-25 23:59:59+00', true, true);
 --INSERT INTO public.noisecapture_party (pk_party, the_geom, layer_name, title, tag, description, start_time, end_time, filter_time, filter_area) VALUES (11, '0103000020E61000000100000005000000000000E0735905C0000000603FD84740000000E0735905C010000020F5E2474080FFFF9F642E04C010000020F5E2474080FFFF9F642E04C0000000603FD84740000000E0735905C0000000603FD84740', 'PNRGM_Elven', 'FestNoise - Elven', 'PNRGM', 'Le Parc Naturel Régional du Golfe du Morbihan s''intéresse à l''effet du bruit sur la biodiversité. Nous vous proposons de venir arpenter les chemins d''Elven avec nous pour mesurer le bruit autour de vous ! Armé de votre smartphone Android et de l''application NoiseCapture, les mesures serviront à évaluer à quel point les espaces naturels sont impactés par la pollution sonore.', '2018-06-08 01:00:00+00', '2018-06-15 23:59:59+00', true, true);
 --INSERT INTO public.noisecapture_party (pk_party, the_geom, layer_name, title, tag, description, start_time, end_time, filter_time, filter_area) VALUES (1, '01030000000100000005000000D3D9C9E028B902C08D7F9F71E1A04740D3D9C9E028B902C0A7AE7C96E7A1474029E8F692C6A802C0A7AE7C96E7A1474029E8F692C6A802C08D7F9F71E1A04740D3D9C9E028B902C08D7F9F71E1A04740', 'SNDIGITALWEEK', 'Digital Week 2017 Pornichet', 'SNDIGITALWEEK', '<p>La Ville de Pornichet s''associe à la Saint-Nazaire Digital Week le mercredi 20 septembre, et propose de nombreuses animations gratuites et ouvertes à tous dédiées au numérique à l''hippodrome.</p><p>Venez contribuer à la création d''une carte du bruit participative, en temps réel sur les territoires de la CARENE / CAP ATLANTIQUE grâce à l''utilisation d''une application smartphone : Noise Capture.</p>', NULL, NULL, false, true);
@@ -102,7 +102,7 @@ COMMENT ON COLUMN NOISECAPTURE_TRACK.TIME_LENGTH IS 'Length of measurement in se
 -- Table: NOISECAPTURE_POINT
 CREATE TABLE NOISECAPTURE_POINT (
     PK_POINT serial NOT NULL,
-    THE_GEOM geometry, -- POSTGIS ONLY the_geom geometry(GeometryZ,4326),
+    THE_GEOM geometry, -- POSTGIS ONLY the_geom geometry(GeometryZ, 4326),
     PK_TRACK int NOT NULL REFERENCES noisecapture_track (pk_track) ON UPDATE CASCADE ON DELETE CASCADE,
     NOISE_LEVEL float  NOT NULL,
     SPEED float,

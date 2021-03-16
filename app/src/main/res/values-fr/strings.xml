@@ -329,4 +329,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="calibration_awaiting_vehicle_passby">En attente de passage des véhicules</string>
     <string name="calibration_add">Ajout</string>
     <string name="calibration_done_vehicle_passby">Fin de la session d\'étalonnage, appuyez sur le bouton ci-dessous</string>
+    <string name="localisation_policy_title" />
+    <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice_fr.html</string>
+    <string name="policy_button_understood">Bien compris</string>
 </resources>

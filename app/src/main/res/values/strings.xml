@@ -333,4 +333,8 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_awaiting_vehicle_passby">Awaiting vehicle passing by</string>
     <string name="calibration_add">Add</string>
     <string name="calibration_done_vehicle_passby">End of calibration session press button below</string>
+    <string name="localisation_button_continue">I Understand</string>
+    <string name="localisation_policy_title" >Localisation notice</string>
+    <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
+    <string name="policy_button_understood">Acknowledge</string>
 </resources>

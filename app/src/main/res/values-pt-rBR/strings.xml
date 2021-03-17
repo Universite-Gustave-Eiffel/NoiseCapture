@@ -331,4 +331,7 @@ track.geojson Arquivo com amostras das medições, 1s. Formato geojson  (http://
     <string name="calibration_estimated_gain">Ganho %.2f dB(A)</string>
     <string name="calibration_awaiting_vehicle_passby">Aguardando veículo passar</string>
     <string name="calibration_done_vehicle_passby">Fim da sessão de calibração, pressione o botão abaixo</string>
-    </resources>
+    <string name="localisation_policy_title" >Sua posição</string>
+    <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
+    <string name="policy_button_understood">Reconhecer</string>
+</resources>

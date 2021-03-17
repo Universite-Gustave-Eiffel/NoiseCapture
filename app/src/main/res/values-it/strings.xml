@@ -327,4 +327,7 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="calibration_estimated_gain">Guadagno %.2f dB(A)</string>
     <string name="calibration_awaiting_vehicle_passby">Veicolo in attesa di passaggio</string>
     <string name="calibration_done_vehicle_passby">Fine della sessione di calibrazione, toccare il tasto aggiungi</string>
-    </resources>
+    <string name="localisation_policy_title" >La tua posizione</string>
+    <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
+    <string name="policy_button_understood">Riconoscere</string>
+</resources>

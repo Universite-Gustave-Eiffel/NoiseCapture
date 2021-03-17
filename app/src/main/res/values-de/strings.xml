@@ -331,4 +331,7 @@ track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.
     <string name="calibration_estimated_gain">Gewinn%.2f dB(A)</string>
     <string name="calibration_awaiting_vehicle_passby">Wartendes vorbeifahrendes Fahrzeug</string>
     <string name="calibration_done_vehicle_passby">Ende der Kalibrierungssitzung Schaltfläche Hinzufügen drücken</string>
-    </resources>
+    <string name="localisation_policy_title" >Ihre Position</string>
+    <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
+    <string name="policy_button_understood">Bestätigen</string>
+</resources>

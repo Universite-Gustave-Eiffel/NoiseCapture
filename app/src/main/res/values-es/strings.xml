@@ -328,4 +328,7 @@ Utilice su propio smartphone para calibrar otros smartphones.</string>
     <string name="calibration_estimated_gain">Ganancia %.2f dB(A)</string>
     <string name="calibration_awaiting_vehicle_passby">Vehículo en espera de pasar</string>
     <string name="calibration_done_vehicle_passby">Fin de la sesión de calibración, toque el botón de añadir</string>
-    </resources>
+    <string name="localisation_policy_title" >Tu posición</string>
+    <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
+    <string name="policy_button_understood">Reconocer</string>
+</resources>

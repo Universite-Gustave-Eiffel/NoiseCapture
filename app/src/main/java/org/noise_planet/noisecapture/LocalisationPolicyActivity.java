@@ -27,21 +27,16 @@
 
 package org.noise_planet.noisecapture;
 
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.util.TypedValue;
 import android.view.View;
 import android.webkit.WebView;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.CompoundButton;
-import android.widget.TextView;
+
+import androidx.annotation.NonNull;
 
 public class LocalisationPolicyActivity extends MainActivity implements View.OnClickListener {
     public static final String PROP_POLICY_READ = "POLICY_LOCALISATION_READ";

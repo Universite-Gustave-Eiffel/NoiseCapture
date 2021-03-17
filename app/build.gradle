@@ -110,7 +110,6 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.0.0'
     implementation 'com.google.android.material:material:1.0.0'
     implementation 'androidx.vectordrawable:vectordrawable:1.0.0'
-    implementation 'androidx.vectordrawable:vectordrawable-animated:1.0.0'
     implementation 'com.nhaarman.supertooltips:library:3.0.0'
     //compile 'com.android.support:multidex:1.0.0'
     // Testing-only dependencies

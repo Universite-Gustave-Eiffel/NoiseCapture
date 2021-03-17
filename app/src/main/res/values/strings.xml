@@ -47,7 +47,6 @@
     <string name="no_valid_dba_value">-</string>
 
     <string name="SL_dBA">dB(A)</string>
-    <string name="SL_dB">dB</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="title_settings_calibration_warmup_time">Calibration warm-up time</string>
@@ -331,9 +330,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="traffic_history_count">%d vehicles</string>
     <string name="calibration_estimated_gain">Gain %.2f dB(A)</string>
     <string name="calibration_awaiting_vehicle_passby">Awaiting vehicle passing by</string>
-    <string name="calibration_add">Add</string>
     <string name="calibration_done_vehicle_passby">End of calibration session press button below</string>
-    <string name="localisation_button_continue">I Understand</string>
     <string name="localisation_policy_title" >Localisation notice</string>
     <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
     <string name="policy_button_understood">Acknowledge</string>

@@ -46,7 +46,6 @@
     <string name="no_valid_dba_value">-</string>
 
     <string name="SL_dBA">dB(A)</string>
-    <string name="SL_dB">dB</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="title_settings_calibration_warmup_time">Durata di u contu à l\'arritrosu</string>
@@ -314,6 +313,4 @@ track.geojson: scadìglie misurate ogni segonda aduprendu u furmatu geojson (htt
     <string name="auto_calibration_guest">Calibrà u mo funinu à pàrtesi da un antru funinu digià calibratu cù NoiseCapture</string>
     <string name="calibration_manual_ref">U prucedimentu di calibrera necessiteghja l\'adopru d\'un apparechju di riferenza digià calibratu, cum\'è un sunòmetru. Si veca nant\'à a<a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">pàgina d\'aiutu </a>di l\'appiecazione da ottene di più infurmazioni.</string>
     <string name="calibration_manual_calibrator">U prucedimentu di calibrera necessiteghja l\'adopru d\'un calibratore acùsticu. Si veca nant\'à a <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">pàgina d\'aiutu </a> di l\'appiecazione da ottene di più infurmazioni.</string>
-    <string name="localisation_policy_title" />
-    <string name="policy_button_understood" />
-</resources>
+    </resources>

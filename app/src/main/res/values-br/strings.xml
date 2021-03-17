@@ -47,7 +47,6 @@
     <string name="no_valid_dba_value">-</string>
 
     <string name="SL_dBA">dB(A)</string>
-    <string name="SL_dB">dB</string>
 
     <string name="hello_world">Deiz mat ar bed!</string>
     <string name="title_settings_calibration_warmup_time">Amzer rak-tommañ ar stalonadur</string>
@@ -300,6 +299,5 @@ roudenn.geojson 1s standilhonoù eus ar muzulioù. Ober gant ar stumm geojson (h
         <item>Ur mailh on war ar vaezienn drouz</item>
     </string-array>
     <string name="calibration_host_warning">An hezoug kaser en deus ezhomm da vezañ kevreet gant un ezvont aodio diavaez. An trevnadioù kaser ha resever a rank bezañ louc\'het d\'an ezvont aodio diavaez.</string>
-    <string name="localisation_policy_title" />
-    <string name="policy_button_understood" />
+
 </resources>

@@ -47,7 +47,6 @@
     <string name="no_valid_dba_value">-</string>
 
     <string name="SL_dBA">dB(A)</string>
-    <string name="SL_dB">dB</string>
 
     <string name="hello_world">Olá, mundo!</string>
     <string name="title_settings_calibration_warmup_time">Tempo de preparação da calibração</string>
@@ -331,8 +330,5 @@ track.geojson Arquivo com amostras das medições, 1s. Formato geojson  (http://
     <string name="traffic_history_count">%d veículos</string>
     <string name="calibration_estimated_gain">Ganho %.2f dB(A)</string>
     <string name="calibration_awaiting_vehicle_passby">Aguardando veículo passar</string>
-    <string name="calibration_add">Adicionar</string>
     <string name="calibration_done_vehicle_passby">Fim da sessão de calibração, pressione o botão abaixo</string>
-    <string name="localisation_policy_title" />
-    <string name="policy_button_understood" />
-</resources>
+    </resources>

@@ -46,7 +46,6 @@
     <string name="no_valid_dba_value">-</string>
 
     <string name="SL_dBA">dB(A)</string>
-    <string name="SL_dB">dB</string>
 
     <string name="hello_world">¡Hola, mundo!</string>
     <string name="title_settings_calibration_warmup_time">Duración de la fase de calibración</string>
@@ -328,8 +327,5 @@ Utilice su propio smartphone para calibrar otros smartphones.</string>
     <string name="traffic_history_count">%d vehículos</string>
     <string name="calibration_estimated_gain">Ganancia %.2f dB(A)</string>
     <string name="calibration_awaiting_vehicle_passby">Vehículo en espera de pasar</string>
-    <string name="calibration_add">Añade</string>
     <string name="calibration_done_vehicle_passby">Fin de la sesión de calibración, toque el botón de añadir</string>
-    <string name="localisation_policy_title" />
-    <string name="policy_button_understood" />
-</resources>
+    </resources>

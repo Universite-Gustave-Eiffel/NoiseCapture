@@ -47,7 +47,6 @@
     <string name="no_valid_dba_value">-</string>
 
     <string name="SL_dBA">dB(A)</string>
-    <string name="SL_dB">dB</string>
 
     <string name="hello_world">您好！</string>
     <string name="title_settings_calibration_warmup_time">校准预热时间</string>
@@ -331,8 +330,5 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="traffic_history_count">%d 车辆</string>
     <string name="calibration_estimated_gain">增益%.2f dB(A)</string>
     <string name="calibration_awaiting_vehicle_passby">等待车辆经过</string>
-    <string name="calibration_add">添加</string>
     <string name="calibration_done_vehicle_passby">校准会话结束，触摸添加按钮</string>
-    <string name="localisation_policy_title" />
-    <string name="policy_button_understood" />
-</resources>
+    </resources>

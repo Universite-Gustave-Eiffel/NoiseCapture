@@ -41,7 +41,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.support.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 import org.noise_planet.jwarble.Configuration;
 import org.noise_planet.jwarble.MessageCallback;

@@ -34,7 +34,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.View;
 import android.webkit.JavascriptInterface;
@@ -45,7 +45,6 @@ import android.widget.Toast;
 import org.json.JSONArray;
 import org.json.JSONException;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 

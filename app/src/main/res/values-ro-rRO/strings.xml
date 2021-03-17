@@ -46,7 +46,6 @@
     <string name="no_valid_dba_value">-</string>
 
     <string name="SL_dBA">dB(A)</string>
-    <string name="SL_dB">dB</string>
 
     <string name="hello_world">Salut!</string>
     <string name="title_settings_calibration_warmup_time">Timp de așteptare în vederea calibrării</string>
@@ -314,6 +313,4 @@ Măsuarea se face în eșantionae de 1s salvate în track.geojson. Este utilizat
     <string name="auto_calibration_guest">Calibrează telefonul propriu utilizând alt telefon care rulează NoiseCapture</string>
     <string name="calibration_manual_ref">Procedura de calibrare necesită utilizarea unui dispozitiv de referință precum un sonometru. Pentru mai multe informații, vă rugăm să consultați <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">pagina de ajutor</a>al aplicației</string>
     <string name="calibration_manual_calibrator">Procedura de calibrare necesită utilizarea unui calibrator. Pentru mai multe informații, vă rugăm să consultați <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">pagina de ajutor</a>al aplicației</string>
-    <string name="localisation_policy_title" />
-    <string name="policy_button_understood" />
-</resources>
+    </resources>

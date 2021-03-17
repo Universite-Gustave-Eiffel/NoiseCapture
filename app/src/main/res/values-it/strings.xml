@@ -47,7 +47,6 @@ per evitare di trasmettere dati se non sei connesso</string>
     <string name="no_valid_dba_value">-</string>
 
     <string name="SL_dBA">dB(A)</string>
-    <string name="SL_dB">dB</string>
 
     <string name="hello_world">Ciao mondo!</string>
     <string name="title_settings_calibration_warmup_time">Tempo di preparazione della calibrazione</string>
@@ -97,7 +96,7 @@ per evitare di trasmettere dati se non sei connesso</string>
     <!--  Ressources for the spinner history
           History:HistoryItemListener:onItemClick remove the first entry (upload) !-->
     <string-array name="choice_user_history">
-        <item>Trasferimento alla comunità degli utenti</item>
+        <item>Invia alla community</item>
         <item>Esporta risultato</item>
         <item>Modifica descrizione</item>
         <item>Mostra risultato</item>
@@ -186,10 +185,10 @@ per evitare di trasmettere dati se non sei connesso</string>
 
     <string name="history_length">%d s</string>
     <string name="history_date">- %s</string>
-    <string name="history_already_uploaded">Questa misura è già stata inviata</string>
+    <string name="history_already_uploaded">Questa misurazione è già stata inviata</string>
     <string name="history_sel">%.01f dB(A)</string>
     <string name="history_upload_top">Carica</string>
-    <string name="history_uploadeddescr">Questo risultato è stato caricato sul server di mappa della comunità degli utenti ?</string>
+    <string name="history_uploadeddescr">Questo risultato è stato caricato sul database della community?</string>
 
     <string name="measurement_processlastsamples">Elaborazione dei %d campioni rimanenti&#8230;</string>
     <string name="history_item_choice_title">Misurazione %s</string>
@@ -241,7 +240,7 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="calibration_status_background_noise">Misurazione del rumore di fondo in corso</string>
     <string name="calibration_button_start">Inizia</string>
     <string name="calibration_button_cancel">Annulla</string>
-    <string name="calibration_laeq_title">Misurazione LAeq:</string>
+    <string name="calibration_laeq_title">LAeq misurata:</string>
     <string name="calibration_measure_title">Valore di riferimento:</string>
     <string name="calibration_button_apply">Applica</string>
     <string name="calibration_button_reset">Reset</string>
@@ -265,13 +264,13 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="map_title_progress_loading">Caricamento delle posizioni delle misurazioni</string>
     <string name="policy_legal_age">Ho l\'età legale (definita dalla legge del mio paese) per l\'utilizzo di questo software</string>
     <string name="policy_agree_statement">Ho letto e accetto l\'informativa sulla privacy</string>
-    <string name="policy_button_continue">Continuare</string>
+    <string name="policy_button_continue">Continua</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Informativa sulla privacy</string>
-    <string name="notification_record_content">Misura in corso... %1$.1f dB(A)</string>
-    <string name="result_title_progress_loading">Caricamento delle misure</string>
-    <string name="userinfo_tags_measurement_conditions">Condizioni di misura</string>
-    <string name="notification_goto_community_map_title">Misure comunitarie</string>
+    <string name="notification_record_content">Misurazione in corso... %1$.1f dB(A)</string>
+    <string name="result_title_progress_loading">Caricamento delle misurazioni</string>
+    <string name="userinfo_tags_measurement_conditions">Condizioni di misurazione</string>
+    <string name="notification_goto_community_map_title">Misurazioni della community</string>
 
     <string-array name="output_mode_labels">
         <item>Chiamata vocale</item>
@@ -286,7 +285,7 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
         <item>Rettangolare</item>
         <item>Hann</item>
     </string-array>
-    <string name="notification_goto_community_map">Visita http://noise-planet.org, sfoglia la mappa di tutte le misurazioni fatte dalla comunità</string>
+    <string name="notification_goto_community_map">Visita http://noise-planet.org, sfoglia la mappa di tutte le misurazioni fatte dalla community</string>
     <string name="title_settings_notification_links">Notifica</string>
     <string name="summary_settings_notification_links">Controlla per visualizzare il link di notifica al sito Noise-Planet</string>
     <string name="settings_category_profile">Profilo utente</string>
@@ -300,10 +299,10 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     </string-array>
     <string name="calibration_host_warning">Il telefono mittente deve essere collegato con un\' uscita audio esterna. Il mittente e il ricevitore devono essere esposti all\' uscita audio esterna.</string>
     <string name="title_settings_language">Lingua</string>
-    <string name="settings_language_summary">Cambia lingua predefinita dell\'applicazione</string>
+    <string name="settings_language_summary">Cambia la lingua predefinita dell\'applicazione</string>
     <string name="calibration_communication">Trasferimento dati</string>
     <string name="calibration_host_hint">Gli smartphone di riferimento e i ricevitori devono essere ugualmente esposti alla sorgente di rumore. Gli smartphone ricevitori devono essere uno dei ricevitori della schermata di calibrazione del ricevitore NoiseCapture prima di iniziare la procedura.</string>
-    <string name="calibration_noise_source_parameters">Parametri della fonte del rumore</string>
+    <string name="calibration_noise_source_parameters">Parametri della sorgente di rumore</string>
     <string name="calibration_noise_pink">Pink noise</string>
     <string name="calibration_noise_ambient">Rumore ambiente</string>
     <string name="auto_calibration">Automatico con smartphone calibrato</string>
@@ -318,7 +317,7 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="new_measurement">Nuova misurazione</string>
     <string name="meters">metri</string>
     <string name="km_h">km/h</string>
-    <string name="calibration_average_vehicle_speed">Velocità media stimata del veicolo</string>
+    <string name="calibration_average_vehicle_speed">Velocità stimata del veicolo</string>
     <string name="calibration_distance_vehicle">Distanza del veicolo</string>
     <string name="calibration_manual_traffic">La posizione di misura per la taratura deve essere sufficientemente vicina alla strada, garantendo al contempo la vostra sicurezza. La strada deve essere asciutta e in buone condizioni.</string>
     <string name="title_activity_calibration_history">Sessioni di calibrazione del traffico</string>
@@ -327,8 +326,8 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="traffic_history_count">%d veicoli</string>
     <string name="calibration_estimated_gain">Guadagno %.2f dB(A)</string>
     <string name="calibration_awaiting_vehicle_passby">Veicolo in attesa di passaggio</string>
-    <string name="calibration_add">Aggiungi</string>
     <string name="calibration_done_vehicle_passby">Fine della sessione di calibrazione, toccare il tasto aggiungi</string>
-    <string name="localisation_policy_title" />
-    <string name="policy_button_understood" />
+    <string name="localisation_policy_title" >La tua posizione</string>
+    <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
+    <string name="policy_button_understood">Riconoscere</string>
 </resources>

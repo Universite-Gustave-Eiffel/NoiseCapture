@@ -47,7 +47,6 @@ damit keine Daten übertragen werden, wenn Sie nicht über WiFi verbunden sind.<
     <string name="no_valid_dba_value">-</string>
 
     <string name="SL_dBA">dB(A)</string>
-    <string name="SL_dB">dB</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="title_settings_calibration_warmup_time">Aufwärmzeit der Kalibrierung</string>
@@ -331,8 +330,8 @@ track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.
     <string name="traffic_history_count">%d Fahrzeuge</string>
     <string name="calibration_estimated_gain">Gewinn%.2f dB(A)</string>
     <string name="calibration_awaiting_vehicle_passby">Wartendes vorbeifahrendes Fahrzeug</string>
-    <string name="calibration_add">Hinzufügen</string>
     <string name="calibration_done_vehicle_passby">Ende der Kalibrierungssitzung Schaltfläche Hinzufügen drücken</string>
-    <string name="localisation_policy_title" />
-    <string name="policy_button_understood" />
+    <string name="localisation_policy_title" >Ihre Position</string>
+    <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
+    <string name="policy_button_understood">Bestätigen</string>
 </resources>

@@ -300,4 +300,6 @@ roudenn.geojson 1s standilhonoù eus ar muzulioù. Ober gant ar stumm geojson (h
         <item>Ur mailh on war ar vaezienn drouz</item>
     </string-array>
     <string name="calibration_host_warning">An hezoug kaser en deus ezhomm da vezañ kevreet gant un ezvont aodio diavaez. An trevnadioù kaser ha resever a rank bezañ louc\'het d\'an ezvont aodio diavaez.</string>
-    </resources>
+    <string name="localisation_policy_title" />
+    <string name="policy_button_understood" />
+</resources>

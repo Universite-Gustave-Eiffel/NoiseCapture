@@ -174,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * If necessary request user to acquire permisions for critical ressources (gps and microphone)
+     * If necessary request user to acquire permissions for critical resources (gps and microphone)
      * @return True if service can be bind immediately. Otherwise the bind should be done using the
      * @see #onRequestPermissionsResult
      */

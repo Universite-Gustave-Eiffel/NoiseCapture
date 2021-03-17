@@ -114,8 +114,8 @@ public class PrivacyPolicyActivity extends AppCompatActivity implements View.OnC
                     editor.putString("settings_user_noise_knowledge", spinnerValues[which - 1]);
                 }
                 editor.apply();
-                // Start measurement activity
-                Intent i = new Intent(getApplicationContext(), MeasurementActivity.class);
+                // Start localisation notice activity
+                Intent i = new Intent(getApplicationContext(), LocalisationPolicyActivity.class);
                 startActivity(i);
                 finish();
             }

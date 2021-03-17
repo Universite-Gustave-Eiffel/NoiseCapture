@@ -333,4 +333,6 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_awaiting_vehicle_passby">等待车辆经过</string>
     <string name="calibration_add">添加</string>
     <string name="calibration_done_vehicle_passby">校准会话结束，触摸添加按钮</string>
+    <string name="localisation_policy_title" />
+    <string name="policy_button_understood" />
 </resources>

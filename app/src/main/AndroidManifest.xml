@@ -109,7 +109,10 @@
             android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".PrivacyPolicyActivity"
-            android:label="@string/privacy_policy_title"></activity>
+            android:label="@string/privacy_policy_title"/>
+        <activity
+            android:name=".LocalisationPolicyActivity"
+            android:label="@string/localisation_policy_title"/>
         <activity
             android:name=".CalibrationMenu"
             android:label="@string/title_activity_menu_calibration"

@@ -85,12 +85,16 @@ public class Start extends Activity {
             }
 
             SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(Start.this);
-            if(sharedPref.getBoolean(PrivacyPolicyActivity.PROP_POLICY_AGREED, false)) {
-                Intent i = new Intent(getApplicationContext(), MeasurementActivity.class);
+            if(!sharedPref.getBoolean(PrivacyPolicyActivity.PROP_POLICY_AGREED, false)) {
+                Intent i = new Intent(getApplicationContext(), PrivacyPolicyActivity.class);
+                startActivity(i);
+                finish();
+            } else if (!sharedPref.getBoolean(LocalisationPolicyActivity.PROP_POLICY_READ, false)) {
+                Intent i = new Intent(getApplicationContext(), LocalisationPolicyActivity.class);
                 startActivity(i);
                 finish();
             } else {
-                Intent i = new Intent(getApplicationContext(), PrivacyPolicyActivity.class);
+                Intent i = new Intent(getApplicationContext(), MeasurementActivity.class);
                 startActivity(i);
                 finish();
             }

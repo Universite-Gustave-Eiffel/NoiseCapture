@@ -314,4 +314,6 @@ Măsuarea se face în eșantionae de 1s salvate în track.geojson. Este utilizat
     <string name="auto_calibration_guest">Calibrează telefonul propriu utilizând alt telefon care rulează NoiseCapture</string>
     <string name="calibration_manual_ref">Procedura de calibrare necesită utilizarea unui dispozitiv de referință precum un sonometru. Pentru mai multe informații, vă rugăm să consultați <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">pagina de ajutor</a>al aplicației</string>
     <string name="calibration_manual_calibrator">Procedura de calibrare necesită utilizarea unui calibrator. Pentru mai multe informații, vă rugăm să consultați <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">pagina de ajutor</a>al aplicației</string>
-    </resources>
+    <string name="localisation_policy_title" />
+    <string name="policy_button_understood" />
+</resources>

@@ -333,4 +333,6 @@ track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.
     <string name="calibration_awaiting_vehicle_passby">Wartendes vorbeifahrendes Fahrzeug</string>
     <string name="calibration_add">Hinzufügen</string>
     <string name="calibration_done_vehicle_passby">Ende der Kalibrierungssitzung Schaltfläche Hinzufügen drücken</string>
+    <string name="localisation_policy_title" />
+    <string name="policy_button_understood" />
 </resources>

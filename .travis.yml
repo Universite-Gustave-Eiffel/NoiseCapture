@@ -1,9 +1,11 @@
 language: android
 sudo: required
 dist: trusty
-jdk:
-  - oraclejdk11
-  - oraclejdk8
+addons:
+  apt:
+    packages:
+      - oraclejdk11
+      - oraclejdk8
 
 android:
   components:

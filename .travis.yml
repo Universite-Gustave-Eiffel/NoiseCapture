@@ -3,7 +3,7 @@ sudo: required
 dist: trusty
 
 jdk:
-    - openjdk11
+    - oraclejdk11
 
 android:
   components:
@@ -16,6 +16,7 @@ android:
     - extra-android-m2repository
 
 before_install:
+  - echo $JAVA_HOME
   - touch $HOME/.android/repositories.cfg
   - yes | sdkmanager "platforms;android-29"
   - yes | sdkmanager "build-tools;29.0.3"

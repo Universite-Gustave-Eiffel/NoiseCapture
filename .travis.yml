@@ -2,9 +2,6 @@ language: android
 sudo: required
 dist: trusty
 
-jdk:
-    - oraclejdk11
-
 android:
   components:
     - platform-tools
@@ -16,10 +13,12 @@ android:
     - extra-android-m2repository
 
 before_install:
-  - echo $JAVA_HOME
   - touch $HOME/.android/repositories.cfg
   - yes | sdkmanager "platforms;android-29"
   - yes | sdkmanager "build-tools;29.0.3"
+  - export JAVA_HOME=~/oraclejdk11
+  - export PATH="$JAVA_HOME/bin:$PATH"
+  - ~/bin/install-jdk.sh --target "/home/travis/oraclejdk11" --workspace "/home/travis/.cache/install-jdk" --feature "11" --license "BCL"
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock

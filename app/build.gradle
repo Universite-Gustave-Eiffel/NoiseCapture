@@ -14,7 +14,7 @@ def getAvailableLocales() {
 }
 
 android {
-    compileSdkVersion 29
+    compileSdkVersion 30
     buildToolsVersion '30.0.0'
     def signingFilePath = System.getProperty("user.home") + "/.idea/signing.gradle"
     if (new File(signingFilePath).exists()) {
@@ -23,9 +23,9 @@ android {
     defaultConfig {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
-        targetSdkVersion 29
-        versionCode 54
-        versionName "1.2.18"
+        targetSdkVersion 30
+        versionCode 55
+        versionName "1.2.19"
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""

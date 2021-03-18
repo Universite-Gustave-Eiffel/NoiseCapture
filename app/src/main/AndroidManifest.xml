@@ -45,7 +45,8 @@
         </provider>
 
         <service android:name=".MeasurementService"
-            android:foregroundServiceType="location"/> <!--TODO Android 11 |microphone-->
+            android:foregroundServiceType="location|microphone"
+            />
         <service android:name=".CalibrationService" />
 
         <activity

@@ -269,9 +269,9 @@ public class MeasurementService extends Service {
     private String createNotificationChannel(String channelId, String channelName) {
         if (android.os.Build.VERSION.SDK_INT >= 26) {
             NotificationChannel chan = new NotificationChannel(channelId,
-                    channelName, NotificationManager.IMPORTANCE_NONE);
+                    channelName, NotificationManager.IMPORTANCE_HIGH);
             chan.setLightColor(Color.BLUE);
-            chan.setLockscreenVisibility(Notification.VISIBILITY_PRIVATE);
+            chan.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             NotificationManager service = (NotificationManager)getSystemService(Context
                     .NOTIFICATION_SERVICE);
             service.createNotificationChannel(chan);
@@ -686,10 +686,12 @@ public class MeasurementService extends Service {
         isStorageActivated.set(true);
         showNotification();
         // Set is foreground in order to let this service running without stopping
-        try {
-            startForeground(NOTIFICATION, notificationInstance, ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION);
-        } catch (SecurityException ex) {
-            // Ignore, noisecapture can not be run on background on this smartphone
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                startForeground(NOTIFICATION, notificationInstance);
+            } catch (SecurityException ex) {
+                // Ignore, noisecapture can not be run on background on this smartphone
+            }
         }
     }
 

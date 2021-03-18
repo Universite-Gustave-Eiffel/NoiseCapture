@@ -134,11 +134,12 @@ public class MainActivity extends AppCompatActivity {
                         R.string.permission_explain_gps, Toast.LENGTH_LONG).show();
             }
             // Request the permission.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ActivityCompat.requestPermissions(this,
                         new String[]{Manifest.permission.RECORD_AUDIO,
                                 Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.FOREGROUND_SERVICE},
+                                Manifest.permission.FOREGROUND_SERVICE,
+                                Manifest.permission.ACCESS_BACKGROUND_LOCATION},
                         PERMISSION_RECORD_AUDIO_AND_GPS);
             } else {
                 ActivityCompat.requestPermissions(this,

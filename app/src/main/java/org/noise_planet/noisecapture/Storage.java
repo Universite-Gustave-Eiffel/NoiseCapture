@@ -36,8 +36,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.BaseColumns;
-import android.support.annotation.ColorRes;
-import android.support.annotation.IdRes;
+import androidx.annotation.ColorRes;
+import androidx.annotation.IdRes;
 import android.text.TextUtils;
 
 import org.noise_planet.noisecapture.util.TrafficNoiseEstimator;

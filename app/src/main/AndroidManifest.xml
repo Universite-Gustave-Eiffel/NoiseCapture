@@ -6,7 +6,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <!-- Required by Android P -->
@@ -35,7 +34,7 @@
         android:label="@string/app_name"
         android:theme="@style/Theme.AppCompat">
         <provider
-            android:name="android.support.v4.content.FileProvider"
+            android:name="androidx.core.content.FileProvider"
             android:authorities="org.noise_planet.noisecapture.fileprovider"
             android:exported="false"
             android:grantUriPermissions="true">
@@ -44,7 +43,8 @@
                 android:resource="@xml/filepaths" />
         </provider>
 
-        <service android:name=".MeasurementService" />
+        <service android:name=".MeasurementService"
+            android:foregroundServiceType="location"/> <!--TODO Android 11 |microphone-->
         <service android:name=".CalibrationService" />
 
         <activity

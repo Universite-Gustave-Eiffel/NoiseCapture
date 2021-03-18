@@ -14,8 +14,8 @@ def getAvailableLocales() {
 }
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    compileSdkVersion 29
+    buildToolsVersion '30.0.0'
     def signingFilePath = System.getProperty("user.home") + "/.idea/signing.gradle"
     if (new File(signingFilePath).exists()) {
         apply from: signingFilePath
@@ -23,7 +23,7 @@ android {
     defaultConfig {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 52
         versionName "1.2.16"
         // Store build date in apk
@@ -35,7 +35,7 @@ android {
 
         vectorDrawables.useSupportLibrary = true
 
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     dexOptions {
@@ -107,19 +107,18 @@ dependencies {
     // multithreaded FFT for realtime visualisation of spectrum only
     implementation 'com.github.wendykierp:JTransforms:3.1'
     implementation 'org.apache.commons:commons-math3:3.5'
-    implementation 'com.android.support:appcompat-v7:28.0.0'
-    implementation 'com.android.support:design:28.0.0'
-    implementation 'com.android.support:support-vector-drawable:28.0.0'
-    implementation 'com.android.support:animated-vector-drawable:28.0.0'
+    implementation 'androidx.appcompat:appcompat:1.0.0'
+    implementation 'com.google.android.material:material:1.0.0'
+    implementation 'androidx.vectordrawable:vectordrawable:1.0.0'
     implementation 'com.nhaarman.supertooltips:library:3.0.0'
     //compile 'com.android.support:multidex:1.0.0'
     // Testing-only dependencies
     // Force usage of support annotations in the test app, since it is internally used by the runner module.
-    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
-    androidTestImplementation 'com.android.support:support-annotations:28.0.0'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test:rules:1.0.2'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+    androidTestImplementation 'androidx.annotation:annotation:1.0.0'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
+    androidTestImplementation 'androidx.test:rules:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
     // unit test
     testImplementation group: 'org.robolectric', name: 'robolectric', version: '4.3.1'
     testImplementation 'junit:junit:4.12'

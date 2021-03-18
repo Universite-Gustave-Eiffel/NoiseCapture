@@ -28,9 +28,6 @@
 package org.noise_planet.noisecapture;
 
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.AssetManager;
 import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.os.Bundle;
@@ -38,18 +35,13 @@ import android.preference.EditTextPreference;
 import android.preference.Preference;
 import android.preference.PreferenceFragment;
 import android.preference.PreferenceGroup;
-import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
-import android.support.v7.app.AlertDialog;
-import android.util.ArraySet;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
+import androidx.appcompat.app.AlertDialog;
+
 import android.view.inputmethod.EditorInfo;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

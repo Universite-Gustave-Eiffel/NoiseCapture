@@ -43,7 +43,7 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
-import android.support.design.widget.TabLayout;
+import com.google.android.material.tabs.TabLayout;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;

@@ -7,7 +7,7 @@
         app:showAsAction="ifRoom"
         android:title="@string/result_share"
         app:actionProviderClass=
-            "android.support.v7.widget.ShareActionProvider" />
+            "androidx.appcompat.widget.ShareActionProvider" />
 
     <item android:id="@+id/action_settings"
         android:title="@string/action_settings"

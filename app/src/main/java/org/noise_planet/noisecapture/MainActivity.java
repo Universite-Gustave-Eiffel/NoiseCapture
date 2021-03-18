@@ -42,18 +42,19 @@ import android.content.res.Resources;
 import android.net.Uri;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.TaskStackBuilder;
-import android.support.v4.content.ContextCompat;
-import android.support.v4.widget.DrawerLayout;
-import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarDrawerToggle;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.AppCompatDelegate;
+import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.app.TaskStackBuilder;
+import androidx.core.content.ContextCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.ActionBarDrawerToggle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -114,30 +115,37 @@ public class MainActivity extends AppCompatActivity {
      */
     protected boolean checkAndAskPermissions() {
         if (ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.RECORD_AUDIO)
+                Manifest.permission.RECORD_AUDIO)
                 != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED) {
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    android.Manifest.permission.RECORD_AUDIO)) {
+                    Manifest.permission.RECORD_AUDIO)) {
                 // After the user
                 // sees the explanation, try again to request the permission.
                 Toast.makeText(this,
                         R.string.permission_explain_audio_record, Toast.LENGTH_LONG).show();
             }
             if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    android.Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    Manifest.permission.ACCESS_FINE_LOCATION)) {
                 // After the user
                 // sees the explanation, try again to request the permission.
                 Toast.makeText(this,
                         R.string.permission_explain_gps, Toast.LENGTH_LONG).show();
             }
             // Request the permission.
-            ActivityCompat.requestPermissions(this,
-                    new String[]{android.Manifest.permission.RECORD_AUDIO,
-                            android.Manifest.permission.ACCESS_FINE_LOCATION,
-                            Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.FOREGROUND_SERVICE},
-                    PERMISSION_RECORD_AUDIO_AND_GPS);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.RECORD_AUDIO,
+                                Manifest.permission.ACCESS_FINE_LOCATION,
+                                Manifest.permission.FOREGROUND_SERVICE},
+                        PERMISSION_RECORD_AUDIO_AND_GPS);
+            } else {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.RECORD_AUDIO,
+                                Manifest.permission.ACCESS_FINE_LOCATION},
+                        PERMISSION_RECORD_AUDIO_AND_GPS);
+            }
             return false;
         }
         return true;

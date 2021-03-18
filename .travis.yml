@@ -4,8 +4,7 @@ dist: trusty
 addons:
   apt:
     packages:
-      - oraclejdk11
-      - oraclejdk8
+      - openjdk-11-jdk
 
 android:
   components:
@@ -18,11 +17,10 @@ android:
     - extra-android-m2repository
 
 before_install:
-  - export JAVA_HOME=~/oraclejdk8
   - touch $HOME/.android/repositories.cfg
   - yes | sdkmanager "platforms;android-29"
   - yes | sdkmanager "build-tools;29.0.3"
-  - export JAVA_HOME=~/oraclejdk11
+  - export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock

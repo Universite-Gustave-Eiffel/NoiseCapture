@@ -1,6 +1,9 @@
 language: android
 sudo: required
 dist: trusty
+jdk:
+  - oraclejdk11
+  - oraclejdk8
 
 android:
   components:
@@ -13,6 +16,7 @@ android:
     - extra-android-m2repository
 
 before_install:
+  - export JAVA_HOME=~/oraclejdk8
   - touch $HOME/.android/repositories.cfg
   - yes | sdkmanager "platforms;android-29"
   - yes | sdkmanager "build-tools;29.0.3"

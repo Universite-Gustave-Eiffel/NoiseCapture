@@ -1,4 +1,5 @@
 -dontobfuscate
+-keepattributes LineNumberTable,SourceFile
 
 -keep class com.google.android.gms.** { *; }
 -keep class org.apache.commons.** { *; }

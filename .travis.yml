@@ -10,16 +10,16 @@ android:
   components:
     - platform-tools
     - tools
-    - build-tools-29.0.3
-    - android-29
+    - build-tools-30.0.0
+    - android-30
     - add-on
     - extra
     - extra-android-m2repository
 
 before_install:
   - touch $HOME/.android/repositories.cfg
-  - yes | sdkmanager "platforms;android-29"
-  - yes | sdkmanager "build-tools;29.0.3"
+  - yes | sdkmanager "platforms;android-30"
+  - yes | sdkmanager "build-tools;30.0.0"
   - export JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/
 
 before_cache:

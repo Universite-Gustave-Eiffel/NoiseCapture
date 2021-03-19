@@ -76,6 +76,13 @@ public class LocalisationPolicyActivity extends MainActivity implements View.OnC
         editor.apply();
 
         // Ask for gps access
-        checkAndAskPermissions();
+        if(checkAndAskPermissions()) {
+            // If app already gives the right or block, we still continue
+            // as onRequestPermissionsResult will not be called
+            // Start measurement activity
+            Intent i = new Intent(getApplicationContext(), MeasurementActivity.class);
+            startActivity(i);
+            finish();
+        }
     }
 }

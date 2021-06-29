@@ -75,9 +75,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 
 public class MainActivity extends AppCompatActivity {
+    AtomicBoolean doRequestPermission = new AtomicBoolean(false);
     static {
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true);
     }
@@ -114,50 +116,58 @@ public class MainActivity extends AppCompatActivity {
      * @see #onRequestPermissionsResult
      */
     protected boolean checkAndAskPermissions() {
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.RECORD_AUDIO)
-                != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_BACKGROUND_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.RECORD_AUDIO)) {
-                // After the user
-                // sees the explanation, try again to request the permission.
-                Toast.makeText(this,
-                        R.string.permission_explain_audio_record, Toast.LENGTH_LONG).show();
-            }
-            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION)) {
-                // After the user
-                // sees the explanation, try again to request the permission.
-                Toast.makeText(this,
-                        R.string.permission_explain_gps, Toast.LENGTH_LONG).show();
-            }
-            // Request the permission.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.RECORD_AUDIO,
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.FOREGROUND_SERVICE,
-                                Manifest.permission.ACCESS_BACKGROUND_LOCATION},
-                        PERMISSION_RECORD_AUDIO_AND_GPS);
-            } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.RECORD_AUDIO,
-                                Manifest.permission.ACCESS_FINE_LOCATION,
-                                Manifest.permission.FOREGROUND_SERVICE},
-                        PERMISSION_RECORD_AUDIO_AND_GPS);
-            } else {
-                ActivityCompat.requestPermissions(this,
-                        new String[]{Manifest.permission.RECORD_AUDIO,
-                                Manifest.permission.ACCESS_FINE_LOCATION},
-                        PERMISSION_RECORD_AUDIO_AND_GPS);
-            }
+        if(doRequestPermission.get()) {
             return false;
         }
-        return true;
+        try {
+            doRequestPermission.set(true);
+            if (ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.RECORD_AUDIO)
+                    != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.RECORD_AUDIO)) {
+                    // After the user
+                    // sees the explanation, try again to request the permission.
+                    Toast.makeText(this,
+                            R.string.permission_explain_audio_record, Toast.LENGTH_LONG).show();
+                }
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.ACCESS_FINE_LOCATION)) {
+                    // After the user
+                    // sees the explanation, try again to request the permission.
+                    Toast.makeText(this,
+                            R.string.permission_explain_gps, Toast.LENGTH_LONG).show();
+                }
+                // Request the permission.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.RECORD_AUDIO,
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.FOREGROUND_SERVICE,
+                                    Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                            PERMISSION_RECORD_AUDIO_AND_GPS);
+                } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.RECORD_AUDIO,
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.FOREGROUND_SERVICE},
+                            PERMISSION_RECORD_AUDIO_AND_GPS);
+                } else {
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.RECORD_AUDIO,
+                                    Manifest.permission.ACCESS_FINE_LOCATION},
+                            PERMISSION_RECORD_AUDIO_AND_GPS);
+                }
+                return false;
+            }
+            return true;
+        } finally {
+            doRequestPermission.set(false);
+        }
     }
 
 

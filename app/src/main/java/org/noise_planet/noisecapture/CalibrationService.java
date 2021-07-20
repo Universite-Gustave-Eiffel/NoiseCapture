@@ -236,6 +236,16 @@ public class CalibrationService extends Service implements PropertyChangeListene
     public void onCreate() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
+        try {
+            AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+            // Mute NoiseCapture while measuring (do not capture android sounds)
+            mgr.setStreamMute(AudioManager.STREAM_SYSTEM, true);
+            // Use phone speaker if user plug-in an external microphone
+            mgr.setMode(AudioManager.MODE_IN_COMMUNICATION);
+            mgr.setSpeakerphoneOn(true);
+        } catch (SecurityException ex) {
+            // Ignore
+        }
     }
 
     private int getAudioOutput() {
@@ -415,6 +425,17 @@ public class CalibrationService extends Service implements PropertyChangeListene
             audioTrack.stop();
         }
         stopAudioProcess();
+        try {
+            // Restore normal state
+            AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
+            // Mute NoiseCapture while measuring (do not capture android sounds)
+            mgr.setStreamMute(AudioManager.STREAM_SYSTEM, false);
+            // Use phone speaker if user plug-in an external microphone
+            mgr.setMode(AudioManager.MODE_NORMAL);
+            mgr.setSpeakerphoneOn(false);
+        } catch (SecurityException ex) {
+            // Ignore
+        }
     }
 
     @Nullable

@@ -167,7 +167,7 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
         if(getCurrentFocus()!=null && inputMethodManager != null) {
             inputMethodManager.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
         }
-        textStatus.setText(getString(R.string.calibration_awaiting_vehicle_passby,0, EXPECTED_NOISE_PEAKS));
+        textStatus.setText(getString(R.string.calibration_awaiting_vehicle_passby));
         mainButton.setImageResource(R.drawable.pause_unpressed);
         calibration_step = CALIBRATION_STEP.MEASUREMENT;
         calibrationProgressBar.setProgress(0);
@@ -251,6 +251,9 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
     }
 
     public void onCalibrationAdd() {
+        if(trafficCalibrationSession == null) {
+            return;
+        }
         trafficCalibrationSession.setEstimatedSpeed(Double.valueOf(inputSpeed.getText().toString()));
         trafficCalibrationSession.setEstimatedDistance(Double.valueOf(inputDistance.getText().toString()));
         MeasurementManager measurementManager = new MeasurementManager(getApplicationContext());

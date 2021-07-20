@@ -271,7 +271,7 @@ track.geojson Arquivo com amostras das medições, 1s. Formato geojson  (http://
     <string name="policy_button_continue">Continuar</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Política de Privacidade</string>
-    <string name="notification_record_content">Medição em progresso... %1$.1f dB(A)</string>
+    <string name="notification_record_content">Medição em progresso...</string>
     <string name="result_title_progress_loading">Carregando as medições</string>
     <string name="userinfo_tags_measurement_conditions">Condições de medição</string>
     <string name="notification_goto_community_map_title">Medições da comunidade</string>

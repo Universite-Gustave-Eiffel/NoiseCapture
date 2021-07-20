@@ -269,9 +269,8 @@ public class MeasurementService extends Service {
     private String createNotificationChannel(String channelId, String channelName) {
         if (android.os.Build.VERSION.SDK_INT >= 26) {
             NotificationChannel chan = new NotificationChannel(channelId,
-                    channelName, NotificationManager.IMPORTANCE_HIGH);
+                    channelName, NotificationManager.IMPORTANCE_NONE);
             chan.setLightColor(Color.BLUE);
-            chan.setImportance(NotificationManager.IMPORTANCE_NONE);
             chan.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             NotificationManager service = (NotificationManager)getSystemService(Context
                     .NOTIFICATION_SERVICE);

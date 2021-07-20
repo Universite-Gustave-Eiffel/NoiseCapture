@@ -27,6 +27,7 @@
 
 package org.noise_planet.noisecapture;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.ComponentName;
@@ -39,6 +40,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
@@ -56,6 +58,8 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.core.app.ActivityCompat;
 
 import com.github.mikephil.charting.charts.BarChart;
 import com.github.mikephil.charting.charts.HorizontalBarChart;
@@ -269,8 +273,8 @@ public class MeasurementActivity extends MainActivity implements
         setupViewPager(viewPager);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.measurement_tabs);
         tabLayout.setupWithViewPager(viewPager);
-        // Select map by default
-        viewPager.setCurrentItem(2);
+        // Select spectrogram by default
+        viewPager.setCurrentItem(1);
         // Instantaneous sound level VUMETER
         // Stacked bars are used for represented Min, Current and Max values
         // Horizontal barchart
@@ -293,14 +297,30 @@ public class MeasurementActivity extends MainActivity implements
         switch (requestCode) {
             case PERMISSION_RECORD_AUDIO_AND_GPS: {
                 // If request is cancelled, the result arrays are empty.
-                if (grantResults.length > 0
-                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-
-                    doBindService();
-                } else {
-                    // permission denied
-                    // Ask again
-                    checkAndAskPermissions();
+                for(int permissionId = 0; permissionId < permissions.length; permissionId++) {
+                    if(permissions[permissionId].equals(Manifest.permission.RECORD_AUDIO)) {
+                        if (grantResults.length > 0
+                                && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                            doBindService();
+                        } else {
+                            // permission denied
+                            // Ask again
+                            checkAndAskPermissions();
+                        }
+                    } else if(permissions[permissionId].equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
+                        // If accepted, request background location
+                        if(grantResults[permissionId] == PackageManager.PERMISSION_GRANTED) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                ActivityCompat.requestPermissions(this,
+                                        new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                        PERMISSION_RECORD_AUDIO_AND_GPS);
+                            }
+                        } else {
+                            ActivityCompat.requestPermissions(this,
+                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                    PERMISSION_RECORD_AUDIO_AND_GPS);
+                        }
+                    }
                 }
             }
         }

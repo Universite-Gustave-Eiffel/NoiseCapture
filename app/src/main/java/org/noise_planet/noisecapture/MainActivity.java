@@ -147,8 +147,7 @@ public class MainActivity extends AppCompatActivity {
                     ActivityCompat.requestPermissions(this,
                             new String[]{Manifest.permission.RECORD_AUDIO,
                                     Manifest.permission.ACCESS_FINE_LOCATION,
-                                    Manifest.permission.FOREGROUND_SERVICE,
-                                    Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                    Manifest.permission.FOREGROUND_SERVICE},
                             PERMISSION_RECORD_AUDIO_AND_GPS);
                 } else if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                     ActivityCompat.requestPermissions(this,

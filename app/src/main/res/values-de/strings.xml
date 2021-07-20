@@ -271,7 +271,7 @@ track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.
     <string name="policy_button_continue">Fortfahren</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Datenschutz-Bestimmungen</string>
-    <string name="notification_record_content">Messung in Arbeit... %1$.1f db(A)</string>
+    <string name="notification_record_content">Messung in Arbeit...</string>
     <string name="result_title_progress_loading">Messungen werden geladen</string>
     <string name="userinfo_tags_measurement_conditions">Messbedingungen</string>
     <string name="notification_goto_community_map_title">Community-Messungen</string>

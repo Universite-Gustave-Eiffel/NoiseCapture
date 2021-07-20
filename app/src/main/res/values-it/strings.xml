@@ -267,7 +267,7 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="policy_button_continue">Continua</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Informativa sulla privacy</string>
-    <string name="notification_record_content">Misurazione in corso... %1$.1f dB(A)</string>
+    <string name="notification_record_content">Misurazione in corso...</string>
     <string name="result_title_progress_loading">Caricamento delle misurazioni</string>
     <string name="userinfo_tags_measurement_conditions">Condizioni di misurazione</string>
     <string name="notification_goto_community_map_title">Misurazioni della community</string>

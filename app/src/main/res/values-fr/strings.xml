@@ -266,7 +266,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="policy_button_continue">Suivant</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy_FR.html</string>
     <string name="privacy_policy_title">Politique de confidentialité</string>
-    <string name="notification_record_content">Mesure en cours... %1$.1f dB(A)</string>
+    <string name="notification_record_content">Mesure en cours...</string>
     <string name="result_title_progress_loading">Chargement de la mesure</string>
     <string name="userinfo_tags_measurement_conditions">Conditions de mesure</string>
     <string name="notification_goto_community_map_title">Mesures communautaires</string>

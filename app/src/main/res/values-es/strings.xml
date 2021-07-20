@@ -267,7 +267,7 @@ track.geojson muestars de 1 s de las mediciones en formato GeoJSON (http://geojs
     <string name="policy_button_continue">Siguiente</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Política de privacidad</string>
-    <string name="notification_record_content">Medición en progreso... %1$.1f dB(A)</string>
+    <string name="notification_record_content">Medición en progreso...</string>
     <string name="result_title_progress_loading">Cargando mediciones</string>
     <string name="userinfo_tags_measurement_conditions">Condiciones de medición</string>
     <string name="notification_goto_community_map_title">Mediciones de la comunidad</string>

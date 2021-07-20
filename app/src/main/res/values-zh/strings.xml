@@ -271,7 +271,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="policy_button_continue">继续</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">隐私权政策</string>
-    <string name="notification_record_content">测量进行中...%1$.1fdB(A)</string>
+    <string name="notification_record_content">测量进行中...</string>
     <string name="result_title_progress_loading">测量载入中</string>
     <string name="userinfo_tags_measurement_conditions">测量条件</string>
     <string name="notification_goto_community_map_title">社区测量数据</string>

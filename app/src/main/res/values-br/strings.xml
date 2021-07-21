@@ -268,7 +268,7 @@ roudenn.geojson 1s standilhonoù eus ar muzulioù. Ober gant ar stumm geojson (h
     <string name="policy_button_continue">Kenderc\'hel</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Politikerezh ar Vuhez Prevez</string>
-    <string name="notification_record_content">Muzuliadenn war ober... %1$.1f dB(A)</string>
+    <string name="notification_record_content">Muzuliadenn war ober...</string>
     <string name="result_title_progress_loading">O kargañ ar muzulioù</string>
     <string name="userinfo_tags_measurement_conditions">Divizoù ar muzulioù</string>
     <string name="notification_goto_community_map_title">Muzulioù ar gumuniezh</string>

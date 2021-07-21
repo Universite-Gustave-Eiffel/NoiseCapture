@@ -269,7 +269,7 @@ public class MeasurementService extends Service {
     private String createNotificationChannel(String channelId, String channelName) {
         if (android.os.Build.VERSION.SDK_INT >= 26) {
             NotificationChannel chan = new NotificationChannel(channelId,
-                    channelName, NotificationManager.IMPORTANCE_HIGH);
+                    channelName, NotificationManager.IMPORTANCE_NONE);
             chan.setLightColor(Color.BLUE);
             chan.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
             NotificationManager service = (NotificationManager)getSystemService(Context
@@ -292,8 +292,7 @@ public class MeasurementService extends Service {
             // Ignore
         }
         // Text for the ticker
-        CharSequence text = isStoring() ? getString(R.string.notification_record_content,
-                audioProcess.getLeq(false)) :
+        CharSequence text = isStoring() ? getString(R.string.notification_record_content) :
                 getText(R.string.record_message);
 
         // Set the info for the views that show in the notification panel.
@@ -311,8 +310,6 @@ public class MeasurementService extends Service {
             }
             notification = new NotificationCompat.Builder(this, channelId ).setSmallIcon
                     (getNotificationIcon())  // the status icon
-                    .setWhen(System.currentTimeMillis()).setTicker(text)  // the status text
-                    .setWhen(System.currentTimeMillis())  // the time stamp
                     .setContentTitle(getString(R.string.title_service_measurement))  // the label
                     // of the
                     // entry
@@ -322,9 +319,6 @@ public class MeasurementService extends Service {
 
         } else {
             notification.setContentText(text);
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN) {
-            notification.setUsesChronometer(true);
         }
         // Send the notification.
         notificationInstance = notification.getNotification();
@@ -611,8 +605,6 @@ public class MeasurementService extends Service {
                     final float[] leqs = measure.getLeqs();
                     // Add leqs to stats
                     measurementService.leqStats.addLeq(measure.getGlobaldBaValue());
-                    // Update notification
-                    measurementService.showNotification();
                     List<Storage.LeqValue> leqValueList = new ArrayList<>(leqs.length);
                     for (int idFreq = 0; idFreq < leqs.length; idFreq++) {
                         leqValueList

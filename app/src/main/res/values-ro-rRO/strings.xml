@@ -267,7 +267,7 @@ Măsuarea se face în eșantionae de 1s salvate în track.geojson. Este utilizat
     <string name="policy_button_continue">Continu</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Privacy Policy</string>
-    <string name="notification_record_content">Măsurare.... %1$.1fdB(A)</string>
+    <string name="notification_record_content">Măsurare...</string>
     <string name="result_title_progress_loading">Încărcarea măsurărilor</string>
     <string name="userinfo_tags_measurement_conditions">Condiții de măsurare</string>
     <string name="notification_goto_community_map_title">Măsurările din comunitate</string>

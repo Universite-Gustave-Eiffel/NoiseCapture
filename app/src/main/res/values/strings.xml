@@ -271,7 +271,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="policy_button_continue">Continue</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Privacy Policy</string>
-    <string name="notification_record_content">Measurement in progress... %1$.1f dB(A)</string>
+    <string name="notification_record_content">Measurement in progress..</string>
     <string name="result_title_progress_loading">Loading of measurements</string>
     <string name="userinfo_tags_measurement_conditions">Measurement conditions</string>
     <string name="notification_goto_community_map_title">Community measurements</string>

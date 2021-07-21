@@ -379,7 +379,22 @@ def static int processFiles(Connection connection, File[] files, int processFile
     partyIds.add(null)
     // Build x lasts measurements history for each NoiseParty (id!=null) and for the global histry (id=null)
     partyIds.each { partyId -> buildStatistics(connection, partyId)}
-
+    // Update envelope of tracks and associated locations
+    // Create a table that contains track envelopes
+    def sql = new Sql(connection)
+    try {
+        connection.setAutoCommit(false)
+        def lastpktrack = sql.firstRow("SELECT MAX(PK_TRACK) FROM NOISECAPTURE_DUMP_TRACK_ENVELOPE")[0] as Integer
+        if (lastpktrack != null) {
+            // resume analyze of receivers extents
+            sql.execute("INSERT INTO NOISECAPTURE_DUMP_TRACK_ENVELOPE SELECT pk_track, " + "ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom,  COUNT(np.pk_point) measure_count" + " from noisecapture_point np where pk_track > :maxpktrack and not ST_ISEMPTY(the_geom)  group by pk_track having st_area(ST_Transform(ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326), 3857)) < 1e8", [maxpktrack: lastpktrack])
+        } else {
+            sql.execute("INSERT INTO NOISECAPTURE_DUMP_TRACK_ENVELOPE SELECT pk_track, " + "ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom,  COUNT(np.pk_point) measure_count" + " from noisecapture_point np where not ST_ISEMPTY(the_geom)  group by pk_track having st_area(ST_Transform(ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326), 3857)) < 1e8")
+        }
+        sql.commit()
+    } finally {
+        connection.setAutoCommit(true)
+    }
     return processed
 }
 

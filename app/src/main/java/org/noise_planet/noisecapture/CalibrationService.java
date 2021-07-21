@@ -240,9 +240,6 @@ public class CalibrationService extends Service implements PropertyChangeListene
             AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
             // Mute NoiseCapture while measuring (do not capture android sounds)
             mgr.setStreamMute(AudioManager.STREAM_SYSTEM, true);
-            // Use phone speaker if user plug-in an external microphone
-            mgr.setMode(AudioManager.MODE_IN_COMMUNICATION);
-            mgr.setSpeakerphoneOn(true);
         } catch (SecurityException ex) {
             // Ignore
         }
@@ -309,6 +306,9 @@ public class CalibrationService extends Service implements PropertyChangeListene
         if(audioManager != null) {
             try {
                 audioManager.setStreamVolume(getAudioOutput(),audioManager.getStreamMaxVolume(getAudioOutput()) / 2 , 0);
+                // Use phone speaker if user plug-in an external microphone
+                audioManager.setMode(AudioManager.MODE_IN_COMMUNICATION);
+                audioManager.setSpeakerphoneOn(true);
             } catch (SecurityException ex) {
                 // ignore
             }

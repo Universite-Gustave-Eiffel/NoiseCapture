@@ -31,12 +31,10 @@ script:
   - ./gradlew -PdisablePreDex check
   - cd onomap-geoserver/geoserver
   - pwd
-  - travis_retry ./gradlew test --info --stacktrace
+  - ./gradlew test --info --stacktrace
 
 cache:
   directories:
     - $HOME/.gradle/caches/
     - $HOME/.gradle/wrapper/
     - $HOME/.android/build-cache
-
-

@@ -69,7 +69,7 @@ class TestNoiseCaptureGetArea extends JdbcTestCase {
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureGetArea.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
         // convert to hexagons
-        new nc_process().process(connection, 10)
+        new nc_process().process(connection, 10, 0)
         // Fetch data
         def arrayData = new nc_get_area_info().getAreaInfo(connection, -139656, 265210, null)
         assertFalse(arrayData.isEmpty())

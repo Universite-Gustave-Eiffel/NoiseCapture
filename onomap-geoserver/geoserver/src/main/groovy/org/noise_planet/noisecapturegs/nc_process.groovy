@@ -126,7 +126,7 @@ def processArea(Hex hex,float precisionFiler, Sql sql, Integer partyPk) {
     Map<Integer, Record> records = new HashMap<>()
     def hexaRecord = new Record()
     sql.eachRow("SELECT p.pk_track, ST_X(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTX,ST_Y(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTY, p.noise_level," +
-            " t.pleasantness,time_date FROM noisecapture_point p, noisecapture_track t WHERE p.pk_track = t.pk_track AND p.accuracy < :precision AND " +
+            " t.pleasantness,time_date FROM noisecapture_point p, noisecapture_track t WHERE p.pk_track = t.pk_track AND p.accuracy < :precision and NOT ST_ISEMPTY(p.the_geom) AND " +
             "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom AND (pk_party = :pk_party::int OR :pk_party::int is NULL) ORDER BY p.pk_track, time_date", [geom: geom.toString(), range: hex.size, precision : precisionFiler, pk_party : partyPk])
             { row ->
                 Pos pos = new Pos(x: row.getDouble('PTX'),
@@ -240,7 +240,7 @@ def process(Connection connection, float precisionFilter, int trackLimit) {
         Set<Integer> processedPkTrack = new HashSet<>()
         sql.eachRow("SELECT ST_X(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTX,ST_Y(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTY, pk_party, q.pk_track FROM" +
                 " (select * from noisecapture_process_queue order by pk_track "+expand+") q, noisecapture_point p, noisecapture_track t " +
-                "WHERE q.pk_track = p.pk_track and t.pk_track = q.pk_track and p.accuracy < :precision and NOT ST_ISEMPTY(p.the_geom) and NOT ST_ISEMPTY(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857))",
+                "WHERE q.pk_track = p.pk_track and t.pk_track = q.pk_track and p.accuracy < :precision and NOT ST_ISEMPTY(p.the_geom)",
                 [precision: precisionFilter]) { row ->
             Hex hex = new Pos(x: row.getDouble('PTX'),
                     y: row.getDouble('PTY')).toHex(hexSize)

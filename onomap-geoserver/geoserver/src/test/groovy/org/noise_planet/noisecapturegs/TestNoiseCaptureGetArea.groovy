@@ -112,7 +112,7 @@ class TestNoiseCaptureGetArea extends JdbcTestCase {
         TestNoiseCaptureProcess.addTestRecord(sql, "2016-09-07T13:43:13Z", "POINT(23.73847 37.97503)", [70, 75, 72])
         TestNoiseCaptureProcess.addTestRecord(sql, "2016-09-04T18:43:13Z", "POINT(23.73847 37.97503)", [60, 61, 58])
         TestNoiseCaptureProcess.addTestRecord(sql, "2016-09-03T16:43:13Z", "POINT(23.73847 37.97503)", [65, 68, 64])
-        def processed = new nc_process().process(connection, 10)
+        def processed = new nc_process().process(connection, 10, 0)
         assertEquals(1, processed)
         // Read db; check content
         def row = sql.firstRow("SELECT cell_q, cell_r FROM  noisecapture_area")
@@ -140,7 +140,7 @@ class TestNoiseCaptureGetArea extends JdbcTestCase {
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureParse.getResource("track_07efe9f7-bda1-4e49-8514-f3a2a1fc576d.zip").file))
 
-        def processed = new nc_process().process(connection, 50)
+        def processed = new nc_process().process(connection, 50, 0)
 
         def row = sql.firstRow("SELECT cell_q, cell_r FROM  noisecapture_area")
 

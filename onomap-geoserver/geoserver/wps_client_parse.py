@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 import requests
-import getpass
 import os
 import time
 import sys
@@ -60,7 +59,7 @@ def triggerParsing():
 
         raise Networkerror(resp.status_code)
     else:
-        print resp.content
+        print(resp.content)
 
 
 def triggerProcess():
@@ -73,7 +72,9 @@ def triggerProcess():
 
         raise Networkerror(resp.status_code)
     else:
-        print resp.content
+        processed_hexagons = int(resp.content)
+        print("%d Processed hexagons" % processed_hexagons)
+        return processed_hexagons
 
 
 def main():
@@ -82,18 +83,17 @@ def main():
                           os.listdir('/home/onomap/geoserver/data_dir/onomap_uploading'
                           ) if f.endswith('.zip')]
         if len(uploaded_files) > 0:
-            print 'Find %d files run wps calls' % len(uploaded_files)
+            print('Find %d files run wps calls' % len(uploaded_files))
             try:
                 triggerParsing()
-                triggerProcess()
-            except Networkerror, neterr:
-                print 'Network error: {0}'.format(neterr)
+                while triggerProcess() != 0:
+                    time.sleep(1)
+            except Networkerror as neterr:
+                print("Network error: {0}".format(neterr))
             except Exception:
-                print ('Unexpected error:', sys.exc_info()[0])
-            print 'End of calls'
-
-                # Wait 5 seconds
-
+                print("Unexpected error:", sys.exc_info()[0])
+            print('End of calls')
+        # Wait 5 seconds
         time.sleep(5)
 
 

@@ -31,7 +31,10 @@ package org.noise_planet.noisecapturegs
 
 import geoserver.GeoServer
 import geoserver.catalog.Store
+import groovy.sql.BatchingStatementWrapper
+import groovy.sql.GroovyResultSet
 import groovy.sql.Sql
+import groovy.transform.CompileStatic
 import org.geotools.jdbc.JDBCDataStore
 import org.locationtech.jts.geom.Coordinate
 import org.slf4j.Logger
@@ -39,7 +42,9 @@ import org.slf4j.LoggerFactory
 
 import java.security.InvalidParameterException
 import java.sql.Connection
+import java.sql.PreparedStatement
 import java.sql.SQLException
+import java.sql.Statement
 import java.sql.Timestamp
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
@@ -55,30 +60,31 @@ outputs = [
         result: [name: 'result', title: 'Processed cells', type: Integer.class]
 ]
 
+@CompileStatic
 class Record{
-    def levels = []
-    def L50 = null
+    List<Double> levels = new ArrayList<Double>()
+    Double L50 = null
 
     Record() {
     }
 
-    void addLeq(leq) {
+    void addLeq(double leq) {
         levels.add(leq)
         this.L50 = null
     }
 
-    static def getEnergeticAverage(l1, l2) {
-        return 10 * Math.log10((Math.pow(10.0, l1 / 10.0) + Math.pow(10.0, l2 / 10.0)) / 2.0)
+    static double getEnergeticAverage(double l1, double l2) {
+        return 10 * Math.log10((Math.pow(10.0d, l1 / 10.0d) + Math.pow(10.0d, l2 / 10.0d)) / 2.0d)
     }
 
-    def getLAeq() {
-        return 10 * Math.log10(levels.sum({Math.pow(10.0, it / 10.0)}) / levels.size() )
+    double getLAeq() {
+        return 10 * Math.log10(((levels.sum({Double it -> Math.pow(10.0d, it / 10.0d)}) as Double) / levels.size()) as Double )
     }
 
     /**
      * @return Average or L50% value of the noise.
      */
-    def getLA50() {
+    double getLA50() {
         if(L50 == null) {
             levels = levels.sort()
             if(levels.size() % 2 == 1) {
@@ -98,9 +104,10 @@ class Record{
  * @param precisionFiler GPS location greater than this value are ignored
  * @param sql
  */
+@CompileStatic
 def processArea(Hex hex,float precisionFiler, Sql sql, Integer partyPk) {
     // A ratio < 1 add blank area between hexagons
-    def hexSizeRatio = 1.0;
+    double hexSizeRatio = 1.0;
     def Pos center = hex.toMeter()
     def Coordinate centerCoord = center.toCoordinate();
     def geom = "POINT( " + center.x + " " + center.y + ")"
@@ -108,22 +115,23 @@ def processArea(Hex hex,float precisionFiler, Sql sql, Integer partyPk) {
     def res = sql.firstRow("SELECT TZID FROM tz_world WHERE " +
             "ST_TRANSFORM(ST_GeomFromText(:geom,3857),4326) && the_geom AND" +
             " ST_Intersects(ST_TRANSFORM(ST_GeomFromText(:geom,3857),4326), the_geom) LIMIT 1", [geom: geom.toString()])
-    TimeZone tz = res == null ? TimeZone.default : TimeZone.getTimeZone(res.TZID);
+    TimeZone tz = res == null ? TimeZone.default : TimeZone.getTimeZone(res.TZID as String);
     int pointCount = 0;
-    float sumPleasantness = 0
+    double sumPleasantness = 0
     int pleasantnessCount = 0
-    def firstUtc;
-    def lastUtc;
-    def records = [:]
+    Timestamp firstUtc = null
+    Timestamp lastUtc = null
+    Map<Integer, Record> records = new HashMap<>()
     def hexaRecord = new Record()
     sql.eachRow("SELECT p.pk_track, ST_X(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTX,ST_Y(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTY, p.noise_level," +
             " t.pleasantness,time_date FROM noisecapture_point p, noisecapture_track t WHERE p.pk_track = t.pk_track AND p.accuracy < :precision AND " +
             "ST_TRANSFORM(ST_ENVELOPE(ST_BUFFER(ST_GeomFromText(:geom,3857),:range)),4326) && the_geom AND (pk_party = :pk_party::int OR :pk_party::int is NULL) ORDER BY p.pk_track, time_date", [geom: geom.toString(), range: hex.size, precision : precisionFiler, pk_party : partyPk])
             { row ->
-                Pos pos = new Pos(x: row.PTX, y: row.PTY)
+                Pos pos = new Pos(x: row.getDouble('PTX'),
+                        y: row.getDouble('PTY'))
                 def hexOfMeasure = pos.toHex(hex.size)
                 if (hexOfMeasure == hex) {
-                    ZonedDateTime zonedDateTime = ((Timestamp)row.time_date).toInstant().atZone(tz.toZoneId())
+                    ZonedDateTime zonedDateTime = row.getTimestamp('time_date').toInstant().atZone(tz.toZoneId())
                     int hour = 0
                     if(zonedDateTime.dayOfWeek == DayOfWeek.SUNDAY) {
                         hour = 48 + zonedDateTime.hour
@@ -139,15 +147,16 @@ def processArea(Hex hex,float precisionFiler, Sql sql, Integer partyPk) {
                         recordHour = new Record()
                         records[hour] = recordHour
                     }
-                    recordHour.addLeq(row.noise_level)
-                    hexaRecord.addLeq(row.noise_level)
-                    if(firstUtc == null) {
-                        firstUtc = row.time_date
+                    recordHour.addLeq(row.getDouble('noise_level'))
+                    hexaRecord.addLeq(row.getDouble('noise_level'))
+                    if(!firstUtc) {
+                        firstUtc = row.getTimestamp('time_date')
                     }
-                    lastUtc = row.time_date
-                    if (row.pleasantness) {
+                    lastUtc = row.getTimestamp('time_date')
+                    double pleasantness = row.getDouble('pleasantness')
+                    if (!row.wasNull()) {
                         pleasantnessCount++;
-                        sumPleasantness += row.pleasantness;
+                        sumPleasantness += pleasantness;
                     }
                     pointCount++
                 }
@@ -187,12 +196,15 @@ def processArea(Hex hex,float precisionFiler, Sql sql, Integer partyPk) {
             "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :laeq, :la50,:lden ," +
             " :mean_pleasantness, :measure_count, :first_measure, :last_measure, :pk_party)", fields)[0][0] as Integer
     // Add profile
-    sql.withBatch("INSERT INTO NOISECAPTURE_AREA_PROFILE(PK_AREA, HOUR, LAEQ, LA50) VALUES (:pkarea, :hour, :laeq, :la50)") { batch ->
-        records.each{ k, v ->
-            batch.addBatch([pkarea: pkArea, hour: k, laeq: v.getLAeq(), la50: v.getLA50()])
-        }
-        batch.executeBatch()
+    PreparedStatement ps = sql.getConnection().prepareStatement("INSERT INTO NOISECAPTURE_AREA_PROFILE(PK_AREA, HOUR, LAEQ, LA50) VALUES (?, ?, ?, ?)");
+    records.each{ k, v ->
+        ps.setInt(1, pkArea)
+        ps.setInt(2, k)
+        ps.setDouble(3, v.getLAeq())
+        ps.setDouble(4, v.getLA50())
+        ps.addBatch()
     }
+    ps.executeBatch()
     return true
 }
 
@@ -202,14 +214,14 @@ def processArea(Hex hex,float precisionFiler, Sql sql, Integer partyPk) {
  * @param precisionFilter
  * @return
  */
-
+@CompileStatic
 def process(Connection connection, float precisionFilter) {
     Logger logger = LoggerFactory.getLogger("nc_process")
-    def hexSize = 15.0
+    double hexSize = 15.0
     connection.setAutoCommit(false)
     int processed = 0
     try {
-        Set<Hex> areaIndex = new HashSet()
+        Set<Hex> areaIndex = new HashSet<>()
         Map<Integer, Set<Hex>> areaNoisePartyIndex = new HashMap<>()
         // Count what to add for each hexagons q,r,level
         int[] hexExponent = [3, 4, 5, 6, 7, 8, 9, 10, 11];
@@ -223,17 +235,20 @@ def process(Connection connection, float precisionFilter) {
                 " noisecapture_process_queue q, noisecapture_point p, noisecapture_track t " +
                 "WHERE q.pk_track = p.pk_track and t.pk_track = q.pk_track and p.accuracy < :precision and NOT ST_ISEMPTY(p.the_geom)",
                 [precision: precisionFilter]) { row ->
-            def hex = new Pos(x: row.PTX, y: row.PTY).toHex(hexSize)
+            Hex hex = new Pos(x: row.getDouble('PTX'),
+                    y: row.getDouble('PTY')).toHex(hexSize)
             areaIndex.add(hex)
-            if(row.pk_party != null) {
-                if (!areaNoisePartyIndex.containsKey(row.pk_party)) {
-                    areaNoisePartyIndex[row.pk_party as Integer] = new HashSet<>()
+            int pkParty = row.getInt('pk_party')
+            if(!row.wasNull()) {
+                if (!areaNoisePartyIndex.containsKey(pkParty)) {
+                    areaNoisePartyIndex.put(pkParty, new HashSet<>())
                 }
-                areaNoisePartyIndex[row.pk_party as Integer].add(hex)
+                areaNoisePartyIndex[pkParty].add(hex)
             }
             // Populate scaled hexagons for clustering
             for(int i=0; i<hexExponent.length;i++) {
-                def scaledHex = new Pos(x: row.PTX, y: row.PTY).toHex(hexSize * Math.pow(3, hexExponent[i]))
+                def scaledHex = new Pos(x: row.getDouble('PTX'),
+                        y: row.getDouble('PTY')).toHex(hexSize * Math.pow(3, hexExponent[i]))
                 Integer oldValue = hexagonalClustersDiff[i].get(scaledHex)
                 if(oldValue == null) {
                     hexagonalClustersDiff[i].put(scaledHex, 1)
@@ -271,7 +286,7 @@ def process(Connection connection, float precisionFilter) {
                         [cell_level : hexExponent[i], cell_q : entry.key.q, cell_r : entry.key.r])
                 if(res != null) {
                     // Already an hexagon in the database
-                    sql.executeUpdate("UPDATE NOISECAPTURE_AREA_CLUSTER SET MEASURE_COUNT = :measure_count WHERE CELL_LEVEL = :cell_level AND CELL_Q = :cell_q AND CELL_R = :cell_r", [cell_level : hexExponent[i], cell_q : entry.key.q, cell_r : entry.key.r, measure_count : res.measure_count + entry.getValue()])
+                    sql.executeUpdate("UPDATE NOISECAPTURE_AREA_CLUSTER SET MEASURE_COUNT = :measure_count WHERE CELL_LEVEL = :cell_level AND CELL_Q = :cell_q AND CELL_R = :cell_r", [cell_level : hexExponent[i], cell_q : entry.key.q, cell_r : entry.key.r, measure_count : (res.measure_count as Integer) + entry.getValue()])
                 } else {
                     // New hexagon
                     def scaledHex = new Hex(q:entry.key.q, r:entry.key.r, size:hexSize * Math.pow(3, hexExponent[i]))
@@ -323,11 +338,12 @@ def run(input) {
     }
 }
 
+@CompileStatic
 class Pos {
     double x
     double y
-    def toHex(double size) {
-        def q = (x * Math.sqrt(3.0)/3.0 - y / 3.0) / size;
+    Hex toHex(double size) {
+        def q = (x * Math.sqrt(3.0d)/3.0 - y / 3.0) / size;
         def r = y * 2.0/3.0 / size;
         return new Hex(q:q, r:r, size:size).round();
     }
@@ -337,6 +353,7 @@ class Pos {
     }
 }
 
+@CompileStatic
 class Hex {
     double q
     double r
@@ -390,12 +407,12 @@ class Hex {
         return result
     }
 
-    static final def directions = [
+    static final List<Hex> directions = [
             new Hex(q:+1,  r:0), new Hex(q:+1, r:-1), new Hex(q:0, r:-1),
             new Hex(q:-1,  r:0), new Hex(q:-1, r:+1),new Hex(q:0, r:+1)
     ]
 
-    def neighbor(hex, int direction) {
+    def neighbor(Hex hex, int direction) {
         def dir = directions[direction]
         return new Hex(q:hex.q + dir.q, r:hex.r + dir.r, size:size)
     }
@@ -404,46 +421,47 @@ class Hex {
      * @return Local coordinate of hexagon index
      */
     def Pos toMeter() {
-        def x = size * Math.sqrt(3.0) * (q + r/2.0);
-        def y = size * 3.0/2.0 * r;
+        double x = size * Math.sqrt(3.0d) * (q + r/2.0);
+        double y = size * 3.0d/2.0d * r;
         return new Pos(x:x, y:y);
     }
     /**
      * @param i Vertex [0-5]
      * @return Vertex coordinate
      */
-    def hex_corner(Pos center, int i, double ratio = 1.0) {
-        def angle_deg = 60.0 * i   + 30.0;
-        def angle_rad = Math.PI / 180.0 * angle_deg;
+    Pos hex_corner(Pos center, int i, double ratio = 1.0) {
+        double angle_deg = 60.0 * i   + 30.0d;
+        double angle_rad = Math.PI / 180.0 * angle_deg;
         return new Pos(x:center.x + (size * ratio) * Math.cos(angle_rad), y:center.y + (size * ratio) * Math.sin(angle_rad));
     }
 
     /**
      * @return Integral hex index
      */
-    def round() {
+    Hex round() {
         return toCube().round().toHex();
     }
 
     /**
      * @return Cube instance
      */
-    def toCube() {
+    Cube toCube() {
         return new Cube(x:q, y:-q-r, z:r, size:size);
     }
 }
 
+@CompileStatic
 class Cube {
     double x
     double y
     double z
     double size
 
-    def toHex() {
+    Hex toHex() {
         return new Hex(q:x, r: z, size:size);
     }
 
-    def round() {
+    Cube round() {
         def rx = Math.round(x);
         def ry = Math.round(y);
         def rz = Math.round(z);

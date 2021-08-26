@@ -342,7 +342,7 @@ def run(input) {
     // Open PostgreSQL connection
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : process(connection, input["locationPrecisionFilter"], input["processTrackLimit"] as Integer)]
+        return [result : process(connection, input["locationPrecisionFilter"], input["processTracksLimit"] as Integer)]
     } finally {
         connection.close()
     }

@@ -54,10 +54,12 @@ description = 'Recompute cells that contains new measures'
 
 inputs = [
         locationPrecisionFilter: [name: 'locationPrecisionFilter', title: 'Ignore measurements with location precision greater than specified distance',
-                           type: Float.class] ]
+                           type: Float.class] ,
+        processTracksLimit: [name: 'processTrackLimit', title: 'Maximum number of tracks to process, 0 for unlimited',
+                           type: Integer.class]]
 
 outputs = [
-        result: [name: 'result', title: 'Processed cells', type: Integer.class]
+        result: [name: 'result', title: 'Processed tracks', type: Integer.class]
 ]
 
 @CompileStatic
@@ -215,7 +217,7 @@ def processArea(Hex hex,float precisionFiler, Sql sql, Integer partyPk) {
  * @return
  */
 @CompileStatic
-def process(Connection connection, float precisionFilter) {
+def process(Connection connection, float precisionFilter, int trackLimit) {
     Logger logger = LoggerFactory.getLogger("nc_process")
     double hexSize = 15.0
     connection.setAutoCommit(false)
@@ -231,13 +233,19 @@ def process(Connection connection, float precisionFilter) {
         }
         // List the area identifier using the new measures coordinates
         def sql = new Sql(connection)
-        sql.eachRow("SELECT ST_X(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTX,ST_Y(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTY, pk_party FROM" +
-                " noisecapture_process_queue q, noisecapture_point p, noisecapture_track t " +
-                "WHERE q.pk_track = p.pk_track and t.pk_track = q.pk_track and p.accuracy < :precision and NOT ST_ISEMPTY(p.the_geom)",
+        String expand = ""
+        if(trackLimit > 0) {
+            expand = " LIMIT " + trackLimit
+        }
+        Set<Integer> processedPkTrack = new HashSet<>()
+        sql.eachRow("SELECT ST_X(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTX,ST_Y(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTY, pk_party, q.pk_track FROM" +
+                " (select * from noisecapture_process_queue order by pk_track "+expand+") q, noisecapture_point p, noisecapture_track t " +
+                "WHERE q.pk_track = p.pk_track and t.pk_track = q.pk_track and p.accuracy < :precision and NOT ST_ISEMPTY(p.the_geom) and NOT ST_ISEMPTY(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857))",
                 [precision: precisionFilter]) { row ->
             Hex hex = new Pos(x: row.getDouble('PTX'),
                     y: row.getDouble('PTY')).toHex(hexSize)
             areaIndex.add(hex)
+            processedPkTrack.add(row.getInt('pk_track'))
             int pkParty = row.getInt('pk_party')
             if(!row.wasNull()) {
                 if (!areaNoisePartyIndex.containsKey(pkParty)) {
@@ -295,8 +303,10 @@ def process(Connection connection, float precisionFilter) {
             }
         }
 
-        // Clear queue (since the beginning of transaction no new items has been added in queue)
-        sql.execute("DELETE FROM noisecapture_process_queue")
+        // Clear queue
+        for( Integer pkTrack : processedPkTrack) {
+            sql.execute("DELETE FROM noisecapture_process_queue where pk_track = :pktrack", [pktrack: pkTrack])
+        }
 
         // Accept changes
         connection.commit();
@@ -332,7 +342,7 @@ def run(input) {
     // Open PostgreSQL connection
     Connection connection = openPostgreSQLDataStoreConnection()
     try {
-        return [result : process(connection, input["locationPrecisionFilter"])]
+        return [result : process(connection, input["locationPrecisionFilter"], input["processTrackLimit"] as Integer)]
     } finally {
         connection.close()
     }

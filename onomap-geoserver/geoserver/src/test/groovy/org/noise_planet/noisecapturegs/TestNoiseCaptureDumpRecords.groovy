@@ -266,7 +266,7 @@ class TestNoiseCaptureDumpRecords extends JdbcTestCase {
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureDumpRecords.getResource("track_f720018a-a5db-4859-bd7d-377d29356c6f.zip").file))
         // convert to hexagons
-        assertEquals(43, new nc_process().process(connection, 10))
+        assertEquals(43, new nc_process().process(connection, 10, 0))
         File tmpFolder = folder.newFolder()
         List<String> createdFiles = new nc_dump_records().getDump(connection,tmpFolder, false, false, true)
         assertEquals(2, createdFiles.size())
@@ -326,7 +326,7 @@ class TestNoiseCaptureDumpRecords extends JdbcTestCase {
                 new File(TestNoiseCaptureDumpRecords.getResource("track_f720018a-a5db-4859-bd7d-377d29356c6f.zip").file))
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureDumpRecords.getResource("track_a23261b3-b569-4363-95be-e5578d694238.zip").file))
-        new nc_process().process(connection, 15.0f)
+        new nc_process().process(connection, 15.0f, 0)
 
         // Check with all record done today and filter 1 day
 

@@ -114,7 +114,7 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
         addTestRecord(sql, "2016-09-07T13:43:13Z", "POINT(23.73847 37.97503)", [70, 75, 72])
         addTestRecord(sql, "2016-09-04T18:43:13Z", "POINT(23.73847 37.97503)", [60, 61, 58])
         addTestRecord(sql, "2016-09-03T16:43:13Z", "POINT(23.73847 37.97503)", [65, 68, 64])
-        def processed = new nc_process().process(connection, 10)
+        def processed = new nc_process().process(connection, 10, 0)
         assertEquals(1, processed)
         // Read db; check content
         assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area").get("cpt"))
@@ -164,7 +164,7 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file))
 
-        def processed = new nc_process().process(connection, 50)
+        def processed = new nc_process().process(connection, 50, 0)
         // Two area processed (same place, but one for party area)
         assertEquals(2, processed)
         // Read db; check content
@@ -194,7 +194,7 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
         assertEquals(1, new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureParse.getResource("track_07efe9f7-bda1-4e49-8514-f3a2a1fc576d.zip").file)))
 
-        def processed = new nc_process().process(connection, 50)
+        def processed = new nc_process().process(connection, 50, 1)
         assertEquals(16, processed);
         assertEquals(8, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area where pk_party = 1").get("cpt"))
         assertEquals(8, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area where pk_party is null").get("cpt"))

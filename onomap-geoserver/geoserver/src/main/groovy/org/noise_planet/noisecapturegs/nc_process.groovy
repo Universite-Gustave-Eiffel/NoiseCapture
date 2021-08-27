@@ -135,12 +135,14 @@ def processArea(Hex hex,float precisionFiler, Sql sql, Integer partyPk) {
                 if (hexOfMeasure == hex) {
                     ZonedDateTime zonedDateTime = row.getTimestamp('time_date').toInstant().atZone(tz.toZoneId())
                     int hour = 0
-                    if(zonedDateTime.dayOfWeek == DayOfWeek.SUNDAY) {
+                    if (zonedDateTime.dayOfWeek == DayOfWeek.SUNDAY) {
                         hour = 48 + zonedDateTime.hour
-                    } else if(zonedDateTime.dayOfWeek == DayOfWeek.SATURDAY) {
-                        hour = 24 + zonedDateTime.hour
                     } else {
-                        hour = zonedDateTime.hour
+                        if (zonedDateTime.dayOfWeek == DayOfWeek.SATURDAY) {
+                            hour = 24 + zonedDateTime.hour
+                        } else {
+                            hour = zonedDateTime.hour
+                        }
                     }
                     Record recordHour
                     if(records.containsKey(hour)) {
@@ -238,30 +240,36 @@ def process(Connection connection, float precisionFilter, int trackLimit) {
             expand = " LIMIT " + trackLimit
         }
         Set<Integer> processedPkTrack = new HashSet<>()
-        sql.eachRow("SELECT ST_X(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTX,ST_Y(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTY, pk_party, q.pk_track FROM" +
-                " (select * from noisecapture_process_queue order by pk_track "+expand+") q, noisecapture_point p, noisecapture_track t " +
-                "WHERE q.pk_track = p.pk_track and t.pk_track = q.pk_track and p.accuracy < :precision and NOT ST_ISEMPTY(p.the_geom)",
-                [precision: precisionFilter]) { row ->
-            Hex hex = new Pos(x: row.getDouble('PTX'),
-                    y: row.getDouble('PTY')).toHex(hexSize)
-            areaIndex.add(hex)
+        sql.eachRow("select pk_track from noisecapture_process_queue order by pk_track "+expand) { row ->
             processedPkTrack.add(row.getInt('pk_track'))
-            int pkParty = row.getInt('pk_party')
-            if(!row.wasNull()) {
-                if (!areaNoisePartyIndex.containsKey(pkParty)) {
-                    areaNoisePartyIndex.put(pkParty, new HashSet<>())
+        }
+        // generate hexagons altered by new tracks points
+        for(int pk_track : processedPkTrack) {
+            sql.eachRow("SELECT ST_X(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTX," +
+                    "ST_Y(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTY, pk_party FROM" +
+                    " noisecapture_point p, noisecapture_track t  WHERE :pktrack = p.pk_track and " +
+                    "t.pk_track = p.pk_track and p.accuracy < :precision and NOT ST_ISEMPTY(p.the_geom)",
+                    [precision: precisionFilter, pktrack: pk_track]) { row ->
+                Hex hex = new Pos(x: row.getDouble('PTX'),
+                        y: row.getDouble('PTY')).toHex(hexSize)
+                areaIndex.add(hex)
+                int pkParty = row.getInt('pk_party')
+                if (!row.wasNull()) {
+                    if (!areaNoisePartyIndex.containsKey(pkParty)) {
+                        areaNoisePartyIndex.put(pkParty, new HashSet<>())
+                    }
+                    areaNoisePartyIndex[pkParty].add(hex)
                 }
-                areaNoisePartyIndex[pkParty].add(hex)
-            }
-            // Populate scaled hexagons for clustering
-            for(int i=0; i<hexExponent.length;i++) {
-                def scaledHex = new Pos(x: row.getDouble('PTX'),
-                        y: row.getDouble('PTY')).toHex(hexSize * Math.pow(3, hexExponent[i]))
-                Integer oldValue = hexagonalClustersDiff[i].get(scaledHex)
-                if(oldValue == null) {
-                    hexagonalClustersDiff[i].put(scaledHex, 1)
-                } else {
-                    hexagonalClustersDiff[i].put(scaledHex, oldValue + 1 )
+                // Populate scaled hexagons for clustering
+                for (int i = 0; i < hexExponent.length; i++) {
+                    def scaledHex = new Pos(x: row.getDouble('PTX'),
+                            y: row.getDouble('PTY')).toHex(hexSize * Math.pow(3, hexExponent[i]))
+                    Integer oldValue = hexagonalClustersDiff[i].get(scaledHex)
+                    if (oldValue == null) {
+                        hexagonalClustersDiff[i].put(scaledHex, 1)
+                    } else {
+                        hexagonalClustersDiff[i].put(scaledHex, oldValue + 1)
+                    }
                 }
             }
         }
@@ -310,9 +318,9 @@ def process(Connection connection, float precisionFilter, int trackLimit) {
 
         // Accept changes
         connection.commit();
-    } catch (SQLException|InvalidParameterException ex) {
+    } catch (SQLException ex) {
         // Log error
-        logger.error("nc_process Message: " + ex.getMessage());
+        logger.error("nc_process Message: " + ex.getMessage(), ex);
 
         if(ex instanceof SQLException) {
             logger.error("SQLState: " +
@@ -328,6 +336,9 @@ def process(Connection connection, float precisionFilter, int trackLimit) {
             }
         }
         connection.rollback()
+    } catch (IllegalArgumentException ex) {
+        // Log error
+        logger.error("nc_process Message: " + ex.getMessage(), ex);
     }
     return processed
 }
@@ -370,14 +381,24 @@ class Hex {
     double size
 
     boolean equals(o) {
-        if (this.is(o)) return true
-        if (getClass() != o.class) return false
+        if (this.is(o)) {
+            return true
+        }
+        if (getClass() != o.class) {
+            return false
+        }
 
         Hex hex = (Hex) o
 
-        if (Double.compare(hex.q, q) != 0) return false
-        if (Double.compare(hex.r, r) != 0) return false
-        if (Double.compare(hex.size, size) != 0) return false
+        if (Double.compare(hex.q, q) != 0) {
+            return false
+        }
+        if (Double.compare(hex.r, r) != 0) {
+            return false
+        }
+        if (Double.compare(hex.size, size) != 0) {
+            return false
+        }
 
         return true
     }
@@ -480,12 +501,15 @@ class Cube {
         def y_diff = Math.abs(ry - y);
         def z_diff = Math.abs(rz - z);
 
-        if (x_diff > y_diff && x_diff > z_diff)
-            rx = -ry-rz
-        else if (y_diff > z_diff)
-            ry = -rx-rz
-        else
-            rz = -rx-ry
+        if (x_diff > y_diff && x_diff > z_diff) {
+            rx = -ry - rz
+        } else {
+            if (y_diff > z_diff) {
+                ry = -rx - rz
+            } else {
+                rz = -rx - ry
+            }
+        }
 
         return new Cube(x:rx, y:ry, z:rz, size:size);
     }

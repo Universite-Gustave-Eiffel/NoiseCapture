@@ -240,10 +240,12 @@ def process(Connection connection, float precisionFilter, int trackLimit) {
             expand = " LIMIT " + trackLimit
         }
         Set<Integer> processedPkTrack = new HashSet<>()
+        logger.info("Fetch pk_track to process..")
         sql.eachRow("select pk_track from noisecapture_process_queue order by pk_track "+expand) { row ->
             processedPkTrack.add(row.getInt('pk_track'))
         }
         // generate hexagons altered by new tracks points
+        logger.info("generate hexagons altered by new tracks points")
         for(int pk_track : processedPkTrack) {
             sql.eachRow("SELECT ST_X(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTX," +
                     "ST_Y(ST_Transform(ST_SetSRID(p.the_geom, 4326), 3857)) PTY, pk_party FROM" +
@@ -275,6 +277,7 @@ def process(Connection connection, float precisionFilter, int trackLimit) {
         }
 
         // Process areas
+        logger.info("Process areas")
         for (Hex hex : areaIndex) {
             if(processArea(hex, precisionFilter, sql, null)) {
                 processed++
@@ -284,6 +287,7 @@ def process(Connection connection, float precisionFilter, int trackLimit) {
         }
 
         // Process party areas
+        logger.info("Process party areas")
         areaNoisePartyIndex.each { partyPk, hexSet ->
             hexSet.each { hex ->
                 if (processArea(hex, precisionFilter, sql, partyPk)) {
@@ -295,6 +299,7 @@ def process(Connection connection, float precisionFilter, int trackLimit) {
         }
 
         // Feed hexagonal clusters (scaled hexagons)
+        logger.info("Feed hexagonal clusters (scaled hexagons)")
 
         for(int i=0; i<hexExponent.length;i++) {
             hexagonalClustersDiff[i].entrySet().each { Map.Entry<Hex, Integer> entry ->
@@ -311,10 +316,15 @@ def process(Connection connection, float precisionFilter, int trackLimit) {
             }
         }
 
+        PreparedStatement ps = sql.getConnection().prepareStatement("DELETE FROM noisecapture_process_queue where pk_track = ?");
+
+        logger.info("Clear processed tracks queue")
         // Clear queue
         for( Integer pkTrack : processedPkTrack) {
-            sql.execute("DELETE FROM noisecapture_process_queue where pk_track = :pktrack", [pktrack: pkTrack])
+            ps.setInt(1, pkTrack)
+            ps.addBatch()
         }
+        ps.executeBatch()
 
         // Accept changes
         connection.commit();

@@ -1,0 +1,4 @@
+Improved application stability
+Improved tweeter message, added link to map
+Adding the Brezhoneg language
+

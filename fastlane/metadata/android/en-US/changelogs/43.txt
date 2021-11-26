@@ -1,0 +1,5 @@
+- Fix Android Pie instability
+- Enhancement of the calibration user interface
+- More reliable method of data transfer by audio for the automatic calibration between two smartphones
+- Leq display in moving 1s (better readability)
+

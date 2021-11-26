@@ -1,0 +1,6 @@
+Improvement of the calculation of acoustic indicators
+Https for maps and data servers communications
+Android 9 compatibility
+Calibration in LAeq instead of Leq
+Improved compatibility of GeoJSON export
+

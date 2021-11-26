@@ -1,0 +1,1 @@
+Ability to use a calibrated smartphone to automatically calibrate other smartphone(s). This feature require the usage of external audio output on the reference device.

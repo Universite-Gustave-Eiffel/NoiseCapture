@@ -1,0 +1,5 @@
+Amélioration de la stabilité
+Ajout de deux nouvelles langues, l'allemand et le chinois
+Mode portrait uniquement dans l'activité de description
+Aidez-nous à traduire NoiseCapture dans votre langue maternelle https://www.transifex.com/LAE/noisecapture
+

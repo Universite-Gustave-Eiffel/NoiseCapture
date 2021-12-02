@@ -1,0 +1,4 @@
+Amélioration de la stabilité de l'application
+Amélioration du message du tweeter, ajout d'un lien vers la carte
+Ajout de la langue brezhoneg
+

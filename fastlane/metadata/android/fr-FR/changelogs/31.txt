@@ -1,0 +1,4 @@
+Correction de divers crashs NPE à partir des retours du play store
+Ajout d'une info-bulle sur les étiquettes de résultats
+Ne pas transférer les mesures si l'utilisateur ne valide pas l'activité de description
+

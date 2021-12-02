@@ -1,0 +1,2 @@
+Possibilité d'utiliser un smartphone étalonné pour étalonner automatiquement un ou plusieurs autres smartphones. Cette fonction nécessite l'utilisation d'une sortie audio externe sur le dispositif de référence.
+

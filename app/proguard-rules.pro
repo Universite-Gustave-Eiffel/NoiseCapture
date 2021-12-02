@@ -1,4 +1,5 @@
 -dontobfuscate
+-optimizations !code/simplification/arithmetic,!field/*,!class/merging/*,!code/allocation/variable
 -keepattributes LineNumberTable,SourceFile
 
 -keep class com.google.android.gms.** { *; }

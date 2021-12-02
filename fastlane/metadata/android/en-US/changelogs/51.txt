@@ -1,0 +1,6 @@
+New calibration method, requires only a few measurements of passing cars at the roadside.
+Fixed crash on history page
+Lowest memory usage when export/upload a measurement (tested with 9h recording time)
+Export of the calibration method for each measurement
+Update translations
+

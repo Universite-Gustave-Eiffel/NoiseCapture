@@ -1,0 +1,5 @@
+- Correction de l'instabilité d'Android Pie
+- Amélioration de l'interface utilisateur de l'étalonnage
+- Méthode plus fiable de transfert de données par audio pour la calibration automatique entre deux smartphones.
+- Affichage du Leq en déplacement 1s (meilleure lisibilité).
+

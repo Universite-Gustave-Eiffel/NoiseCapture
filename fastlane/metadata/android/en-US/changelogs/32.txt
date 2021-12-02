@@ -1,0 +1,5 @@
+Improved stability
+Addition of two new languages, German and Chinese
+Portrait mode only in the description activity
+Please help us to translate NoiseCapture to your native language https://www.transifex.com/LAE/noisecapture
+

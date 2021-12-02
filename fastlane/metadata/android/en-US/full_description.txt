@@ -1,0 +1,43 @@
+NoiseCapture App is an application dedicated to the <b>evaluation of your noise environment</b>. It allows to perform measurements and, thus, to give information on your noise exposure. In addition, you can contribute to the realization of <b>collaborative (or community) noise maps</b> by anonymously sharing your measurements.
+
+<b>New !</b>:
+If your smartphone is already calibrated, you can now calibrate other smartphones with the application, based on the ambient noise. Select Automatic Calibration in the Calibration menu, in "Transmitter" mode for the reference smartphone and "Receiver" mode for the smartphones to be calibrated. Approach the smartphones together and start calibration from the reference smartphone. The rest is automatic.
+
+<b>Features</b>:
+• Noise measurement and calculation of acoustic indicators (Leq, Lamin, LAmax, LA10, LA50, LA90...) on a journey
+• Measurement description (text, photo, tags)
+• Viewing measurements on a map
+• Measurement history
+• Smartphone calibration with a reference device
+• Detailed help on using the application
+
+<b>Recommendations for the 'best' measurement</b> (see Help for details):
+• The smartphone should not be in the pocket but hand held
+• The smartphone microphone should not be hidden
+• The noise measurement must be carried out without adding noise!
+• It is possible to use an external and calibrated microphone
+
+<b>Contribute to collaborative noise maps</b>:
+• Allow the transfer of measures into the community
+• Realize mmeasurement outside buildings
+• Do not measure when rainning or with wind
+• Goto the collaborative noise map : <a href="http://noise-planet.org/map_noisecapture/index.html">http://noise-planet.org/map_noisecapture/index.html</a>
+
+<b>Contribute to the NoiseCapture project</b>:
+• conttribute to the code development: <a href="https://github.com/Ifsttar/NoiseCapture">https://github.com/Ifsttar/NoiseCapture </a>
+• share your comments, questions: <a href="https://github.com/Ifsttar/NoiseCapture/issues">https://github.com/Ifsttar/NoiseCapture/issues </a>
+• organize <b>NoiseCapture Party</b> to map your sound environment: <a href="http://noise-planet.org/">http://noise-planet.org/</a>
+------------------------------------------------------
+<i>NoiseCapture App <b>respects your private life</b>:</i>
+• You fully control how the information is sent to the server
+• Only anonymous data is transferred
+• There are no audio recording: only acoustic indicators are calculated and transferred
+• NoiseCapture App requires only strictly necessary permissions
+
+<i>Warning:</i>
+• Although NoiseCapture App is developed by specialists, keep in mind that a smartphone will never replace a professional sound meter. If you need advanced expertise, contact a professional.
+• The quality of the measurement depends on the technical performance of your smartphone and its calibration. Depending on the nature of your phone and the version of Android used, it is possible that you can not measure with sufficient accuracy.
+
+NoiseCapture App is the result of collaboration between two French research laboratories, the <a href="http://www.lae.ifsttar.fr"> Laboratory of Environmental Acoustics </a> (Ifsttar) and DECIDE team of <a href="http://www.lab-sticc.fr/">Lab-STICC</a> (CNRS), with a support from the European Commission.
+More information: <a href="http://noise-planet.org/">http://noise-planet.org/</a>
+

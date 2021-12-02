@@ -1,0 +1,6 @@
+Amélioration du calcul des indicateurs acoustiques
+Https pour les communications avec les cartes et les serveurs de données
+Compatibilité avec Android 9
+Calibration en LAeq au lieu de Leq
+Amélioration de la compatibilité de l'exportation GeoJSON
+

@@ -1,0 +1,6 @@
+Nouvelle méthode d'étalonnage, ne nécessitant que quelques mesures de voitures passant au bord de la route.
+Correction d'un crash sur la page d'historique
+Utilisation plus faible de la mémoire lors de l'exportation/téléchargement d'une mesure (testé avec 9h de temps d'enregistrement)
+Exportation de la méthode de calibration pour chaque mesure
+Mise à jour des traductions
+

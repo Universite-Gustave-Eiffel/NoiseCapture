@@ -1,0 +1,2 @@
+Correction de la bibliothèque sur le transfert de données par audio pour le calibrage
+Ajout de métadonnées fastline pour l'insertion dans le store ouvert F-Droid

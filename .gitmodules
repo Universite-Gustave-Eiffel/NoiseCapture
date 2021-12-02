@@ -1,0 +1,7 @@
+[submodule "qrtone"]
+	path = qrtone
+	url = https://github.com/Ifsttar/qrtone.git
+        branch = v0.2.x
+
+
+

@@ -1,0 +1,4 @@
+Fix various NPE crash from play store feedback
+Add tooltip on results labels
+Do not transfer the measurements if the user does not validate the description activity
+

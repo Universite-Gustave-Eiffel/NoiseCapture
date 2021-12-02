@@ -1,0 +1,3 @@
+Ajout d'informations sur la collecte de la localisation de l'utilisateur au premier démarrage.
+Compatibilité avec Android 11
+

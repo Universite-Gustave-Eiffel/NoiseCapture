@@ -1,0 +1,44 @@
+NoiseCapture App est une application dédiée à <b>l'évaluation de votre environnement sonore</b>. Avec NoiseCapture App vous pouvez réaliser une mesure de bruit qui vous informera sur votre exposition au bruit. En complément, vous pouvez contribuer à l'élaboration collaborative de cartes de bruit en transférant de manière totalement anonyme ces informations vers la communauté.
+
+<b>Nouveau !</b> :
+Si votre smartphone est déjà calibré, vous pouvez désormais calibrer d'autres smartphones avec l'application, à partir du bruit ambiant. Sélectionnez le Calibrage automatique dans me menu Calibrage, en mode "Émetteur" pour le smartphone de référence et "Récepteur" pour les smartphones à calibrer. Approchez les smartphones entre-eux et lancez le calibrage depuis le smartphone de référence. Le reste est automatique.
+
+<b>Fonctionnalités</b> :
+• Mesure du bruit et calcul d'indicateurs acoustiques (Leq, LAmin, LAmax, LA10, LA50, LA90...) sur un trajet
+• Description des mesures (texte, photo, tags)
+• Visualisation des mesures sur une carte
+• Historique des mesures
+• Calibration du smartphone à partir d'un appareil de référence
+• Aide détaillée sur l'utilisation de l'application
+
+<b>Recommandations pour une mesure de qualité</b> (consultez l'Aide pour plus de détails) :
+• Le smartphone ne doit pas être dans la poche mais tenu à la main
+• Le microphone du smartphone ne doit pas être masqué
+• Réalisez une mesure de bruit, sans rajouter bruit !
+• Il est possible d'utiliser un microphone externe de meilleure qualité et calibré
+
+<b>Contribuez à des cartes de bruit collaboratives</b> :
+• Autorisez le transfert des mesures vers la communauté
+• Réalisez la mesure en dehors des bâtiments, en vous déplaçant
+• Ne pas faire de mesure en période de pluie ou de vent
+• Consultez la carte de bruit en ligne : <a href="http://noise-planet.org/map_noisecapture/index.html">http://noise-planet.org/map_noisecapture/index.html/</a>
+
+<b>Contribuez au projet NoiseCapture</b>:
+• participez au developpement du code : <a href="https://github.com/Ifsttar/NoiseCapture">https://github.com/Ifsttar/NoiseCapture</a>
+• rapportez vos commentaires, vos questions : <a href="https://github.com/Ifsttar/NoiseCapture/issues">https://github.com/Ifsttar/NoiseCapture/issues</a>
+• organisez des <b>NoiseCapture Party</b> pour cartographier à plusieurs l'environnement sonore de votre territoire: <a href="http://noise-planet.org/">http://noise-planet.org/</a>
+
+------------------------------------------------------
+<i>NoiseCapture App <b>respecte votre privée</b>:</i>
+• Vous contrôlez intégralement la manière dont les informations sont envoyées sur le serveur
+• Seules des données anonymisées sont transférées
+• Il n'y a aucun enregistrement audio : seules des indicateurs acoustiques sont calculés et transférés
+• NoiseCapture App n'a besoin que des permissions strictement nécessaires à son utilisation
+
+<i>Avertissements:</i>
+• Bien que NoiseCapture App soit développée par des spécialistes, gardez bien en mémoire qu'un smartphone ne remplacera jamais un sonomètre professionnel. Si vous avez besoin d'une expertise avancée, contactez un professionnel.
+• La qualité de la mesure dépend des performances techniques de votre smartphone et de sa calibration. En fonction de la nature de votre téléphone et de la version d'Android utilisée, il est possible que vous ne puissiez pas mesurer avec une précision suffisante.
+
+NoiseCapture App est développé conjointement par deux laboratoires de recherche Français, le <a href="http://www.lae.ifsttar.fr">Laboratoire d'Acoustique Environnementale</a> (Ifsttar) et l'équipe DECIDE du <a href="http://www.lab-sticc.fr/">Lab-STICC</a> (CNRS), avec le soutien de la Commission européenne.
+Plus d'informations : <a href="http://noise-planet.org/">http://noise-planet.org/</a>
+

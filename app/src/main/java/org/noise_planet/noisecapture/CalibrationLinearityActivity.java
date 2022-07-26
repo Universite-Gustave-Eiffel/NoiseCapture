@@ -92,7 +92,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class CalibrationLinearityActivity extends MainActivity implements PropertyChangeListener, SharedPreferences.OnSharedPreferenceChangeListener,ViewPager.OnPageChangeListener {
     private enum CALIBRATION_STEP {IDLE, WARMUP, CALIBRATION, END}
     private int splLoop = 0;
-    private double splBackroundNoise = 0;
+    private double splBackgroundNoise = 0;
     private static final int DB_STEP = 3;
     private double whiteNoisedB = 0;
     private ProgressBar progressBar_wait_calibration_recording;
@@ -448,7 +448,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         applyButton.setEnabled(false);
         resetButton.setEnabled(false);
         testGainCheckBox.setEnabled(true);
-        splBackroundNoise = 0;
+        splBackgroundNoise = 0;
         splLoop = 0;
         calibration_step = CALIBRATION_STEP.IDLE;
         freqLeqStats = new ArrayList<>();
@@ -789,7 +789,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             leq = measure.getGlobaldBaValue();
             if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
                 leqStats.addLeq(leq);
-                if(!freqLeqStats.isEmpty() && splBackroundNoise != 0) {
+                if(!freqLeqStats.isEmpty() && splBackgroundNoise != 0) {
                     freqLeqStats.get(freqLeqStats.size() - 1).pushMeasure(measure.getResult());
                 }
             }
@@ -833,7 +833,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-                    if(splBackroundNoise == 0) {
+                    if(splBackgroundNoise == 0) {
                         textStatus.setText(R.string.calibration_status_background_noise);
                     } else {
                         textStatus.setText(getString(R.string.calibration_linear_status_on, whiteNoisedB));
@@ -848,14 +848,14 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             progressHandler.start(defaultCalibrationTime * 1000);
             calibration_step = CALIBRATION_STEP.CALIBRATION;
         } else if(calibration_step == CALIBRATION_STEP.CALIBRATION) {
-            if(splBackroundNoise != 0) {
+            if(splBackgroundNoise != 0) {
                 double previousLeq = Double.MAX_VALUE;
                 if(freqLeqStats.size() > 1) {
                     previousLeq = freqLeqStats.get(freqLeqStats.size() - 2).globalMeasure.getLeqMean();
                 }
                 // If the powered calibration reach the background noise or
                 // if the last leq is superior than the previous leq
-                if (leqStats.getLeqMean() < splBackroundNoise + 3 || leqStats.getLeqMean() > previousLeq) {
+                if (leqStats.getLeqMean() < splBackgroundNoise + 3 || leqStats.getLeqMean() > previousLeq) {
                     // Almost reach the background noise, stop calibration
                     calibration_step = CALIBRATION_STEP.END;
                     runOnUiThread(new Runnable() {
@@ -900,7 +900,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                     }
                 });
                 playNewTrack();
-                splBackroundNoise = leqStats.getLeqMean();
+                splBackgroundNoise = leqStats.getLeqMean();
                 progressHandler.start(defaultWarmupTime * 1000);
             }
         }

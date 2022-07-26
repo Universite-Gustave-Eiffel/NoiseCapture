@@ -98,9 +98,9 @@ public class Results extends MainActivity {
     public PieChart neiChart;
     protected BarChart sChart; // Spectrum representation
 
-    // Other ressources
+    // Other resources
     private String[] ltob;  // List of third-octave bands
-    private String[] catNE; // List of noise level category (defined as ressources)
+    private String[] catNE; // List of noise level category (defined as resources)
     private List<Float> splHistogram;
     private LeqStats leqStats = new LeqStats();
     private List<String> tags;
@@ -201,9 +201,9 @@ public class Results extends MainActivity {
         }
 
         // Action on Map button
-        Button buttonmap=(Button)findViewById(R.id.mapBtn);
-        buttonmap.setEnabled(true);
-        buttonmap.setOnClickListener(new View.OnClickListener() {
+        Button buttonMap=(Button)findViewById(R.id.mapBtn);
+        buttonMap.setEnabled(true);
+        buttonMap.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 // Go to map page
@@ -386,7 +386,7 @@ public class Results extends MainActivity {
 
         BarData data = new BarData(xVals, dataSets);
         data.setValueTextSize(10f);
-        data.setValueFormatter(new FreqValueFormater(sChart));
+        data.setValueFormatter(new FreqValueFormatter(sChart));
         sChart.setData(data);
         sChart.invalidate();
     }
@@ -498,10 +498,10 @@ public class Results extends MainActivity {
     }
 
 
-    private static final class FreqValueFormater implements ValueFormatter {
+    private static final class FreqValueFormatter implements ValueFormatter {
         private BarChart sChart;
 
-        public FreqValueFormater(BarChart sChart) {
+        public FreqValueFormatter(BarChart sChart) {
             this.sChart = sChart;
         }
 

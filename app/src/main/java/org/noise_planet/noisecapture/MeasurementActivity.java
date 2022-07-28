@@ -85,21 +85,21 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class MeasurementActivity extends MainActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener, MapFragment.MapFragmentAvailableListener {
 
-    //public ImageButton buttonrecord;
+    //public ImageButton buttonRecord;
     //public ImageButton buttoncancel;
 
     private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
     // For the Charts
     protected HorizontalBarChart mChart; // VUMETER representation
     private DoProcessing doProcessing;
-    private ImageButton buttonrecord;
+    private ImageButton buttonRecord;
     private ImageButton buttonPause;
     private ViewPagerExt viewPager;
     private static final int PAGE_SPECTRUM = 0;
     private static final int PAGE_SPECTROGRAM = 1;
     private static final int PAGE_MAP = 2;
     // From this accuracy the location hint color is orange
-    private static final float APROXIMATE_LOCATION_ACCURACY = 10.f;
+    private static final float APPROXIMATE_LOCATION_ACCURACY = 10.f;
     private static final double MINIMAL_DISTANCE_RESTORE_MAP = 3.f;
     private static final int MAX_LOCATIONS_RESTORE_MAP = 500;
 
@@ -233,7 +233,7 @@ public class MeasurementActivity extends MainActivity implements
         initDrawer();
 
         // Check if the dialog box (for caution) must be displayed
-        // Depending of the settings
+        // Depending on the settings
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
         Boolean CheckNbRunSettings = sharedPref.getBoolean("settings_caution", true);
@@ -255,13 +255,13 @@ public class MeasurementActivity extends MainActivity implements
         buttonPause.setEnabled(false);
 
         // To start a record (test mode)
-        buttonrecord = (ImageButton) findViewById(R.id.recordBtn);
-        buttonrecord.setImageResource(R.drawable.button_record_normal);
-        buttonrecord.setEnabled(true);
+        buttonRecord = (ImageButton) findViewById(R.id.recordBtn);
+        buttonRecord.setImageResource(R.drawable.button_record_normal);
+        buttonRecord.setEnabled(true);
 
         // Actions on record button
         doProcessing = new DoProcessing(this);
-        buttonrecord.setOnClickListener(doProcessing);
+        buttonRecord.setOnClickListener(doProcessing);
 
         // Action on cancel button (during recording)
         buttonPause.setOnClickListener(onButtonPause);
@@ -552,7 +552,7 @@ public class MeasurementActivity extends MainActivity implements
         if (measurementService.isStoring()) {
             overlayMessage.setVisibility(View.INVISIBLE);
             buttonPause.setEnabled(true);
-            buttonrecord.setImageResource(R.drawable.button_record_pressed);
+            buttonRecord.setImageResource(R.drawable.button_record_pressed);
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
 
             // Start chronometer
@@ -580,8 +580,8 @@ public class MeasurementActivity extends MainActivity implements
             getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             // Enabled/disabled buttons after measurement
             buttonPause.setEnabled(false);
-            buttonrecord.setImageResource(R.drawable.button_record);
-            buttonrecord.setEnabled(true);
+            buttonRecord.setImageResource(R.drawable.button_record);
+            buttonRecord.setEnabled(true);
             // Stop and reset chronometer
             Chronometer chronometer = (Chronometer) findViewById(R.id.chronometer_recording_time);
             chronometer.stop();
@@ -634,7 +634,7 @@ public class MeasurementActivity extends MainActivity implements
                     activity.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            activity.buttonrecord.performClick();
+                            activity.buttonRecord.performClick();
                         }
                     });
                 }
@@ -665,12 +665,12 @@ public class MeasurementActivity extends MainActivity implements
             Resources resources = activity.getResources();
             ImageButton buttonPause= (ImageButton) activity.findViewById(R.id.pauseBtn);
             buttonPause.setEnabled(true);
-            ImageButton buttonrecord= (ImageButton) activity.findViewById(R.id.recordBtn);
+            ImageButton buttonRecord= (ImageButton) activity.findViewById(R.id.recordBtn);
 
             if (!activity.measurementService.isStoring()) {
                 // Start recording
-                buttonrecord.setImageResource(R.drawable.button_record_pressed);
-                buttonrecord.setEnabled(false);
+                buttonRecord.setImageResource(R.drawable.button_record_pressed);
+                buttonRecord.setEnabled(false);
                 activity.measurementService.startStorage();
                 // Force service to stay alive even if this activity is killed (Foreground service)
                 activity.startService(new Intent(activity, MeasurementService.class));
@@ -723,8 +723,8 @@ public class MeasurementActivity extends MainActivity implements
             try {
                 if(activity.measurementService.isRecording()) {
                     int seconds = activity.measurementService.getLeqAdded();
-                    if(seconds >= MeasurementActivity.DEFAULT_MINIMAL_LEQ && !activity.buttonrecord.isEnabled()) {
-                        activity.buttonrecord.setEnabled(true);
+                    if(seconds >= MeasurementActivity.DEFAULT_MINIMAL_LEQ && !activity.buttonRecord.isEnabled()) {
+                        activity.buttonRecord.setEnabled(true);
                     }
                     Chronometer chronometer = (Chronometer) activity
                             .findViewById(R.id.chronometer_recording_time);
@@ -748,7 +748,7 @@ public class MeasurementActivity extends MainActivity implements
                     Location location = activity.measurementService.getLastLocation();
                     if(location != null) {
                         float lastPrecision = location.getAccuracy();
-                        if (lastPrecision < APROXIMATE_LOCATION_ACCURACY) {
+                        if (lastPrecision < APPROXIMATE_LOCATION_ACCURACY) {
                             accuracyImageHint.setImageResource(R.drawable.gps_fixed);
                             accuracyText.setText(activity.getString(R.string.gps_hint_precision,
                                     (int)lastPrecision));

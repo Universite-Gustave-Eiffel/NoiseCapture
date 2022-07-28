@@ -219,7 +219,7 @@ public class CommentActivity extends MainActivity {
 
     @Override
     public void onBackPressed() {
-        // Ask user if he want to keep modified data
+        // Ask user if he wants to keep modified data
         if(record != null) {
             validateCancel();
         }

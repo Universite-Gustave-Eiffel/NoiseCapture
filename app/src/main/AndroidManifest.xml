@@ -64,6 +64,7 @@
         <activity
             android:name=".ViewHtmlPage"
             android:label="@string/title_activity_view_html_page"
+            android:exported="true"
             android:noHistory="true">
 
             <!-- listen to ACTION_VIEW intents (links to this view) -->
@@ -86,10 +87,10 @@
             android:name=".Start"
             android:label="@string/title_activity_start"
             android:noHistory="true"
+            android:exported="true"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

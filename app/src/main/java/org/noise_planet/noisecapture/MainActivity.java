@@ -610,7 +610,11 @@ public class MainActivity extends AppCompatActivity {
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(this);
         stackBuilder.addNextIntent(intent);
-        builder.setContentIntent(stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT));
+        if (Build.VERSION.SDK_INT >= 31) {
+            builder.setContentIntent(stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_MUTABLE));
+        } else {
+            builder.setContentIntent(stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT));
+        }
         NotificationManager mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         mNM.notify(NOTIFICATION_MAP, builder.build());
     }

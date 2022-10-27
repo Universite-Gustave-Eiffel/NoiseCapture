@@ -273,8 +273,8 @@ public class MeasurementActivity extends MainActivity implements
         setupViewPager(viewPager);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.measurement_tabs);
         tabLayout.setupWithViewPager(viewPager);
-        // Select spectrogram by default
-        viewPager.setCurrentItem(1);
+        // Select map by default
+        viewPager.setCurrentItem(2);
         // Instantaneous sound level VUMETER
         // Stacked bars are used for represented Min, Current and Max values
         // Horizontal barchart

@@ -300,7 +300,7 @@ public class MeasurementService extends Service {
 
             // The PendingIntent to launch our activity if the user selects this notification
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                    new Intent(this, MeasurementActivity.class), 0);
+                    new Intent(this, MeasurementActivity.class), PendingIntent.FLAG_MUTABLE);
 
             String channelId = "";
             // If earlier version channel ID is not used

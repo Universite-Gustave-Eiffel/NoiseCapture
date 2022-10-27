@@ -74,7 +74,7 @@ public class Storage extends SQLiteOpenHelper {
      * Convert audio device index into name
      * @see android.media.AudioDeviceInfo
      */
-    String[] audioSourceTypeName = new String[]
+    public static final String[] microphoneDeviceTypeName = new String[]
             {"TYPE_UNKNOWN","TYPE_BUILTIN_EARPIECE","TYPE_BUILTIN_SPEAKER","TYPE_WIRED_HEADSET",
                     "TYPE_WIRED_HEADPHONES","TYPE_LINE_ANALOG","TYPE_LINE_DIGITAL","TYPE_BLUETOOTH_SCO",
                     "TYPE_BLUETOOTH_A2DP","TYPE_HDMI","TYPE_HDMI_ARC","TYPE_USB_DEVICE","TYPE_USB_ACCESSORY",
@@ -302,7 +302,15 @@ public class Storage extends SQLiteOpenHelper {
     }
 
     public static class Record implements BaseColumns {
-        enum CALIBRATION_METHODS {None, ManualSetting, Calibrator, Reference, CalibratedSmartPhone, Traffic}
+        public enum CALIBRATION_METHODS {
+            None, // Default state, no calibration
+            System , // Use Android system information provided by Constructor (Sensibility @94dB 1000 Hz)
+            ManualSetting, // The user overwrite the value manually in the settings
+            Calibrator, // Calibration with calibrator by the user @94dB 1000 Hz
+            Reference, // Calibration by the user with reference sound level meter
+            CalibratedSmartPhone, // Auto calibration with reference smartphone having NoiseCapture
+            Traffic // Calibration using road traffic as reference
+        }
 
         public static final String TABLE_NAME = "record";
         public static final String COLUMN_ID = "record_id";
@@ -316,6 +324,8 @@ public class Storage extends SQLiteOpenHelper {
         public static final String COLUMN_CALIBRATION_GAIN = "calibration_gain";
         public static final String COLUMN_NOISEPARTY_TAG = "noiseparty_tag";
         public static final String COLUMN_CALIBRATION_METHOD = "calibration_method";
+        public static final String COLUMN_MICROPHONE_DEVICE_ID = "microphone_device_id";
+        public static final String COLUMN_MICROPHONE_DEVICE_SETTINGS = "microphone_device_settings"; // dictionary characteristics of the microphone
 
         private int id;
         private long utc;

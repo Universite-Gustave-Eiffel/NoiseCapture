@@ -36,7 +36,9 @@ import android.database.sqlite.SQLiteDatabaseLockedException;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.location.Location;
+import android.media.MicrophoneInfo;
 import android.net.Uri;
+import android.os.Build;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 /**
@@ -220,6 +223,37 @@ public class MeasurementManager {
             } catch (SQLException sqlException) {
                 LOGGER.error(sqlException.getLocalizedMessage(), sqlException);
                 return -1;
+            }
+        } finally {
+            database.close();
+        }
+    }
+
+    public void updateRecordMicrophoneDeviceSettings(int recordId, MicrophoneInfo microphoneInfo) {
+        String microphoneTypeName = Storage.microphoneDeviceTypeName[0];
+        String microphoneDeviceSettings = "{}";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if(microphoneInfo.getType() >= 0 && microphoneInfo.getType() < Storage.microphoneDeviceTypeName.length) {
+                microphoneTypeName = Storage.microphoneDeviceTypeName[microphoneInfo.getType()];
+            }
+            StringBuilder sb = new StringBuilder("{");
+            if(microphoneInfo.getDescription() != null) {
+                sb.append(String.format(Locale.ROOT,
+                        "'description':'%s',",
+                        microphoneInfo.getDescription()).replace("\n", ""));
+            }
+            sb.append("}");
+        }
+        SQLiteDatabase database = storage.getWritableDatabase();
+        try {
+            try {
+                database.execSQL("UPDATE " + Storage.Record.TABLE_NAME + " SET " +
+                        Storage.Record.COLUMN_MICROPHONE_DEVICE_ID + " = ?," +
+                        Storage.Record.COLUMN_MICROPHONE_DEVICE_SETTINGS + " = ? WHERE " +
+                        Storage.Record.COLUMN_ID + " = ?",
+                        new Object[]{microphoneTypeName, recordTimeLength, calibration_gain, recordId});
+            } catch (SQLException sqlException) {
+                LOGGER.error(sqlException.getLocalizedMessage(), sqlException);
             }
         } finally {
             database.close();

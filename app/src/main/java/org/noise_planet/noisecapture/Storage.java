@@ -27,6 +27,7 @@
 
 package org.noise_planet.noisecapture;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -68,6 +69,19 @@ public class Storage extends SQLiteOpenHelper {
             .tags_predominant_sound_sources_col4, R.color.tag_group_work), t(17, "alarms", R.id
             .tags_predominant_sound_sources_col4, R.color.tag_group_work), t(18, "industrial", R
             .id.tags_predominant_sound_sources_col4, R.color.tag_group_work)};
+
+    /**
+     * Convert audio device index into name
+     * @see android.media.AudioDeviceInfo
+     */
+    String[] audioSourceTypeName = new String[]
+            {"TYPE_UNKNOWN","TYPE_BUILTIN_EARPIECE","TYPE_BUILTIN_SPEAKER","TYPE_WIRED_HEADSET",
+                    "TYPE_WIRED_HEADPHONES","TYPE_LINE_ANALOG","TYPE_LINE_DIGITAL","TYPE_BLUETOOTH_SCO",
+                    "TYPE_BLUETOOTH_A2DP","TYPE_HDMI","TYPE_HDMI_ARC","TYPE_USB_DEVICE","TYPE_USB_ACCESSORY",
+                    "TYPE_DOCK","TYPE_FM","TYPE_BUILTIN_MIC","TYPE_FM_TUNER","TYPE_TV_TUNER","TYPE_TELEPHONY",
+                    "TYPE_AUX_LINE","TYPE_IP","TYPE_BUS","TYPE_USB_HEADSET","TYPE_HEARING_AID",
+                    "TYPE_BUILTIN_SPEAKER_SAFE","TYPE_REMOTE_SUBMIX","TYPE_BLE_HEADSET","TYPE_BLE_SPEAKER",
+                    "TYPE_ECHO_REFERENCE","TYPE_HDMI_EARC","TYPE_BLE_BROADCAST"};
 
     private static TagInfo t(int id, String name, @IdRes int location, @ColorRes int color) {
         return new TagInfo(id, name, location, color);
@@ -316,6 +330,7 @@ public class Storage extends SQLiteOpenHelper {
         private CALIBRATION_METHODS calibrationMethod;
 
 
+        @SuppressLint("Range")
         public Record(Cursor cursor) {
             this(cursor.getInt(cursor.getColumnIndex(COLUMN_ID)),
                     cursor.getLong(cursor.getColumnIndex(COLUMN_UTC)),

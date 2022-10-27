@@ -27,9 +27,13 @@
 
 package org.noise_planet.noisecapture;
 
+import android.annotation.SuppressLint;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.media.MicrophoneInfo;
+import android.os.Build;
+import android.os.Process;
 import android.util.Log;
 
 import org.orbisgis.sos.AcousticIndicators;
@@ -40,7 +44,9 @@ import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeSupport;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -227,6 +233,7 @@ public class AudioProcess implements Runnable {
         return fastLeqProcessing.getThirdOctaveFrequencySPL();
     }
 
+    @SuppressLint("MissingPermission")
     private AudioRecord createAudioRecord() {
         // Source:
         //  section 5.3 of the Android 4.0 Compatibility Definition
@@ -253,11 +260,23 @@ public class AudioProcess implements Runnable {
         try {
             setCurrentState(STATE.PROCESSING);
             AudioRecord audioRecord = createAudioRecord();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                try {
+                    List<MicrophoneInfo> microphoneInfoList =
+                            audioRecord.getActiveMicrophones();
+                    if(!microphoneInfoList.isEmpty()) {
+                        MicrophoneInfo microphoneInfo = microphoneInfoList.get(0);
+                        int microphoneType = microphoneInfo.getType();
+                    }
+                } catch (IOException ex) {
+
+                }
+            }
             short[] buffer;
             if (recording.get() && audioRecord != null) {
                 try {
                     try {
-                        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+                        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
                     } catch (IllegalArgumentException | SecurityException ex) {
                         // Ignore
                     }

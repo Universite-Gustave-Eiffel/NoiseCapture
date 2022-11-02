@@ -82,9 +82,8 @@ public class AudioProcess implements Runnable {
     private boolean hasGain = false;
     private boolean hannWindowFast = false;
     private boolean hannWindowOneSecond = true;
-
-
-
+    private AudioRecord audioRecord;
+    private MicrophoneInfo microphoneInfo;
 
     public AudioProcess(AtomicBoolean recording, AtomicBoolean canceled) {
         this(recording, canceled, null);
@@ -142,6 +141,25 @@ public class AudioProcess implements Runnable {
         this.hannWindowFast = hannWindowFast;
         fastLeqProcessing.setWindowType(hannWindowFast ? FFTSignalProcessing.WINDOW_TYPE.TUKEY :
                 FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR);
+    }
+
+    public void refreshMicrophoneInfo() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                List<MicrophoneInfo> microphoneInfoList =
+                        audioRecord.getActiveMicrophones();
+                if(!microphoneInfoList.isEmpty()) {
+                    microphoneInfo = microphoneInfoList.get(0);
+                }
+            } catch (IOException ex) {
+                LOGGER.warn("Can't read microphone information", ex);
+                // Ignore
+            }
+        }
+    }
+
+    public MicrophoneInfo getMicrophoneInfo() {
+        return microphoneInfo;
     }
 
     public boolean isHannWindowFast() {
@@ -259,19 +277,8 @@ public class AudioProcess implements Runnable {
     public void run() {
         try {
             setCurrentState(STATE.PROCESSING);
-            AudioRecord audioRecord = createAudioRecord();
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                try {
-                    List<MicrophoneInfo> microphoneInfoList =
-                            audioRecord.getActiveMicrophones();
-                    if(!microphoneInfoList.isEmpty()) {
-                        MicrophoneInfo microphoneInfo = microphoneInfoList.get(0);
-                        int microphoneType = microphoneInfo.getType();
-                    }
-                } catch (IOException ex) {
-
-                }
-            }
+            audioRecord = createAudioRecord();
+            refreshMicrophoneInfo();
             short[] buffer;
             if (recording.get() && audioRecord != null) {
                 try {

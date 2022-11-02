@@ -110,7 +110,7 @@ public class Storage extends SQLiteOpenHelper {
         }
     }
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 11;
+    public static final int DATABASE_VERSION = 12;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -208,6 +208,13 @@ public class Storage extends SQLiteOpenHelper {
                 db.execSQL("ALTER TABLE RECORD ADD COLUMN calibration_method INTEGER DEFAULT 0");
             }
             oldVersion = 11;
+        }
+        if(oldVersion == 11) {
+            if(!db.isReadOnly()) {
+                db.execSQL("ALTER TABLE RECORD ADD COLUMN microphone_device_id TEXT DEFAULT ''");
+                db.execSQL("ALTER TABLE RECORD ADD COLUMN microphone_device_settings TEXT DEFAULT ''");
+            }
+            oldVersion = 12;
         }
     }
 
@@ -455,7 +462,9 @@ public class Storage extends SQLiteOpenHelper {
             Record.COLUMN_PLEASANTNESS + " SMALLINT," +
             Record.COLUMN_CALIBRATION_GAIN + " FLOAT DEFAULT 0," +
             Record.COLUMN_NOISEPARTY_TAG + " TEXT," +
-            Record.COLUMN_CALIBRATION_METHOD + " INTEGER DEFAULT 0" +
+            Record.COLUMN_CALIBRATION_METHOD + " INTEGER DEFAULT 0," +
+            Record.COLUMN_MICROPHONE_DEVICE_ID + " TEXT," +
+            Record.COLUMN_MICROPHONE_DEVICE_SETTINGS + " TEXT" +
             ")";
 
 

@@ -27,12 +27,12 @@
 
 package org.noise_planet.noisecapture;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteDatabaseLockedException;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.location.Location;
@@ -239,10 +239,35 @@ public class MeasurementManager {
             StringBuilder sb = new StringBuilder("{");
             if(microphoneInfo.getDescription() != null) {
                 sb.append(String.format(Locale.ROOT,
-                        "'description':'%s',",
+                        "\"description\":\"%s\",",
                         microphoneInfo.getDescription()).replace("\n", ""));
             }
+            if(Float.compare(MicrophoneInfo.SENSITIVITY_UNKNOWN, microphoneInfo.getSensitivity()) != 0) {
+                sb.append(String.format(Locale.ROOT,
+                        "\"sensitivity\":%f,",
+                        microphoneInfo.getSensitivity()));
+            }
+            if(Float.compare(MicrophoneInfo.SPL_UNKNOWN, microphoneInfo.getMaxSpl()) != 0) {
+                sb.append(String.format(Locale.ROOT,
+                        "\"max_spl\":%f,",
+                        microphoneInfo.getMaxSpl()));
+            }
+            if(Float.compare(MicrophoneInfo.SPL_UNKNOWN, microphoneInfo.getMinSpl()) != 0) {
+                sb.append(String.format(Locale.ROOT,
+                        "\"min_spl\":%f,",
+                        microphoneInfo.getMinSpl()));
+            }
+            String[] location_text = new String[] {"LOCATION_UNKNOWN","LOCATION_MAINBODY",
+                    "LOCATION_MAINBODY_MOVABLE", "LOCATION_PERIPHERAL"};
+            String locationValue = location_text[0];
+            if(microphoneInfo.getLocation() >= 0 && microphoneInfo.getLocation() < location_text.length) {
+                locationValue=location_text[microphoneInfo.getLocation()];
+            }
+            sb.append(String.format(Locale.ROOT,
+                    "\"location\":\"%s\",",
+                    locationValue));
             sb.append("}");
+            microphoneDeviceSettings = sb.toString();
         }
         SQLiteDatabase database = storage.getWritableDatabase();
         try {
@@ -251,7 +276,7 @@ public class MeasurementManager {
                         Storage.Record.COLUMN_MICROPHONE_DEVICE_ID + " = ?," +
                         Storage.Record.COLUMN_MICROPHONE_DEVICE_SETTINGS + " = ? WHERE " +
                         Storage.Record.COLUMN_ID + " = ?",
-                        new Object[]{microphoneTypeName, recordTimeLength, calibration_gain, recordId});
+                        new Object[]{microphoneTypeName, microphoneDeviceSettings, recordId});
             } catch (SQLException sqlException) {
                 LOGGER.error(sqlException.getLocalizedMessage(), sqlException);
             }
@@ -401,6 +426,7 @@ public class MeasurementManager {
      * @param recordId Record identifier, -1 for all
      * @param recordVisitor Visitor of records
      */
+    @SuppressLint("Range")
     public void getRecordLocations(int recordId, RecordVisitor<LeqBatch> recordVisitor) {
         SQLiteDatabase database = storage.getReadableDatabase();
         double[] lastLatLng = null;
@@ -475,6 +501,7 @@ public class MeasurementManager {
      * @param withCoordinatesOnly Do not extract leq that does not contain a coordinate
      * @param limitation Extract up to limitation point
      */
+    @SuppressLint("Range")
     public List<LeqBatch> getRecordLocations(int recordId, boolean withCoordinatesOnly, int limitation, ProgressionCallBack progressionCallBack, Double minDistance) {
         SQLiteDatabase database = storage.getReadableDatabase();
         double[] lastLatLng = null;
@@ -684,10 +711,9 @@ public class MeasurementManager {
      * @param leqBatches List of Leq to add
      */
     public void addLeqBatches(List<LeqBatch> leqBatches) {
-        int retry = 5;
-        SQLiteDatabase database = storage.getWritableDatabase();
+        int retry = 8;
         while(true) {
-            try {
+            try (SQLiteDatabase database = storage.getWritableDatabase()) {
                 database.beginTransaction();
                 SQLiteStatement leqStatement = database.compileStatement(
                         "INSERT INTO " + Storage.Leq.TABLE_NAME + "(" +
@@ -738,21 +764,19 @@ public class MeasurementManager {
                 }
                 database.setTransactionSuccessful();
                 database.endTransaction();
-                break;
-            }catch (SQLiteException ex) {
+                break; // exit loop as we processed the records
+            } catch (SQLiteException | IllegalStateException ex) {
                 // Sql issue
                 retry -= 1;
-                if(retry <= 0) {
+                if (retry <= 0) {
                     break;
                 } else {
                     try {
-                        Thread.sleep(500);
+                        Thread.sleep(125);
                     } catch (InterruptedException ex2) {
                         break;
                     }
                 }
-            } finally {
-                database.close();
             }
         }
     }

@@ -345,6 +345,8 @@ public class Storage extends SQLiteOpenHelper {
         private float calibrationGain;
         private String noisePartyTag;
         private CALIBRATION_METHODS calibrationMethod;
+        private String microphoneDeviceId;
+        private String microphoneDeviceSettings;
 
 
         @SuppressLint("Range")
@@ -363,6 +365,8 @@ public class Storage extends SQLiteOpenHelper {
                 photoUri = Uri.parse(uriString);
             }
             pleasantness = getInt(cursor, COLUMN_PLEASANTNESS);
+            microphoneDeviceId = getString(cursor, COLUMN_MICROPHONE_DEVICE_ID);
+            microphoneDeviceSettings = getString(cursor, COLUMN_MICROPHONE_DEVICE_SETTINGS);
         }
 
         public Record(int id, long utc, String uploadId, float leqMean, int timeLength,
@@ -448,6 +452,20 @@ public class Storage extends SQLiteOpenHelper {
 
         public float getLeqMean() {
             return leqMean;
+        }
+
+        /**
+         * @return Microphone identifier
+         */
+        public String getMicrophoneDeviceId() {
+            return microphoneDeviceId;
+        }
+
+        /**
+         * @return Advanced microphone device settings (should be json)
+         */
+        public String getMicrophoneDeviceSettings() {
+            return microphoneDeviceSettings;
         }
     }
 

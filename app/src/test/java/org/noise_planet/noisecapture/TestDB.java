@@ -27,6 +27,11 @@
 
 package org.noise_planet.noisecapture;
 
+import static junit.framework.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+
 import android.content.SharedPreferences;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
@@ -35,8 +40,7 @@ import android.preference.PreferenceManager;
 import android.util.JsonReader;
 import android.util.JsonToken;
 
-import junit.framework.Assert;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,7 +48,6 @@ import org.junit.rules.TemporaryFolder;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
-import org.robolectric.annotation.Config;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -52,17 +55,13 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Properties;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
-
-import static junit.framework.Assert.assertTrue;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 
 /**
  * Unit test of SQLLite db manager of NoiseCapture
@@ -79,14 +78,14 @@ public class TestDB {
     }
 
     @Test
-    public void testCreate() throws URISyntaxException {
+    public void testCreate() {
         MeasurementManager measurementManager =
-                new MeasurementManager(RuntimeEnvironment.application);
+                new MeasurementManager(RuntimeEnvironment.getApplication());
 
         int recordId = measurementManager.addRecord(Storage.Record.CALIBRATION_METHODS.None);
         Storage.Leq leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), 12, 15, 50.d,
                 15.f, 4.f, 4.5f,System.currentTimeMillis());
-        List<Storage.LeqValue> leqValues = new ArrayList<Storage.LeqValue>();
+        List<Storage.LeqValue> leqValues = new ArrayList<>();
 
         leqValues .add(new Storage.LeqValue(-1, 125, 65));
         leqValues .add(new Storage.LeqValue(-1, 250, 55));
@@ -134,10 +133,10 @@ public class TestDB {
         // Check update user input
         measurementManager.updateRecordUserInput(recordId, "This is a description",
                 (short)2,new String[]{Storage.TAGS_INFO[0].name, Storage.TAGS_INFO[4].name},
-                Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())),
+                Uri.fromFile(new File(Objects.requireNonNull(TestDB.class.getResource("calibration.png")).getFile())),
                 "OGRS2018");
         Storage.Record record = measurementManager.getRecord(recordId);
-        assertEquals(Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())),
+        assertEquals(Uri.fromFile(new File(Objects.requireNonNull(TestDB.class.getResource("calibration.png")).getFile())),
                 record.getPhotoUri());
 
         List<String> selectedTags = measurementManager.getTags(recordId);
@@ -148,14 +147,14 @@ public class TestDB {
     }
 
     @Test
-    public void testResults() throws URISyntaxException {
+    public void testResults() {
         MeasurementManager measurementManager =
-                new MeasurementManager(RuntimeEnvironment.application);
+                new MeasurementManager(RuntimeEnvironment.getApplication());
 
         int recordId = measurementManager.addRecord(Storage.Record.CALIBRATION_METHODS.None);
         Storage.Leq leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), 12, 15, 50.d,
                 15.f, 4.f, 4.5f,System.currentTimeMillis());
-        List<Storage.LeqValue> leqValues = new ArrayList<Storage.LeqValue>();
+        List<Storage.LeqValue> leqValues = new ArrayList<>();
 
         leqValues .add(new Storage.LeqValue(-1, 125, 65));
         leqValues .add(new Storage.LeqValue(-1, 250, 55));
@@ -200,17 +199,17 @@ public class TestDB {
     }
 
     @Test
-    public void testExport() throws URISyntaxException, IOException {
+    public void testExport() throws IOException {
         MeasurementManager measurementManager =
-                new MeasurementManager(RuntimeEnvironment.application);
+                new MeasurementManager(RuntimeEnvironment.getApplication());
 
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.application);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.getApplication());
         assertTrue(sharedPref.edit().putString("settings_user_noise_knowledge", "NOVICE").commit());
 
         int recordId = measurementManager.addRecord(Storage.Record.CALIBRATION_METHODS.Traffic);
         Storage.Leq leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), 12, 15, 50.d,
                 15.f, 4.f, 4.5f,System.currentTimeMillis());
-        List<Storage.LeqValue> leqValues = new ArrayList<Storage.LeqValue>();
+        List<Storage.LeqValue> leqValues = new ArrayList<>();
 
         leqValues .add(new Storage.LeqValue(-1, 125, 65));
         leqValues .add(new Storage.LeqValue(-1, 250, 55));
@@ -230,12 +229,12 @@ public class TestDB {
         measurementManager.updateRecordFinal(recordId, (float)leqBatch.computeGlobalLeq(), 2, -4.76f);
         measurementManager.updateRecordUserInput(recordId, "This is a description",
                 (short)2,new String[]{Storage.TAGS_INFO[0].name, Storage.TAGS_INFO[4].name},
-                Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())),
+                Uri.fromFile(new File(Objects.requireNonNull(TestDB.class.getResource("calibration.png")).getFile())),
                 "OGRS2018");
 
         // Export to zip file
         File testFile = folder.newFile("testexport.zip");
-        History.doBuildZip(testFile, RuntimeEnvironment.application, recordId);
+        History.doBuildZip(testFile, RuntimeEnvironment.getApplication(), recordId);
 
         // Check properties of zip file
         boolean foundJson = false;
@@ -249,7 +248,7 @@ public class TestDB {
                     meta.load(zipInputStream);
                 } else if (MeasurementExport.GEOJSON_FILENAME.equals(zipEntry.getName())) {
                     JsonReader jsonReader = new JsonReader(new InputStreamReader(zipInputStream,
-                            "UTF-8"));
+                            StandardCharsets.UTF_8));
                     assertTrue(jsonReader.hasNext());
                     assertEquals(JsonToken.BEGIN_OBJECT, jsonReader.peek());
                     jsonReader.beginObject();
@@ -270,24 +269,24 @@ public class TestDB {
         assertEquals("NOVICE", meta.getProperty(MeasurementExport.PROP_USER_PROFILE));
         assertEquals(Storage.Record.CALIBRATION_METHODS.Traffic.name(), meta.getProperty(MeasurementExport.PROP_METHOD_CALIBRATION));
         assertEquals("OGRS2018", meta.getProperty(Storage.Record.COLUMN_NOISEPARTY_TAG));
-        assertEquals(-4.76f, Float.valueOf(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
+        assertEquals(-4.76f, Float.parseFloat(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
         assertEquals((float)leqBatch.computeGlobalLeq(),
-                Float.valueOf(meta.getProperty(Storage.Record.COLUMN_LEQ_MEAN)), 0.01f);
+                Float.parseFloat(meta.getProperty(Storage.Record.COLUMN_LEQ_MEAN)), 0.01f);
     }
 
 
     @Test
-    public void testExportInvalidValues() throws URISyntaxException, IOException {
+    public void testExportInvalidValues() throws IOException {
         MeasurementManager measurementManager =
-                new MeasurementManager(RuntimeEnvironment.application);
+                new MeasurementManager(RuntimeEnvironment.getApplication());
 
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.application);
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(RuntimeEnvironment.getApplication());
         assertTrue(sharedPref.edit().putString("settings_user_noise_knowledge", "NOVICE").commit());
 
         int recordId = measurementManager.addRecord(Storage.Record.CALIBRATION_METHODS.None);
         Storage.Leq leq = new Storage.Leq(recordId, -1, System.currentTimeMillis(), 12, 15, 50.d,
                 15.f, 4.f, 4.5f,System.currentTimeMillis());
-        List<Storage.LeqValue> leqValues = new ArrayList<Storage.LeqValue>();
+        List<Storage.LeqValue> leqValues = new ArrayList<>();
 
         leqValues .add(new Storage.LeqValue(-1, 125, 65));
         leqValues .add(new Storage.LeqValue(-1, 250, 55));
@@ -307,12 +306,12 @@ public class TestDB {
         measurementManager.updateRecordFinal(recordId, (float)leqBatch.computeGlobalLeq(), 2, -4.76f);
         measurementManager.updateRecordUserInput(recordId, "This is a description",
                 (short)2,new String[]{Storage.TAGS_INFO[0].name, Storage.TAGS_INFO[4].name},
-                Uri.fromFile(new File(TestDB.class.getResource("calibration.png").getFile())),
+                Uri.fromFile(new File(Objects.requireNonNull(TestDB.class.getResource("calibration.png")).getFile())),
                 "OGRS2018");
 
         // Export to zip file
         File testFile = folder.newFile("testexport.zip");
-        History.doBuildZip(testFile, RuntimeEnvironment.application, recordId);
+        History.doBuildZip(testFile, RuntimeEnvironment.getApplication(), recordId);
 
         // Check properties of zip file
         boolean foundJson = false;
@@ -326,7 +325,7 @@ public class TestDB {
                     meta.load(zipInputStream);
                 } else if (MeasurementExport.GEOJSON_FILENAME.equals(zipEntry.getName())) {
                     JsonReader jsonReader = new JsonReader(new InputStreamReader(zipInputStream,
-                            "UTF-8"));
+                            StandardCharsets.UTF_8));
                     assertTrue(jsonReader.hasNext());
                     assertEquals(JsonToken.BEGIN_OBJECT, jsonReader.peek());
                     jsonReader.beginObject();
@@ -346,17 +345,17 @@ public class TestDB {
         assertNotNull(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION));
         assertEquals("NOVICE", meta.getProperty(MeasurementExport.PROP_USER_PROFILE));
         assertEquals("OGRS2018", meta.getProperty(Storage.Record.COLUMN_NOISEPARTY_TAG));
-        assertEquals(-4.76f, Float.valueOf(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
+        assertEquals(-4.76f, Float.parseFloat(meta.getProperty(MeasurementExport.PROP_GAIN_CALIBRATION)), 0.01f);
         assertEquals((float)leqBatch.computeGlobalLeq(),
-                Float.valueOf(meta.getProperty(Storage.Record.COLUMN_LEQ_MEAN)), 0.01f);
+                Float.parseFloat(meta.getProperty(Storage.Record.COLUMN_LEQ_MEAN)), 0.01f);
     }
 
     @Test
     public void testSubSample() throws IOException {
-        Storage storage =  new Storage(RuntimeEnvironment.application);
+        Storage storage =  new Storage(RuntimeEnvironment.getApplication());
         // Add dump data
         SQLiteDatabase db = storage.getWritableDatabase();
-        // Reseting Counter
+        // Resetting Counter
 
         // Open the resource
         InputStream insertsStream = TestDB.class.getResourceAsStream("dump.sql");
@@ -376,7 +375,7 @@ public class TestDB {
         insertReader.close();
 
         MeasurementManager measurementManager =
-                new MeasurementManager(RuntimeEnvironment.application);
+                new MeasurementManager(RuntimeEnvironment.getApplication());
 
         // Fetch data
         List<MeasurementManager.LeqBatch> storedLeq =
@@ -387,10 +386,10 @@ public class TestDB {
 
     @Test
     public void testGetCenterRecords()  throws IOException {
-        Storage storage =  new Storage(RuntimeEnvironment.application);
+        Storage storage =  new Storage(RuntimeEnvironment.getApplication());
         // Add dump data
         SQLiteDatabase db = storage.getWritableDatabase();
-        // Reseting Counter
+        // Resetting Counter
 
         // Open the resource
         InputStream insertsStream = TestDB.class.getResourceAsStream("dump.sql");
@@ -410,7 +409,7 @@ public class TestDB {
         insertReader.close();
 
         MeasurementManager measurementManager =
-                new MeasurementManager(RuntimeEnvironment.application);
+                new MeasurementManager(RuntimeEnvironment.getApplication());
 
         // Fetch data
 

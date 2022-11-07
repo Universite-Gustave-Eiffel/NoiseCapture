@@ -322,9 +322,13 @@ public class MeasurementExport {
             tagsString.append(tag);
         }
         properties.setProperty(PROP_TAGS, tagsString.toString());
-        properties.setProperty(PROP_MICROPHONE_DEVICE_ID, record.getMicrophoneDeviceId());
-        properties.setProperty(PROP_MICROPHONE_DEVICE_SETTINGS,
-                record.getMicrophoneDeviceSettings());
+        if(record.getMicrophoneDeviceId() != null) {
+            properties.setProperty(PROP_MICROPHONE_DEVICE_ID, record.getMicrophoneDeviceId());
+        }
+        if(record.getMicrophoneDeviceSettings() != null) {
+            properties.setProperty(PROP_MICROPHONE_DEVICE_SETTINGS,
+                    record.getMicrophoneDeviceSettings());
+        }
         zipOutputStream.putNextEntry(new ZipEntry(PROPERTY_FILENAME));
         properties.store(zipOutputStream, "NoiseCapture export header file");
         zipOutputStream.closeEntry();

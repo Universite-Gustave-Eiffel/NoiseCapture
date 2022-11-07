@@ -1,6 +1,6 @@
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;
-INSERT INTO "record" VALUES(29,1474192998234,'3d08cbac-acb7-4492-95d8-9f489e3ae45c',5.90635719299316406258e+01,62,'','',NULL,-7.0,NULL, 0);
+INSERT INTO "record"(record_id, record_utc, upload_id, leq_mean, time_length) VALUES(29,1474192998234,'3d08cbac-acb7-4492-95d8-9f489e3ae45c',59.06,62);
 COMMIT;
 PRAGMA foreign_keys=OFF;
 BEGIN TRANSACTION;

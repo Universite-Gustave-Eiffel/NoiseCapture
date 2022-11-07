@@ -76,7 +76,7 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
                         Toast.LENGTH_LONG).show();
             }
         }
-        MapFragment mapFragment = getMapControler();
+        MapFragment mapFragment = getMapController();
         mapFragment.setMapFragmentAvailableListener(this);
         onMapFragmentAvailable(mapFragment);
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -87,7 +87,7 @@ public class MapActivity extends MainActivity implements MapFragment.MapFragment
         }
     }
 
-    private MapFragment getMapControler() {
+    private MapFragment getMapController() {
         return (MapFragment) getSupportFragmentManager().findFragmentById(R.id.map_fragment);
     }
 

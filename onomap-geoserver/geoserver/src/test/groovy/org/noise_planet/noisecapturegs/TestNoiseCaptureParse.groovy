@@ -313,4 +313,14 @@ class TestNoiseCaptureParse  extends JdbcTestCase {
         assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
         assertEquals("Traffic", sql.firstRow("SELECT calibration_method::varchar calibration_method FROM  noisecapture_track").calibration_method)
     }
+
+    void testParseMicrophoneAttributes() {
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_63571573-b549-485e-b289-8150e4450270.zip").file))
+        // Read db; check content
+        Sql sql = new Sql(connection)
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals("TYPE_BUILTIN_MIC", sql.firstRow("SELECT microphone_identifier::varchar microphone_identifier FROM  noisecapture_track").microphone_identifier as String)
+        assertEquals("{\"description\":\"19\",\"location\":\"LOCATION_MAINBODY\",}", sql.firstRow("SELECT MICROPHONE_SETTINGS::varchar MICROPHONE_SETTINGS FROM  noisecapture_track").microphone_settings as String)
+    }
 }

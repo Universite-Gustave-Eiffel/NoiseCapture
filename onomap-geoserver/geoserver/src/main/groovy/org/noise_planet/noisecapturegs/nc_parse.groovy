@@ -124,7 +124,8 @@ static Integer processFile(Connection connection, File zipFile,Map trackData = [
     }
 
     def noisecaptureVersion = Integer.valueOf(meta.getProperty("version_number"));
-
+    def microphone_identifier = meta.getOrDefault("microphone_identifier", "")
+    def microphone_settings = meta.getOrDefault("microphone_settings", "")
     // Fetch or insert user
     GroovyRowResult res = sql.firstRow("SELECT * FROM noisecapture_user WHERE user_uuid=:uuid",
             [uuid: meta.getProperty("uuid")])
@@ -167,23 +168,25 @@ static Integer processFile(Connection connection, File zipFile,Map trackData = [
         calibrationMethod = "None"
     }
     // insert record
-    Map record = [track_uuid         : recordUUID,
-                  pk_user            : idUser,
-                  version_number     : meta.getProperty("version_number") as int,
-                  record_utc         : epochToRFCTime(Long.valueOf(meta.getProperty("record_utc"))),
-                  pleasantness       : meta.getOrDefault("pleasantness", null) as Integer,
-                  device_product     : meta.get("device_product"),
-                  device_model       : meta.get("device_model"),
-                  device_manufacturer: meta.get("device_manufacturer"),
-                  noise_level        : noiseLevel,
-                  time_length        : meta.get("time_length") as int,
-                  gain_calibration   : gain,
-                  noiseparty_id      : idParty,
-                  method_calibration : calibrationMethod]
+    Map record = [track_uuid            : recordUUID,
+                  pk_user               : idUser,
+                  version_number        : meta.getProperty("version_number") as int,
+                  record_utc            : epochToRFCTime(Long.valueOf(meta.getProperty("record_utc"))),
+                  pleasantness          : meta.getOrDefault("pleasantness", null) as Integer,
+                  device_product        : meta.get("device_product"),
+                  device_model          : meta.get("device_model"),
+                  device_manufacturer   : meta.get("device_manufacturer"),
+                  noise_level           : noiseLevel,
+                  time_length           : meta.get("time_length") as int,
+                  gain_calibration      : gain,
+                  noiseparty_id         : idParty,
+                  method_calibration    : calibrationMethod,
+                  microphone_identifier : microphone_identifier,
+                  microphone_settings   : microphone_settings]
     def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
-            " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration, pk_party, calibration_method) VALUES (" +
+            " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration, pk_party, calibration_method, microphone_identifier, microphone_settings) VALUES (" +
             ":track_uuid, :pk_user, :version_number,:record_utc::timestamptz, :pleasantness, :device_product, :device_model," +
-            " :device_manufacturer, :noise_level, :time_length, :gain_calibration, :noiseparty_id, :method_calibration)", record)[0][0] as Integer
+            " :device_manufacturer, :noise_level, :time_length, :gain_calibration, :noiseparty_id, :method_calibration, :microphone_identifier, :microphone_settings)", record)[0][0] as Integer
     // insert tags
     String tags = meta.getProperty("tags", "")
     if (!tags.isEmpty()) {

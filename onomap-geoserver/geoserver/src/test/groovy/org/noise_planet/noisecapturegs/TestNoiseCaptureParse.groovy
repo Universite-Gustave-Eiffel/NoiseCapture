@@ -323,4 +323,14 @@ class TestNoiseCaptureParse  extends JdbcTestCase {
         assertEquals("TYPE_BUILTIN_MIC", sql.firstRow("SELECT microphone_identifier::varchar microphone_identifier FROM  noisecapture_track").microphone_identifier as String)
         assertEquals("{\"description\":\"19\",\"location\":\"LOCATION_MAINBODY\",}", sql.firstRow("SELECT MICROPHONE_SETTINGS::varchar MICROPHONE_SETTINGS FROM  noisecapture_track").microphone_settings as String)
     }
+
+    void testParseUmikMicrophoneAttributes() {
+        new nc_parse().processFile(connection,
+                new File(TestNoiseCaptureParse.getResource("track_umik.zip").file))
+        // Read db; check content
+        Sql sql = new Sql(connection)
+        assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+        assertEquals("TYPE_USB_DEVICE", sql.firstRow("SELECT microphone_identifier::varchar microphone_identifier FROM  noisecapture_track").microphone_identifier as String)
+        assertEquals("{\"description\":\"USB-Audio - Umik-1  Gain: 18dB2398\",\"location\":\"LOCATION_PERIPHERAL\",}", sql.firstRow("SELECT MICROPHONE_SETTINGS::varchar MICROPHONE_SETTINGS FROM  noisecapture_track").microphone_settings as String)
+    }
 }

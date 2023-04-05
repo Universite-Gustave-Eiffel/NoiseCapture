@@ -80,6 +80,7 @@ import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class MeasurementActivity extends MainActivity implements
@@ -662,6 +663,10 @@ public class MeasurementActivity extends MainActivity implements
 
         @Override
         public void onClick(View v) {
+            if(activity.measurementService == null) {
+                // Service not ready
+                return;
+            }
             Resources resources = activity.getResources();
             ImageButton buttonPause= (ImageButton) activity.findViewById(R.id.pauseBtn);
             buttonPause.setEnabled(true);
@@ -708,7 +713,7 @@ public class MeasurementActivity extends MainActivity implements
 
         private static void formatdBA(double dbAValue, TextView textView) {
             if(dbAValue > MIN_SHOWN_DBA_VALUE && dbAValue < MAX_SHOWN_DBA_VALUE) {
-                textView.setText(String.format(" %.1f", dbAValue));
+                textView.setText(String.format(Locale.getDefault(), " %.1f", dbAValue));
             } else {
                 textView.setText(R.string.no_valid_dba_value);
             }

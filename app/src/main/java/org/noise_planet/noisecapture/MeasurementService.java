@@ -42,7 +42,10 @@ import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioDeviceCallback;
+import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
+import android.media.AudioRecordingConfiguration;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
@@ -115,6 +118,7 @@ public class MeasurementService extends Service {
     private int NOTIFICATION = R.string.local_service_started;
     private NotificationCompat.Builder notification;
     private Notification notificationInstance;
+    private ListenToMicrophoneDeviceSwitch audioRecordingCallback = null;
 
     /**
      * Class for clients to access.  Because we know this service always
@@ -182,6 +186,13 @@ public class MeasurementService extends Service {
         try {
             AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
             mgr.setStreamMute(AudioManager.STREAM_SYSTEM, true);
+            // Attach a listener to detect active microphone
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                if(audioRecordingCallback == null) {
+                    audioRecordingCallback = new ListenToMicrophoneDeviceSwitch(this);
+                }
+                mgr.registerAudioDeviceCallback(audioRecordingCallback, null);
+            }
         } catch (SecurityException ex) {
             // Ignore
         }
@@ -212,6 +223,12 @@ public class MeasurementService extends Service {
         try {
             AudioManager mgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             mgr.setStreamMute(AudioManager.STREAM_SYSTEM, false);
+            // Detach a listener to detect active microphone switch
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                if(audioRecordingCallback != null) {
+                    mgr.unregisterAudioDeviceCallback(audioRecordingCallback);
+                }
+            }
         } catch (SecurityException ex) {
             // Ignore
         }
@@ -634,8 +651,13 @@ public class MeasurementService extends Service {
                                     .deleteRecord(measurementService.recordId);
                         } else {
                             // Update record
-                            measurementService.measurementManager
-                                    .updateRecordFinal(measurementService.recordId,
+                            if(measurementService.audioProcess.getMicrophoneInfo() != null) {
+                                measurementService.measurementManager.
+                                        updateRecordMicrophoneDeviceSettings(measurementService.recordId,
+                                                measurementService.audioProcess.getMicrophoneInfo());
+                            }
+                            measurementService.measurementManager.
+                                    updateRecordFinal(measurementService.recordId,
                                             (float) measurementService.leqStats.getLeqMean(),
                                             measurementService.leqAdded.get(),
                                             (float)measurementService.dBGain);
@@ -694,6 +716,32 @@ public class MeasurementService extends Service {
         public MeasurementEventObject(AudioProcess.AudioMeasureResult measure, Storage.Leq leq) {
             this.measure = measure;
             this.leq = leq;
+        }
+    }
+
+    /**
+     * Listen to microphone device switch (the user plug a new microphone)
+     */
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private static final class ListenToMicrophoneDeviceSwitch extends AudioDeviceCallback {
+        MeasurementService measurementService;
+
+        public ListenToMicrophoneDeviceSwitch(MeasurementService measurementService) {
+            this.measurementService = measurementService;
+        }
+
+        @Override
+        public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
+            if(measurementService.audioProcess != null) {
+                measurementService.audioProcess.refreshMicrophoneInfo();
+            }
+        }
+
+        @Override
+        public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
+            if(measurementService.audioProcess != null) {
+                measurementService.audioProcess.refreshMicrophoneInfo();
+            }
         }
     }
 }

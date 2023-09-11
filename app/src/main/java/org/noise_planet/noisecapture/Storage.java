@@ -27,6 +27,7 @@
 
 package org.noise_planet.noisecapture;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -69,6 +70,19 @@ public class Storage extends SQLiteOpenHelper {
             .tags_predominant_sound_sources_col4, R.color.tag_group_work), t(18, "industrial", R
             .id.tags_predominant_sound_sources_col4, R.color.tag_group_work)};
 
+    /**
+     * Convert audio device index into name
+     * @see android.media.AudioDeviceInfo
+     */
+    public static final String[] microphoneDeviceTypeName = new String[]
+            {"TYPE_UNKNOWN","TYPE_BUILTIN_EARPIECE","TYPE_BUILTIN_SPEAKER","TYPE_WIRED_HEADSET",
+                    "TYPE_WIRED_HEADPHONES","TYPE_LINE_ANALOG","TYPE_LINE_DIGITAL","TYPE_BLUETOOTH_SCO",
+                    "TYPE_BLUETOOTH_A2DP","TYPE_HDMI","TYPE_HDMI_ARC","TYPE_USB_DEVICE","TYPE_USB_ACCESSORY",
+                    "TYPE_DOCK","TYPE_FM","TYPE_BUILTIN_MIC","TYPE_FM_TUNER","TYPE_TV_TUNER","TYPE_TELEPHONY",
+                    "TYPE_AUX_LINE","TYPE_IP","TYPE_BUS","TYPE_USB_HEADSET","TYPE_HEARING_AID",
+                    "TYPE_BUILTIN_SPEAKER_SAFE","TYPE_REMOTE_SUBMIX","TYPE_BLE_HEADSET","TYPE_BLE_SPEAKER",
+                    "TYPE_ECHO_REFERENCE","TYPE_HDMI_EARC","TYPE_BLE_BROADCAST"};
+
     private static TagInfo t(int id, String name, @IdRes int location, @ColorRes int color) {
         return new TagInfo(id, name, location, color);
     }
@@ -96,7 +110,7 @@ public class Storage extends SQLiteOpenHelper {
         }
     }
     // If you change the database schema, you must increment the database version.
-    public static final int DATABASE_VERSION = 11;
+    public static final int DATABASE_VERSION = 12;
     public static final String DATABASE_NAME = "Storage.db";
     private static final String ACTIVATE_FOREIGN_KEY = "PRAGMA foreign_keys=ON;";
 
@@ -195,6 +209,13 @@ public class Storage extends SQLiteOpenHelper {
             }
             oldVersion = 11;
         }
+        if(oldVersion == 11) {
+            if(!db.isReadOnly()) {
+                db.execSQL("ALTER TABLE RECORD ADD COLUMN microphone_device_id TEXT DEFAULT ''");
+                db.execSQL("ALTER TABLE RECORD ADD COLUMN microphone_device_settings TEXT DEFAULT ''");
+            }
+            oldVersion = 12;
+        }
     }
 
 
@@ -288,7 +309,15 @@ public class Storage extends SQLiteOpenHelper {
     }
 
     public static class Record implements BaseColumns {
-        enum CALIBRATION_METHODS {None, ManualSetting, Calibrator, Reference, CalibratedSmartPhone, Traffic}
+        public enum CALIBRATION_METHODS {
+            None, // Default state, no calibration
+            System , // Use Android system information provided by Constructor (Sensibility @94dB 1000 Hz)
+            ManualSetting, // The user overwrite the value manually in the settings
+            Calibrator, // Calibration with calibrator by the user @94dB 1000 Hz
+            Reference, // Calibration by the user with reference sound level meter
+            CalibratedSmartPhone, // Auto calibration with reference smartphone having NoiseCapture
+            Traffic // Calibration using road traffic as reference
+        }
 
         public static final String TABLE_NAME = "record";
         public static final String COLUMN_ID = "record_id";
@@ -302,6 +331,8 @@ public class Storage extends SQLiteOpenHelper {
         public static final String COLUMN_CALIBRATION_GAIN = "calibration_gain";
         public static final String COLUMN_NOISEPARTY_TAG = "noiseparty_tag";
         public static final String COLUMN_CALIBRATION_METHOD = "calibration_method";
+        public static final String COLUMN_MICROPHONE_DEVICE_ID = "microphone_device_id";
+        public static final String COLUMN_MICROPHONE_DEVICE_SETTINGS = "microphone_device_settings"; // dictionary characteristics of the microphone
 
         private int id;
         private long utc;
@@ -314,8 +345,11 @@ public class Storage extends SQLiteOpenHelper {
         private float calibrationGain;
         private String noisePartyTag;
         private CALIBRATION_METHODS calibrationMethod;
+        private String microphoneDeviceId;
+        private String microphoneDeviceSettings;
 
 
+        @SuppressLint("Range")
         public Record(Cursor cursor) {
             this(cursor.getInt(cursor.getColumnIndex(COLUMN_ID)),
                     cursor.getLong(cursor.getColumnIndex(COLUMN_UTC)),
@@ -331,6 +365,8 @@ public class Storage extends SQLiteOpenHelper {
                 photoUri = Uri.parse(uriString);
             }
             pleasantness = getInt(cursor, COLUMN_PLEASANTNESS);
+            microphoneDeviceId = getString(cursor, COLUMN_MICROPHONE_DEVICE_ID);
+            microphoneDeviceSettings = getString(cursor, COLUMN_MICROPHONE_DEVICE_SETTINGS);
         }
 
         public Record(int id, long utc, String uploadId, float leqMean, int timeLength,
@@ -417,6 +453,20 @@ public class Storage extends SQLiteOpenHelper {
         public float getLeqMean() {
             return leqMean;
         }
+
+        /**
+         * @return Microphone identifier
+         */
+        public String getMicrophoneDeviceId() {
+            return microphoneDeviceId;
+        }
+
+        /**
+         * @return Advanced microphone device settings (should be json)
+         */
+        public String getMicrophoneDeviceSettings() {
+            return microphoneDeviceSettings;
+        }
     }
 
     public static final String CREATE_RECORD = "CREATE TABLE " + Record.TABLE_NAME +
@@ -430,7 +480,9 @@ public class Storage extends SQLiteOpenHelper {
             Record.COLUMN_PLEASANTNESS + " SMALLINT," +
             Record.COLUMN_CALIBRATION_GAIN + " FLOAT DEFAULT 0," +
             Record.COLUMN_NOISEPARTY_TAG + " TEXT," +
-            Record.COLUMN_CALIBRATION_METHOD + " INTEGER DEFAULT 0" +
+            Record.COLUMN_CALIBRATION_METHOD + " INTEGER DEFAULT 0," +
+            Record.COLUMN_MICROPHONE_DEVICE_ID + " TEXT," +
+            Record.COLUMN_MICROPHONE_DEVICE_SETTINGS + " TEXT" +
             ")";
 
 

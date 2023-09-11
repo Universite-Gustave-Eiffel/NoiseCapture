@@ -24,8 +24,8 @@ android {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
         targetSdkVersion 33
-        versionCode 59
-        versionName "1.2.23"
+        versionCode 60
+        versionName "1.2.24"
         // Store build date in apk
         buildConfigField "long", "TIMESTAMP", System.currentTimeMillis() + "L"
         buildConfigField "String", "GITHASH", "\"${getCheckedOutGitCommitHash().toString()}\""
@@ -117,7 +117,7 @@ dependencies {
     androidTestImplementation 'androidx.test:rules:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
     // unit test
-    testImplementation group: 'org.robolectric', name: 'robolectric', version: '4.3.1'
+    testImplementation group: 'org.robolectric', name: 'robolectric', version: '4.9'
     testImplementation 'junit:junit:4.12'
     testImplementation group: 'com.googlecode.soundlibs', name: 'jorbis', version: '0.0.17.4'
     implementation project(':sosfilter')

@@ -27,9 +27,13 @@
 
 package org.noise_planet.noisecapture;
 
+import android.annotation.SuppressLint;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.media.MediaRecorder;
+import android.media.MicrophoneInfo;
+import android.os.Build;
+import android.os.Process;
 import android.util.Log;
 
 import org.orbisgis.sos.AcousticIndicators;
@@ -40,7 +44,9 @@ import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeSupport;
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -76,9 +82,8 @@ public class AudioProcess implements Runnable {
     private boolean hasGain = false;
     private boolean hannWindowFast = false;
     private boolean hannWindowOneSecond = true;
-
-
-
+    private AudioRecord audioRecord;
+    private MicrophoneInfo microphoneInfo;
 
     public AudioProcess(AtomicBoolean recording, AtomicBoolean canceled) {
         this(recording, canceled, null);
@@ -136,6 +141,25 @@ public class AudioProcess implements Runnable {
         this.hannWindowFast = hannWindowFast;
         fastLeqProcessing.setWindowType(hannWindowFast ? FFTSignalProcessing.WINDOW_TYPE.TUKEY :
                 FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR);
+    }
+
+    public void refreshMicrophoneInfo() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                List<MicrophoneInfo> microphoneInfoList =
+                        audioRecord.getActiveMicrophones();
+                if(!microphoneInfoList.isEmpty()) {
+                    microphoneInfo = microphoneInfoList.get(0);
+                }
+            } catch (IOException ex) {
+                LOGGER.warn("Can't read microphone information", ex);
+                // Ignore
+            }
+        }
+    }
+
+    public MicrophoneInfo getMicrophoneInfo() {
+        return microphoneInfo;
     }
 
     public boolean isHannWindowFast() {
@@ -227,6 +251,7 @@ public class AudioProcess implements Runnable {
         return fastLeqProcessing.getThirdOctaveFrequencySPL();
     }
 
+    @SuppressLint("MissingPermission")
     private AudioRecord createAudioRecord() {
         // Source:
         //  section 5.3 of the Android 4.0 Compatibility Definition
@@ -252,12 +277,13 @@ public class AudioProcess implements Runnable {
     public void run() {
         try {
             setCurrentState(STATE.PROCESSING);
-            AudioRecord audioRecord = createAudioRecord();
+            audioRecord = createAudioRecord();
+            refreshMicrophoneInfo();
             short[] buffer;
             if (recording.get() && audioRecord != null) {
                 try {
                     try {
-                        android.os.Process.setThreadPriority(android.os.Process.THREAD_PRIORITY_URGENT_AUDIO);
+                        Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_AUDIO);
                     } catch (IllegalArgumentException | SecurityException ex) {
                         // Ignore
                     }

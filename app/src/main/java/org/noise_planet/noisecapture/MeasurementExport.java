@@ -75,6 +75,8 @@ public class MeasurementExport {
     public static final String PROP_BUILD_TIME  = "build_date";
     public static final String PROP_VERSION_INT  = "version_number";
     public static final String PROP_USER_PROFILE  = "user_profile";
+    public static final String PROP_MICROPHONE_DEVICE_ID = "microphone_identifier";
+    public static final String PROP_MICROPHONE_DEVICE_SETTINGS = "microphone_settings";
 
     public MeasurementExport(Context context) {
         this.measurementManager = new MeasurementManager(context);
@@ -320,6 +322,13 @@ public class MeasurementExport {
             tagsString.append(tag);
         }
         properties.setProperty(PROP_TAGS, tagsString.toString());
+        if(record.getMicrophoneDeviceId() != null) {
+            properties.setProperty(PROP_MICROPHONE_DEVICE_ID, record.getMicrophoneDeviceId());
+        }
+        if(record.getMicrophoneDeviceSettings() != null) {
+            properties.setProperty(PROP_MICROPHONE_DEVICE_SETTINGS,
+                    record.getMicrophoneDeviceSettings());
+        }
         zipOutputStream.putNextEntry(new ZipEntry(PROPERTY_FILENAME));
         properties.store(zipOutputStream, "NoiseCapture export header file");
         zipOutputStream.closeEntry();

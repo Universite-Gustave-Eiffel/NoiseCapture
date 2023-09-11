@@ -28,15 +28,12 @@
 package org.orbisgis.sos;
 
 import org.jtransforms.fft.FloatFFT_1D;
-import org.junit.Assert;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
@@ -47,19 +44,18 @@ public class TestJTransforms {
     @Test
     public void testProcessingWhiteNoise() throws IOException {
         final int sampleRate = 44100;
-        final double length = 0.5;
         InputStream inputStream = TestJTransforms.class.getResourceAsStream("whitenoise_44100Hz_16bitPCM_10s.raw");
-        FFTSignalProcessing fftSignalProcessing =
-                new FFTSignalProcessing(sampleRate, STANDARD_FREQUENCIES_UNITTEST, (int) (sampleRate * length));
         // Read input signal up to buffer.length
         short[] signal = SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN);
+        FFTSignalProcessing fftSignalProcessing =
+                new FFTSignalProcessing(sampleRate, STANDARD_FREQUENCIES_UNITTEST, signal.length);
         inputStream.close();
         fftSignalProcessing.addSample(signal);
-        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, false, false);
-        assertEquals(1251.7, fftSignalProcessing.computeRms() ,0.1);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,  false);
+        assertEquals(AcousticIndicators.computeRms(signal), fftSignalProcessing.computeRms() ,0.1);
         // Check third-octave recomposition. 1 dB because the global dba value filter frequencies outside bounds 100-16000
         assertEquals(83, fftSignalProcessing.computeGlobalLeq(),1.0);
-        assertEquals(83, processingResult.getGlobaldBaValue(),1.0);
+        assertEquals(83, processingResult.getWindowLeq(),1.0);
     }
 
     /**
@@ -97,14 +93,14 @@ public class TestJTransforms {
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, signal.length);
         fftSignalProcessing.addSample(signal);
-        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, false, false);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,  false);
 
         assertEquals(90, fftSignalProcessing.computeGlobalLeq(), 0.01);
         assertEquals(90,
-                processingResult.dBaLevels[Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED,
+                processingResult.spl[Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED,
                         signalFrequency)], 0.01);
         assertEquals(90,
-                processingResult.getGlobaldBaValue(), 0.01);
+                processingResult.getWindowLeq(), 0.01);
 
 
     }
@@ -126,33 +122,33 @@ public class TestJTransforms {
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, signal.length);
         fftSignalProcessing.addSample(signal);
-        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, false, false);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,  false);
 
         assertEquals(90, fftSignalProcessing.computeGlobalLeq(), 0.01);
         assertEquals(90,
-                processingResult.dBaLevels[Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED,
+                processingResult.spl[Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED,
                         signalFrequency)], 0.01);
         assertEquals(90,
-                processingResult.getGlobaldBaValue(), 0.01);
+                processingResult.getWindowLeq(), 0.01);
 
-        processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.TUKEY, false, false);
+        processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.TUKEY,  false);
 
         assertEquals(90, fftSignalProcessing.computeGlobalLeq(), 0.01);
         assertEquals(90,
-                processingResult.dBaLevels[Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED,
+                processingResult.spl[Arrays.binarySearch(ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED,
                         signalFrequency)], 0.01);
         assertEquals(90,
-                processingResult.getGlobaldBaValue(), 0.01);
+                processingResult.getWindowLeq(), 0.01);
 
     }
     @Test
     public void testRecorder() throws IOException {
         int rate = 44100;
         InputStream inputStream = CoreSignalProcessingTest.class.getResourceAsStream("capture_1000hz_16bits_44100hz_signed.raw");
-        FFTSignalProcessing fftSignalProcessing =
-                new FFTSignalProcessing(rate, STANDARD_FREQUENCIES_UNITTEST, (int)(0.3 * rate));
         // Read input signal up to buffer.length
         short[] signal = SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN);
+        FFTSignalProcessing fftSignalProcessing =
+                new FFTSignalProcessing(rate, STANDARD_FREQUENCIES_UNITTEST, signal.length);
         // Split signal to simulate recording
         int[] splitParts = new int[] {10, 5, 5, 30, 1, 9 , 20, 19, 1};
         int lastPart = 0;
@@ -162,12 +158,12 @@ public class TestJTransforms {
             fftSignalProcessing.addSample(signalPart);
             lastPart += signalPart.length;
         }
-        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, false, false);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,  false);
 
-        assertEquals(323.85, fftSignalProcessing.computeRms(), 0.01);
+        assertEquals(AcousticIndicators.computeRms(signal), fftSignalProcessing.computeRms(), 0.01);
         assertEquals(72.24, AcousticIndicators.getLeq(signal, fftSignalProcessing.getRefSoundPressure()), 0.01) ;
         assertEquals(72.24, fftSignalProcessing.computeGlobalLeq(), 0.01);
-        assertEquals(72.24, processingResult.getGlobaldBaValue(), 0.01);
+        assertEquals(72.24, processingResult.getWindowLeq(), 0.01);
     }
 
     @Test

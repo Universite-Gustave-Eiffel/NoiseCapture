@@ -136,6 +136,14 @@ public class SOSSignalProcessing {
         return samples;
     }
 
+    public static float[] convertShortToFloat(short[] samplesShort) {
+        float[] samples = new float[samplesShort.length];
+        for (int i = 0; i < samplesShort.length; i++) {
+            samples[i] = samplesShort[i] / 32768.0f;
+        }
+        return samples;
+    }
+
     /**
      *
      * @param buffer

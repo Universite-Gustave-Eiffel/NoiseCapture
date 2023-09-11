@@ -38,6 +38,7 @@ import android.util.Log;
 
 import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.FFTSignalProcessing;
+import org.orbisgis.sos.SOSSignalProcessing;
 import org.orbisgis.sos.Window;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +46,8 @@ import org.slf4j.LoggerFactory;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Queue;
@@ -100,9 +103,15 @@ public class AudioProcess implements Runnable {
         this.recording = recording;
         this.canceled = canceled;
         this.customLeqProcessing = customLeqProcessing;
-        final int[] mSampleRates = new int[] {44100}; // AWeigting coefficient are based on 44100
+        final int[] mSampleRates = new int[] {44100, 48000};
         // Hz sampling rate, so we do not support other samplings (22050, 16000, 11025,8000)
-        final int[] encodings = new int[] { AudioFormat.ENCODING_PCM_16BIT , AudioFormat.ENCODING_PCM_8BIT };
+        final int[] encodings;
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+            encodings = new int[] { AudioFormat.ENCODING_PCM_FLOAT ,AudioFormat.ENCODING_PCM_16BIT ,
+                    AudioFormat.ENCODING_PCM_8BIT };
+        } else {
+            encodings = new int[] { AudioFormat.ENCODING_PCM_16BIT , AudioFormat.ENCODING_PCM_8BIT };
+        }
         final short[] audioChannels = new short[] { AudioFormat.CHANNEL_IN_MONO, AudioFormat.CHANNEL_IN_STEREO };
         for (int tryRate : mSampleRates) {
             for (int tryEncoding : encodings) {
@@ -113,16 +122,18 @@ public class AudioProcess implements Runnable {
                         // Take a higher buffer size in order to get a smooth recording under load
                         // avoiding Buffer overflow error on AudioRecord side.
                         bufferSize = Math.max(tryBufferSize,
-                                (int)(AcousticIndicators.TIMEPERIOD_FAST * tryRate));
+                                (int)(AcousticIndicators.TIMEPERIOD_FAST * tryRate *
+                                        (tryEncoding == AudioFormat.ENCODING_PCM_16BIT ? 2 : 4) *
+                                        tryAudioChannel == AudioFormat.CHANNEL_IN_MONO ? 1 : 2));
                         encoding = tryEncoding;
                         audioChannel = tryAudioChannel;
                         rate = tryRate;
                         this.fastLeqProcessing = new LeqProcessingThread(this,
-                                AcousticIndicators.TIMEPERIOD_FAST, true,
+                                AcousticIndicators.TIMEPERIOD_FAST, false,
                                 hannWindowFast ? FFTSignalProcessing.WINDOW_TYPE.TUKEY :
                                         FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, PROP_FAST_LEQ, true);
                         this.slowLeqProcessing = new LeqProcessingThread(this,
-                                AcousticIndicators.TIMEPERIOD_SLOW, true,
+                                AcousticIndicators.TIMEPERIOD_SLOW, false,
                                 hannWindowOneSecond ? FFTSignalProcessing.WINDOW_TYPE.TUKEY :
                                         FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,
                                 PROP_SLOW_LEQ, false);
@@ -279,7 +290,7 @@ public class AudioProcess implements Runnable {
             setCurrentState(STATE.PROCESSING);
             audioRecord = createAudioRecord();
             refreshMicrophoneInfo();
-            short[] buffer;
+            float[] buffer = new float[bufferSize];
             if (recording.get() && audioRecord != null) {
                 try {
                     try {
@@ -292,10 +303,20 @@ public class AudioProcess implements Runnable {
                     audioRecord.startRecording();
 
                     while (recording.get()) {
-                        buffer = new short[bufferSize];
-                        int read = audioRecord.read(buffer, 0, buffer.length);
-                        if(read < buffer.length) {
-                            buffer = Arrays.copyOfRange(buffer, 0, read);
+
+                        if(encoding == AudioFormat.ENCODING_PCM_16BIT || encoding == AudioFormat.ENCODING_PCM_8BIT) {
+                            short[] shortBuffer = new short[bufferSize];
+                            int read = audioRecord.read(shortBuffer, 0, shortBuffer.length);
+                            if (read < shortBuffer.length) {
+                                shortBuffer = Arrays.copyOfRange(shortBuffer, 0, read);
+                            }
+                            buffer = SOSSignalProcessing.convertShortToFloat(shortBuffer);
+                        } else if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+                            ByteBuffer samples = ByteBuffer.allocate(bufferSize);
+                            int read = audioRecord.read(samples, buffer.length);
+                            // discard allocated unused bytes and reset buffer position to 0
+                            samples.flip();
+                            buffer = samples.asFloatBuffer().array();
                         }
                         if (hasGain) {
                             // In place multiply
@@ -366,11 +387,11 @@ public class AudioProcess implements Runnable {
          * Add Signed Short sound samples
          * @param sample
          */
-        void addSample(short[] sample);
+        void addSample(float[] sample);
     }
 
     public static final class LeqProcessingThread implements ProcessingThread {
-        private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
+        private Queue<float[]> bufferToProcess = new ConcurrentLinkedQueue<float[]>();
         private final AudioProcess audioProcess;
         private AtomicBoolean processing = new AtomicBoolean(false);
         private Window window;
@@ -450,9 +471,9 @@ public class AudioProcess implements Runnable {
             return thirdOctaveSplLevels;
         }
 
-        public void addSample(short[] sample) {
-            bufferToProcess.add(sample);
-            pushedSamples+=sample.length;
+        public void addSample(float[] samples) {
+            bufferToProcess.add(samples);
+            pushedSamples += samples.length;
         }
 
         public long getPushedSamples() {
@@ -463,9 +484,9 @@ public class AudioProcess implements Runnable {
             lastPushIndex = window.getWindowIndex();
             FFTSignalProcessing.ProcessingResult  result = window.getLastWindowMean();
             window.cleanWindows();
-            thirdOctaveSplLevels = result.getdBaLevels();
+            thirdOctaveSplLevels = result.getSpl();
             // Compute leq
-            leq = result.getGlobaldBaValue();
+            leq = result.getWindowLeq();
             // Compute record time
             // Take current time minus the computed delay of the measurement
             long beginRecordTime = System.currentTimeMillis() -
@@ -476,7 +497,7 @@ public class AudioProcess implements Runnable {
                     new AudioMeasureResult(result,  beginRecordTime));
         }
 
-        private void processSample(short[] buffer) {
+        private void processSample(float[] buffer) {
             window.pushSample(buffer);
             if (window.getWindowIndex() != lastPushIndex) {
                 processWindow();
@@ -496,7 +517,7 @@ public class AudioProcess implements Runnable {
                         && audioProcess.currentState != STATE.CLOSED) {
                     while (!bufferToProcess.isEmpty() && !audioProcess.canceled.get()) {
                         processing.set(true);
-                        short[] buffer = bufferToProcess.poll();
+                        float[] buffer = bufferToProcess.poll();
                         if(buffer != null) {
                             if (buffer.length <= window.getMaximalBufferSize()) {
                                 // Good buffer size, use it
@@ -507,7 +528,7 @@ public class AudioProcess implements Runnable {
                                 int cursor = 0;
                                 while (cursor < buffer.length) {
                                     int sampleLen = Math.min(window.getMaximalBufferSize(), buffer.length - cursor);
-                                    short[] samples = Arrays.copyOfRange(buffer, cursor, cursor + sampleLen);
+                                    float[] samples = Arrays.copyOfRange(buffer, cursor, cursor + sampleLen);
                                     cursor += samples.length;
                                     processSample(samples);
                                 }
@@ -547,11 +568,11 @@ public class AudioProcess implements Runnable {
          * @return Leq value
          */
         public float[] getLeqs() {
-            return result.getdBaLevels();
+            return result.getSpl();
         }
 
         public float getGlobaldBaValue() {
-            return result.getGlobaldBaValue();
+            return result.getWindowLeq();
         }
 
         /**

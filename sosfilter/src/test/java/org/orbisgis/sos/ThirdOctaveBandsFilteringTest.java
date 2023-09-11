@@ -347,15 +347,14 @@ public class ThirdOctaveBandsFilteringTest {
         FFTSignalProcessing fftSignalProcessing = new FFTSignalProcessing(44100,
                 ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, pinkNoise.length);
         fftSignalProcessing.addSample(pinkNoise);
-        FFTSignalProcessing.ProcessingResult result = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,
-                false,
-                false);
+        FFTSignalProcessing.ProcessingResult result = fftSignalProcessing.processSample(
+                FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,false);
 
         // Compute
         StandardDeviation standardDeviation = new StandardDeviation();
-        double[] dArray = new double[result.dBaLevels.length];
-        for(int i = 0; i < result.dBaLevels.length; i++) {
-            dArray[i] = result.dBaLevels[i];
+        double[] dArray = new double[result.spl.length];
+        for(int i = 0; i < result.spl.length; i++) {
+            dArray[i] = result.spl[i];
         }
         assertEquals(0, standardDeviation.evaluate(dArray), 0.25);
     }

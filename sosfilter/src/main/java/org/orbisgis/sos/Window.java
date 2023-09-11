@@ -106,8 +106,7 @@ public class Window {
      */
     private void processSample() {
         lastProcessedSpectrum = pushedSamples;
-        FFTSignalProcessing.ProcessingResult result = signalProcessing.processSample(window,
-                aWeighting, true);
+        FFTSignalProcessing.ProcessingResult result = signalProcessing.processSample(window, true);
         // Move result by 1 backward
         if(windowResults.length > 1) {
             System.arraycopy(windowResults, 1, windowResults, 0, windowResults.length - 1);
@@ -168,7 +167,7 @@ public class Window {
      * @param buffer Audio signal. If the length is superior than the
      * @return The last result, null if the pushed samples was not enough to get a leq.
      */
-    public void pushSample(short[] buffer) {
+    public void pushSample(float[] buffer) {
         signalProcessing.addSample(buffer);
         pushedSamples += buffer.length;
         if(pushedSamples - lastProcessedSpectrum >= (int)(windowSize * (1 - overlap))) {

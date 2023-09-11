@@ -563,7 +563,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         private final AtomicBoolean canceled;
         private final AtomicBoolean recording;
         private OpenWarble openWarble;
-        private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
+        private Queue<float[]> bufferToProcess = new ConcurrentLinkedQueue<float[]>();
 
         public AcousticModemListener(CalibrationService calibrationService, AtomicBoolean
                 canceled, AtomicBoolean recording) {
@@ -577,7 +577,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         }
 
         @Override
-        public void addSample(short[] sample) {
+        public void addSample(float[] sample) {
             if(recording.get()) {
                 bufferToProcess.add(sample);
             }
@@ -587,14 +587,14 @@ public class CalibrationService extends Service implements PropertyChangeListene
         public void run() {
             while (!canceled.get() && openWarble != null) {
                 while(!bufferToProcess.isEmpty()) {
-                    short[] buffer = bufferToProcess.poll();
+                    float[] buffer = bufferToProcess.poll();
                     if(buffer != null) {
                         boolean doProcessBuffer = true;
                         while(doProcessBuffer) {
                             doProcessBuffer = false;
                             double[] samples = new double[Math.min(buffer.length, openWarble.getMaxPushSamplesLength())];
                             for (int i = 0; i < samples.length; i++) {
-                                samples[i] = buffer[i] / (double)Short.MAX_VALUE;
+                                samples[i] = buffer[i];
                             }
                             openWarble.pushSamples(samples);
                             if (buffer.length > samples.length) {

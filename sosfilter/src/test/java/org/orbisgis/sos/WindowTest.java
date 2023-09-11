@@ -123,7 +123,7 @@ public class WindowTest {
         FFTSignalProcessing.ProcessingResult fullSampleResult =
                 new FFTSignalProcessing.ProcessingResult((signal.length / sampleRate) / windowTime, res.toArray(new FFTSignalProcessing.ProcessingResult[res.size()]));
 
-        return fullSampleResult.getdBaLevels();
+        return fullSampleResult.getSpl();
     }
 
     @Test
@@ -150,10 +150,10 @@ public class WindowTest {
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, signal.length, dbFsReference);
         fftSignalProcessing.addSample(signal);
-        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, false, false);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, false);
 
         assertEquals(refGlobalSpl, fftSignalProcessing.computeGlobalLeq(), 0.01);
-        assertEquals(refGlobalSpl, processingResult.getGlobaldBaValue(), 0.01);
+        assertEquals(refGlobalSpl, processingResult.getWindowLeq(), 0.01);
 
         // Test FFT windows
 

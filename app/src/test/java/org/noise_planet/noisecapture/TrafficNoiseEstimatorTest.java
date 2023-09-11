@@ -9,7 +9,6 @@ import com.jcraft.jorbis.Comment;
 import com.jcraft.jorbis.DspState;
 import com.jcraft.jorbis.Info;
 
-import org.json.JSONException;
 import org.junit.Test;
 import org.noise_planet.noisecapture.util.PeakFinder;
 import org.noise_planet.noisecapture.util.TrafficNoiseEstimator;
@@ -109,9 +108,9 @@ public class TrafficNoiseEstimatorTest {
                         lastPushIndex = window.getWindowIndex();
                         FFTSignalProcessing.ProcessingResult res = window.getLastWindowMean();
                         float t = lastPushIndex * 0.125f;
-                        laeqsList.add(res.getGlobaldBaValue());
+                        laeqsList.add(res.getWindowLeq());
                         if(printValues) {
-                            System.out.println(String.format(Locale.ROOT, "%.3f  %.2f", t, res.getGlobaldBaValue()));
+                            System.out.println(String.format(Locale.ROOT, "%.3f  %.2f", t, res.getWindowLeq()));
                         }
                         window.cleanWindows();
                     }

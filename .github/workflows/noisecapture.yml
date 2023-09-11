@@ -1,4 +1,4 @@
-name: Check Android
+name: androidbuild
 
 on: [ push, pull_request, workflow_dispatch ]
 

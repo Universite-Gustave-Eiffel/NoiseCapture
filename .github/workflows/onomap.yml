@@ -12,8 +12,7 @@ jobs:
         with:
           java-version: 1.8
       - name: Building
-        run: |
-          cd onomap-geoserver/geoserver/ && ./gradlew test --info --stacktrace
+        run: cd onomap-geoserver/geoserver/ && ./gradlew test --info --stacktrace
       - name: Clean
         run: rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
       - name: Cache

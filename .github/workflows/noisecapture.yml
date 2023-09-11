@@ -12,7 +12,9 @@ jobs:
         with:
           java-version: 1.8
       - name: Put gradle.properties settings
-         run: echo "android.useAndroidX=true\n" > gradle.properties
+         run: |
+         touch gradle.properties
+         echo android.useAndroidX=true >> gradle.properties
       - name: Building
         run: ./gradlew build -x test --info --stacktrace
       - name: Test

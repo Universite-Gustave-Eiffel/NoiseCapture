@@ -23,6 +23,15 @@ NoiseCapture App features are divided into 3 parts:
 ## Developments
 NoiseCapture App is a collaboration between the [Environmental Acoustic Research unit](http://www.umrae.fr/en/) ([Ifsttar](http://www.ifsttar.fr)) and the [Lab-STICC](http://www.lab-sticc.fr/) CNRS. If you need more information about the project developped by the Environmental Acoustic Research unit and the Lab-STICC, on this topic, go to [http://www.noise-planet.org](http://noise-planet.org).
 
+## Download
+
+[<img src="https://fdroid.gitlab.io/artwork/badge/get-it-on.png"
+     alt="Get it on F-Droid"
+     height="80">](https://f-droid.org/packages/org.noise_planet.noisecapture/)
+[<img src="https://play.google.com/intl/en_us/badges/images/generic/en-play-badge.png"
+     alt="Get it on Google Play"
+     height="80">](https://play.google.com/store/apps/details?id=org.noise_planet.noisecapture)
+
 ## Funding
 This application was developed under the initial funding the European project [ENERGIC-OD](http://www.energic-od.eu/), with the help of the [GEOPAL](http://www.geopal.org/accueil) program.
 

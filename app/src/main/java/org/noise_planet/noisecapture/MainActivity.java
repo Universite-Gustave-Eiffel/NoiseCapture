@@ -111,8 +111,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     * If necessary request user to acquire permisions for critical ressources (gps and microphone)
-     * @return True if service can be bind immediately. Otherwise the bind should be done using the
+     * If necessary request user to acquire permissions for critical resources (gps and microphone)
+     * @return True if service can be bind immediately. Otherwise, the bind should be done using the
      * @see #onRequestPermissionsResult
      */
     protected boolean checkAndAskPermissions() {
@@ -201,7 +201,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * If necessary request user to acquire permissions for critical resources (gps and microphone)
-     * @return True if service can be bind immediately. Otherwise the bind should be done using the
+     * @return True if service can be bind immediately. Otherwise, the bind should be done using the
      * @see #onRequestPermissionsResult
      */
     protected boolean checkAndAskWifiStatePermission() {
@@ -474,7 +474,7 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
                 } else {
-                    // Transfer will begin when user validate check wifi rights
+                    // Transfer will begin when user validate check Wi-Fi rights
                     return;
                 }
             }
@@ -639,7 +639,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Check connection state
         WifiManager wifiMgr = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
-        if (wifiMgr.isWifiEnabled()) { // WiFi adapter is ON
+        if (wifiMgr.isWifiEnabled()) { // Wi-Fi adapter is ON
             WifiInfo wifiInfo = wifiMgr.getConnectionInfo();
             if (wifiInfo.getNetworkId() == -1) {
                 return false; // Not connected to an access-Point
@@ -647,7 +647,7 @@ public class MainActivity extends AppCompatActivity {
             // Connected to an Access Point
             return true;
         } else {
-            return false; // WiFi adapter is OFF
+            return false; // Wi-Fi adapter is OFF
         }
     }
 

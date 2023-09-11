@@ -233,7 +233,7 @@ public class AudioProcess implements Runnable {
         // https://source.android.com/compatibility/4.0/android-4.0-cdd.pdf
         // Using VOICE_RECOGNITION
         // Noise reduction processing, if present, is disabled.
-        // Except for 5.0+ where android.media.audiofx.NoiseSuppressor could be use to cancel such processing
+        // Except for 5.0+ where android.media.audiofx.NoiseSuppressor could be used to cancel such processing
         // Automatic gain control, if present, is disabled.
         if (bufferSize != AudioRecord.ERROR_BAD_VALUE) {
             return new AudioRecord(MediaRecorder.AudioSource.VOICE_RECOGNITION,

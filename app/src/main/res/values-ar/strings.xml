@@ -1,0 +1,337 @@
+<resources>
+
+    <string name="app_name">NoiseCapture</string>
+
+    <string name="action_settings">إعدادات</string>
+    <string name="comment_cancel_change">إلغاء</string>
+    <string name="comment_save_change">حفظ</string>
+    <string name="comment_delete_record">حذف</string>
+    <string name="comment_title_save_change">حفظ التغييرات؟</string>
+    <string name="comment_title_delete">حذف القياس؟</string>
+    <string name="history_title_delete">حذف القياس (القياسات) المحدد؟</string>
+
+    <string name="record_message">اضغط على زر التسجيل للبدء</string>
+    <string name="calibrate_done"> تمت المعايرة ، تم ضبط المعايرة على %1$.1f dB </string>
+    <string name="calibration_out_bounds_title">مستوى الضوضاء منخفض للغاية</string>
+    <string name="calibration_out_bounds">مستوى صوت المعايرة غير متوافق مع حدود مواصفات الأجهزة ، يجب أن يكون بين %1$.0f dB و %2$.0f dB</string>
+    <string name="calibration_save_change">تجاهل وطبق</string>
+    <string name="calibration_cancel_change">إلغاء</string>
+    <string name="fail_share">فشل إنشاء الملف المشترك</string>
+    <string name="no_results">لا توجد نتيجة. ابدأ بالتسجيل أولا</string>
+    <string name="no_gps_results">لا يوجد إحداثيات GPS في هذا التسجيل</string>
+    <string name="no_gps_hint">لا يوجد GPS</string>
+    <string name="gps_hint_precision">%1$d m</string>
+    <string name="loc_hint">تلميح لحالة الموقع</string>
+    <string name="permission_explain_audio_record">تتطلب NoiseCapture إذنًا باستخدام الميكروفون  لمقاييس الصوت</string>
+    <string name="permission_explain_gps">تتطلب NoiseCapture موقع GPS لتحديد مواقع مستويات الضوضاء على الخريطة</string>
+    <string name="permission_explain_access_wifi_state">تتطلب NoiseCapture إذنًا للوصول
+حالة wifi من أجل عدم نقل البيانات إذا لم تكن متصلاً باستخدام wifi</string>
+
+    <string name="title_menu">قائمة</string>
+    <string name="title_service_measurement">قياس</string>
+    <string name="title_activity_measurement">قياس</string>
+    <string name="title_activity_results">نتائج</string>
+    <string name="title_activity_history">تاريخ</string>
+    <string name="title_activity_about">بشأن</string>
+    <string name="user_id_activity_about">معرف المستخدم</string>
+    <string name="title_activity_help">مساعدة</string>
+    <string name="title_appversion">إصدار %1$s %2$s  %3$s .r</string>
+
+    <!-- Caution dialog box at app launch !-->
+    <string name="text_OK">نعم أفهم</string>
+    <string name="title_caution">تحذير</string>
+    <string name="text_caution">تذكر أن هذا التطبيق لن يحل محل مقياس مستوى الصوت المعتمد والمعاير</string>
+
+    <!-- Caution dialog box for data transfer !-->
+    <string name="text_CANCEL_data_transfer">إلغاء</string>
+    <string name="no_valid_dba_value">-</string>
+
+    <string name="SL_dBA">dB(A)</string>
+
+    <string name="hello_world">مرحبا بالعالم!</string>
+    <string name="title_settings_calibration_warmup_time">وقت إحماء المعايرة</string>
+    <string name="title_settings_calibration_warmup_time_description">وقت الانتظار بالثواني قبل المعايرة</string>
+    <string name="title_settings_calibration_time">وقت المعايرة</string>
+    <string name="title_settings_calibration_time_description">وقت المعايرة بالثواني</string>
+    <string name="title_settings_calibration_linear_title">الصوت المنتج</string>
+    <string name="title_settings_calibration_linear_description">انتاج الجهاز لاختبار الارتباط الخطي</string>
+    <string name="setting_general_group">عام</string>
+    <string name="setting_measurement_group">قياس</string>
+    <string name="setting_calibration_group">المعايرة</string>
+    <string name="title_settings_data_transfer">نقل البيانات</string>
+    <string name="summary_settings_data_transfer">النقل التلقائي للقياسات</string>
+    <string name="title_settings_transfer_wifi_only"> Wifi فقط</string>
+    <string name="summary_settings_transfer_wifi_only">النقل التلقائي عن طريق wifi فقط</string>
+    <string name="title_settings_recording">تسجيل</string>
+    <string name="summary_settings_recording">ضبط الحد الأقصى لوقت التسجيل</string>
+    <string name="title_settings_caution">رسالة تحذير</string>
+    <string name="summary_settings_tooltip">تحقق لعرض التلميح عند لمس العناصر في NoiseCapture</string>
+    <string name="title_settings_tooltip">رسالة تلميح</string>
+    <string name="summary_settings_caution">تحقق لعرض رسالة التنبيه أثناء تشغيل التطبيق</string>
+    <string name="title_settings_recording_duration">مدة التسجيل</string>
+
+
+    <string name="title_settings_recording_gain">إشارة المعايرة</string>
+    <string name="summary_settings_recording_gain">اضبط إشارة المعايرة ب dB</string>
+
+    <string name="title_settings_spectrogram_logscalemode">عرض مخطط الطيف</string>
+    <string name="title_settings_delete_leq_on_pause">حذف Leq عند الإيقاف المؤقت</string>
+    <string name="title_settings_delete_leq_on_pause_description">عند الإيقاف المؤقت ، احذف آخر ثواني مسجلة</string>
+    <string name="summary_settings_spectrogram_logscalemode">تحقق من مقياس التردد على السلم اللوغاريتمي ، قم بإلغاء التحقق على السلم الخطي</string>
+    <string name="summary_settings_recording_duration">اضبط مدة التسجيل (بالثانية)</string>
+    <string name="measurement_dba_min">الحد الأدنى</string>
+    <string name="measurement_dba_max">الحد الاقصى</string>
+    <string name="measurement_dba_mean">متوسط</string>
+    <string name="measurement_dba_la10">LA10</string>
+    <string name="measurement_dba_la50">LA50</string>
+    <string name="measurement_dba_la90">LA90</string>
+    <string name="measurement_tab_spectrum">طيف</string>
+    <string name="measurement_tab_spectrogram">مخطط الطيف</string>
+    <string name="measurement_tab_map">خريطة</string>
+
+    <!--  Ressources for the spinner calibration !-->
+
+    <!--  Ressources for the spinner map !-->
+
+    <!--  Ressources for the spinner history
+          History:HistoryItemListener:onItemClick remove the first entry (upload) !-->
+    <string-array name="choice_user_history">
+        <item>تحميل إلى المجتمع</item>
+        <item>تصدير النتيجة</item>
+        <item>تعديل الوصف</item>
+        <item>عرض النتيجة</item>
+        <item>عرض على الخريطة</item>
+        <item>حذف</item>
+    </string-array>
+
+    <!--  Ressources for the Drawer and option menu !-->
+    <string-array name="dm_list_array">
+        <item>قياس</item>
+        <item>وصف</item>
+        <item>نتائج</item>
+        <item>تاريخ</item>
+        <item>خريطة</item>
+        <item>المعايرة</item>
+        <item>مساعدة</item>
+        <item>بشأن</item>
+    </string-array>
+    <string name="result_share">مشاركة هذه النتيجة</string>
+    <string name="result_button_map">عرض الخريطة</string>
+    <string name="result_button_upload">تحميل</string>
+    <string name="result_tooltip_minsl">الحد الأدنى لمستوى الضوضاء A-weighted في 1 ثانية</string>
+    <string name="result_tooltip_maxsl">الحد الأقصى لمستوى الضوضاء A-weighted في 1 ثانية</string>
+    <string name="result_tooltip_la10">LA10: مستوى الضوضاء A-weighted الذي تم تجاوزه 10٪ في
+فترة القياس. LA10 هو واصف مفيد لضوضاء حركة المرور على الطرق ، والذي يرتبط بإزعاج الضوضاء.</string>
+    <string name="result_tooltip_la50">LA50: مستوى الضوضاء A-weighted الذي تم تجاوزه 50٪ في
+فترة القياس. LA50 هو متوسط مستوى الصوت</string>
+    <string name="result_tooltip_la90">LA90: مستوى الضوضاء A-weighted الذي تم تجاوزه 90٪ في
+فترة القياس. LA90 هو واصف مفيد لقياس مستوى ضوضاء الخلفية</string>
+    <string name="drawer_open">افتح درج التصفح</string>
+    <string name="drawer_close">أغلق درج التصفح</string>
+    <string name="url_about">file:///android_asset/html/about.html</string>
+    <string name="url_help">file:///android_asset/html/help.html</string>
+
+    <!--  Ressources for acoustics !-->
+    <string name="caption_SL">مستوى الصوت</string>
+    <string-array name="catNE_list_array">
+        <item>أكبر من 75 dB(A)</item>
+        <item>65-75 dB(A)</item>
+        <item>55-65 dB(A)</item>
+        <item>45-55 dB(A)</item>
+        <item>أصغر من 45 dB(A)</item>
+    </string-array>
+    <!-- Add new tags at the end, update also this array Storage.TAGS -->
+    <string-array name="tags">
+        <item>اختبار</item>
+        <item>مطر</item>
+        <item>رياح</item>
+        <item>داخلي</item>
+        <item>خطوات</item>
+        <item>كلام</item>
+        <item>طبيعي</item>
+        <item>ميكانيكي</item>
+        <item>إنسان</item>
+        <item>عمل</item>
+        <item>ملاحة الجوية</item>
+        <item>ترفيه</item>
+        <item>أطفال</item>
+        <item>موسيقى</item>
+        <item>طريق</item>
+        <item>السكك الحديدية</item>
+        <item>بحري</item>
+        <item>إنذار</item>
+        <item>اصطناعي</item>
+        <item>ماء</item>
+        <item>حيوانات</item>
+        <item>الحياة النباتية</item>
+    </string-array>
+    <string name="title_activity_main">النشاط الرئيسي</string>
+
+    <string name="title_activity_view_html_page">View_html_page</string>
+    <string name="title_activity_settings">إعدادات</string>
+    <string name="title_activity_map">خريطة</string>
+    <string name="title_activity_start">Noise Capture</string>
+    <string name="title_activity_calibration_start">المعايرة</string>
+    <string name="title_activity_calibration_linearity">اختبار الارتباط الخطي</string>
+    <string name="title_activity_menu_calibration">طرق المعايرة</string>
+
+    <string name="title_activity_calibration_host">معايرة تلقائية (مرسل)</string>
+    <string name="title_activity_calibration_peer">المعايرة التلقائية (المستقبل)</string>
+
+
+    <string name="start_text_title">NoiseCapture</string>
+    <string name="start_text_subtitle">قياس البيئة الصوتية الخاصة بك</string>
+    <string name="start_text_developed_by">طورت بواسطة</string>
+    <string name="start_text_supported_by">مدعوم من</string>
+    <string name="upload_progress_title">تحميل &#8230;</string>
+    <string name="upload_progress_message">تحميل القياس</string>
+
+    <string name="history_length">%d s</string>
+    <string name="history_date">- %s</string>
+    <string name="history_already_uploaded">تم تحميل هذا القياس بالفعل</string>
+    <string name="history_sel">%.01f dB(A)</string>
+    <string name="history_upload_top">تحميل</string>
+    <string name="history_uploadeddescr">هل تم تحميل هذه النتيجة إلى قاعدة بيانات المجتمع؟</string>
+
+    <string name="measurement_processlastsamples">المعالجة المتبقية%d عينات&#8230;</string>
+    <string name="history_item_choice_title">قياس%s</string>
+    <string name="calibration_select_frequency">اختر التردد للعرض</string>
+    <string name="local_service_started">بدأت خدمة التموقع</string>
+    <string name="measurement_service_disconnected">خدمة القياس انقطعت</string>
+    <string name="measurement_pause">تم إيقاف القياس مؤقتًا</string>
+    <string name="delete">حذف</string>
+    <string name="hint_userinput">انقر هنا لتعيين وصف</string>
+    <string name="no_data_text_description">ابدأ بالضغط على زر التسجيل</string>
+    <string name="export_zip_info">تصدير وصف الأرشيف \ n \ n
+يعتبر ملف meta.properties معلومات عامة عن الجهاز وسجل: \ n
+- version_name الرئيسية والثانوية وإصدار المراجعة \ n
+- build_date تاريخ تجميع APK \ n
+- رقم إصدار التطبيق الصحيح \ n
+- time_length سجل الطول بالثواني \ n
+- تم تعيين المعرف العشوائي uuid عند أول تشغيل للتطبيق \ n
+- leq_mean متوسط مستوى الصوت المكافئ بالديسيبل (A) للمقياس \ n
+- record_utc وقت قياسي بالمللي ثانية \ n
+- device_manufacturer device_model device_product Generic معلومات الأجهزة لجهاز القياس \ n
+- اللطف إدخال المستخدم اللطيف 1-100 \ n
+- العلامات قيم مفصولة بفواصل للعلامات المحددة من قبل المستخدم (الإنجليزية فقط) \ n
+- user_profile معرفة المستخدم في الصوتيات NONE ، NOVICE ، EXPERT \ n
+- noiseparty_tag سجل معرّف NoiseParty \ n \ n
+
+عينات من المقاييس track.geojson 1s. باستخدام تنسيق geojson (http://geojson.io) \ n
+- leq_mean 1s تعني مستوى صوت مكافئ بوحدة ديسيبل (A) \ n
+- دقة التعريب بالمتر (يتم توفيرها بواسطة نظام تحديد المواقع أو الشبكة أو جي إس إم) \ n
+- وقت إصلاح التعريب location_utc في العصر بالمللي ثانية \ n
+- leq_utc قياس الوقت بالمللي ثانية للعصر \ n
+- leq_id معرف فريد للسجل \ n
+- marker_color Color المستخدم بواسطة geojson.io \ n
+- تحمل اتجاه الحركة. انظر https://developer.android.com/reference/android/location/Location.html#getBearing()\n
+- السرعة المقدرة لسرعة الجهاز م / ث \ n
+- leq_frequency 1s يعني مستوى صوت مكافئ بالديسيبل (A) للتردد المحدد \ n</string>
+    <string name="title_activity_comment">وصف</string>
+    <string name="userinfo_unpleasant">مزعج</string>
+    <string name="userinfo_pleasant">ممتع</string>
+    <string name="calibration_status_waiting_for_user_start">في انتظار بدء المعايرة&#8230;</string>
+    <string name="calibration_status_waiting_for_start_timer">المعايرة على وشك البدء&#8230;</string>
+    <string name="calibration_status_send_parameters">وقت الانتظار قبل إرسال معلمات المعايرة&#8230;</string>
+    <string name="calibration_status_receive_reference">في انتظار القيمة المرجعية#8230;</string>
+    <string name="calibration_status_cooldown">وقت الانتظار قبل إرسال القيمة المرجعية&#8230;</string>
+    <string name="userinfo_button_measure">قياس</string>
+    <string name="userinfo_button_results">صحيح</string>
+    <string name="userinfo_tags">المصادر السائدة</string>
+    <string name="calibration_status_on">معايرة&#8230;</string>
+    <string name="calibration_linear_status_on">معايرة في%1$.0f dB</string>
+    <string name="calibration_status_end">تمت المعايرة</string>
+    <string name="calibration_status_background_noise">قياس ضوضاء الخلفية</string>
+    <string name="calibration_button_start">ابدأ</string>
+    <string name="calibration_button_cancel">إلغاء</string>
+    <string name="calibration_laeq_title">القيمة المقاسة LAeq:</string>
+    <string name="calibration_measure_title">قيمة مرجعية:</string>
+    <string name="calibration_button_apply">طبق</string>
+    <string name="calibration_button_reset">إعادة ضبط</string>
+    <string name="calibration_test_gain_checkbox">قيمة المعايرة الإختبارية</string>
+    <string name="calibration_mode">وضع المعايرة</string>
+    <string-array name="calibrate_type_list_array">
+        <item>عالمي</item>
+        <item>125 Hz</item>
+        <item>250 Hz</item>
+        <item>500 Hz</item>
+        <item>1 kHz</item>
+        <item>4 kHz</item>
+        <item>8 kHz</item>
+        <item>16 kHz</item>
+    </string-array>
+    <string name="share_message">قمت بقياس %.01f dB(A) باستعمال #NoiseCapture</string>
+    <string name="summary_settings_measurement_display_window">وظيفة النافذة لقياس الوقت الحقيقي (لا تستخدم للنتيجة النهائية)</string>
+    <string name="title_settings_measurement_display_window">نافذة الوقت الحقيقي</string>
+    <string name="title_settings_map_maxmarker">حدود القياس المعروضة</string>
+    <string name="summary_settings_map_maxmarker">الحد الأقصى لعدد القياسات المعروضة على الخريطة (0 لجميع القياسات)</string>
+    <string name="map_title_progress_loading">تحميل مواقع القياسات</string>
+    <string name="policy_legal_age">لدي السن القانوني لاستخدام هذا التطبيق</string>
+    <string name="policy_agree_statement">أوافق على خصوصية سياسة NoiseCapture</string>
+    <string name="policy_button_continue">أكمل</string>
+    <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
+    <string name="privacy_policy_title">سياسة الخصوصية</string>
+    <string name="notification_record_content">القياس قيد الحصول ..</string>
+    <string name="result_title_progress_loading">تحميل القياسات</string>
+    <string name="userinfo_tags_measurement_conditions">شروط القياس</string>
+    <string name="notification_goto_community_map_title">قياسات المجتمع</string>
+
+    <string-array name="output_mode_labels">
+        <item>مكالمة صوتية</item>
+        <item>النظام الصوتي</item>
+        <item>نغمة الرنين</item>
+        <item>موسيقى</item>
+        <item>إنذار</item>
+        <item>إشعار</item>
+        <item>DTMF</item>
+    </string-array>
+    <string-array name="settings_display_measurement_window_labels">
+        <item>مستطيلي</item>
+        <item>Hann</item>
+    </string-array>
+    <string name="notification_goto_community_map">قم بزيارة http://noise-planet.org ، وتصفح خريطة جميع القياسات التي قام بها المجتمع</string>
+    <string name="title_settings_notification_links">إشعار</string>
+    <string name="summary_settings_notification_links">تحقق لعرض رابط الإخطار إلى موقع Noise-Planet</string>
+    <string name="settings_category_profile">ملف تعريفي للمستخدم</string>
+    <string name="title_settings_user_noise_knowledge">ملف تعريفي للمستخدم</string>
+    <string name="settings_user_noise_knowledge_description">كيف تقيم معرفتك بالبيئات الصوتية؟</string>
+    <string name="hint_userinput_noiseparty_tag">كود NoiseCapture Party</string>
+    <string-array name="knowledge">
+        <item>ليس لدي علم في مجال الضوضاء</item>
+        <item>لدي بعض المعرفة في مجال الضوضاء</item>
+        <item>أنا خبير / محترف في مجال الضوضاء</item>
+    </string-array>
+    <string name="calibration_host_warning">يجب توصيل هاتف المرسل بمخرج صوت خارجي. يجب أن تكون أجهزة المرسل والمستقبل معرضة بشكل متساوٍ لإخراج الصوت الخارجي.</string>
+    <string name="title_settings_language">لغات</string>
+    <string name="settings_language_summary">تغيير لغة التطبيق الافتراضية</string>
+    <string name="calibration_communication">نقل البيانات</string>
+    <string name="calibration_host_hint">يجب أن تتعرض الهواتف الذكية المرجعية وأجهزة الاستقبال لمصدر الضوضاء بشكل متساوٍ. يجب أن تكون أجهزة الاستقبال الذكية إحدى شاشات معايرة جهاز استقبال NoiseCapture قبل بدء الإجراء.</string>
+    <string name="calibration_noise_source_parameters">معلمات مصدر الضوضاء</string>
+    <string name="calibration_noise_pink">الضوضاء وردي</string>
+    <string name="calibration_noise_ambient">الضوضاء المحيطة</string>
+    <string name="auto_calibration">تلقائي بهاتف ذكي تمت معايرته</string>
+    <string name="title_activity_calibration_auto_menu" >تلقائي</string>
+    <string name="manual_calibration_with_calibrator">يدوي بمعاير</string>
+    <string name="manual_calibration_with_reference">يدوي بقيمة مرجعية</string>
+    <string name="auto_calibration_host">استخدم هاتفي الذكي الذي تمت معايرته لمعايرة الهواتف الذكية الأخرى باستخدام NoiseCapture</string>
+    <string name="auto_calibration_guest">قم بمعايرة هاتفي الذكي باستخدام هاتف ذكي تمت معايرته باستخدام NoiseCapture</string>
+    <string name="calibration_manual_ref">يتطلب إجراء المعايرة استخدام جهاز مرجعي معاير مثل مقياس الصوت. لمزيد من المعلومات ، راجع <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration"> صفحة المساعدة</a> الخاصة بالتطبيق</string>
+    <string name="calibration_manual_calibrator">يتطلب إجراء المعايرة استخدام جهاز المعايرة. لمزيد من المعلومات ، راجع <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">صفحة المساعدة</a> الخاصة بالتطبيق</string>
+    <string name="traffic_calibration">المعايرة بمساعدة حركة المرور على الطرق</string>
+    <string name="new_measurement">قياس جديد</string>
+    <string name="meters">أمتار</string>
+    <string name="km_h">km/h</string>
+    <string name="calibration_average_vehicle_speed">السرعة المقدرة للسيارة</string>
+    <string name="calibration_distance_vehicle">مسافة السيارة</string>
+    <string name="calibration_manual_traffic">يجب أن يكون موضع القياس للمعايرة قريبًا بدرجة كافية من الطريق مع ضمان سلامتك. يجب أن يكون الطريق جافًا وفي حالة جيدة.</string>
+    <string name="title_activity_calibration_history">جلسات معايرة باستعمال حركة المرور</string>
+    <string name="title_activity_calibration_traffic">المعايرة باستعمال حركة المرور</string>
+    <string name="plusminus">±</string>
+    <string name="traffic_history_count">%d سيارات</string>
+    <string name="calibration_estimated_gain">قيمة المعايرة %.2f dB(A)</string>
+    <string name="calibration_awaiting_vehicle_passby">في انتظار مرور السيارة</string>
+    <string name="calibration_done_vehicle_passby">نهاية جلسة المعايرة, اضغط على الزر أدناه</string>
+    <string name="localisation_policy_title" >إشعار التموقع</string>
+    <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
+    <string name="policy_button_understood">شكر وتقدير</string>
+</resources>

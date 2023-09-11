@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="org.noise_planet.noisecapture">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
@@ -8,12 +7,13 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" /> <!-- Let you shutdown the screen while still measuring -->
 
     <!-- Required by Android P -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
-    <!-- Save shared file permission on privte folder -->
+    <!-- Save shared file permission on private folder -->
     <uses-permission
         android:name="android.permission.WRITE_EXTERNAL_STORAGE"
         android:maxSdkVersion="18" />
@@ -53,13 +53,16 @@
         <activity
             android:name=".MeasurementActivity"
             android:label="@string/title_activity_measurement"
+            android:exported="true"
             android:screenOrientation="portrait" />
         <activity
             android:name=".Results"
             android:label="@string/title_activity_results"
+            android:exported="true"
             android:screenOrientation="portrait" />
         <activity
             android:name=".MainActivity"
+            android:exported="true"
             android:label="@string/title_activity_main" />
         <activity
             android:name=".ViewHtmlPage"
@@ -79,9 +82,11 @@
         <activity
             android:name=".SettingsActivity"
             android:label="@string/title_activity_settings"
+            android:exported="true"
             android:noHistory="true" />
         <activity
             android:name=".MapActivity"
+            android:exported="true"
             android:label="@string/title_activity_map" />
         <activity
             android:name=".Start"
@@ -96,51 +101,63 @@
         </activity>
         <activity
             android:name=".History"
+            android:exported="true"
             android:label="@string/title_activity_history" />
         <activity
             android:name=".CalibrationActivity"
+            android:exported="true"
             android:label="@string/title_activity_calibration_start"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="stateHidden" />
         <activity
             android:name=".CalibrationLinearityActivity"
             android:label="@string/title_activity_calibration_linearity"
+            android:exported="true"
             android:screenOrientation="portrait" />
         <activity
             android:name=".CommentActivity"
             android:label="@string/title_activity_comment"
+            android:exported="true"
             android:screenOrientation="portrait"
             android:windowSoftInputMode="adjustPan" />
         <activity
             android:name=".PrivacyPolicyActivity"
+            android:exported="true"
             android:label="@string/privacy_policy_title"/>
         <activity
             android:name=".LocalisationPolicyActivity"
+            android:exported="true"
             android:label="@string/localisation_policy_title"/>
         <activity
             android:name=".CalibrationMenu"
             android:label="@string/title_activity_menu_calibration"
+            android:exported="true"
             android:screenOrientation="portrait" />
         <activity
             android:name=".CalibrationActivityHost"
             android:keepScreenOn="true"
+            android:exported="true"
             android:label="@string/title_activity_calibration_host"
             android:screenOrientation="portrait" />
         <activity
             android:name=".CalibrationActivityGuest"
             android:keepScreenOn="true"
+            android:exported="true"
             android:label="@string/title_activity_calibration_peer"
             android:screenOrientation="portrait" />
         <activity
             android:name=".CalibrationAutoMenu"
             android:keepScreenOn="true"
+            android:exported="true"
             android:label="@string/title_activity_calibration_auto_menu"
             android:screenOrientation="portrait" />
         <activity android:name=".CalibrationHistory"
+            android:exported="true"
             android:label="@string/title_activity_calibration_history"/>
         <activity android:name=".TrafficCalibrationActivity"
             android:screenOrientation="portrait"
             android:keepScreenOn="true"
+            android:exported="true"
             android:label="@string/title_activity_calibration_traffic" />
     </application>
 

@@ -15,6 +15,7 @@ jobs:
         run: |
           touch gradle.properties
           echo android.useAndroidX=true >> gradle.properties
+          echo org.gradle.jvmargs=-Xmx4096M >> gradle.properties
       - name: Building
         run: ./gradlew build -x test --info --stacktrace
       - name: Test

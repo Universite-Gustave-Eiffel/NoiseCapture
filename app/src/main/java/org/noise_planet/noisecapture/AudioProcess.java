@@ -366,13 +366,13 @@ public class AudioProcess implements Runnable {
     }
 
     /**
-     * @return Fast refreshed 1s leq
+     * @return Fast refreshed lAeq
      */
-    double getLeq(boolean movingLeq) {
-        if(doOneSecondLeq && movingLeq) {
-            return slowLeqProcessing.computeLeq();
-        } else if(doFastLeq && !movingLeq){
+    double getLAeq() {
+        if(doFastLeq) {
             return fastLeqProcessing.getLeq();
+        } else if(doOneSecondLeq){
+            return slowLeqProcessing.getLeq();
         } else {
             return 0;
         }

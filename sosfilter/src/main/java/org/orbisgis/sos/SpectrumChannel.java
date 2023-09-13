@@ -1,19 +1,22 @@
 package org.orbisgis.sos;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class SpectrumChannel {
-    private int subsampling_ratio;
+    private int subsamplingRatio;
     private int minimum_samples_length;
     private List<BiquadFilter> subSamplers = new ArrayList<>();
     // Cascaded filters are placed here, each element will take less and less samples as input
-    private List<HashMap<Integer, BiquadFilter>> iirFilters;
+    private List<HashMap<Integer, BiquadFilter>> iirFilters = new ArrayList<>();
     private DigitalFilter aWeightingFilter = null;
     private DigitalFilter cWeightingFilter = null;
     private int bandFilterSize = 0;
+    private List<Double> nominalFrequency = new ArrayList<>();
 
     public SpectrumChannel() {
 
@@ -33,6 +36,13 @@ public class SpectrumChannel {
      * @param useCascade Reduce computation time by subsampling the audio according to filter frequency range
      */
     public void loadConfiguration(ConfigurationSpectrumChannel configuration, boolean useCascade) {
+        subSamplers.clear();
+        bandFilterSize = 0;
+        aWeightingFilter = null;
+        cWeightingFilter = null;
+        iirFilters.clear();
+        subsamplingRatio = 0;
+        nominalFrequency.clear();
         if(!configuration.getBandpass().isEmpty()) {
             int maxSubsampling = 0;
             if(useCascade) {
@@ -41,8 +51,8 @@ public class SpectrumChannel {
                 }
             }
             iirFilters = new ArrayList<>();
-            subsampling_ratio = configuration.getAntiAliasing().getSampleRatio();
-            minimum_samples_length = (int)Math.pow(subsampling_ratio, maxSubsampling);
+            subsamplingRatio = configuration.getAntiAliasing().getSampleRatio();
+            minimum_samples_length = (int)Math.pow(subsamplingRatio, maxSubsampling);
             ConfigurationSos filterConf = configuration.getAntiAliasing();
             for(int i = 0; i < maxSubsampling; i++) {
                 BiquadFilter filter = new BiquadFilter(toArray(filterConf.getB0()),
@@ -60,6 +70,7 @@ public class SpectrumChannel {
             for (int i = 0; i < configuration.getBandpass().size(); i++) {
                 bandFilterSize += 1;
                 ConfigurationBiquad biquad = configuration.getBandpass().get(i);
+                nominalFrequency.add(biquad.getNominalFrequency());
                 ConfigurationSos refFilter;
                 if(useCascade) {
                     refFilter = biquad.getSubsamplingFilter().getSos();
@@ -88,6 +99,13 @@ public class SpectrumChannel {
                         toArray(configuration.getCWeighting().getFilterDenominator()));
             }
         }
+    }
+
+    /**
+     * @return Nominal frequency for printing results of columns of {@link #processSamples(float[])}
+     */
+    public List<Double> getNominalFrequency() {
+        return Collections.unmodifiableList(nominalFrequency);
     }
 
     public double processSamplesWeightA(float[] samples) {
@@ -125,9 +143,9 @@ public class SpectrumChannel {
             }
             // subsampling for next iteration
             if(cascadeIndex < subSamplers.size()) {
-                float[] nextFilterSamples = new float[lastFilterSamples.length/subsampling_ratio];
+                float[] nextFilterSamples = new float[lastFilterSamples.length/ subsamplingRatio];
                 subSamplers.get(cascadeIndex).filterSlice(lastFilterSamples, nextFilterSamples,
-                        subsampling_ratio);
+                        subsamplingRatio);
                 lastFilterSamples = nextFilterSamples;
             }
         }

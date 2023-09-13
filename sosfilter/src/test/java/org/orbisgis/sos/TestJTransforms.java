@@ -46,7 +46,7 @@ public class TestJTransforms {
         final int sampleRate = 44100;
         InputStream inputStream = TestJTransforms.class.getResourceAsStream("whitenoise_44100Hz_16bitPCM_10s.raw");
         // Read input signal up to buffer.length
-        short[] signal = SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN);
+        float[] signal = SOSSignalProcessing.convertShortToFloat(SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN));
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, STANDARD_FREQUENCIES_UNITTEST, signal.length);
         inputStream.close();
@@ -84,10 +84,10 @@ public class TestJTransforms {
         final int signalFrequency = 1000;
         double powerRMS = 2500; // 90 dBspl
         double powerPeak = powerRMS * Math.sqrt(2);
-        short[] signal = new short[samples];
+        float[] signal = new float[samples];
         for (int s = 0; s < samples; s++) {
-            double t = s * (1 / (double) sampleRate);
-            signal[s] = (short)(Math.sin(2 * Math.PI * signalFrequency * t) * (powerPeak));
+            double t = s * (1.0 / sampleRate);
+            signal[s] = (float)(Math.sin(2 * Math.PI * signalFrequency * t) * (powerPeak));
         }
 
         FFTSignalProcessing fftSignalProcessing =
@@ -113,10 +113,10 @@ public class TestJTransforms {
         final int signalFrequency = 1000;
         double powerRMS = 2500; // 90 dBspl
         double powerPeak = powerRMS * Math.sqrt(2);
-        short[] signal = new short[(int)(sampleRate * fastRate)];
+        float[] signal = new float[(int)(sampleRate * fastRate)];
         for (int s = 0; s < signal.length; s++) {
             double t = s * (1 / (double) sampleRate);
-            signal[s] = (short)(Math.sin(2 * Math.PI * signalFrequency * t) * (powerPeak));
+            signal[s] = (float)(Math.sin(2 * Math.PI * signalFrequency * t) * (powerPeak));
         }
 
         FFTSignalProcessing fftSignalProcessing =
@@ -146,14 +146,15 @@ public class TestJTransforms {
         int rate = 44100;
         InputStream inputStream = CoreSignalProcessingTest.class.getResourceAsStream("capture_1000hz_16bits_44100hz_signed.raw");
         // Read input signal up to buffer.length
-        short[] signal = SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN);
+        float[] signal = SOSSignalProcessing.convertShortToFloat(
+                SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN));
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(rate, STANDARD_FREQUENCIES_UNITTEST, signal.length);
         // Split signal to simulate recording
         int[] splitParts = new int[] {10, 5, 5, 30, 1, 9 , 20, 19, 1};
         int lastPart = 0;
         for(int part : splitParts) {
-            short[] signalPart = new short[(int)((part / 100.) * signal.length)];
+            float[] signalPart = new float[(int)((part / 100.) * signal.length)];
             System.arraycopy(signal, lastPart, signalPart, 0, signalPart.length);
             fftSignalProcessing.addSample(signalPart);
             lastPart += signalPart.length;

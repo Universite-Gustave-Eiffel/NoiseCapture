@@ -88,7 +88,7 @@ public class WindowTest {
         assertEquals("Deviation of " + err + "\nExpected: \n" + Arrays.toString(expectedLeq) + "\nGot:\n" + Arrays.toString(normalisedDbResult), 0, err, maximalDeviation);
     }
 
-    private float[] testFFTWindow(short[] signal, int sampleRate, double windowTime, FFTSignalProcessing.WINDOW_TYPE windowType, double dbFsReference) {
+    private float[] testFFTWindow(float[] signal, int sampleRate, double windowTime, FFTSignalProcessing.WINDOW_TYPE windowType, double dbFsReference) {
         Window window = new Window(windowType, sampleRate,
                 STANDARD_FREQUENCIES_UNITTEST, windowTime, false, dbFsReference, false);
 
@@ -99,7 +99,8 @@ public class WindowTest {
         while (idSampleStart < signal.length) {
             // Compute sub-sample size in order to not skip samples
             int sampleLen = Math.min(window.getMaximalBufferSize(), packetSize);
-            short[] samples = Arrays.copyOfRange(signal, idSampleStart, Math.min(signal.length, idSampleStart + sampleLen));
+            float[] samples = Arrays.copyOfRange(signal, idSampleStart, Math.min(signal.length,
+                    idSampleStart + sampleLen));
             idSampleStart += samples.length;
 
             window.pushSample(samples);
@@ -143,7 +144,8 @@ public class WindowTest {
         // Test error induced by window overlapping
         // Read input signal
         InputStream inputStream = WindowTest.class.getResourceAsStream("speak_44100Hz_16bitsPCM_10s.raw");
-        short[] signal = SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN);
+        float[] signal = SOSSignalProcessing.convertShortToFloat(
+                SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN));
         // Reference value from ITA Toolbox
 
         // Test FFT without cutting

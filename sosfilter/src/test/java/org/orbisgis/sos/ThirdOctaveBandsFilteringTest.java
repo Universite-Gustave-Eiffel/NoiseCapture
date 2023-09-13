@@ -343,7 +343,8 @@ public class ThirdOctaveBandsFilteringTest {
 
     @Test
     public void testPinkNoise() {
-        short[] pinkNoise = SOSSignalProcessing.makePinkNoise(441000, (short)2500, 0);
+        float[] pinkNoise =SOSSignalProcessing.convertShortToFloat(
+                SOSSignalProcessing.makePinkNoise(441000, (short)2500, 0));
         FFTSignalProcessing fftSignalProcessing = new FFTSignalProcessing(44100,
                 ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, pinkNoise.length);
         fftSignalProcessing.addSample(pinkNoise);

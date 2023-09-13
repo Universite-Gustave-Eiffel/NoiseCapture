@@ -270,6 +270,26 @@ public class SOSSignalProcessing {
         }
     }
 
+    public static float[] makeFloatSinWave(double sampleRate, double duration, double rms,
+                                      double frequency) {
+        float[] signal = new float[(int)(sampleRate*duration)];
+        for(int i=0; i<signal.length; i++) {
+            double t = i / sampleRate;
+            signal[i] = (float)(Math.sin(2 * Math.PI * frequency * t) * rms);
+        }
+        return signal;
+    }
+
+    public static short[] makeSinWave(double sampleRate, double duration, double rms,
+                                      double frequency) {
+        short[] signal = new short[(int)(sampleRate*duration)];
+        for(int i=0; i<signal.length; i++) {
+            double t = i / sampleRate;
+            signal[i] = (short) Math.max(-Short.MAX_VALUE, Math.min(Short.MAX_VALUE ,
+                    (Math.sin(2 * Math.PI * frequency * t) * rms)));
+        }
+        return signal;
+    }
 
     public static short[] makeWhiteNoise(int samples, short rms, long seed) {
         short[] signal = new short[samples];

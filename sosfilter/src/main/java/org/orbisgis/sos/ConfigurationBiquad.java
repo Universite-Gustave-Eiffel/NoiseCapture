@@ -81,7 +81,7 @@ public class ConfigurationBiquad {
         this.nominalFrequency = nominalFrequency;
     }
 
-    @JsonProperty("nominal_frequency")
+    @JsonProperty("subsampling_depth")
     public int getSubsamplingDepth() {
         return subsamplingDepth;
     }
@@ -91,7 +91,7 @@ public class ConfigurationBiquad {
         this.subsamplingDepth = subsamplingDepth;
     }
 
-    @JsonProperty("subsampling_depth")
+    @JsonProperty("subsampling_filter")
     public ConfigurationBiquad getSubsamplingFilter() {
         return subsamplingFilter;
     }

@@ -63,7 +63,7 @@ public class AudioProcess implements Runnable {
     private AtomicBoolean canceled;
     private boolean doFastLeq = true;
     private boolean doOneSecondLeq = true;
-    private final int bufferSize;
+    private final int bufferSize; // buffer size in bytes
     private final int encoding;
     private final int rate;
     private final int audioChannel;
@@ -106,7 +106,7 @@ public class AudioProcess implements Runnable {
         final int[] mSampleRates = new int[] {44100, 48000};
         // Hz sampling rate, so we do not support other samplings (22050, 16000, 11025,8000)
         final int[] encodings;
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
             encodings = new int[] { AudioFormat.ENCODING_PCM_FLOAT ,AudioFormat.ENCODING_PCM_16BIT ,
                     AudioFormat.ENCODING_PCM_8BIT };
         } else {
@@ -290,7 +290,11 @@ public class AudioProcess implements Runnable {
             setCurrentState(STATE.PROCESSING);
             audioRecord = createAudioRecord();
             refreshMicrophoneInfo();
-            float[] buffer = new float[bufferSize];
+            float[] buffer = new float[bufferSize/4];
+            double rms90dB=2500; // RMS level for 90 dB on 16 bits according to Android specification
+            double dBSPL90dB=-22.35; // dB Full Scale level of a 90 dB sinusoidal signal for PCM values
+            // Compute the correction to set to PCM values in order to obtain the same value as 16 bits scale (without rescale)
+            float floatFS = (float)Math.pow(10, (20*Math.log10(rms90dB/Math.pow(2, 15))-90-dBSPL90dB) / 20);
             if (recording.get() && audioRecord != null) {
                 try {
                     try {
@@ -303,26 +307,25 @@ public class AudioProcess implements Runnable {
                     audioRecord.startRecording();
 
                     while (recording.get()) {
-
+                        float finalGain = gain;
                         if(encoding == AudioFormat.ENCODING_PCM_16BIT || encoding == AudioFormat.ENCODING_PCM_8BIT) {
-                            short[] shortBuffer = new short[bufferSize];
+                            short[] shortBuffer = new short[bufferSize / 2];
                             int read = audioRecord.read(shortBuffer, 0, shortBuffer.length);
                             if (read < shortBuffer.length) {
                                 shortBuffer = Arrays.copyOfRange(shortBuffer, 0, read);
                             }
-                            buffer = SOSSignalProcessing.convertShortToFloat(shortBuffer);
-                        } else if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.LOLLIPOP) {
-                            ByteBuffer samples = ByteBuffer.allocate(bufferSize);
-                            int read = audioRecord.read(samples, buffer.length);
-                            // discard allocated unused bytes and reset buffer position to 0
-                            samples.flip();
-                            buffer = samples.asFloatBuffer().array();
+                            buffer = SOSSignalProcessing.convertShortToFloat(shortBuffer, false);
+                        } else if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                              int read = audioRecord.read(buffer, 0, buffer.length,
+                                    AudioRecord.READ_BLOCKING);
+                              if (read < buffer.length) {
+                                  buffer = Arrays.copyOfRange(buffer, 0, read);
+                              }
+                              finalGain = gain * (1/floatFS);
                         }
-                        if (hasGain) {
-                            // In place multiply
-                            for (int i = 0; i < buffer.length; i++) {
-                                buffer[i] = (short) (Math.max(Math.min(buffer[i] * gain, Short.MAX_VALUE), Short.MIN_VALUE));
-                            }
+                        // In place multiply
+                        for (int i = 0; i < buffer.length; i++) {
+                            buffer[i] = buffer[i] * finalGain;
                         }
                         if(doFastLeq) {
                             fastLeqProcessing.addSample(buffer);

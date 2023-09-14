@@ -74,7 +74,8 @@ public class WindowTest {
      * @param delta            Apply this delta to dbResult before comparing
      * @param maximalDeviation Fail if one of frequency band is superior than this error (dB)
      */
-    private void checkSplSpectrum(double[] expectedLeq, float[] dbResult, double delta, double maximalDeviation) {
+    public static void checkSplSpectrum(double[] expectedLeq, double[] dbResult, double delta,
+                                        double maximalDeviation) {
         double[] normalisedDbResult = new double[dbResult.length];
         for (int idFreq = 0; idFreq < dbResult.length; idFreq++) {
             normalisedDbResult[idFreq] = dbResult[idFreq] - delta;
@@ -85,10 +86,12 @@ public class WindowTest {
             err += Math.pow(normalisedDbResult[idFreq] - expectedLeq[idFreq], 2);
         }
         err = Math.sqrt(err / dbResult.length);
-        assertEquals("Deviation of " + err + "\nExpected: \n" + Arrays.toString(expectedLeq) + "\nGot:\n" + Arrays.toString(normalisedDbResult), 0, err, maximalDeviation);
+        assertEquals("Deviation of " + err + "\nExpected: \n" +
+                Arrays.toString(expectedLeq) + "\nGot:\n" + Arrays.toString(normalisedDbResult),
+                0, err, maximalDeviation);
     }
 
-    private float[] testFFTWindow(float[] signal, int sampleRate, double windowTime, FFTSignalProcessing.WINDOW_TYPE windowType, double dbFsReference) {
+    private double[] testFFTWindow(float[] signal, int sampleRate, double windowTime, FFTSignalProcessing.WINDOW_TYPE windowType, double dbFsReference) {
         Window window = new Window(windowType, sampleRate,
                 STANDARD_FREQUENCIES_UNITTEST, windowTime, false, dbFsReference, false);
 
@@ -124,7 +127,7 @@ public class WindowTest {
         FFTSignalProcessing.ProcessingResult fullSampleResult =
                 new FFTSignalProcessing.ProcessingResult((signal.length / sampleRate) / windowTime, res.toArray(new FFTSignalProcessing.ProcessingResult[res.size()]));
 
-        return fullSampleResult.getSpl();
+        return SOSSignalProcessing.convertFloatToDouble(fullSampleResult.getSpl());
     }
 
     @Test
@@ -145,7 +148,8 @@ public class WindowTest {
         // Read input signal
         InputStream inputStream = WindowTest.class.getResourceAsStream("speak_44100Hz_16bitsPCM_10s.raw");
         float[] signal = SOSSignalProcessing.convertShortToFloat(
-                SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN));
+                SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN),
+                false);
         // Reference value from ITA Toolbox
 
         // Test FFT without cutting

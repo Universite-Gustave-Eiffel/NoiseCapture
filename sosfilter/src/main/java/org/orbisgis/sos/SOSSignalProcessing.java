@@ -136,10 +136,23 @@ public class SOSSignalProcessing {
         return samples;
     }
 
+    public static double[] convertFloatToDouble(float[] samplesFloat) {
+        double[] samples = new double[samplesFloat.length];
+        for (int i = 0; i < samplesFloat.length; i++) {
+            samples[i] = samplesFloat[i];
+        }
+        return samples;
+    }
+
     public static float[] convertShortToFloat(short[] samplesShort) {
+        return convertShortToFloat(samplesShort, true);
+    }
+
+    public static float[] convertShortToFloat(short[] samplesShort, boolean rescale) {
         float[] samples = new float[samplesShort.length];
+        float scale = rescale ? 32768.0f : 1.0f;
         for (int i = 0; i < samplesShort.length; i++) {
-            samples[i] = samplesShort[i] / 32768.0f;
+            samples[i] = samplesShort[i] / scale;
         }
         return samples;
     }
@@ -273,9 +286,10 @@ public class SOSSignalProcessing {
     public static float[] makeFloatSinWave(double sampleRate, double duration, double rms,
                                       double frequency) {
         float[] signal = new float[(int)(sampleRate*duration)];
+        double peak = rms*Math.sqrt(2);
         for(int i=0; i<signal.length; i++) {
             double t = i / sampleRate;
-            signal[i] = (float)(Math.sin(2 * Math.PI * frequency * t) * rms);
+            signal[i] = (float)(Math.sin(2 * Math.PI * frequency * t) * peak);
         }
         return signal;
     }

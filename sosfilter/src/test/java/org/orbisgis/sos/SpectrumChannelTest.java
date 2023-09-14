@@ -40,6 +40,8 @@ public class SpectrumChannelTest extends TestCase {
     }
 
     public void testSpeak() throws IOException {
+        double expectedBA = -33.761;
+        double expectedBC = -28.763;
         // Reference spectrum
         // generated using acoustics.standards.iec_61672_1_2013.time_averaged_sound_level
         double[] refSpl = {-65.997, -68.064, -66.276, -43.342, -31.927, -37.280, -47.332, -35.327,
@@ -67,5 +69,9 @@ public class SpectrumChannelTest extends TestCase {
             // use error delta in linear scale
             assertEquals(toW(refSpl[i]), toW(computedSpl[i]),  12e-4);
         }
+        double LAeq = spectrumChannel.processSamplesWeightA(signal);
+        assertEquals(expectedBA, LAeq, 0.01);
+        double LCeq = spectrumChannel.processSamplesWeightC(signal);
+        assertEquals(expectedBC, LCeq, 0.01);
     }
 }

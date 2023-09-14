@@ -34,10 +34,17 @@ public class DigitalFilter {
             double inputAccumulator = 0;
             delay2[circularIndex] = samplesIn[i];
             for(int j=0; j < order; j++) {
-                inputAccumulator += numerator[j] * delay2[(circularIndex - j) % order];
+                int indexDelay2 = (circularIndex - j) % order;
+                if(indexDelay2 < 0)
+                    indexDelay2 += delay2.length;
+                inputAccumulator += numerator[j] * delay2[indexDelay2];
                 if(j==0)
                     continue;
-                inputAccumulator -= denominator[j] * delay1[(order - j + circularIndex) % order];
+                int indexDelay1 = (order - j + circularIndex) % order;
+                if(indexDelay1 < 0) {
+                    indexDelay1 += delay1.length;
+                }
+                inputAccumulator -= denominator[j] * delay1[indexDelay1];
             }
             inputAccumulator /= denominator[0];
             delay1[circularIndex] = inputAccumulator;
@@ -54,10 +61,17 @@ public class DigitalFilter {
             double inputAccumulator = 0;
             delay2[circularIndex] = samplesIn[i];
             for(int j=0; j < order; j++) {
-                inputAccumulator += numerator[j] * delay2[(circularIndex - j) % order];
+                int indexDelay2 = (circularIndex - j) % order;
+                if(indexDelay2 < 0)
+                    indexDelay2 += delay2.length;
+                inputAccumulator += numerator[j] * delay2[indexDelay2];
                 if(j==0)
                     continue;
-                inputAccumulator -= denominator[j] * delay1[(order - j + circularIndex) % order];
+                int indexDelay1 = (order - j + circularIndex) % order;
+                if(indexDelay1 < 0) {
+                    indexDelay1 += delay1.length;
+                }
+                inputAccumulator -= denominator[j] * delay1[indexDelay1];
             }
             inputAccumulator /= denominator[0];
             delay1[circularIndex] = inputAccumulator;

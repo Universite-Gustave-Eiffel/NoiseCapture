@@ -44,9 +44,11 @@ public class FFTSignalProcessing {
     double tukeyAlpha = 0.2;
     private final int windowSize;
     private FloatFFT_1D floatFFT_1D;
+    // RMS level for 90 dB on 16 bits according to Android specification
     private static final double RMS_REFERENCE_90DB = 2500;
-    public static final double DB_FS_REFERENCE = - (20 * Math.log10(RMS_REFERENCE_90DB)) + 90;
-    private final double refSoundPressure;
+    // -22.35 dB Full Scale level of a 90 dB sinusoidal signal for PCM values
+    public static final double DB_FS_REFERENCE = - (20 * Math.log10(RMS_REFERENCE_90DB/Short.MAX_VALUE)) + 90;
+    private double refSoundPressure;
     private long sampleAdded = 0;
 
     public FFTSignalProcessing(int samplingRate, double[] standardFrequencies, int windowSize) {
@@ -55,7 +57,7 @@ public class FFTSignalProcessing {
         this.samplingRate = samplingRate;
         this.sampleBuffer = new float[windowSize];
         this.floatFFT_1D = new FloatFFT_1D(windowSize);
-        this.refSoundPressure = 1 / Math.pow(10, DB_FS_REFERENCE / 20);
+        setDbFsReference(DB_FS_REFERENCE);
     }
 
     public FFTSignalProcessing(int samplingRate, double[] standardFrequencies, int windowSize, double dbFsReference) {
@@ -64,10 +66,13 @@ public class FFTSignalProcessing {
         this.samplingRate = samplingRate;
         this.sampleBuffer = new float[windowSize];
         this.floatFFT_1D = new FloatFFT_1D(windowSize);
-        this.refSoundPressure = 1 / Math.pow(10, dbFsReference / 20);
+        setDbFsReference(dbFsReference);
     }
 
-
+    public void setDbFsReference(double dbFsReference) {
+        this.refSoundPressure = 1 / Math.pow(10, dbFsReference / 20);
+        System.out.println("New refsound pressure :"+refSoundPressure);
+    }
 
     public static double[] computeFFTCenterFrequency(int maxLimitation) {
         double[] allCenterFreq = ThirdOctaveBandsFiltering.getStandardFrequencies(ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
@@ -206,6 +211,7 @@ public class FFTSignalProcessing {
     public double getRefSoundPressure() {
         return refSoundPressure;
     }
+
 
     /**
      * Third-octave recombination method

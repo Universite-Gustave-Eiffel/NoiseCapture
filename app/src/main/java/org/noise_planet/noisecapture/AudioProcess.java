@@ -81,8 +81,6 @@ public class AudioProcess implements Runnable {
 
     public static final int REALTIME_SAMPLE_RATE_LIMITATION = 16000;
     public static final double[] realTimeCenterFrequency = FFTSignalProcessing.computeFFTCenterFrequency(REALTIME_SAMPLE_RATE_LIMITATION);
-    private float gain = 1;
-    private boolean hasGain = false;
     private boolean hannWindowFast = false;
     private boolean hannWindowOneSecond = true;
     private AudioRecord audioRecord;
@@ -207,9 +205,16 @@ public class AudioProcess implements Runnable {
      * Multiply the signal by the provided factor
      * @param gain Factor on signal, 1 for no gain
      */
-    public void setGain(float gain) {
-        this.gain = gain;
-        this.hasGain = Float.compare(1, gain) != 0;
+    public void setGain(double gain) {
+        if(BuildConfig.DEBUG) {
+            System.out.println("Set gain " + gain);
+        }
+        if(doOneSecondLeq) {
+            slowLeqProcessing.setGain(gain);
+        }
+        if(doFastLeq) {
+            fastLeqProcessing.setGain(gain);
+        }
     }
 
     private void setCurrentState(STATE state) {
@@ -242,18 +247,6 @@ public class AudioProcess implements Runnable {
     public long getFastNotProcessedMilliseconds() {
         return (fastLeqProcessing.getPushedSamples() - fastLeqProcessing.getProcessedSamples()) / (rate / 1000);
     }
-
-    /**
-     * @return Currently pushed samples
-     */
-    public long getSlowProcessedSamples() {
-        if(slowLeqProcessing != null) {
-            return slowLeqProcessing.getPushedSamples();
-        } else {
-            return 0;
-        }
-    }
-
 
     /**
      * @return Third octave SPL up to 8Khz (4 Khz if the phone support 8Khz only)
@@ -291,10 +284,7 @@ public class AudioProcess implements Runnable {
             audioRecord = createAudioRecord();
             refreshMicrophoneInfo();
             float[] buffer = new float[bufferSize/4];
-            double rms90dB=2500; // RMS level for 90 dB on 16 bits according to Android specification
-            double dBSPL90dB=-22.35; // dB Full Scale level of a 90 dB sinusoidal signal for PCM values
             // Compute the correction to set to PCM values in order to obtain the same value as 16 bits scale (without rescale)
-            float floatFS = (float)Math.pow(10, (20*Math.log10(rms90dB/Math.pow(2, 15))-90-dBSPL90dB) / 20);
             if (recording.get() && audioRecord != null) {
                 try {
                     try {
@@ -307,25 +297,19 @@ public class AudioProcess implements Runnable {
                     audioRecord.startRecording();
 
                     while (recording.get()) {
-                        float finalGain = gain;
                         if(encoding == AudioFormat.ENCODING_PCM_16BIT || encoding == AudioFormat.ENCODING_PCM_8BIT) {
                             short[] shortBuffer = new short[bufferSize / 2];
                             int read = audioRecord.read(shortBuffer, 0, shortBuffer.length);
                             if (read < shortBuffer.length) {
                                 shortBuffer = Arrays.copyOfRange(shortBuffer, 0, read);
                             }
-                            buffer = SOSSignalProcessing.convertShortToFloat(shortBuffer, false);
+                            buffer = SOSSignalProcessing.convertShortToFloat(shortBuffer);
                         } else if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                               int read = audioRecord.read(buffer, 0, buffer.length,
                                     AudioRecord.READ_BLOCKING);
                               if (read < buffer.length) {
                                   buffer = Arrays.copyOfRange(buffer, 0, read);
                               }
-                              finalGain = gain * (1/floatFS);
-                        }
-                        // In place multiply
-                        for (int i = 0; i < buffer.length; i++) {
-                            buffer[i] = buffer[i] * finalGain;
                         }
                         if(doFastLeq) {
                             fastLeqProcessing.addSample(buffer);
@@ -405,6 +389,7 @@ public class AudioProcess implements Runnable {
         private long pushedSamples = 0;
         private long processedSamples = 0;
         private int lastPushIndex = 0;
+        private double gain = 1;
 
         // Output only frequency response on this sample rate on the real time result (center + upper band)
         private float[] thirdOctaveSplLevels;
@@ -421,11 +406,18 @@ public class AudioProcess implements Runnable {
             thirdOctaveSplLevels = new float[audioProcess.getRealtimeCenterFrequency().length];
         }
 
+        public void setGain(double gain) {
+            this.gain = gain;
+            window.setDbFsReference(FFTSignalProcessing.DB_FS_REFERENCE+20*Math.log10(gain));
+        }
+
         public void setWindowType(FFTSignalProcessing.WINDOW_TYPE windowType) {
-            if(windowType != window.getWindowType()) {
-                this.window = new Window(windowType,
-                        audioProcess.getRate(), audioProcess.getRealtimeCenterFrequency(), timePeriod,
-                        window.isAWeighting(), FFTSignalProcessing.DB_FS_REFERENCE, window.isOutputThinFrequency());
+            if (windowType != window.getWindowType()) {
+                this.window = new Window(windowType, audioProcess.getRate(),
+                        audioProcess.getRealtimeCenterFrequency(), timePeriod,
+                        window.isAWeighting(), FFTSignalProcessing.DB_FS_REFERENCE,
+                        window.isOutputThinFrequency());
+                setGain(gain);
                 lastPushIndex = 0;
             }
         }

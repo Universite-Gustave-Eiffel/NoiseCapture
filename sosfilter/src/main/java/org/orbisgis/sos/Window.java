@@ -78,6 +78,10 @@ public class Window {
         this.outputThinFrequency = outputThinFrequency;
     }
 
+    public void setDbFsReference(double dbFsReference) {
+        signalProcessing.setDbFsReference(dbFsReference);
+    }
+
     public boolean isOutputThinFrequency() {
         return outputThinFrequency;
     }

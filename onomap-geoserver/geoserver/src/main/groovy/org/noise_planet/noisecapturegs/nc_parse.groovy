@@ -122,7 +122,9 @@ static Integer processFile(Connection connection, File zipFile,Map trackData = [
     if(Long.valueOf(meta.getProperty("record_utc")) > System.currentTimeMillis() + (15*60*1000)) {
         throw new InvalidParameterException("Wrong time, superior than server time \"" + epochToRFCTime(Long.valueOf(meta.getProperty("record_utc"))) + "\"")
     }
-
+    if(["WalrusPhone"].contains(meta.get("device_manufacturer"))) {
+        throw new InvalidParameterException("Detect wrong device_manufacturer")
+    }
     def noisecaptureVersion = Integer.valueOf(meta.getProperty("version_number"));
     def microphone_identifier = meta.getOrDefault("microphone_identifier", "")
     def microphone_settings = meta.getOrDefault("microphone_settings", "")

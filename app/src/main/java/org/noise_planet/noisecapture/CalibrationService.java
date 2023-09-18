@@ -611,6 +611,31 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 }
             }
         }
+
+        @Override
+        public void setAweighting(boolean Aweighting) {
+
+        }
+
+        @Override
+        public void setGain(double gain) {
+
+        }
+
+        @Override
+        public double getProcessingDelayTime() {
+            return 0;
+        }
+
+        @Override
+        public boolean isProcessing() {
+            return false;
+        }
+
+        @Override
+        public double getLeq() {
+            return 0;
+        }
     }
 
     private static class PinkNoiseFeed implements Runnable {

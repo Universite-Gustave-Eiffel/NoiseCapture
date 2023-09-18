@@ -45,7 +45,7 @@ public class FFTSignalProcessing {
     private final int windowSize;
     private FloatFFT_1D floatFFT_1D;
     // RMS level for 90 dB on 16 bits according to Android specification
-    private static final double RMS_REFERENCE_90DB = 2500;
+    public static final double RMS_REFERENCE_90DB = 2500;
     // -22.35 dB Full Scale level of a 90 dB sinusoidal signal for PCM values
     public static final double DB_FS_REFERENCE = - (20 * Math.log10(RMS_REFERENCE_90DB/Short.MAX_VALUE)) + 90;
     private double refSoundPressure;
@@ -199,8 +199,10 @@ public class FFTSignalProcessing {
                         ], squareAbsoluteFFT.length) * energyCorrection);
             }
         }
-        return new ProcessingResult(sampleAdded, spectrumSplLevels, splLevels,
-                (float)todBspl(squareAbsoluteFFTToRMS(sumRMS, squareAbsoluteFFT.length)
+        return new ProcessingResult(sampleAdded,
+                SOSSignalProcessing.convertFloatToDouble(spectrumSplLevels),
+                SOSSignalProcessing.convertFloatToDouble(splLevels),
+                todBspl(squareAbsoluteFFTToRMS(sumRMS, squareAbsoluteFFT.length)
                         * energyCorrection));
     }
 
@@ -255,12 +257,12 @@ public class FFTSignalProcessing {
      * TODO provide warning information about approximate value about 30 dB range from -18 dB to +12dB around 90 dB
      */
     public static final class ProcessingResult {
-        float[] fftResult;
-        float[] spl;
-        float windowLeq;
+        double[] fftResult;
+        double[] spl;
+        double windowLeq;
         long id;
 
-        ProcessingResult(long id, float[] fftResult, float[] spl, float windowLeq) {
+        public ProcessingResult(long id, double[] fftResult, double[] spl, double windowLeq) {
             this.fftResult = fftResult;
             this.spl = spl;
             this.windowLeq = windowLeq;
@@ -284,7 +286,7 @@ public class FFTSignalProcessing {
             if(toMerge[toMerge.length - 1] != null) {
                 id = toMerge[toMerge.length - 1].id;
                 if(toMerge[toMerge.length - 1].fftResult != null) {
-                    this.fftResult = new float[toMerge[toMerge.length - 1].fftResult.length];
+                    this.fftResult = new double[toMerge[toMerge.length - 1].fftResult.length];
                     for(ProcessingResult merge : toMerge) {
                         if(merge != null) {
                             for (int i = 0; i < fftResult.length; i++) {
@@ -296,7 +298,7 @@ public class FFTSignalProcessing {
                         fftResult[i] = (float)(10. * Math.log10(fftResult[i] / windowCount));
                     }
                 }
-                this.spl = new float[toMerge[toMerge.length - 1].spl.length];
+                this.spl = new double[toMerge[toMerge.length - 1].spl.length];
                 for(ProcessingResult merge : toMerge) {
                     if(merge != null) {
                         for (int i = 0; i < spl.length; i++) {
@@ -317,15 +319,15 @@ public class FFTSignalProcessing {
             }
         }
 
-        public float[] getFftResult() {
+        public double[] getFftResult() {
             return fftResult;
         }
 
-        public float[] getSpl() {
+        public double[] getSpl() {
             return spl;
         }
 
-        public float getWindowLeq() {
+        public double getWindowLeq() {
             return windowLeq;
         }
     }

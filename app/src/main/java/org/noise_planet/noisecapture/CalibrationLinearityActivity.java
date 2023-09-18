@@ -72,7 +72,6 @@ import com.github.mikephil.charting.utils.ColorTemplate;
 import org.apache.commons.math3.stat.correlation.PearsonsCorrelation;
 import org.orbisgis.sos.FFTSignalProcessing;
 import org.orbisgis.sos.LeqStats;
-import org.orbisgis.sos.SOSSignalProcessing;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -684,8 +683,8 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         // Read all white noise values for indexing before usage
         for(LinearCalibrationResult result : freqLeqStats) {
             for(int idFreq = 0; idFreq < result.whiteNoiseLevel.getSpl().length; idFreq++) {
-                float dbLevel = result.whiteNoiseLevel.getSpl()[idFreq];
-                float referenceDbLevel = freqLeqStats.get(0).whiteNoiseLevel.getSpl()[idFreq];
+                double dbLevel = result.whiteNoiseLevel.getSpl()[idFreq];
+                double referenceDbLevel = freqLeqStats.get(0).whiteNoiseLevel.getSpl()[idFreq];
                 whiteNoiseValuesSet.add((int)(dbLevel - referenceDbLevel));
             }
         }
@@ -708,7 +707,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                 ArrayList<Entry> yMeasure = new ArrayList<Entry>();
                 for (LinearCalibrationResult result : freqLeqStats) {
                     float dbLevel = (float) result.measure[freqId].getLeqMean();
-                    float referenceDbLevel = freqLeqStats.get(0).whiteNoiseLevel.getSpl()[freqId];
+                    double referenceDbLevel = freqLeqStats.get(0).whiteNoiseLevel.getSpl()[freqId];
                     int whiteNoise = (int) (result.whiteNoiseLevel.getSpl()[freqId] - referenceDbLevel);
                     YMax = Math.max(YMax, dbLevel);
                     YMin = Math.min(YMin, dbLevel);
@@ -951,7 +950,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         }
 
         public void pushMeasure(FFTSignalProcessing.ProcessingResult measure) {
-            float[] measureLevels = measure.getSpl();
+            double[] measureLevels = measure.getSpl();
             if(this.measure == null) {
                 this.measure = new LeqStats[measure.getSpl().length];
                 for(int idFreq = 0; idFreq < this.measure.length; idFreq++) {

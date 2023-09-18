@@ -438,12 +438,12 @@ public class MeasurementActivity extends MainActivity implements
         ArrayList<String> xVals = new ArrayList<String>();
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
         double[] freqLabels = measurementService.getAudioProcess().getRealtimeCenterFrequency();
-        float[] freqValues = measurementService.getAudioProcess().getThirdOctaveFrequencySPL();
+        double[] freqValues = measurementService.getAudioProcess().getThirdOctaveFrequencySPL();
         for(int idfreq =0; idfreq < freqLabels.length; idfreq++) {
             xVals.add(Spectrogram.formatFrequency((int)freqLabels[idfreq]));
             // Sum values
             // Compute frequency range covered by frequency
-            yVals1.add(new BarEntry(new float[] {freqValues[idfreq]}, idfreq));
+            yVals1.add(new BarEntry(new float[] {(float)freqValues[idfreq]}, idfreq));
         }
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");

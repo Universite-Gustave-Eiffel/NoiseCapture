@@ -36,9 +36,13 @@ import android.os.Build;
 import android.os.Process;
 import android.util.Log;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.orbisgis.sos.AcousticIndicators;
+import org.orbisgis.sos.ConfigurationSpectrumChannel;
 import org.orbisgis.sos.FFTSignalProcessing;
 import org.orbisgis.sos.SOSSignalProcessing;
+import org.orbisgis.sos.SpectrumChannel;
 import org.orbisgis.sos.Window;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,10 +50,12 @@ import org.slf4j.LoggerFactory;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeSupport;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -75,7 +81,7 @@ public class AudioProcess implements Runnable {
     public static final String PROP_STATE_CHANGED = "PROP_STATE_CHANGED";
     // 1s level evaluation for upload to server
     private final LeqProcessingThread fastLeqProcessing;
-    private final LeqProcessingThread slowLeqProcessing;
+    private final FilterBankProcessingThread slowLeqProcessing;
     private final ProcessingThread customLeqProcessing;
 
 
@@ -120,7 +126,7 @@ public class AudioProcess implements Runnable {
                         // Take a higher buffer size in order to get a smooth recording under load
                         // avoiding Buffer overflow error on AudioRecord side.
                         bufferSize = Math.max(tryBufferSize,
-                                (int)(AcousticIndicators.TIMEPERIOD_FAST * tryRate *
+                                (int) (AcousticIndicators.TIMEPERIOD_FAST * tryRate *
                                         (tryEncoding == AudioFormat.ENCODING_PCM_16BIT ? 2 : 4) *
                                         tryAudioChannel == AudioFormat.CHANNEL_IN_MONO ? 1 : 2));
                         encoding = tryEncoding;
@@ -130,11 +136,22 @@ public class AudioProcess implements Runnable {
                                 AcousticIndicators.TIMEPERIOD_FAST, false,
                                 hannWindowFast ? FFTSignalProcessing.WINDOW_TYPE.TUKEY :
                                         FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, PROP_FAST_LEQ, true);
-                        this.slowLeqProcessing = new LeqProcessingThread(this,
-                                AcousticIndicators.TIMEPERIOD_SLOW, false,
-                                hannWindowOneSecond ? FFTSignalProcessing.WINDOW_TYPE.TUKEY :
-                                        FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,
-                                PROP_SLOW_LEQ, false);
+//                        this.slowLeqProcessing = new LeqProcessingThread(this,
+//                                AcousticIndicators.TIMEPERIOD_SLOW, false,
+//                                hannWindowOneSecond ? FFTSignalProcessing.WINDOW_TYPE.TUKEY :
+//                                        FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,
+//                                PROP_SLOW_LEQ, false);
+                        this.slowLeqProcessing = new FilterBankProcessingThread(this,
+                                PROP_SLOW_LEQ, 1.0);
+                        String configuration = "config_44100_third_octave.json";
+                        if(rate == 48000) {
+                            configuration = "config_48000_third_octave.json";
+                        }
+                        try (InputStream s = SpectrumChannel.class.getResourceAsStream(configuration)) {
+                            this.slowLeqProcessing.loadConfiguration(s);
+                        } catch (IOException ex) {
+                            LOGGER.error(ex.getLocalizedMessage(), ex);
+                        }
                         return;
                     }
                 }
@@ -251,7 +268,7 @@ public class AudioProcess implements Runnable {
     /**
      * @return Third octave SPL up to 8Khz (4 Khz if the phone support 8Khz only)
      */
-    public float[] getThirdOctaveFrequencySPL() {
+    public double[] getThirdOctaveFrequencySPL() {
         return fastLeqProcessing.getThirdOctaveFrequencySPL();
     }
 
@@ -377,6 +394,128 @@ public class AudioProcess implements Runnable {
         void addSample(float[] sample);
     }
 
+    public static final class FilterBankProcessingThread implements ProcessingThread {
+        private Queue<float[]> bufferToProcess = new ConcurrentLinkedQueue<float[]>();
+        private final AudioProcess audioProcess;
+        private AtomicBoolean processing = new AtomicBoolean(false);
+        private String propertyName;
+        private long pushedSamples = 0;
+        private long processedSamples = 0;
+        private int lastPushIndex = 0;
+        private SpectrumChannel spectrumChannel;
+        private final double windowTime;
+        private ConfigurationSpectrumChannel configuration;
+        private boolean aWeighting = true;
+        private double leq = 0;
+        private static final double NATIVE_GAIN = 90-20*Math.log10(FFTSignalProcessing.RMS_REFERENCE_90DB / Short.MAX_VALUE);
+        private double dbGain = NATIVE_GAIN;
+
+        public FilterBankProcessingThread(AudioProcess audioProcess, String propertyName, double windowTime) {
+            this.audioProcess = audioProcess;
+            this.propertyName = propertyName;
+            this.spectrumChannel = new SpectrumChannel();
+            this.windowTime = windowTime;
+        }
+
+        public void loadConfiguration(InputStream filterConfigurationFile) throws IOException {
+            ObjectMapper objectMapper = new ObjectMapper();
+            configuration = objectMapper.readValue(filterConfigurationFile, ConfigurationSpectrumChannel.class);
+            this.spectrumChannel.loadConfiguration(configuration, true);
+        }
+
+        public void setGain(double gain) {
+            this.dbGain = NATIVE_GAIN + 20 * Math.log10(gain);
+        }
+
+        public void addSample(float[] samples) {
+            bufferToProcess.add(samples);
+            pushedSamples += samples.length;
+        }
+
+        public long getPushedSamples() {
+            return pushedSamples;
+        }
+
+        public boolean isProcessing() {
+            return processing.get();
+        }
+
+
+        public void setAweighting(boolean aWeighting) {
+            this.aWeighting=aWeighting;
+        }
+
+
+        public double getLeq() {
+            return leq;
+        }
+
+        @Override
+        public void run() {
+            float[] windowBuffer = new float[(int)(configuration.getConfiguration().getSampleRate()*windowTime)];
+            int windowBufferCursor = 0;
+            try {
+                while (audioProcess.currentState != STATE.WAITING_END_PROCESSING &&
+                        !audioProcess.canceled.get()
+                        && audioProcess.currentState != STATE.CLOSED) {
+                    while (!bufferToProcess.isEmpty() && !audioProcess.canceled.get()) {
+                        processing.set(true);
+                        float[] buffer = bufferToProcess.poll();
+                        if(buffer != null) {
+                            int polledBufferCursor = 0;
+                            while(polledBufferCursor < buffer.length) {
+                                int copyLength = Math.min(buffer.length-polledBufferCursor,
+                                        windowBuffer.length - windowBufferCursor);
+                                System.arraycopy(buffer, polledBufferCursor, windowBuffer, windowBufferCursor, copyLength);
+                                polledBufferCursor += copyLength;
+                                windowBufferCursor += copyLength;
+                                processedSamples += copyLength;
+                                if(windowBuffer.length == windowBufferCursor) {
+                                    // complete audio samples to analyze
+                                    if(aWeighting) {
+                                        leq = spectrumChannel.processSamplesWeightA(windowBuffer) + dbGain;
+                                    } else {
+                                        leq = AcousticIndicators.getLeq(windowBuffer,
+                                                1/Math.pow(10, dbGain / 20));
+                                    }
+                                    LOGGER.debug(String.format(Locale.ROOT,
+                                            "For gain %.2f -> Leq %.2f%n", dbGain, leq));
+                                    double[] spectrum = spectrumChannel.processSamples(windowBuffer);
+                                    for (int i = 0; i < spectrum.length; i++) {
+                                        spectrum[i] += dbGain;
+                                    }
+                                    double sumSamples = 0;
+                                    for (float[] toProcess : bufferToProcess) {
+                                        sumSamples += toProcess.length;
+                                    }
+                                    double processingDelayTime = sumSamples /
+                                            configuration.getConfiguration().getSampleRate();
+                                    long beginRecordTime = System.currentTimeMillis()
+                                            - (int)(windowTime * 1000)
+                                            - (int)(processingDelayTime * 1000);
+                                    FFTSignalProcessing.ProcessingResult processingResult =
+                                            new FFTSignalProcessing.ProcessingResult(
+                                                    processedSamples, new double[0], spectrum, leq);
+                                    audioProcess.listeners.firePropertyChange(propertyName,
+                                            null, new AudioMeasureResult(processingResult,
+                                                    beginRecordTime));
+                                    windowBufferCursor = 0;
+                                }
+                            }
+                        }
+                    }
+                    try {
+                        Thread.sleep(5);
+                    } catch (InterruptedException ex) {
+                        break;
+                    }
+                }
+            } finally {
+                processing.set(false);
+            }
+        }
+    }
+
     public static final class LeqProcessingThread implements ProcessingThread {
         private Queue<float[]> bufferToProcess = new ConcurrentLinkedQueue<float[]>();
         private final AudioProcess audioProcess;
@@ -392,7 +531,7 @@ public class AudioProcess implements Runnable {
         private double gain = 1;
 
         // Output only frequency response on this sample rate on the real time result (center + upper band)
-        private float[] thirdOctaveSplLevels;
+        private double[] thirdOctaveSplLevels;
 
         public LeqProcessingThread(AudioProcess audioProcess, double timePeriod, boolean Aweighting,
                                    FFTSignalProcessing.WINDOW_TYPE window_type, String propertyName, boolean outputSpectrogram) {
@@ -403,7 +542,7 @@ public class AudioProcess implements Runnable {
             this.window = new Window(window_type,
                     audioProcess.getRate(), audioProcess.getRealtimeCenterFrequency(), timePeriod,
                     Aweighting, FFTSignalProcessing.DB_FS_REFERENCE, outputSpectrogram);
-            thirdOctaveSplLevels = new float[audioProcess.getRealtimeCenterFrequency().length];
+            thirdOctaveSplLevels = new double[audioProcess.getRealtimeCenterFrequency().length];
         }
 
         public void setGain(double gain) {
@@ -451,18 +590,10 @@ public class AudioProcess implements Runnable {
             return leq;
         }
 
-
-        /**
-         * @return Compute leq from the last pushed 1s
-         */
-        public double computeLeq() {
-            return window.computeWindowLeq();
-        }
-
         /**
          * @return Third octave SPL up to 8Khz (4 Khz if the phone support 8Khz only)
          */
-        public float[] getThirdOctaveFrequencySPL() {
+        public double[] getThirdOctaveFrequencySPL() {
             return thirdOctaveSplLevels;
         }
 
@@ -562,11 +693,11 @@ public class AudioProcess implements Runnable {
         /**
          * @return Leq value
          */
-        public float[] getLeqs() {
+        public double[] getLeqs() {
             return result.getSpl();
         }
 
-        public float getGlobaldBaValue() {
+        public double getGlobaldBaValue() {
             return result.getWindowLeq();
         }
 

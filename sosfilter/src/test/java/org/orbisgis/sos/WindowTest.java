@@ -127,7 +127,7 @@ public class WindowTest {
         FFTSignalProcessing.ProcessingResult fullSampleResult =
                 new FFTSignalProcessing.ProcessingResult((signal.length / sampleRate) / windowTime, res.toArray(new FFTSignalProcessing.ProcessingResult[res.size()]));
 
-        return SOSSignalProcessing.convertFloatToDouble(fullSampleResult.getSpl());
+        return fullSampleResult.getSpl();
     }
 
     @Test

@@ -619,7 +619,7 @@ public class MeasurementService extends Service {
                                 location.getAccuracy(), location.getTime());
                     }
                     double[] freqValues = measurementService.audioProcess.getDelayedCenterFrequency();
-                    final float[] leqs = measure.getLeqs();
+                    final double[] leqs = measure.getLeqs();
                     // Add leqs to stats
                     measurementService.leqStats.addLeq(measure.getGlobaldBaValue());
                     List<Storage.LeqValue> leqValueList = new ArrayList<>(leqs.length);

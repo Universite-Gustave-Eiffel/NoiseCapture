@@ -41,7 +41,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.orbisgis.sos.AcousticIndicators;
 import org.orbisgis.sos.ConfigurationSpectrumChannel;
 import org.orbisgis.sos.FFTSignalProcessing;
-import org.orbisgis.sos.SOSSignalProcessing;
 import org.orbisgis.sos.SpectrumChannel;
 import org.orbisgis.sos.Window;
 import org.slf4j.Logger;
@@ -562,7 +561,6 @@ public class AudioProcess implements Runnable {
         private double leq = 0;
         private String propertyName;
         private double timePeriod;
-        private boolean Aweighting;
         private long pushedSamples = 0;
         private long processedSamples = 0;
         private int lastPushIndex = 0;
@@ -572,14 +570,15 @@ public class AudioProcess implements Runnable {
         private double[] thirdOctaveSplLevels;
 
         public LeqProcessingThread(AudioProcess audioProcess, double timePeriod, boolean Aweighting,
-                                   FFTSignalProcessing.WINDOW_TYPE window_type, String propertyName, boolean outputSpectrogram) {
+                                   FFTSignalProcessing.WINDOW_TYPE window_type, String propertyName,
+                                   boolean outputSpectrogram) {
             this.audioProcess = audioProcess;
             this.propertyName = propertyName;
             this.timePeriod = timePeriod;
-            this.Aweighting = Aweighting;
             this.window = new Window(window_type,
                     audioProcess.getRate(), audioProcess.getRealtimeCenterFrequency(), timePeriod,
                     Aweighting, FFTSignalProcessing.DB_FS_REFERENCE, outputSpectrogram);
+            this.window.setaWeighting(Aweighting);
             thirdOctaveSplLevels = new double[audioProcess.getRealtimeCenterFrequency().length];
         }
 
@@ -616,10 +615,7 @@ public class AudioProcess implements Runnable {
         }
 
         public void setAweighting(boolean Aweighting) {
-            if(Aweighting != this.Aweighting) {
-                this.Aweighting = Aweighting;
-                window.setaWeighting(Aweighting);
-            }
+            window.setaWeighting(Aweighting);
         }
 
         public Window getWindow() {

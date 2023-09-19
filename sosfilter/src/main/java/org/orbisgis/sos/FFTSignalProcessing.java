@@ -139,19 +139,6 @@ public class FFTSignalProcessing {
         return AcousticIndicators.todBspl (rms,  refSoundPressure);
     }
 
-    public double computeSpl(boolean aWeighting) {
-        if(aWeighting) {
-            float[] signal = new float[sampleBuffer.length];
-            for(int i=0; i < signal.length; i++) {
-                signal[i] = sampleBuffer[i];
-            }
-            signal = AWeighting.aWeightingSignal(signal);
-            return AcousticIndicators.todBspl(AcousticIndicators.computeRms(signal),
-                    refSoundPressure);
-        } else {
-            return todBspl(computeRms());
-        }
-    }
     /**
      * Calculation of the equivalent sound pressure level per third octave bands
      * @see "http://stackoverflow.com/questions/18684948/how-to-measure-sound-volume-in-db-scale-android"
@@ -162,10 +149,7 @@ public class FFTSignalProcessing {
             throw new IllegalStateException("Sample window incomplete");
         }
         sampleBufferPosition = 0;
-        float[] signal = new float[sampleBuffer.length];
-        for(int i=0; i < signal.length; i++) {
-            signal[i] = sampleBuffer[i];
-        }
+        float[] signal = Arrays.copyOf(sampleBuffer, sampleBuffer.length);
         double energyCorrection = signal.length;
         switch (window) {
             case HANN:
@@ -186,13 +170,13 @@ public class FFTSignalProcessing {
             squareAbsoluteFFT[k] = re * re + im * im;
             sumRMS += squareAbsoluteFFT[k];
         }
-        //rmsFft = Math.sqrt((rmsFft / 2) / (fftResult.length * fftResult.length));
         // Compute A weighted third octave bands
         float[] splLevels = thirdOctaveProcessing(squareAbsoluteFFT, false, energyCorrection);
         // Limit spectrum output by specified frequencies and convert to dBspl
         float[] spectrumSplLevels = null;
         if(outputThinFrequency) {
-            spectrumSplLevels = new float[(int) (Math.min(samplingRate / 2, standardFrequencies[standardFrequencies.length - 1]) /
+            spectrumSplLevels = new float[(int) (Math.min(samplingRate / 2.0,
+                    standardFrequencies[standardFrequencies.length - 1]) /
                     freqByCell)];
             for (int i = 0; i < spectrumSplLevels.length; i++) {
                 spectrumSplLevels[i] = (float) todBspl(squareAbsoluteFFTToRMS(squareAbsoluteFFT[i
@@ -200,8 +184,9 @@ public class FFTSignalProcessing {
             }
         }
         return new ProcessingResult(sampleAdded,
-                SOSSignalProcessing.convertFloatToDouble(spectrumSplLevels),
-                SOSSignalProcessing.convertFloatToDouble(splLevels),
+                spectrumSplLevels == null ? null : Window.convertFloatToDouble(
+                        spectrumSplLevels),
+                Window.convertFloatToDouble(splLevels),
                 todBspl(squareAbsoluteFFTToRMS(sumRMS, squareAbsoluteFFT.length)
                         * energyCorrection));
     }

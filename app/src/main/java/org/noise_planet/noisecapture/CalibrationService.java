@@ -47,8 +47,8 @@ import org.noise_planet.jwarble.Configuration;
 import org.noise_planet.jwarble.MessageCallback;
 import org.noise_planet.jwarble.OpenWarble;
 import org.orbisgis.sos.LeqStats;
-import org.orbisgis.sos.SOSSignalProcessing;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
+import org.orbisgis.sos.Window;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -650,7 +650,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
             this.calibrationService = calibrationService;
             this.audioTrack = audioTrack;
             sampleBufferLength = (int)(audioTrack.getSampleRate() * maxLength);
-            signal = SOSSignalProcessing.makePinkNoise(sampleBufferLength, (short)powerRMS, 0);
+            signal = Window.makePinkNoise(sampleBufferLength, (short)powerRMS, 0);
             bufferSize = (int)(audioTrack.getSampleRate() * 0.1);
         }
 

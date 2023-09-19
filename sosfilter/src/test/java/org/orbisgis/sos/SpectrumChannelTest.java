@@ -24,7 +24,7 @@ public class SpectrumChannelTest extends TestCase {
 
     public void test1000hzSinWave() throws IOException {
         double expectedLeq = -3;
-        float[] signal = SOSSignalProcessing.makeFloatSinWave(48000, 5.0,
+        float[] signal = Window.makeFloatSinWave(48000, 5.0,
                 Math.pow(10, expectedLeq/20.0), 1000.0);
         ConfigurationSpectrumChannel configuration;
         try (InputStream s = SpectrumChannel.class.getResourceAsStream(
@@ -51,8 +51,8 @@ public class SpectrumChannelTest extends TestCase {
         try(InputStream inputStream = SpectrumChannelTest.class.getResourceAsStream(
                 "speak_44100Hz_16bitsPCM_10s.raw")) {
             assert inputStream != null;
-            signal = SOSSignalProcessing.convertShortToFloat(
-                    SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN));
+            signal = Window.convertShortToFloat(
+                    Window.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN));
         }
         // Load band filter
         ConfigurationSpectrumChannel configuration;

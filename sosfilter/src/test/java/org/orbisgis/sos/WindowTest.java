@@ -43,7 +43,6 @@ import static org.junit.Assert.*;
  */
 public class WindowTest {
     public static final double[] STANDARD_FREQUENCIES_UNITTEST = new double[]{100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000};
-    public static final double REF_SOUND_PRESSURE = 1 / Math.pow(10, FFTSignalProcessing.DB_FS_REFERENCE / 20);
 
     private double getGlobalLeq(double[] leq) {
         double expectedGlobalLeq = 0;
@@ -147,8 +146,8 @@ public class WindowTest {
         // Test error induced by window overlapping
         // Read input signal
         InputStream inputStream = WindowTest.class.getResourceAsStream("speak_44100Hz_16bitsPCM_10s.raw");
-        float[] signal = SOSSignalProcessing.convertShortToFloat(
-                SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN),
+        float[] signal = Window.convertShortToFloat(
+                Window.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN),
                 false);
         // Reference value from ITA Toolbox
 

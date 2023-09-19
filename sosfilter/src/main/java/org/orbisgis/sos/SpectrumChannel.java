@@ -6,6 +6,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class SpectrumChannel {
     private int subsamplingRatio;
@@ -135,11 +140,20 @@ public class SpectrumChannel {
         }
         float[] lastFilterSamples = samples;
         double[] leqs = new double[bandFilterSize];
+        ExecutorService executorService = Executors.newCachedThreadPool();
+        Map<Integer, Future<Double>> threads = new HashMap<>();
         for (int cascadeIndex=0; cascadeIndex < iirFilters.size(); cascadeIndex++) {
             HashMap<Integer, BiquadFilter> cascadeFilters = iirFilters.get(cascadeIndex);
             for (Map.Entry<Integer, BiquadFilter> filterEntry : cascadeFilters.entrySet()) {
-                leqs[filterEntry.getKey()] = filterEntry.getValue().
-                        filterThenLeq(lastFilterSamples);
+                threads.put(filterEntry.getKey(),executorService.submit(
+                        new BandAnalysis(filterEntry.getValue(), lastFilterSamples)));
+            }
+            for (Map.Entry<Integer, Future<Double>> threadEntry : threads.entrySet()) {
+                try {
+                    leqs[threadEntry.getKey()] = threadEntry.getValue().get();
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new IllegalStateException("Interrupted exception");
+                }
             }
             // subsampling for next iteration
             if(cascadeIndex < subSamplers.size()) {
@@ -152,5 +166,20 @@ public class SpectrumChannel {
 
 
         return leqs;
+    }
+
+    private static class BandAnalysis implements Callable<Double> {
+        BiquadFilter filter;
+        float[] samples;
+
+        public BandAnalysis(BiquadFilter filter, float[] samples) {
+            this.filter = filter;
+            this.samples = samples;
+        }
+
+        @Override
+        public Double call() throws Exception {
+            return filter.filterThenLeq(samples);
+        }
     }
 }

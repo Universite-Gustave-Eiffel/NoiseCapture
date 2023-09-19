@@ -478,12 +478,12 @@ public class MeasurementActivity extends MainActivity implements
 
         @Override
         public void run() {
-            double lastShownProgress = 0;
+            int lastShownProgress = 0;
             while(activity.measurementService.getAudioProcess().getCurrentState() !=
                     AudioProcess.STATE.CLOSED && !activity.measurementService.isCanceled()) {
                 try {
                     Thread.sleep(200);
-                    double progress =  activity.measurementService.getAudioProcess().getRemainingNotProcessTime();
+                    int progress =  (int)(activity.measurementService.getAudioProcess().getRemainingNotProcessTime());
                     if(progress != lastShownProgress) {
                         lastShownProgress = progress;
                         activity.runOnUiThread(new SetDialogMessage(processingDialog, activity.getResources().getString(R.string.measurement_processlastsamples,
@@ -687,7 +687,8 @@ public class MeasurementActivity extends MainActivity implements
                 ProgressDialog myDialog = new ProgressDialog(activity);
                 if (!activity.measurementService.isCanceled()) {
                     myDialog.setMessage(resources.getString(R.string.measurement_processlastsamples,
-                            activity.measurementService.getAudioProcess().getRemainingNotProcessTime()));
+                            (int)(activity.measurementService.getAudioProcess()
+                                    .getRemainingNotProcessTime())));
                     myDialog.setCancelable(false);
                     myDialog.setButton(DialogInterface.BUTTON_NEGATIVE,
                             resources.getText(R.string.text_CANCEL_data_transfer),

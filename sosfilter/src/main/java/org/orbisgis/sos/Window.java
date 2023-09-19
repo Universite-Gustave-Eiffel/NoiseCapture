@@ -27,7 +27,13 @@
 
 package org.orbisgis.sos;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+import java.nio.ShortBuffer;
 import java.util.Arrays;
+import java.util.Random;
 
 /**
  * Overlaps the window of signal processing.
@@ -102,9 +108,6 @@ public class Window {
         return signalProcessing.getSampleDuration();
     }
 
-    public double computeWindowLeq() {
-        return signalProcessing.computeSpl(aWeighting);
-    }
     /**
      * Process the current window
      */
@@ -177,5 +180,127 @@ public class Window {
         if(pushedSamples - lastProcessedSpectrum >= (int)(windowSize * (1 - overlap))) {
             processSample();
         }
+    }
+
+
+    public static double[] convertShortToDouble(short[] samplesShort) {
+        double[] samples = new double[samplesShort.length];
+        for (int i = 0; i < samplesShort.length; i++) {
+            samples[i] = samplesShort[i];
+        }
+        return samples;
+    }
+
+    public static double[] convertFloatToDouble(float[] samplesFloat) {
+        double[] samples = new double[samplesFloat.length];
+        for (int i = 0; i < samplesFloat.length; i++) {
+            samples[i] = samplesFloat[i];
+        }
+        return samples;
+    }
+
+    public static float[] convertShortToFloat(short[] samplesShort) {
+        return convertShortToFloat(samplesShort, true);
+    }
+
+    public static float[] convertShortToFloat(short[] samplesShort, boolean rescale) {
+        float[] samples = new float[samplesShort.length];
+        float scale = rescale ? 32768.0f : 1.0f;
+        for (int i = 0; i < samplesShort.length; i++) {
+            samples[i] = samplesShort[i] / scale;
+        }
+        return samples;
+    }
+
+    /**
+     *
+     * @param buffer
+     * @param length Length from the start to convert
+     * @return Processed
+     */
+    public static double[] convertBytesToDouble(byte[] buffer, int length, ByteOrder byteOrder) {
+        return convertShortToDouble(convertBytesToShort(buffer, length, byteOrder));
+    }
+
+    public static short[] loadShortStream(InputStream inputStream, ByteOrder byteOrder) throws IOException {
+        short[] fullArray = new short[0];
+        byte[] buffer = new byte[4096];
+        int read;
+        // Read input signal up to buffer.length
+        while ((read = inputStream.read(buffer)) != -1) {
+            // Convert bytes into double values. Samples array size is 8 times inferior than buffer size
+            if (read < buffer.length) {
+                buffer = Arrays.copyOfRange(buffer, 0, read);
+            }
+            short[] signal = convertBytesToShort(buffer, buffer.length, byteOrder);
+            short[] nextFullArray = new short[fullArray.length + signal.length];
+            if(fullArray.length > 0) {
+                System.arraycopy(fullArray, 0, nextFullArray, 0, fullArray.length);
+            }
+            System.arraycopy(signal, 0, nextFullArray, fullArray.length, signal.length);
+            fullArray = nextFullArray;
+        }
+        return fullArray;
+    }
+
+
+    public static short[] convertBytesToShort(byte[] buffer, int length, ByteOrder byteOrder) {
+        ShortBuffer byteBuffer = ByteBuffer.wrap(buffer, 0, length).order(byteOrder).asShortBuffer();
+        short[] samplesShort = new short[byteBuffer.capacity()];
+        byteBuffer.order();
+        byteBuffer.get(samplesShort);
+        return samplesShort;
+    }
+
+
+    public static float[] makeFloatSinWave(double sampleRate, double duration, double rms,
+                                           double frequency) {
+        float[] signal = new float[(int)(sampleRate*duration)];
+        double peak = rms*Math.sqrt(2);
+        for(int i=0; i<signal.length; i++) {
+            double t = i / sampleRate;
+            signal[i] = (float)(Math.sin(2 * Math.PI * frequency * t) * peak);
+        }
+        return signal;
+    }
+
+    public static short[] makeSinWave(double sampleRate, double duration, double rms,
+                                      double frequency) {
+        short[] signal = new short[(int)(sampleRate*duration)];
+        for(int i=0; i<signal.length; i++) {
+            double t = i / sampleRate;
+            signal[i] = (short) Math.max(-Short.MAX_VALUE, Math.min(Short.MAX_VALUE ,
+                    (Math.sin(2 * Math.PI * frequency * t) * rms)));
+        }
+        return signal;
+    }
+
+    public static short[] makeWhiteNoise(int samples, short rms, long seed) {
+        short[] signal = new short[samples];
+        Random random = new Random(seed);
+        for(int i=0; i < samples; i++) {
+            signal[i] = (short) (random.nextGaussian() * rms);
+        }
+        return signal;
+    }
+
+    public static short[] makePinkNoise(int samples, short rms, long seed) {
+        // https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html
+        final double[] b = new double[] {0.049922035, -0.095993537, 0.050612699, -0.004408786};
+        final double[] a = new double[] {1, -2.494956002,   2.017265875,  -0.522189400};
+        final int nt60 = 1430; // nT60 = round(log(1000)/(1-max(abs(roots(A))))); % T60 est.
+        float[] v = new float[samples + nt60];
+        Random random = new Random(seed);
+        for(int i=0; i < v.length; i++) {
+            v[i] = (float)(random.nextGaussian() * rms);
+        }
+        DigitalFilter filter = new DigitalFilter(b, a);
+        float[] x = new float[v.length];
+        filter.filter(v, x);
+        short[] signal = new short[samples];
+        for(int i=nt60; i < x.length; i++) {
+            signal[i - nt60] = (short) (x[i]);
+        }
+        return signal;
     }
 }

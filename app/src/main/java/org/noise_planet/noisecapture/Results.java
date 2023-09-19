@@ -493,7 +493,7 @@ public class Results extends MainActivity {
 
         neiChart.setData(data);
         neiChart.setCenterText(String.format(Locale.getDefault(), "%.1f", record.getLeqMean())
-                .concat(" dB"));
+                .concat(" dBA"));
         neiChart.invalidate();
     }
 
@@ -514,7 +514,7 @@ public class Results extends MainActivity {
             for (final Highlight highlight : highlights) {
                 int xIndex = highlight.getXIndex();
                 if (xIndex == entry.getXIndex()) {
-                    return String.format(Locale.getDefault(), "%.1f dB(A)", value);
+                    return String.format(Locale.getDefault(), "%.1f dB", value);
                 }
             }
             return "";

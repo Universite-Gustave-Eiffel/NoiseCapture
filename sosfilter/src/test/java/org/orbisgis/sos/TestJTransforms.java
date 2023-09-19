@@ -46,7 +46,7 @@ public class TestJTransforms {
         final int sampleRate = 44100;
         InputStream inputStream = TestJTransforms.class.getResourceAsStream("whitenoise_44100Hz_16bitPCM_10s.raw");
         // Read input signal up to buffer.length
-        float[] signal = SOSSignalProcessing.convertShortToFloat(SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN));
+        float[] signal = Window.convertShortToFloat(Window.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN));
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, STANDARD_FREQUENCIES_UNITTEST, signal.length);
         inputStream.close();
@@ -82,7 +82,7 @@ public class TestJTransforms {
         final int sampleRate = 44100;
         final int samples = (int)(sampleRate * length);
         final int signalFrequency = 1000;
-        double powerRMS = 2500; // 90 dBspl
+        double powerRMS = 2500/Math.pow(2, 15); // 90 dBspl
         double powerPeak = powerRMS * Math.sqrt(2);
         float[] signal = new float[samples];
         for (int s = 0; s < samples; s++) {
@@ -111,7 +111,7 @@ public class TestJTransforms {
         double fastRate = 0.250;
         final int sampleRate = 44100;
         final int signalFrequency = 1000;
-        double powerRMS = 2500; // 90 dBspl
+        double powerRMS = 2500/Math.pow(2, 15); // 90 dBspl
         double powerPeak = powerRMS * Math.sqrt(2);
         float[] signal = new float[(int)(sampleRate * fastRate)];
         for (int s = 0; s < signal.length; s++) {
@@ -146,8 +146,8 @@ public class TestJTransforms {
         int rate = 44100;
         InputStream inputStream = CoreSignalProcessingTest.class.getResourceAsStream("capture_1000hz_16bits_44100hz_signed.raw");
         // Read input signal up to buffer.length
-        float[] signal = SOSSignalProcessing.convertShortToFloat(
-                SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN));
+        float[] signal = Window.convertShortToFloat(
+                Window.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN));
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(rate, STANDARD_FREQUENCIES_UNITTEST, signal.length);
         // Split signal to simulate recording

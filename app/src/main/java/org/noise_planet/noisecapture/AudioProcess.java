@@ -327,7 +327,7 @@ public class AudioProcess implements Runnable {
                             if (read < shortBuffer.length) {
                                 shortBuffer = Arrays.copyOfRange(shortBuffer, 0, read);
                             }
-                            buffer = SOSSignalProcessing.convertShortToFloat(shortBuffer);
+                            buffer = Window.convertShortToFloat(shortBuffer);
                         } else if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
                               int read = audioRecord.read(buffer, 0, buffer.length,
                                     AudioRecord.READ_BLOCKING);
@@ -381,19 +381,6 @@ public class AudioProcess implements Runnable {
      */
     public PropertyChangeSupport getListeners() {
         return listeners;
-    }
-
-    /**
-     * @return Fast refreshed lAeq
-     */
-    double getLAeq() {
-        if(doFastLeq) {
-            return fastLeqProcessing.getLeq();
-        } else if(doOneSecondLeq){
-            return slowLeqProcessing.getLeq();
-        } else {
-            return 0;
-        }
     }
 
     public int getRate() {
@@ -523,8 +510,8 @@ public class AudioProcess implements Runnable {
                                     }
                                     processingDelayTime = sumSamples /
                                             configuration.getConfiguration().getSampleRate();
-                                    System.out.println(String.format(Locale.ROOT,
-                                            "Analysis done in %d milliseconds queue is %.2f ms",
+                                    Log.d(AudioProcess.class.getName(),String.format(Locale.ROOT,
+                                            "Analysis done in %d milliseconds queue is %.3f seconds",
                                             analysis_time, processingDelayTime
                                     ));
                                     long beginRecordTime = System.currentTimeMillis()
@@ -533,6 +520,7 @@ public class AudioProcess implements Runnable {
                                     FFTSignalProcessing.ProcessingResult processingResult =
                                             new FFTSignalProcessing.ProcessingResult(
                                                     processedSamples, new double[0], spectrum, leq);
+                                    processingResult.setWindowLaeq(leq);
                                     audioProcess.listeners.firePropertyChange(propertyName,
                                             null, new AudioMeasureResult(processingResult,
                                                     beginRecordTime));
@@ -578,7 +566,7 @@ public class AudioProcess implements Runnable {
             this.window = new Window(window_type,
                     audioProcess.getRate(), audioProcess.getRealtimeCenterFrequency(), timePeriod,
                     Aweighting, FFTSignalProcessing.DB_FS_REFERENCE, outputSpectrogram);
-            this.window.setaWeighting(Aweighting);
+            this.window.setAWeighting(Aweighting);
             thirdOctaveSplLevels = new double[audioProcess.getRealtimeCenterFrequency().length];
         }
 
@@ -615,7 +603,7 @@ public class AudioProcess implements Runnable {
         }
 
         public void setAweighting(boolean Aweighting) {
-            window.setaWeighting(Aweighting);
+            window.setAWeighting(Aweighting);
         }
 
         public Window getWindow() {
@@ -741,7 +729,7 @@ public class AudioProcess implements Runnable {
         }
 
         public double getGlobaldBaValue() {
-            return result.getWindowLeq();
+            return result.getWindowLaeq();
         }
 
         /**

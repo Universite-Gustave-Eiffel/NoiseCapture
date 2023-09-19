@@ -71,7 +71,6 @@ public class FFTSignalProcessing {
 
     public void setDbFsReference(double dbFsReference) {
         this.refSoundPressure = 1 / Math.pow(10, dbFsReference / 20);
-        System.out.println("New refsound pressure :"+refSoundPressure);
     }
 
     public static double[] computeFFTCenterFrequency(int maxLimitation) {
@@ -144,7 +143,7 @@ public class FFTSignalProcessing {
      * @see "http://stackoverflow.com/questions/18684948/how-to-measure-sound-volume-in-db-scale-android"
      * @return List of double array of equivalent sound pressure level per third octave bands
      */
-    public ProcessingResult processSample(WINDOW_TYPE window, boolean outputThinFrequency) {
+    public ProcessingResult processSampleBuffer(WINDOW_TYPE window, boolean outputThinFrequency) {
         if(sampleBufferPosition > 0 && sampleBufferPosition != sampleBuffer.length) {
             throw new IllegalStateException("Sample window incomplete");
         }
@@ -246,6 +245,7 @@ public class FFTSignalProcessing {
         double[] spl;
         double windowLeq;
         long id;
+        double windowLaeq=0;
 
         public ProcessingResult(long id, double[] fftResult, double[] spl, double windowLeq) {
             this.fftResult = fftResult;
@@ -260,6 +260,14 @@ public class FFTSignalProcessing {
 
         public void setId(long id) {
             this.id = id;
+        }
+
+        public double getWindowLaeq() {
+            return windowLaeq;
+        }
+
+        public void setWindowLaeq(double windowLaeq) {
+            this.windowLaeq = windowLaeq;
         }
 
         /**
@@ -295,12 +303,17 @@ public class FFTSignalProcessing {
                     spl[i] = (float)(10. * Math.log10(spl[i] / windowCount));
                 }
                 double sum = 0;
+                double sumLAeq=0;
+                int sumCount=0;
                 for(ProcessingResult merge : toMerge) {
                     if(merge != null) {
+                        sumCount++;
                         sum += Math.pow(10, merge.getWindowLeq() / 10.);
+                        sumLAeq += Math.pow(10, merge.getWindowLaeq() / 10.);
                     }
                 }
-                this.windowLeq = (float)(10. * Math.log10(sum / windowCount));
+                this.windowLeq = (float)(10. * Math.log10(sum / sumCount));
+                this.windowLaeq = 10. * Math.log10(sumLAeq / sumCount);
             }
         }
 

@@ -155,7 +155,7 @@ public class WindowTest {
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, signal.length, dbFsReference);
         fftSignalProcessing.addSample(signal);
-        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, false);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSampleBuffer(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, false);
 
         assertEquals(refGlobalSpl, fftSignalProcessing.computeGlobalLeq(), 0.01);
         assertEquals(refGlobalSpl, processingResult.getWindowLeq(), 0.01);

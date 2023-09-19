@@ -27,6 +27,11 @@
 
 package org.orbisgis.sos;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -41,7 +46,9 @@ import java.util.Random;
 
 public class Window {
     public final FFTSignalProcessing.WINDOW_TYPE window;
+    private static final Logger LOGGER = LoggerFactory.getLogger(Window.class);
     private FFTSignalProcessing signalProcessing;
+    int sampleRate;
     // processed sample index
     private int lastProcessedSpectrum = 0;
     // added samples
@@ -51,6 +58,7 @@ public class Window {
     private boolean outputThinFrequency;
     private double overlap = 0;
     private FFTSignalProcessing.ProcessingResult[] windowResults;
+    private SpectrumChannel spectrumChannel;
 
     public Window(FFTSignalProcessing.WINDOW_TYPE window, int samplingRate, double[] standardFrequencies,
                   double windowTime, boolean aWeighting,
@@ -75,13 +83,14 @@ public class Window {
                   double windowTime, boolean aWeighting,
                   double dbFsReference,boolean outputThinFrequency, double overlap) {
         this.overlap = overlap;
+        this.sampleRate = samplingRate;
         this.signalProcessing = new FFTSignalProcessing(samplingRate, standardFrequencies,
                 (int)(samplingRate * windowTime), dbFsReference);
         this.window = window;
-        this.aWeighting = aWeighting;
         this.windowSize = (int)(samplingRate * windowTime);
         this.windowResults = new FFTSignalProcessing.ProcessingResult[(int)(Math.round(1 / (1 - overlap)))];
         this.outputThinFrequency = outputThinFrequency;
+        setAWeighting(aWeighting);
     }
 
     public void setDbFsReference(double dbFsReference) {
@@ -92,8 +101,28 @@ public class Window {
         return outputThinFrequency;
     }
 
-    public void setaWeighting(boolean aWeighting) {
+    private void loadFilter() {
+        // Load analyser
+        String configuration = "config_44100_third_octave.json";
+        if(sampleRate == 48000) {
+            configuration = "config_48000_third_octave.json";
+        }
+        try (InputStream s = SpectrumChannel.class.getResourceAsStream(configuration)) {
+            ObjectMapper objectMapper = new ObjectMapper();
+            ConfigurationSpectrumChannel configurationInstance = objectMapper.
+                    readValue(s, ConfigurationSpectrumChannel.class);
+            spectrumChannel = new SpectrumChannel();
+            spectrumChannel.loadConfiguration(configurationInstance, true);
+        } catch (IOException ex) {
+            LOGGER.error(ex.getLocalizedMessage(), ex);
+        }
+    }
+
+    public void setAWeighting(boolean aWeighting) {
         this.aWeighting = aWeighting;
+        if(aWeighting) {
+            loadFilter();
+        }
     }
 
     public FFTSignalProcessing.WINDOW_TYPE getWindowType() {
@@ -111,9 +140,16 @@ public class Window {
     /**
      * Process the current window
      */
-    private void processSample() {
+    private void processWindow() {
         lastProcessedSpectrum = pushedSamples;
-        FFTSignalProcessing.ProcessingResult result = signalProcessing.processSample(window, true);
+        double lAeq = 0;
+        if(aWeighting && spectrumChannel != null) {
+            float[] samples = signalProcessing.getSampleBuffer();
+            double dbGain = 20 * Math.log10(1/signalProcessing.getRefSoundPressure());
+            lAeq = spectrumChannel.processSamplesWeightA(samples) + dbGain;
+        }
+        FFTSignalProcessing.ProcessingResult result = signalProcessing.processSampleBuffer(window, true);
+        result.setWindowLaeq(lAeq);
         // Move result by 1 backward
         if(windowResults.length > 1) {
             System.arraycopy(windowResults, 1, windowResults, 0, windowResults.length - 1);
@@ -178,7 +214,7 @@ public class Window {
         signalProcessing.addSample(buffer);
         pushedSamples += buffer.length;
         if(pushedSamples - lastProcessedSpectrum >= (int)(windowSize * (1 - overlap))) {
-            processSample();
+            processWindow();
         }
     }
 
@@ -284,7 +320,7 @@ public class Window {
         return signal;
     }
 
-    public static short[] makePinkNoise(int samples, short rms, long seed) {
+    public static short[] makePinkNoise(int samples, short peak, long seed) {
         // https://ccrma.stanford.edu/~jos/sasp/Example_Synthesis_1_F_Noise.html
         final double[] b = new double[] {0.049922035, -0.095993537, 0.050612699, -0.004408786};
         final double[] a = new double[] {1, -2.494956002,   2.017265875,  -0.522189400};
@@ -292,7 +328,7 @@ public class Window {
         float[] v = new float[samples + nt60];
         Random random = new Random(seed);
         for(int i=0; i < v.length; i++) {
-            v[i] = (float)(random.nextGaussian() * rms);
+            v[i] = (float)(random.nextGaussian() * peak);
         }
         DigitalFilter filter = new DigitalFilter(b, a);
         float[] x = new float[v.length];

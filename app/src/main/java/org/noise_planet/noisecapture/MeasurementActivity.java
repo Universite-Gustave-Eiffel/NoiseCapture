@@ -775,15 +775,15 @@ public class MeasurementActivity extends MainActivity implements
                         accuracyImageHint.setImageResource(R.drawable.gps_off);
                         accuracyText.setText(R.string.no_gps_hint);
                     }
-                    // Update current location of user
-                    final double leq = activity.measurementService.getAudioProcess().getLAeq();
-                    activity.setData(leq);
                     // Change the text and the textcolor in the corresponding textview
                     // for the Leqi value
                     LeqStats leqStats =
                             activity.measurementService.getFastLeqStats();
-                    final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
-                    formatdBA(leq, mTextView);
+                    // Update current location of user
+                    double lastLaeqFast = activity.measurementService.getLAeq();
+                    activity.setData(lastLaeqFast);
+                    final TextView mTextView = activity.findViewById(R.id.textView_value_SL_i);
+                    formatdBA(lastLaeqFast, mTextView);
                     if(activity.measurementService.getLeqAdded() != 0) {
                         // Stats are only available if the recording of previous leq are activated
                         final TextView valueMin = (TextView) activity.findViewById(R.id
@@ -796,9 +796,7 @@ public class MeasurementActivity extends MainActivity implements
                                 .textView_value_Mean_i);
                         formatdBA(leqStats.getLeqMean(), valueMean);
                     }
-
-
-                    int nc = MeasurementActivity.getNEcatColors(leq);    // Choose the color category in
+                    int nc = MeasurementActivity.getNEcatColors(lastLaeqFast);    // Choose the color category in
                     // function of the sound level
                     mTextView.setTextColor(activity.NE_COLORS[nc]);
 

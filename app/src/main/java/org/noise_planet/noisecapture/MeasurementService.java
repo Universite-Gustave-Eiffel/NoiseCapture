@@ -119,6 +119,7 @@ public class MeasurementService extends Service {
     private NotificationCompat.Builder notification;
     private Notification notificationInstance;
     private ListenToMicrophoneDeviceSwitch audioRecordingCallback = null;
+    private double LAeq = 0; // last acquired fast lAeq
 
     /**
      * Class for clients to access.  Because we know this service always
@@ -147,6 +148,13 @@ public class MeasurementService extends Service {
         return leqStats;
     }
 
+    public double getLAeq() {
+        return LAeq;
+    }
+
+    public void setLAeq(double LAeq) {
+        this.LAeq = LAeq;
+    }
 
     public LeqStats getFastLeqStats() {
         return leqStatsFast;
@@ -633,9 +641,10 @@ public class MeasurementService extends Service {
                     measurementService.listeners.firePropertyChange(PROP_NEW_MEASUREMENT, null, new MeasurementEventObject(measure, leq));
                 }
             } else if(AudioProcess.PROP_FAST_LEQ.equals(event.getPropertyName())) {
+                AudioProcess.AudioMeasureResult measure =
+                        (AudioProcess.AudioMeasureResult) event.getNewValue();
+                measurementService.setLAeq(measure.getGlobaldBaValue());
                 if (measurementService.isStoring() && !measurementService.isPaused.get()) {
-                    AudioProcess.AudioMeasureResult measure =
-                            (AudioProcess.AudioMeasureResult) event.getNewValue();
                     measurementService.leqStatsFast.addLeq(measure.getGlobaldBaValue());
                 }
             } else if (AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {

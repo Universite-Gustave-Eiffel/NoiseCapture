@@ -334,4 +334,6 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="localisation_policy_title" >Localisation notice</string>
     <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
     <string name="policy_button_understood">Acknowledge</string>
+    <string name="title_settings_onomap_url">Community server url</string>
+    <string name="title_settings_onomap_url_summary">NoiseCapture will upload measurement to this community server</string>
 </resources>

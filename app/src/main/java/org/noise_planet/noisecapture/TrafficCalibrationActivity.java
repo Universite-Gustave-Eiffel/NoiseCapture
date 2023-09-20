@@ -302,6 +302,8 @@ public class TrafficCalibrationActivity extends MainActivity implements Property
                 // Time to count vehicles
                 TrafficNoiseEstimator trafficNoiseEstimator = new TrafficNoiseEstimator();
                 ArrayList<Double> leqs = new ArrayList<>(activity.leqMax);
+                // Add leqs that would be removed from pause action
+                leqs.addAll(activity.leqMaxCached);
                 double[] laeq = new double[leqs.size()];
                 for(int i=0; i < laeq.length; i++) {
                     laeq[i] = leqs.get(i);

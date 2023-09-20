@@ -134,10 +134,6 @@ public class Results extends MainActivity {
 
         // RNE PieChart
         rneChart = (PieChart) findViewById(R.id.RNEChart);
-        // Disable tooltip as it crash with this view
-        //if(showTooltip) {
-        //    rneChart.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_rne));
-        //}
         initRNEChart();
         Legend lrne = rneChart.getLegend();
         lrne.setTextColor(Color.WHITE);

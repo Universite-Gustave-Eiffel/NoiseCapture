@@ -33,3 +33,8 @@ jobs:
             $HOME/.gradle/caches/
             $HOME/.gradle/wrapper/
           key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: NoiseCapture_unsigned
+          path: app/build/outputs/apk/release/app-release-unsigned.apk

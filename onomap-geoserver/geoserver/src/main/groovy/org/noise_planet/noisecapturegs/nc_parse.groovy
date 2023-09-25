@@ -122,9 +122,6 @@ static Integer processFile(Connection connection, File zipFile,Map trackData = [
     if(Long.valueOf(meta.getProperty("record_utc")) > System.currentTimeMillis() + (15*60*1000)) {
         throw new InvalidParameterException("Wrong time, superior than server time \"" + epochToRFCTime(Long.valueOf(meta.getProperty("record_utc"))) + "\"")
     }
-    if(["WalrusPhone"].contains(meta.get("device_manufacturer"))) {
-        throw new InvalidParameterException("Detect wrong device_manufacturer")
-    }
     def noisecaptureVersion = Integer.valueOf(meta.getProperty("version_number"));
     def microphone_identifier = meta.getOrDefault("microphone_identifier", "")
     def microphone_settings = meta.getOrDefault("microphone_settings", "")
@@ -227,7 +224,7 @@ static Integer processFile(Connection connection, File zipFile,Map trackData = [
     if (jsonRoot == null) {
         throw new InvalidParameterException("No track.geojson file")
     }
-
+    def realNumberOfSeconds = 0
     def startLocation = null
     jsonRoot.features.each() { feature ->
         def theGeom = "GEOMETRYCOLLECTION EMPTY"
@@ -268,6 +265,7 @@ static Integer processFile(Connection connection, File zipFile,Map trackData = [
         def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
                 " accuracy, orientation, time_date, time_location) VALUES (ST_Force3D(ST_GEOMFROMTEXT(:the_geom, 4326))," +
                 " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date::timestamptz, :time_location::timestamptz)", fields)[0][0] as Integer
+        realNumberOfSeconds += 1
         if(storeFrequencyLevels) {
             // Insert frequency
             sql.withBatch("INSERT INTO noisecapture_freq VALUES (:pkpoint, :freq, :noiselvl)") { batch ->
@@ -278,6 +276,9 @@ static Integer processFile(Connection connection, File zipFile,Map trackData = [
                 batch.executeBatch()
             }
         }
+    }
+    if(Math.abs(realNumberOfSeconds - (meta.get("time_length") as int)) > realNumberOfSeconds * 0.05) {
+        throw new InvalidParameterException("The meta data measurement length does not equal to the number of points")
     }
 
     // Remove pk_party if the track is out of bounds

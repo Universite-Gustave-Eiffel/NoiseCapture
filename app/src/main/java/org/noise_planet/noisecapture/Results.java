@@ -134,10 +134,6 @@ public class Results extends MainActivity {
 
         // RNE PieChart
         rneChart = (PieChart) findViewById(R.id.RNEChart);
-        // Disable tooltip as it crash with this view
-        //if(showTooltip) {
-        //    rneChart.setOnTouchListener(new ToolTipListener(this, R.string.result_tooltip_rne));
-        //}
         initRNEChart();
         Legend lrne = rneChart.getLegend();
         lrne.setTextColor(Color.WHITE);
@@ -493,7 +489,7 @@ public class Results extends MainActivity {
 
         neiChart.setData(data);
         neiChart.setCenterText(String.format(Locale.getDefault(), "%.1f", record.getLeqMean())
-                .concat(" dB(A)" + ""));
+                .concat(" dBA"));
         neiChart.invalidate();
     }
 
@@ -514,7 +510,7 @@ public class Results extends MainActivity {
             for (final Highlight highlight : highlights) {
                 int xIndex = highlight.getXIndex();
                 if (xIndex == entry.getXIndex()) {
-                    return String.format(Locale.getDefault(), "%.1f dB(A)", value);
+                    return String.format(Locale.getDefault(), "%.1f dB", value);
                 }
             }
             return "";

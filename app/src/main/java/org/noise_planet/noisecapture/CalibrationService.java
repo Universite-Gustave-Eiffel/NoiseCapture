@@ -47,8 +47,8 @@ import org.noise_planet.jwarble.Configuration;
 import org.noise_planet.jwarble.MessageCallback;
 import org.noise_planet.jwarble.OpenWarble;
 import org.orbisgis.sos.LeqStats;
-import org.orbisgis.sos.SOSSignalProcessing;
 import org.orbisgis.sos.ThirdOctaveBandsFiltering;
+import org.orbisgis.sos.Window;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -563,7 +563,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         private final AtomicBoolean canceled;
         private final AtomicBoolean recording;
         private OpenWarble openWarble;
-        private Queue<short[]> bufferToProcess = new ConcurrentLinkedQueue<short[]>();
+        private Queue<float[]> bufferToProcess = new ConcurrentLinkedQueue<float[]>();
 
         public AcousticModemListener(CalibrationService calibrationService, AtomicBoolean
                 canceled, AtomicBoolean recording) {
@@ -577,7 +577,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         }
 
         @Override
-        public void addSample(short[] sample) {
+        public void addSample(float[] sample) {
             if(recording.get()) {
                 bufferToProcess.add(sample);
             }
@@ -587,14 +587,14 @@ public class CalibrationService extends Service implements PropertyChangeListene
         public void run() {
             while (!canceled.get() && openWarble != null) {
                 while(!bufferToProcess.isEmpty()) {
-                    short[] buffer = bufferToProcess.poll();
+                    float[] buffer = bufferToProcess.poll();
                     if(buffer != null) {
                         boolean doProcessBuffer = true;
                         while(doProcessBuffer) {
                             doProcessBuffer = false;
                             double[] samples = new double[Math.min(buffer.length, openWarble.getMaxPushSamplesLength())];
                             for (int i = 0; i < samples.length; i++) {
-                                samples[i] = buffer[i] / (double)Short.MAX_VALUE;
+                                samples[i] = buffer[i];
                             }
                             openWarble.pushSamples(samples);
                             if (buffer.length > samples.length) {
@@ -611,6 +611,31 @@ public class CalibrationService extends Service implements PropertyChangeListene
                 }
             }
         }
+
+        @Override
+        public void setAweighting(boolean Aweighting) {
+
+        }
+
+        @Override
+        public void setGain(double gain) {
+
+        }
+
+        @Override
+        public double getProcessingDelayTime() {
+            return 0;
+        }
+
+        @Override
+        public boolean isProcessing() {
+            return false;
+        }
+
+        @Override
+        public double getLeq() {
+            return 0;
+        }
     }
 
     private static class PinkNoiseFeed implements Runnable {
@@ -625,7 +650,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
             this.calibrationService = calibrationService;
             this.audioTrack = audioTrack;
             sampleBufferLength = (int)(audioTrack.getSampleRate() * maxLength);
-            signal = SOSSignalProcessing.makePinkNoise(sampleBufferLength, (short)powerRMS, 0);
+            signal = Window.makePinkNoise(sampleBufferLength, (short)powerRMS, 0);
             bufferSize = (int)(audioTrack.getSampleRate() * 0.1);
         }
 

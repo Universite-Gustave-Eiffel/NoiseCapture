@@ -489,7 +489,11 @@ public class MainActivity extends AppCompatActivity {
      */
     public boolean isOnline() {
         try {
-            URL url = new URL(MeasurementUploadWPS.CHECK_UPLOAD_AVAILABILITY);
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+            String serverUrl = sharedPref.getString("settings_onomap_url",
+                    MeasurementUploadWPS.BASE_URL);
+            serverUrl += "/geoserver/ows?service=wps&version=1.0.0&request=GetCapabilities";
+            URL url = new URL(serverUrl);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             int code = urlConnection.getResponseCode();
             return code == 200 || code == 301 || code == 302;

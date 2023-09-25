@@ -536,6 +536,7 @@ public class Storage extends SQLiteOpenHelper {
             this.locationUTC = locationUTC;
         }
 
+        @SuppressLint("Range")
         public Leq(Cursor cursor) {
             this(cursor.getInt(cursor.getColumnIndex(COLUMN_RECORD_ID)),
                     cursor.getInt(cursor.getColumnIndex(COLUMN_LEQ_ID)),
@@ -625,7 +626,7 @@ public class Storage extends SQLiteOpenHelper {
 
         private final int leqId;
         private final int frequency;
-        private final float spl;
+        private final double spl;
 
         public LeqValue(Cursor cursor) {
             this(cursor.getInt(cursor.getColumnIndex(COLUMN_LEQ_ID)),
@@ -638,7 +639,7 @@ public class Storage extends SQLiteOpenHelper {
          * @param frequency Frequency in Hertz
          * @param spl Sound pressure value in dB(A)
          */
-        public LeqValue(int leqId, int frequency, float spl) {
+        public LeqValue(int leqId, int frequency, double spl) {
             this.leqId = leqId;
             this.frequency = frequency;
             this.spl = spl;
@@ -652,7 +653,7 @@ public class Storage extends SQLiteOpenHelper {
             return frequency;
         }
 
-        public float getSpl() {
+        public double getSpl() {
             return spl;
         }
     }
@@ -722,6 +723,7 @@ public class Storage extends SQLiteOpenHelper {
             return computedGain;
         }
 
+        @SuppressLint("Range")
         public TrafficCalibrationSession(Cursor cursor) {
             this(cursor.getInt(cursor.getColumnIndex(COLUMN_CALIBRATION_ID)),
                     cursor.getDouble(cursor.getColumnIndex(COLUMN_MEDIAN_PEAK)),

@@ -47,6 +47,7 @@ public class LeqStats {
     private Map<Integer, AtomicInteger> leqClass = new TreeMap<>();
     private static final double DEFAULT_CLASS_STEP = 0.1;
     private double classStep = DEFAULT_CLASS_STEP;
+    private double lastLeq=0;
 
 
     public LeqStats() {
@@ -66,6 +67,7 @@ public class LeqStats {
     }
 
     public void addLeq(double leq) {
+        lastLeq = leq;
         leqMin = Math.min(leqMin, leq);
         leqMax = Math.max(leqMax, leq);
         rmsSum += Math.pow(10., leq / 10.);
@@ -77,6 +79,10 @@ public class LeqStats {
         }
         leqCounter.addAndGet(1);
         rmsSumCount++;
+    }
+
+    public double getLastLeq() {
+        return lastLeq;
     }
 
     /**

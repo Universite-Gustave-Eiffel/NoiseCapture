@@ -113,6 +113,7 @@ public class CommentActivity extends MainActivity {
                 // Message for starting a record
                 Toast.makeText(getApplicationContext(),
                         getString(R.string.no_results), Toast.LENGTH_LONG).show();
+                initDrawer(record != null ? record.getId() : null);
                 return;
             }
         }

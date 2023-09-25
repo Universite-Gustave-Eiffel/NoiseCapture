@@ -438,12 +438,12 @@ public class MeasurementActivity extends MainActivity implements
         ArrayList<String> xVals = new ArrayList<String>();
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
         double[] freqLabels = measurementService.getAudioProcess().getRealtimeCenterFrequency();
-        float[] freqValues = measurementService.getAudioProcess().getThirdOctaveFrequencySPL();
+        double[] freqValues = measurementService.getAudioProcess().getThirdOctaveFrequencySPL();
         for(int idfreq =0; idfreq < freqLabels.length; idfreq++) {
             xVals.add(Spectrogram.formatFrequency((int)freqLabels[idfreq]));
             // Sum values
             // Compute frequency range covered by frequency
-            yVals1.add(new BarEntry(new float[] {freqValues[idfreq]}, idfreq));
+            yVals1.add(new BarEntry(new float[] {(float)freqValues[idfreq]}, idfreq));
         }
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
@@ -483,7 +483,7 @@ public class MeasurementActivity extends MainActivity implements
                     AudioProcess.STATE.CLOSED && !activity.measurementService.isCanceled()) {
                 try {
                     Thread.sleep(200);
-                    int progress =  activity.measurementService.getAudioProcess().getRemainingNotProcessSamples();
+                    int progress =  (int)(activity.measurementService.getAudioProcess().getRemainingNotProcessTime());
                     if(progress != lastShownProgress) {
                         lastShownProgress = progress;
                         activity.runOnUiThread(new SetDialogMessage(processingDialog, activity.getResources().getString(R.string.measurement_processlastsamples,
@@ -687,7 +687,8 @@ public class MeasurementActivity extends MainActivity implements
                 ProgressDialog myDialog = new ProgressDialog(activity);
                 if (!activity.measurementService.isCanceled()) {
                     myDialog.setMessage(resources.getString(R.string.measurement_processlastsamples,
-                            activity.measurementService.getAudioProcess().getRemainingNotProcessSamples()));
+                            (int)(activity.measurementService.getAudioProcess()
+                                    .getRemainingNotProcessTime())));
                     myDialog.setCancelable(false);
                     myDialog.setButton(DialogInterface.BUTTON_NEGATIVE,
                             resources.getText(R.string.text_CANCEL_data_transfer),
@@ -774,15 +775,15 @@ public class MeasurementActivity extends MainActivity implements
                         accuracyImageHint.setImageResource(R.drawable.gps_off);
                         accuracyText.setText(R.string.no_gps_hint);
                     }
-                    // Update current location of user
-                    final double leq = activity.measurementService.getAudioProcess().getLeq(false);
-                    activity.setData(activity.measurementService.getAudioProcess().getLeq(false));
                     // Change the text and the textcolor in the corresponding textview
                     // for the Leqi value
                     LeqStats leqStats =
                             activity.measurementService.getFastLeqStats();
-                    final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
-                    formatdBA(leq, mTextView);
+                    // Update current location of user
+                    double lastLaeqFast = activity.measurementService.getLAeq();
+                    activity.setData(lastLaeqFast);
+                    final TextView mTextView = activity.findViewById(R.id.textView_value_SL_i);
+                    formatdBA(lastLaeqFast, mTextView);
                     if(activity.measurementService.getLeqAdded() != 0) {
                         // Stats are only available if the recording of previous leq are activated
                         final TextView valueMin = (TextView) activity.findViewById(R.id
@@ -795,9 +796,7 @@ public class MeasurementActivity extends MainActivity implements
                                 .textView_value_Mean_i);
                         formatdBA(leqStats.getLeqMean(), valueMean);
                     }
-
-
-                    int nc = MeasurementActivity.getNEcatColors(leq);    // Choose the color category in
+                    int nc = MeasurementActivity.getNEcatColors(lastLaeqFast);    // Choose the color category in
                     // function of the sound level
                     mTextView.setTextColor(activity.NE_COLORS[nc]);
 

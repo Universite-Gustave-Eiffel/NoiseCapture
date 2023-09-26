@@ -638,7 +638,11 @@ public class Results extends MainActivity {
         @Override
         public void run() {
 
-            // Query database
+            // Query 1s database
+            activity.measurementManager.getRecordLocations(activity.record.getId(),
+                    new OneSecondLeqVisitor(activity.leqStats));
+
+            //
             List<Integer> frequencies = new ArrayList<Integer>();
             List<Float[]> leqValues = new ArrayList<Float[]>();
             activity.measurementManager.getRecordLeqs(activity.record.getId(), frequencies, leqValues, new
@@ -651,14 +655,11 @@ public class Results extends MainActivity {
             }
             // parse each leq window time
             for(Float[] leqFreqs : leqValues) {
-                double rms = 0;
                 int idFreq = 0;
                 for(float leqValue : leqFreqs) {
                     leqStatsByFreq[idFreq].addLeq(leqValue);
-                    rms += Math.pow(10, leqValue / 10);
                     idFreq++;
                 }
-                activity.leqStats.addLeq(10 * Math.log10(rms));
             }
             activity.splHistogram = new ArrayList<>(leqStatsByFreq.length);
             activity.ltob = new String[leqStatsByFreq.length];
@@ -723,6 +724,24 @@ public class Results extends MainActivity {
                 }
             });
 
+        }
+    }
+    private static class OneSecondLeqVisitor implements MeasurementManager.RecordVisitor<MeasurementManager.LeqBatch> {
+        private LeqStats leqStats;
+
+        public OneSecondLeqVisitor(LeqStats leqStats) {
+            this.leqStats = leqStats;
+        }
+
+        @Override
+        public void onCreateCursor(int recordCount) {
+
+        }
+
+        @Override
+        public boolean next(MeasurementManager.LeqBatch record) {
+            leqStats.addLeq(record.computeGlobalLAeq());
+            return true;
         }
     }
 }

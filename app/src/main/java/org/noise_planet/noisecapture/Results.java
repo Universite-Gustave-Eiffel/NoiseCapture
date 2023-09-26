@@ -27,6 +27,7 @@
 
 package org.noise_planet.noisecapture;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
@@ -48,6 +49,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.github.mikephil.charting.charts.BarChart;
+import com.github.mikephil.charting.charts.LineChart;
 import com.github.mikephil.charting.charts.PieChart;
 import com.github.mikephil.charting.components.Legend;
 import com.github.mikephil.charting.components.Legend.LegendPosition;
@@ -58,12 +60,16 @@ import com.github.mikephil.charting.data.BarData;
 import com.github.mikephil.charting.data.BarDataSet;
 import com.github.mikephil.charting.data.BarEntry;
 import com.github.mikephil.charting.data.Entry;
+import com.github.mikephil.charting.data.LineData;
+import com.github.mikephil.charting.data.LineDataSet;
 import com.github.mikephil.charting.data.PieData;
 import com.github.mikephil.charting.data.PieDataSet;
 import com.github.mikephil.charting.formatter.PercentFormatter;
 import com.github.mikephil.charting.formatter.ValueFormatter;
+import com.github.mikephil.charting.formatter.YAxisValueFormatter;
 import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
+import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.ViewPortHandler;
 import com.nhaarman.supertooltips.ToolTip;
 import com.nhaarman.supertooltips.ToolTipRelativeLayout;
@@ -74,16 +80,20 @@ import org.orbisgis.sos.LeqStats;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Results extends MainActivity {
     private static final Logger LOGGER = LoggerFactory.getLogger(Results.class);
+    // 1s measurements will be aggregated if there is more than this number of seconds
+    public static final int MAXIMUM_X_VALUES_TIME_NOISE_LEVEL = 300;
     private MeasurementManager measurementManager;
     private Storage.Record record;
     private static final double[][] CLASS_RANGES = new double[][]{{Double.MIN_VALUE, 45}, {45, 55},
@@ -96,7 +106,7 @@ public class Results extends MainActivity {
     // For the Charts
     public PieChart rneChart;
     public PieChart neiChart;
-    protected BarChart sChart; // Spectrum representation
+    public LineChart timeLevelChart;
 
     // Other resources
     private String[] ltob;  // List of third-octave bands
@@ -148,12 +158,11 @@ public class Results extends MainActivity {
         Legend lnei = neiChart.getLegend();
         lnei.setEnabled(false);
 
-        // Cumulated spectrum
-        sChart = (BarChart) findViewById(R.id.spectrumChart);
-        initSpectrumChart();
-        Legend ls = sChart.getLegend();
-        ls.setEnabled(false); // Hide legend
+        // Time chart
+        timeLevelChart = (LineChart) findViewById(R.id.timeLineChart);
+        initLevelChart();
 
+        // Other fields
         TextView minText = (TextView) findViewById(R.id.textView_value_Min_SL);
         minText.setText(R.string.no_valid_dba_value);
         if(showTooltip) {
@@ -320,72 +329,9 @@ public class Results extends MainActivity {
     }
 
 
-    public void initSpectrumChart(){
-        sChart.setPinchZoom(false);
-        sChart.setDoubleTapToZoomEnabled(false);
-        sChart.setDrawBarShadow(false);
-        sChart.setDescription("");
-        sChart.setPinchZoom(false);
-        sChart.setDrawGridBackground(false);
-        sChart.setHighlightPerTapEnabled(true);
-        sChart.setHighlightPerDragEnabled(false);
-        sChart.setDrawHighlightArrow(true);
-        sChart.setDrawValueAboveBar(true);
-        // XAxis parameters: hide all
-        XAxis xls = sChart.getXAxis();
-        xls.setPosition(XAxisPosition.BOTTOM);
-        xls.setDrawAxisLine(true);
-        xls.setDrawGridLines(false);
-        xls.setLabelRotationAngle(-90);
-        xls.setDrawLabels(true);
-        xls.setTextColor(Color.WHITE);
-        xls.setLabelsToSkip(0);
-        // YAxis parameters (left): main axis for dB values representation
-        YAxis yls = sChart.getAxisLeft();
-        yls.setDrawAxisLine(true);
-        yls.setDrawGridLines(true);
-        yls.setAxisMaxValue(110.f);
-        yls.setStartAtZero(true);
-        yls.setTextColor(Color.WHITE);
-        yls.setGridColor(Color.WHITE);
-        // YAxis parameters (right): no axis, hide all
-        YAxis yrs = sChart.getAxisRight();
-        yrs.setEnabled(false);
-        //return true;
-    }
 
 
 
-    // Read spl data for spectrum representation
-    private void setDataS() {
-
-        ArrayList<String> xVals = new ArrayList<String>();
-        Collections.addAll(xVals, ltob);
-
-
-        ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
-
-        for (int i = 0; i < splHistogram.size(); i++) {
-            yVals1.add(new BarEntry(splHistogram.get(i), i));
-        }
-
-        BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
-        set1.setValueTextColor(Color.WHITE);
-
-        set1.setColors(
-                new int[]{Color.rgb(0, 128, 255), Color.rgb(0, 128, 255), Color.rgb(0, 128, 255),
-                        Color.rgb(102, 178, 255), Color.rgb(102, 178, 255),
-                        Color.rgb(102, 178, 255)});
-
-        ArrayList<IBarDataSet> dataSets = new ArrayList<IBarDataSet>();
-        dataSets.add(set1);
-
-        BarData data = new BarData(xVals, dataSets);
-        data.setValueTextSize(10f);
-        data.setValueFormatter(new FreqValueFormatter(sChart));
-        sChart.setData(data);
-        sChart.invalidate();
-    }
 
     // Init RNE Pie Chart
     public void initRNEChart(){
@@ -445,6 +391,25 @@ public class Results extends MainActivity {
         rneChart.invalidate();
     }
 
+    public void initLevelChart() {
+        Legend l = timeLevelChart.getLegend();
+        l.setTextColor(Color.WHITE);
+        timeLevelChart.setScaleEnabled(false);
+        timeLevelChart.setHighlightPerDragEnabled(true);
+        timeLevelChart.setHighlightPerTapEnabled(true);
+        timeLevelChart.setDescription(getString(R.string.result_linechart_description));
+        timeLevelChart.setDescriptionColor(Color.WHITE);
+        timeLevelChart.setDescriptionTextSize(12);
+        XAxis xAxis = timeLevelChart.getXAxis();
+        xAxis.setTextColor(Color.WHITE);
+        xAxis.setSpaceBetweenLabels(" 9:99:99".length());
+        YAxis yAxis = timeLevelChart.getAxisLeft();
+        yAxis.setTextColor(Color.WHITE);
+        yAxis.setAxisMinValue(30);
+        yAxis.setAxisMaxValue(120);
+        timeLevelChart.getAxisRight().setEnabled(false);
+    }
+
     public void initNEIChart() {
         // NEI PieChart
         neiChart.setUsePercentValues(true);
@@ -462,7 +427,43 @@ public class Results extends MainActivity {
         //return true;
     }
 
-    // Generate artificial data for NEI
+    private void setTimeLevelData() {
+        LineData lineData = new LineData();
+        lineData.setDrawValues(true);
+        List<Entry> entries = new ArrayList<>(MAXIMUM_X_VALUES_TIME_NOISE_LEVEL);
+        List<String> xVals = new ArrayList<>(MAXIMUM_X_VALUES_TIME_NOISE_LEVEL);
+        float currentLevel = 45;
+        SimpleDateFormat dateFormatHoursLength =
+                new SimpleDateFormat("HH'h'mm'm'ss's'", Locale.getDefault());
+        dateFormatHoursLength.setTimeZone(TimeZone.getTimeZone("UTC"));
+        SimpleDateFormat dateFormatMinutesLength =
+                new SimpleDateFormat("mm'm'ss's'", Locale.getDefault());
+        SimpleDateFormat dateFormatSecondsLength =
+                new SimpleDateFormat("ss's'", Locale.getDefault());
+        for(int i=0; i < MAXIMUM_X_VALUES_TIME_NOISE_LEVEL; i++) {
+            currentLevel = (float)Math.max(35, currentLevel + Math.random()*4-2);
+            entries.add(new Entry(currentLevel, i));
+            Date date = new Date(i*1000);
+            String labelString;
+            if(i < 60) {
+                labelString = dateFormatSecondsLength.format(date);
+            } else if(i < 3600) {
+                labelString = dateFormatMinutesLength.format(date);
+            } else {
+                labelString = dateFormatHoursLength.format(date);
+            }
+            xVals.add(labelString);
+        }
+        LineDataSet dataSet = new LineDataSet(entries, getString(R.string.result_laeq));
+        dataSet.setDrawCircles(false);
+        dataSet.setDrawValues(true);
+        lineData.addDataSet(dataSet);
+        lineData.setXVals(xVals);
+        lineData.setValueTextColor(Color.WHITE);
+        timeLevelChart.setData(lineData);
+        timeLevelChart.invalidate();
+    }
+
     private void setNEIData() {
 
         ArrayList<Entry> yVals1 = new ArrayList<Entry>();
@@ -493,29 +494,6 @@ public class Results extends MainActivity {
         neiChart.invalidate();
     }
 
-
-    private static final class FreqValueFormatter implements ValueFormatter {
-        private BarChart sChart;
-
-        public FreqValueFormatter(BarChart sChart) {
-            this.sChart = sChart;
-        }
-
-        @Override
-        public String getFormattedValue(float value, Entry entry, int dataSetIndex, ViewPortHandler viewPortHandler) {
-            if(!sChart.valuesToHighlight()) {
-                return "";
-            }
-            Highlight[] highlights = sChart.getHighlighted();
-            for (final Highlight highlight : highlights) {
-                int xIndex = highlight.getXIndex();
-                if (xIndex == entry.getXIndex()) {
-                    return String.format(Locale.getDefault(), "%.1f dB", value);
-                }
-            }
-            return "";
-        }
-    }
 
     private static class ToolTipListener implements View.OnTouchListener {
         private Results results;
@@ -677,7 +655,7 @@ public class Results extends MainActivity {
                 public void run() {
                     activity.setRNEData(leqOccurrences.getUserDefinedOccurrences());
                     activity.setNEIData();
-                    activity.setDataS();
+                    activity.setTimeLevelData();
 
                     TextView minText = (TextView) activity.findViewById(R.id.textView_value_Min_SL);
                     minText.setText(String.format(Locale.getDefault(), "%.01f", activity.leqStats
@@ -711,9 +689,8 @@ public class Results extends MainActivity {
                     activity.findViewById(R.id.textView_color_LA90)
                             .setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqOccurrences.getLa90())]);
 
-                    // launch animation
-                    if(activity.sChart != null) {
-                        activity.sChart.animateXY(1500, 1500);
+                    if(activity.timeLevelChart != null) {
+                        activity.timeLevelChart.animateX(1500);
                     }
                     if(activity.neiChart != null) {
                         activity.neiChart.animateXY(1500, 1500);

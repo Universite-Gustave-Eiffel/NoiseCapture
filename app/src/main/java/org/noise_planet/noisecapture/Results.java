@@ -71,6 +71,7 @@ import com.github.mikephil.charting.highlight.Highlight;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 import com.github.mikephil.charting.interfaces.datasets.ILineDataSet;
 import com.github.mikephil.charting.utils.ViewPortHandler;
+import com.google.android.material.tabs.TabLayout;
 import com.nhaarman.supertooltips.ToolTip;
 import com.nhaarman.supertooltips.ToolTipRelativeLayout;
 import com.nhaarman.supertooltips.ToolTipView;
@@ -106,7 +107,7 @@ public class Results extends MainActivity {
     // For the Charts
     public PieChart rneChart;
     public PieChart neiChart;
-    public LineChart timeLevelChart;
+    public ViewPagerExt viewPager;
 
     // Other resources
     private String[] ltob;  // List of third-octave bands
@@ -115,12 +116,20 @@ public class Results extends MainActivity {
     private LeqStats leqStats = new LeqStats();
     private List<String> tags;
 
+    private ResultsLineChartFragment resultsLineChartFragment;
+    private ResultsSpectrumFragment resultsSpectrumFragment;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         boolean showTooltip = sharedPref.getBoolean("settings_tooltip", true);
         setContentView(R.layout.activity_results);
+        viewPager = findViewById(R.id.result_viewpager);
+        setupViewPager(viewPager);
+        TabLayout tabLayout = findViewById(R.id.result_tabs);
+        tabLayout.setupWithViewPager(viewPager);
+
         this.measurementManager = new MeasurementManager(this);
         Intent intent = getIntent();
         if(intent != null && intent.hasExtra(RESULTS_RECORD_ID)) {
@@ -157,10 +166,6 @@ public class Results extends MainActivity {
 
         Legend lnei = neiChart.getLegend();
         lnei.setEnabled(false);
-
-        // Time chart
-        timeLevelChart = (LineChart) findViewById(R.id.timeLineChart);
-        initLevelChart();
 
         // Other fields
         TextView minText = (TextView) findViewById(R.id.textView_value_Min_SL);
@@ -234,6 +239,15 @@ public class Results extends MainActivity {
 
 
         AsyncTask.execute(new LoadMeasurements(this));
+    }
+
+    private void setupViewPager(ViewPagerExt viewPager) {
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        resultsLineChartFragment = new ResultsLineChartFragment();
+        resultsSpectrumFragment = new ResultsSpectrumFragment();
+        adapter.addFragment(resultsLineChartFragment, getString(R.string.result_tab_linechart));
+        adapter.addFragment(resultsSpectrumFragment, getString(R.string.measurement_tab_spectrum));
+        viewPager.setAdapter(adapter);
     }
 
     private static final class OnGoToMeasurePage implements View.OnClickListener {
@@ -391,25 +405,6 @@ public class Results extends MainActivity {
         rneChart.invalidate();
     }
 
-    public void initLevelChart() {
-        Legend l = timeLevelChart.getLegend();
-        l.setTextColor(Color.WHITE);
-        timeLevelChart.setScaleEnabled(false);
-        timeLevelChart.setHighlightPerDragEnabled(true);
-        timeLevelChart.setHighlightPerTapEnabled(true);
-        timeLevelChart.setDescription(getString(R.string.result_linechart_description));
-        timeLevelChart.setDescriptionColor(Color.WHITE);
-        timeLevelChart.setDescriptionTextSize(12);
-        XAxis xAxis = timeLevelChart.getXAxis();
-        xAxis.setTextColor(Color.WHITE);
-        xAxis.setSpaceBetweenLabels(" 9:99:99".length());
-        YAxis yAxis = timeLevelChart.getAxisLeft();
-        yAxis.setTextColor(Color.WHITE);
-        yAxis.setAxisMinValue(30);
-        yAxis.setAxisMaxValue(120);
-        timeLevelChart.getAxisRight().setEnabled(false);
-    }
-
     public void initNEIChart() {
         // NEI PieChart
         neiChart.setUsePercentValues(true);
@@ -425,43 +420,6 @@ public class Results extends MainActivity {
         neiChart.setCenterTextSize(15);
         neiChart.setCenterTextColor(Color.WHITE);
         //return true;
-    }
-
-    private void setTimeLevelData() {
-        LineData lineData = new LineData();
-        lineData.setDrawValues(true);
-        List<Entry> entries = new ArrayList<>(MAXIMUM_X_VALUES_TIME_NOISE_LEVEL);
-        List<String> xVals = new ArrayList<>(MAXIMUM_X_VALUES_TIME_NOISE_LEVEL);
-        float currentLevel = 45;
-        SimpleDateFormat dateFormatHoursLength =
-                new SimpleDateFormat("HH'h'mm'm'ss's'", Locale.getDefault());
-        dateFormatHoursLength.setTimeZone(TimeZone.getTimeZone("UTC"));
-        SimpleDateFormat dateFormatMinutesLength =
-                new SimpleDateFormat("mm'm'ss's'", Locale.getDefault());
-        SimpleDateFormat dateFormatSecondsLength =
-                new SimpleDateFormat("ss's'", Locale.getDefault());
-        for(int i=0; i < MAXIMUM_X_VALUES_TIME_NOISE_LEVEL; i++) {
-            currentLevel = (float)Math.max(35, currentLevel + Math.random()*4-2);
-            entries.add(new Entry(currentLevel, i));
-            Date date = new Date(i*1000);
-            String labelString;
-            if(i < 60) {
-                labelString = dateFormatSecondsLength.format(date);
-            } else if(i < 3600) {
-                labelString = dateFormatMinutesLength.format(date);
-            } else {
-                labelString = dateFormatHoursLength.format(date);
-            }
-            xVals.add(labelString);
-        }
-        LineDataSet dataSet = new LineDataSet(entries, getString(R.string.result_laeq));
-        dataSet.setDrawCircles(false);
-        dataSet.setDrawValues(true);
-        lineData.addDataSet(dataSet);
-        lineData.setXVals(xVals);
-        lineData.setValueTextColor(Color.WHITE);
-        timeLevelChart.setData(lineData);
-        timeLevelChart.invalidate();
     }
 
     private void setNEIData() {
@@ -655,7 +613,7 @@ public class Results extends MainActivity {
                 public void run() {
                     activity.setRNEData(leqOccurrences.getUserDefinedOccurrences());
                     activity.setNEIData();
-                    activity.setTimeLevelData();
+                    activity.resultsLineChartFragment.setTimeLevelData();
 
                     TextView minText = (TextView) activity.findViewById(R.id.textView_value_Min_SL);
                     minText.setText(String.format(Locale.getDefault(), "%.01f", activity.leqStats
@@ -689,8 +647,8 @@ public class Results extends MainActivity {
                     activity.findViewById(R.id.textView_color_LA90)
                             .setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqOccurrences.getLa90())]);
 
-                    if(activity.timeLevelChart != null) {
-                        activity.timeLevelChart.animateX(1500);
+                    if(activity.resultsLineChartFragment.getTimeLevelChart() != null) {
+                        activity.resultsLineChartFragment.getTimeLevelChart().animateX(1500);
                     }
                     if(activity.neiChart != null) {
                         activity.neiChart.animateXY(1500, 1500);

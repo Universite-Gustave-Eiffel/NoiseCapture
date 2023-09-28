@@ -65,6 +65,7 @@ import java.util.TimeZone;
  */
 public class ResultsLineChartFragment extends Fragment {
 
+    private static final int MAX_VALUES_Y_DISPLAY = 30;
     private View view;
     private LineChart timeLevelChart;
 
@@ -108,23 +109,13 @@ public class ResultsLineChartFragment extends Fragment {
         yAxis.setAxisMinValue(20);
         yAxis.setAxisMaxValue(120);
         timeLevelChart.getAxisRight().setEnabled(false);
-
-//        TextView yAxisName = new TextView(getActivity());
-//        yAxisName.setRotation(90);
-//        yAxisName.setText(R.string.SL_dBA);
-//        FrameLayout.LayoutParams params2 = new FrameLayout.LayoutParams(
-//                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-//        params2.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
-//        timeLevelChart.addView(yAxisName, params2);
-
     }
 
-    public void setTimeLevelData() {
+    public void setTimeLevelData(LeqStats.LeqOccurrences leqOccurrences, List<Integer> timeData, List<Float> splData) {
         LineData lineData = new LineData();
         lineData.setDrawValues(true);
-        List<Entry> entries = new ArrayList<>(300);
-        List<String> xVals = new ArrayList<>(300);
-        float currentLevel = 80;
+        List<Entry> entries = new ArrayList<>(timeData.size());
+        List<String> xVals = new ArrayList<>(timeData.size());
         SimpleDateFormat dateFormatHoursLength =
                 new SimpleDateFormat("HH'h'mm'm'ss's'", Locale.getDefault());
         dateFormatHoursLength.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -132,54 +123,52 @@ public class ResultsLineChartFragment extends Fragment {
                 new SimpleDateFormat("mm'm'ss's'", Locale.getDefault());
         SimpleDateFormat dateFormatSecondsLength =
                 new SimpleDateFormat("ss's'", Locale.getDefault());
-        AcousticIndicators acousticIndicators = new AcousticIndicators();
-        LeqStats leqStats = new LeqStats(0.01);
-        for(int i=0; i < 150; i++) {
-            currentLevel = (float)Math.max(35, currentLevel + Math.random()*4-2);
-            leqStats.addLeq(currentLevel);
+        for(int i=0; i < timeData.size(); i++) {
+            float currentLevel = splData.get(i);
             entries.add(new Entry(currentLevel, i));
-            Date date = new Date((i + 1)*1000);
+            int secondsElapsed = timeData.get(i);
+            Date date = new Date(secondsElapsed * 1000);
             String labelString;
-            if(i < 60) {
+            if(secondsElapsed < 60) {
                 labelString = dateFormatSecondsLength.format(date);
-            } else if(i < 3600) {
+            } else if(secondsElapsed < 3600) {
                 labelString = dateFormatMinutesLength.format(date);
             } else {
                 labelString = dateFormatHoursLength.format(date);
             }
             xVals.add(labelString);
         }
-        LineDataSet dataSet = new LineDataSet(entries, getString(R.string.result_laeq));
-        dataSet.setDrawCircles(false);
-        dataSet.setDrawValues(true);
-        dataSet.setColor(Color.WHITE);
+        LineDataSet laeqDataset = new LineDataSet(entries, getString(R.string.result_laeq));
+        laeqDataset.setDrawCircles(false);
+        laeqDataset.setDrawValues(true);
+        laeqDataset.setColor(Color.WHITE);
         Drawable drawable = ContextCompat.getDrawable(view.getContext(), R.drawable.fade_linegraph);
-        dataSet.setFillDrawable(drawable);
-        dataSet.setDrawFilled(true);
+        laeqDataset.setFillDrawable(drawable);
+        laeqDataset.setDrawFilled(true);
         // Statistical lines
-        LeqStats.LeqOccurrences leqOccurrences = leqStats.computeLeqOccurrences(null);
         double la10 = leqOccurrences.getLa10();
         LineDataSet la10LineDataSet = new LineDataSet(Arrays.asList(new Entry( (float)la10, 0),
-                new Entry((float)la10,dataSet.getEntryCount() - 1)),
+                new Entry((float)la10,laeqDataset.getEntryCount() - 1)),
                 getString(R.string.measurement_dba_la10));
         la10LineDataSet.setDrawCircles(false);
         la10LineDataSet.setColor(Color.RED);
+        la10LineDataSet.setDrawValues(false);
         double la90 = leqOccurrences.getLa90();
         LineDataSet la90LineDataSet = new LineDataSet(Arrays.asList(new Entry( (float)la90, 0),
-                new Entry((float)la90,dataSet.getEntryCount() - 1)),
+                new Entry((float)la90,laeqDataset.getEntryCount() - 1)),
                 getString(R.string.measurement_dba_la90));
         la90LineDataSet.setDrawCircles(false);
         la90LineDataSet.setColor(Color.GREEN);
-
+        la90LineDataSet.setDrawValues(false);
 
         lineData.addDataSet(la90LineDataSet);
-        lineData.addDataSet(dataSet);
+        lineData.addDataSet(laeqDataset);
         lineData.addDataSet(la10LineDataSet);
-
 
         lineData.setXVals(xVals);
         lineData.setValueTextColor(Color.WHITE);
         timeLevelChart.setData(lineData);
+        timeLevelChart.setMaxVisibleValueCount(MAX_VALUES_Y_DISPLAY);
         timeLevelChart.invalidate();
     }
 }

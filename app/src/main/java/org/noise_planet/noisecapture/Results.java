@@ -111,7 +111,7 @@ public class Results extends MainActivity {
 
     // Other resources
     private String[] catNE; // List of noise level category (defined as resources)
-    private LeqStats leqStats = new LeqStats();
+    //private LeqStats leqStats = new LeqStats();
     private List<String> tags;
 
     private ResultsLineChartFragment resultsLineChartFragment;
@@ -572,62 +572,45 @@ public class Results extends MainActivity {
         @Override
         public void run() {
 
-            // Query 1s database
-            activity.measurementManager.getRecordLocations(activity.record.getId(),
-                    new OneSecondLeqVisitor(activity.leqStats));
+            final OneSecondLeqVisitor leqVisitor = new OneSecondLeqVisitor();
 
-            //
-            List<Integer> frequencies = new ArrayList<Integer>();
-            List<Float[]> leqValues = new ArrayList<Float[]>();
-            activity.measurementManager.getRecordLeqs(activity.record.getId(), frequencies, leqValues, new
-                    ReadRecordsProgression(activity));
+            // Query 1s database without storing all values in memory
+            activity.measurementManager.getRecordLocations(activity.record.getId(), leqVisitor);
 
-            // Create leq statistics by frequency
-            LeqStats[] leqStatsByFreq = new LeqStats[frequencies.size()];
-            for(int idFreq = 0; idFreq < leqStatsByFreq.length; idFreq++) {
-                leqStatsByFreq[idFreq] = new LeqStats();
-            }
-            // parse each leq window time
-            for(Float[] leqFreqs : leqValues) {
-                int idFreq = 0;
-                for(float leqValue : leqFreqs) {
-                    leqStatsByFreq[idFreq].addLeq(leqValue);
-                    idFreq++;
-                }
-            }
-            final List<Float> splHistogram = new ArrayList<>(leqStatsByFreq.length);
+            final List<Float> splHistogram = new ArrayList<>(leqVisitor.leqStatsByFreq.length);
             // List of third-octave bands
-            final String[] ltob = new String[leqStatsByFreq.length];
+            final String[] ltob = new String[leqVisitor.leqStatsByFreq.length];
             int idFreq = 0;
-            for (LeqStats aLeqStatsByFreq : leqStatsByFreq) {
-                ltob[idFreq] = Spectrogram.formatFrequency(frequencies.get(idFreq));
+            for (LeqStats aLeqStatsByFreq : leqVisitor.leqStatsByFreq) {
+                ltob[idFreq] = Spectrogram.formatFrequency((int)AudioProcess.realTimeCenterFrequency[idFreq]);
                 splHistogram.add((float) aLeqStatsByFreq.getLeqMean());
                 idFreq++;
             }
 
-            final LeqStats.LeqOccurrences leqOccurrences = activity.leqStats.computeLeqOccurrences
+            final LeqStats.LeqOccurrences leqOccurrences = leqVisitor.leqStats.computeLeqOccurrences
                     (CLASS_RANGES);
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
                     activity.setRNEData(leqOccurrences.getUserDefinedOccurrences());
                     activity.setNEIData();
-                    activity.resultsLineChartFragment.setTimeLevelData();
+                    activity.resultsLineChartFragment.setTimeLevelData(leqOccurrences,
+                            leqVisitor.splSecond, leqVisitor.splValues);
                     activity.resultsSpectrumFragment.setDataS(splHistogram, ltob);
 
                     TextView minText = (TextView) activity.findViewById(R.id.textView_value_Min_SL);
-                    minText.setText(String.format(Locale.getDefault(), "%.01f", activity.leqStats
+                    minText.setText(String.format(Locale.getDefault(), "%.01f", leqVisitor.leqStats
                             .getLeqMin()));
 
                     activity.findViewById(R.id.textView_color_Min_SL).setBackgroundColor(activity
-                            .NE_COLORS[getNEcatColors(activity.leqStats.getLeqMin())]);
+                            .NE_COLORS[getNEcatColors(leqVisitor.leqStats.getLeqMin())]);
 
                     TextView maxText = (TextView) activity.findViewById(R.id.textView_value_Max_SL);
-                    maxText.setText(String.format(Locale.getDefault(), "%.01f", activity.leqStats
+                    maxText.setText(String.format(Locale.getDefault(), "%.01f", leqVisitor.leqStats
                             .getLeqMax()));
 
                     activity.findViewById(R.id.textView_color_Max_SL)
-                            .setBackgroundColor(activity.NE_COLORS[getNEcatColors(activity.leqStats.getLeqMax())]);
+                            .setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqVisitor.leqStats.getLeqMax())]);
 
                     TextView la10Text = (TextView) activity.findViewById(R.id.textView_value_LA10);
                     la10Text.setText(String.format(Locale.getDefault(), "%.01f", leqOccurrences.getLa10()));
@@ -662,20 +645,46 @@ public class Results extends MainActivity {
         }
     }
     private static class OneSecondLeqVisitor implements MeasurementManager.RecordVisitor<MeasurementManager.LeqBatch> {
-        private LeqStats leqStats;
+        private LeqStats leqStats = new LeqStats();
+        private LeqStats[] leqStatsByFreq = new LeqStats[AudioProcess.realTimeCenterFrequency.length];
+        private List<Float> splHistogram = new ArrayList<>(AudioProcess.realTimeCenterFrequency.length);
+        private List<Integer> splSecond = new ArrayList<>(Results.MAXIMUM_X_VALUES_TIME_NOISE_LEVEL);
+        private List<Float> splValues = new ArrayList<>(Results.MAXIMUM_X_VALUES_TIME_NOISE_LEVEL);
+        private int step;
+        private long firstUTC = 0;
 
-        public OneSecondLeqVisitor(LeqStats leqStats) {
-            this.leqStats = leqStats;
+        public OneSecondLeqVisitor() {
+            for(int idFreq = 0; idFreq < leqStatsByFreq.length; idFreq++) {
+                leqStatsByFreq[idFreq] = new LeqStats();
+            }
         }
 
         @Override
         public void onCreateCursor(int recordCount) {
-
+            if(recordCount < Results.MAXIMUM_X_VALUES_TIME_NOISE_LEVEL) {
+                step = 1;
+            } else {
+                step = (int)Math.ceil(recordCount /
+                        (double)Results.MAXIMUM_X_VALUES_TIME_NOISE_LEVEL);
+            }
         }
 
         @Override
         public boolean next(MeasurementManager.LeqBatch record) {
             leqStats.addLeq(record.computeGlobalLAeq());
+            int idFreq = 0;
+            for(Storage.LeqValue leqValue : record.getLeqValues()) {
+                leqStatsByFreq[idFreq].addLeq(leqValue.getSpl());
+                idFreq++;
+            }
+            if(firstUTC == 0) {
+                firstUTC = record.getLeq().getLeqUtc();
+            }
+            long elapsedTime = (record.getLeq().getLeqUtc() - firstUTC) / 1000 + 1;
+            if(elapsedTime % step == 0) {
+                splSecond.add((int)elapsedTime);
+                splValues.add(record.getLeq().getLAeq());
+            }
             return true;
         }
     }

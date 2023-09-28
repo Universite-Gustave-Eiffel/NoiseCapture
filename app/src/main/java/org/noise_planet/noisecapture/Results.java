@@ -683,7 +683,7 @@ public class Results extends MainActivity {
             long elapsedTime = (record.getLeq().getLeqUtc() - firstUTC) / 1000 + 1;
             if(elapsedTime % step == 0) {
                 splSecond.add((int)elapsedTime);
-                splValues.add(record.getLeq().getLAeq());
+                splValues.add((float)record.computeGlobalLAeq());
             }
             return true;
         }

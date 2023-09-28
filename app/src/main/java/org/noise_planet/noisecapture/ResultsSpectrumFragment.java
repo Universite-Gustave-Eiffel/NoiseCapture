@@ -137,8 +137,8 @@ public class ResultsSpectrumFragment extends Fragment {
         YAxis yls = sChart.getAxisLeft();
         yls.setDrawAxisLine(true);
         yls.setDrawGridLines(true);
-        yls.setAxisMaxValue(110.f);
-        yls.setAxisMinValue(30);
+        yls.setAxisMaxValue(120.f);
+        yls.setAxisMinValue(20);
         yls.setTextColor(Color.WHITE);
         yls.setGridColor(Color.WHITE);
         // YAxis parameters (right): no axis, hide all

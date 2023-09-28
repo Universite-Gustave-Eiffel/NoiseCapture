@@ -110,9 +110,7 @@ public class Results extends MainActivity {
     public ViewPagerExt viewPager;
 
     // Other resources
-    private String[] ltob;  // List of third-octave bands
     private String[] catNE; // List of noise level category (defined as resources)
-    private List<Float> splHistogram;
     private LeqStats leqStats = new LeqStats();
     private List<String> tags;
 
@@ -597,12 +595,13 @@ public class Results extends MainActivity {
                     idFreq++;
                 }
             }
-            activity.splHistogram = new ArrayList<>(leqStatsByFreq.length);
-            activity.ltob = new String[leqStatsByFreq.length];
+            final List<Float> splHistogram = new ArrayList<>(leqStatsByFreq.length);
+            // List of third-octave bands
+            final String[] ltob = new String[leqStatsByFreq.length];
             int idFreq = 0;
             for (LeqStats aLeqStatsByFreq : leqStatsByFreq) {
-                activity.ltob[idFreq] = Spectrogram.formatFrequency(frequencies.get(idFreq));
-                activity.splHistogram.add((float) aLeqStatsByFreq.getLeqMean());
+                ltob[idFreq] = Spectrogram.formatFrequency(frequencies.get(idFreq));
+                splHistogram.add((float) aLeqStatsByFreq.getLeqMean());
                 idFreq++;
             }
 
@@ -614,6 +613,7 @@ public class Results extends MainActivity {
                     activity.setRNEData(leqOccurrences.getUserDefinedOccurrences());
                     activity.setNEIData();
                     activity.resultsLineChartFragment.setTimeLevelData();
+                    activity.resultsSpectrumFragment.setDataS(splHistogram, ltob);
 
                     TextView minText = (TextView) activity.findViewById(R.id.textView_value_Min_SL);
                     minText.setText(String.format(Locale.getDefault(), "%.01f", activity.leqStats

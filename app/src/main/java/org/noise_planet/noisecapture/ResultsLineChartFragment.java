@@ -30,9 +30,12 @@ package org.noise_planet.noisecapture;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
+import android.widget.TextView;
 
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -102,9 +105,18 @@ public class ResultsLineChartFragment extends Fragment {
         xAxis.setSpaceBetweenLabels(" 9:99:99".length());
         YAxis yAxis = timeLevelChart.getAxisLeft();
         yAxis.setTextColor(Color.WHITE);
-        yAxis.setAxisMinValue(30);
+        yAxis.setAxisMinValue(20);
         yAxis.setAxisMaxValue(120);
         timeLevelChart.getAxisRight().setEnabled(false);
+
+//        TextView yAxisName = new TextView(getActivity());
+//        yAxisName.setRotation(90);
+//        yAxisName.setText(R.string.SL_dBA);
+//        FrameLayout.LayoutParams params2 = new FrameLayout.LayoutParams(
+//                FrameLayout.LayoutParams.WRAP_CONTENT, FrameLayout.LayoutParams.WRAP_CONTENT);
+//        params2.gravity = Gravity.END | Gravity.CENTER_VERTICAL;
+//        timeLevelChart.addView(yAxisName, params2);
+
     }
 
     public void setTimeLevelData() {
@@ -144,7 +156,6 @@ public class ResultsLineChartFragment extends Fragment {
         Drawable drawable = ContextCompat.getDrawable(view.getContext(), R.drawable.fade_linegraph);
         dataSet.setFillDrawable(drawable);
         dataSet.setDrawFilled(true);
-        lineData.addDataSet(dataSet);
         // Statistical lines
         LeqStats.LeqOccurrences leqOccurrences = leqStats.computeLeqOccurrences(null);
         double la10 = leqOccurrences.getLa10();
@@ -153,14 +164,17 @@ public class ResultsLineChartFragment extends Fragment {
                 getString(R.string.measurement_dba_la10));
         la10LineDataSet.setDrawCircles(false);
         la10LineDataSet.setColor(Color.RED);
-        lineData.addDataSet(la10LineDataSet);
         double la90 = leqOccurrences.getLa90();
         LineDataSet la90LineDataSet = new LineDataSet(Arrays.asList(new Entry( (float)la90, 0),
                 new Entry((float)la90,dataSet.getEntryCount() - 1)),
-                getString(R.string.measurement_dba_la10));
+                getString(R.string.measurement_dba_la90));
         la90LineDataSet.setDrawCircles(false);
         la90LineDataSet.setColor(Color.GREEN);
+
+
         lineData.addDataSet(la90LineDataSet);
+        lineData.addDataSet(dataSet);
+        lineData.addDataSet(la10LineDataSet);
 
 
         lineData.setXVals(xVals);

@@ -18,6 +18,9 @@ android {
     if (new File(signingFilePath).exists()) {
         apply from: signingFilePath
     }
+    buildFeatures {
+        buildConfig = true
+    }
     defaultConfig {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
@@ -94,7 +97,7 @@ repositories {
 
 dependencies {
     implementation 'com.github.PhilJay:MPAndroidChart:v2.2.5'
-    implementation 'org.slf4j:slf4j-simple:1.7.12'
+    implementation 'org.slf4j:slf4j-simple:1.7.25'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.10'
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: '2.9.10'
 
@@ -109,13 +112,13 @@ dependencies {
     // Testing-only dependencies
     // Force usage of support annotations in the test app, since it is internally used by the runner module.
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-    androidTestImplementation 'androidx.annotation:annotation:1.2.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
-    androidTestImplementation 'androidx.test:rules:1.5.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+    androidTestImplementation 'androidx.annotation:annotation:1.9.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test:rules:1.6.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
     // unit test
     testImplementation group: 'org.robolectric', name: 'robolectric', version: '4.9'
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13.2'
     testImplementation group: 'com.googlecode.soundlibs', name: 'jorbis', version: '0.0.17.4'
     implementation project(':sosfilter')
 }

@@ -429,23 +429,12 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         // Handle presses on the action bar items
-        switch (item.getItemId()) {
-            case R.id.action_settings:
-                Intent is = new Intent(getApplicationContext(),SettingsActivity.class);
-                startActivity(is);
+        if (item.getItemId() == R.id.action_settings) {
+            Intent is = new Intent(getApplicationContext(), SettingsActivity.class);
+            startActivity(is);
             return true;
-            /*
-            case R.id.action_about:
-                Intent ia = new Intent(getApplicationContext(),ViewHtmlPage.class);
-                pagetosee=getString(R.string.url_about);
-                titletosee=getString((R.string.title_activity_about));
-                startActivity(ia);
-                return true;
-                */
-            default:
-                return super.onOptionsItemSelected(item);
         }
-
+        return super.onOptionsItemSelected(item);
     }
 
     protected boolean isManualTransferOnly() {

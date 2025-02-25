@@ -128,37 +128,36 @@ public class History extends MainActivity {
                     selectedRecordIds.add((int)history.historyListAdapter.getItemId(selected.keyAt(i)));
                 }
             }
-            switch (item.getItemId()) {
-                case R.id.delete:
-                    if(!selectedRecordIds.isEmpty()) {
-                        // Remove selected items following the ids
-                        history.historyListAdapter.remove(selectedRecordIds);
-                    }
-                    // Close CAB
-                    mode.finish();
-                    return true;
-                case R.id.publish:
-                    boolean deleted = false;
-                    if(!selectedRecordIds.isEmpty()) {
-                        for(Integer recordId : new ArrayList<Integer>(selectedRecordIds)) {
-                            Storage.Record record = history.measurementManager.getRecord(recordId);
-                            if (!record.getUploadId().isEmpty()) {
-                                selectedRecordIds.remove(recordId);
-                                deleted = true;
-                            }
+            int itemId = item.getItemId();
+            if (itemId == R.id.delete) {
+                if (!selectedRecordIds.isEmpty()) {
+                    // Remove selected items following the ids
+                    history.historyListAdapter.remove(selectedRecordIds);
+                }
+                // Close CAB
+                mode.finish();
+                return true;
+            } else if (itemId == R.id.publish) {
+                boolean deleted = false;
+                if (!selectedRecordIds.isEmpty()) {
+                    for (Integer recordId : new ArrayList<Integer>(selectedRecordIds)) {
+                        Storage.Record record = history.measurementManager.getRecord(recordId);
+                        if (!record.getUploadId().isEmpty()) {
+                            selectedRecordIds.remove(recordId);
+                            deleted = true;
                         }
-                        if(deleted) {
-                            Toast.makeText(history, history.getString(R.string.history_already_uploaded), Toast.LENGTH_LONG).show();
-                        }
-                        // publish selected items following the ids
-                        history.doTransferRecords(selectedRecordIds);
                     }
-                    // Close CAB
-                    mode.finish();
-                    return true;
-                default:
-                    return false;
+                    if (deleted) {
+                        Toast.makeText(history, history.getString(R.string.history_already_uploaded), Toast.LENGTH_LONG).show();
+                    }
+                    // publish selected items following the ids
+                    history.doTransferRecords(selectedRecordIds);
+                }
+                // Close CAB
+                mode.finish();
+                return true;
             }
+            return false;
         }
 
         @Override

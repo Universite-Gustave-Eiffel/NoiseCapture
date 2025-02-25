@@ -334,4 +334,9 @@
     <string name="localisation_policy_title" >إشعار التموقع</string>
     <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
     <string name="policy_button_understood">شكر وتقدير</string>
+    <string name="title_settings_onomap_url">رابط خادم المجتمع</string>
+    <string name="title_settings_onomap_url_summary">سيقوم NoiseCapture بتحميل القياس إلى خادم المجتمع هذا</string>
+    <string name="result_laeq">LAeq</string>
+    <string name="result_linechart_description">التطور الزمني لمستويات الضوضاء بالديسيبل (أ)</string>
+    <string name="result_tab_linechart">الوقت</string>
 </resources>

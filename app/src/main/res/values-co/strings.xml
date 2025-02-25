@@ -267,7 +267,6 @@ track.geojson: scadìglie misurate ogni segonda aduprendu u furmatu geojson (htt
     <string name="policy_button_continue">Seguente</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy_FR.html</string>
     <string name="privacy_policy_title">Pulìtica di cunfidenzialità</string>
-    <string name="notification_record_content">Misura in corsu...</string>
     <string name="result_title_progress_loading">Caricamentu di i dati</string>
     <string name="userinfo_tags_measurement_conditions">Cundizioni di misura</string>
     <string name="notification_goto_community_map_title">Misure di a cumunità</string>

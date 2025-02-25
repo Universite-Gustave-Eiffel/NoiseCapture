@@ -267,7 +267,7 @@ Măsuarea se face în eșantionae de 1s salvate în track.geojson. Este utilizat
     <string name="policy_button_continue">Continu</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">Privacy Policy</string>
-    <string name="notification_record_content">Măsurare...</string>
+    <string name="notification_record_content">Măsurare în curs...</string>
     <string name="result_title_progress_loading">Încărcarea măsurărilor</string>
     <string name="userinfo_tags_measurement_conditions">Condiții de măsurare</string>
     <string name="notification_goto_community_map_title">Măsurările din comunitate</string>
@@ -313,4 +313,21 @@ Măsuarea se face în eșantionae de 1s salvate în track.geojson. Este utilizat
     <string name="auto_calibration_guest">Calibrează telefonul propriu utilizând alt telefon care rulează NoiseCapture</string>
     <string name="calibration_manual_ref">Procedura de calibrare necesită utilizarea unui dispozitiv de referință precum un sonometru. Pentru mai multe informații, vă rugăm să consultați <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">pagina de ajutor</a>al aplicației</string>
     <string name="calibration_manual_calibrator">Procedura de calibrare necesită utilizarea unui calibrator. Pentru mai multe informații, vă rugăm să consultați <a href="org.noise_planet.noisecapture:///android_asset/html/help.html#smartphone_calibration">pagina de ajutor</a>al aplicației</string>
+    <string name="traffic_calibration">Calibrarea cu ajutorul traficului rutier</string>
+    <string name="new_measurement">Măsurare nouă</string>
+    <string name="meters">metri</string>
+    <string name="km_h">km/h</string>
+    <string name="calibration_average_vehicle_speed">Viteza estimată a vehiculului</string>
+    <string name="calibration_distance_vehicle">Distanța vehiculului</string>
+    <string name="calibration_manual_traffic">Poziția de măsurare pentru calibrare trebuie să fie suficient de aproape de drum, asigurând în același timp siguranța dumneavoastră. Drumul trebuie să fie uscat și în condiții bune.</string>
+    <string name="title_activity_calibration_history">Sesiuni de calibrare a traficului</string>
+    <string name="title_activity_calibration_traffic">Calibrarea cu trafic</string>
+    <string name="plusminus">±</string>
+    <string name="traffic_history_count">%d vehiculului</string>
+    <string name="calibration_estimated_gain">Gain %.2f dB(A)</string>
+    <string name="calibration_awaiting_vehicle_passby">Așteptarea trecerii unui vehicul</string>
+    <string name="calibration_done_vehicle_passby">Sfârșitul sesiunii de calibrare, apăsați butonul de mai jos</string>
+    <string name="localisation_policy_title" >Aviz de localizare</string>
+    <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
+    <string name="policy_button_understood">Recunoașteți</string>
     </resources>

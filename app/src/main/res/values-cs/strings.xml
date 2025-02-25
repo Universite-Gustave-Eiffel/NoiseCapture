@@ -330,4 +330,9 @@ track.geojson 1s vzorky měření. Použití formátu geojson (http://geojson.io
     <string name="localisation_policy_title" >Oznámení o lokalizaci</string>
     <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
     <string name="policy_button_understood">Potvrzení</string>
+    <string name="title_settings_onomap_url">Community server url</string>
+    <string name="title_settings_onomap_url_summary">NoiseCapture nahraje měření na tento komunitní server.</string>
+    <string name="result_laeq">LAeq</string>
+    <string name="result_linechart_description">Časový vývoj hladin hluku v dB(A)</string>
+    <string name="result_tab_linechart">Čas</string>
 </resources>

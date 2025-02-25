@@ -271,7 +271,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="policy_button_continue">继续</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy.html</string>
     <string name="privacy_policy_title">隐私权政策</string>
-    <string name="notification_record_content">测量进行中...</string>
+    <string name="notification_record_content">正在进行的测量</string>
     <string name="result_title_progress_loading">测量载入中</string>
     <string name="userinfo_tags_measurement_conditions">测量条件</string>
     <string name="notification_goto_community_map_title">社区测量数据</string>
@@ -331,4 +331,7 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="calibration_estimated_gain">增益%.2f dB(A)</string>
     <string name="calibration_awaiting_vehicle_passby">等待车辆经过</string>
     <string name="calibration_done_vehicle_passby">校准会话结束，触摸添加按钮</string>
+    <string name="localisation_policy_title" >本地化通知</string>
+    <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
+    <string name="policy_button_understood">确认</string>
     </resources>

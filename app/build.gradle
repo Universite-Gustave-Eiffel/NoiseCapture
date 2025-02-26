@@ -91,9 +91,7 @@ repositories {
     maven {
         url "https://repo1.maven.org/maven2/"
     }
-    maven {
-        url "https://maven.google.com/"
-    }
+    google()
     mavenLocal()
 }
 
@@ -114,11 +112,11 @@ dependencies {
     //compile 'com.android.support:multidex:1.0.0'
     // Testing-only dependencies
     // Force usage of support annotations in the test app, since it is internally used by the runner module.
-    implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
-    androidTestImplementation 'androidx.annotation:annotation:1.0.0'
-    androidTestImplementation 'androidx.test.ext:junit:1.1.1'
-    androidTestImplementation 'androidx.test:rules:1.1.1'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    androidTestImplementation 'androidx.annotation:annotation:1.9.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test:rules:1.6.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
     // unit test
     testImplementation group: 'org.robolectric', name: 'robolectric', version: '4.9'
     testImplementation 'junit:junit:4.13.2'

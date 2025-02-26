@@ -127,7 +127,7 @@ public class SettingsFragment extends PreferenceFragment {
             });
             AlertDialog dialog = builder.create();
             TextView description = new TextView(this.getActivity());
-            TypedArray array = this.getActivity().obtainStyledAttributes(new int[]{androidx.appcompat.R.attr.dialogPreferredPadding});
+            TypedArray array = this.getActivity().obtainStyledAttributes(new int[]{R.attr.dialogPreferredPadding});
             int padding = array.getDimensionPixelSize(0, 1);
             array.recycle();
             description.setPadding(padding,padding,padding,padding);

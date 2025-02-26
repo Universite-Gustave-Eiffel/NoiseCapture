@@ -119,7 +119,7 @@ public class PrivacyPolicyActivity extends AppCompatActivity implements View.OnC
         });
         AlertDialog dialog = builder.create();
         TextView description = new TextView(this);
-        int padding = obtainStyledAttributes(new int[]{androidx.appcompat.R.attr.dialogPreferredPadding})
+        int padding = obtainStyledAttributes(new int[]{R.attr.dialogPreferredPadding})
                 .getDimensionPixelSize(0, 1);
         description.setPadding(padding,padding,padding,padding);
         description.setText(R.string.settings_user_noise_knowledge_description);

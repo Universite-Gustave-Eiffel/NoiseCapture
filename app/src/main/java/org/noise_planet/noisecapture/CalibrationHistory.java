@@ -306,16 +306,18 @@ public class CalibrationHistory extends MainActivity {
                     selectedRecordIds.add((int)history.historyListAdapter.getItemId(selected.keyAt(i)));
                 }
             }
-            if (item.getItemId() == R.id.delete) {
-                if (!selectedRecordIds.isEmpty()) {
-                    // Remove selected items following the ids
-                    history.historyListAdapter.remove(selectedRecordIds);
-                }
-                // Close CAB
-                mode.finish();
-                return true;
+            switch (item.getItemId()) {
+                case R.id.delete:
+                    if(!selectedRecordIds.isEmpty()) {
+                        // Remove selected items following the ids
+                        history.historyListAdapter.remove(selectedRecordIds);
+                    }
+                    // Close CAB
+                    mode.finish();
+                    return true;
+                default:
+                    return false;
             }
-            return false;
         }
 
         @Override

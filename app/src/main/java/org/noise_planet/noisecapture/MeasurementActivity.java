@@ -311,9 +311,9 @@ public class MeasurementActivity extends MainActivity implements
                     } else if(permissions[permissionId].equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
                         // If accepted, request background location
                         if(grantResults[permissionId] == PackageManager.PERMISSION_GRANTED) {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                                 ActivityCompat.requestPermissions(this,
-                                        new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                        new String[]{Manifest.permission.FOREGROUND_SERVICE_LOCATION},
                                         PERMISSION_RECORD_AUDIO_AND_GPS);
                             }
                         } else {

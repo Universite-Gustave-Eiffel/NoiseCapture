@@ -7,11 +7,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - name: Set up JDK
+        uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
-          java-version: '21'
+          distribution: 'temurin'
+          java-version: '11'
       - name: Building
         run: cd onomap-geoserver/geoserver/ && ./gradlew test --info --stacktrace
       - name: Clean
         run: rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+      - name: Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            $HOME/.m2/
+            $HOME/.gradle/caches/
+            $HOME/.gradle/wrapper/
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}

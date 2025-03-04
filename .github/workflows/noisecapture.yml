@@ -8,15 +8,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-            submodules: true
-      - uses: actions/setup-java@v4
+          submodules: true
+      - name: Set up JDK
+        uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '21'
+          java-version: '17'
       - name: Put gradle.properties settings
         run: |
           touch gradle.properties
           echo android.useAndroidX=true >> gradle.properties
+          echo android.defaults.buildfeatures.buildconfig=true >> gradle.properties
+          echo android.enableJetifier=true >> gradle.properties
+          echo android.nonFinalResIds=false >> gradle.properties
+          echo android.nonTransitiveRClass=false >> gradle.properties
           echo org.gradle.jvmargs=-Xmx4096M >> gradle.properties
       - name: Building
         run: ./gradlew build -x test --info --stacktrace
@@ -25,7 +30,7 @@ jobs:
       - name: Clean
         run: rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
       - name: Cache
-        uses: actions/cache@v4
+        uses: actions/cache@v2
         with:
           path: |
             $HOME/.m2/

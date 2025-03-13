@@ -16,16 +16,19 @@ import java.util.List;
 })
 public class ConfigurationSpectrumChannel {
 
+    public ConfigurationSpectrumChannel() {
+    }
+
     @JsonProperty("bandpass")
-    private List<ConfigurationBiquad> bandpass = new ArrayList<>();
+    public List<ConfigurationBiquad> bandpass = new ArrayList<>();
     @JsonProperty("anti_aliasing")
-    private ConfigurationSos antiAliasing;
+    public ConfigurationSos antiAliasing;
     @JsonProperty("configuration")
-    private ConfigurationMeta configuration;
+    public ConfigurationMeta configuration;
     @JsonProperty("a_weighting")
-    private ConfigurationDigitalFilter aWeighting;
+    public ConfigurationDigitalFilter aWeighting;
     @JsonProperty("c_weighting")
-    private ConfigurationDigitalFilter cWeighting;
+    public ConfigurationDigitalFilter cWeighting;
 
     @JsonProperty("bandpass")
     public List<ConfigurationBiquad> getBandpass() {

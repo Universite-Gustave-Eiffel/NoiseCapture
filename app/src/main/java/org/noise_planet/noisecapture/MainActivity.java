@@ -283,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if(!(this instanceof MeasurementActivity)) {
-            if(mDrawerLayout != null) {
+            if(mDrawerLayout != null && mDrawerList != null) {
                 mDrawerLayout.closeDrawer(mDrawerList);
             }
             super.onBackPressed();

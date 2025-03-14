@@ -51,6 +51,7 @@ android {
         }
         debug {
             debuggable true
+            testProguardFile 'proguard-rules.pro'
             if (new File(signingFilePath).exists()) {
                 signingConfig signingConfigs.debug
             }
@@ -118,8 +119,8 @@ dependencies {
     androidTestImplementation 'androidx.test:rules:1.5.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
     // unit test
-    testImplementation group: 'org.robolectric', name: 'robolectric', version: '4.9'
-    testImplementation 'junit:junit:4.12'
+    testImplementation group: 'org.robolectric', name: 'robolectric', version: '4.14.1'
+    testImplementation 'junit:junit:4.13.2'
     testImplementation group: 'com.googlecode.soundlibs', name: 'jorbis', version: '0.0.17.4'
     implementation project(':sosfilter')
 }

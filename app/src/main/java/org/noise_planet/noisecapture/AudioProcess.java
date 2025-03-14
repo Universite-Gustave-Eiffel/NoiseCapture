@@ -273,6 +273,13 @@ public class AudioProcess implements Runnable {
     }
 
     /**
+     * @return Audio encoding
+     */
+    public int getEncoding() {
+        return encoding;
+    }
+
+    /**
      * @return Third octave SPL up to 8Khz (4 Khz if the phone support 8Khz only)
      */
     public double[] getThirdOctaveFrequencySPL() {

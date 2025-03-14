@@ -11,6 +11,7 @@
     android:layout_height="match_parent">
     <LinearLayout
         android:orientation="vertical"
+        android:paddingTop="@dimen/abc_action_bar_default_height_material"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:weightSum="1"

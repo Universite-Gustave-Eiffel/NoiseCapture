@@ -260,9 +260,10 @@ public class MainActivity extends AppCompatActivity {
             };
             // Set the drawer toggle as the DrawerListener
             mDrawerLayout.setDrawerListener(mDrawerToggle);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setHomeButtonEnabled(true);
-
+            if(getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setHomeButtonEnabled(true);
+            }
         } catch (Exception e) {
             MAINLOGGER.error(e.getLocalizedMessage(), e);
         }
@@ -282,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if(!(this instanceof MeasurementActivity)) {
-            if(mDrawerLayout != null) {
+            if(mDrawerLayout != null && mDrawerList != null) {
                 mDrawerLayout.closeDrawer(mDrawerList);
             }
             super.onBackPressed();
@@ -614,7 +615,9 @@ public class MainActivity extends AppCompatActivity {
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(this);
         stackBuilder.addNextIntent(intent);
-        if (Build.VERSION.SDK_INT >= 31) {
+        if (Build.VERSION.SDK_INT >= 34) {
+            builder.setContentIntent(stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_MUTABLE + PendingIntent.FLAG_NO_CREATE + PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT));
+        } else if (Build.VERSION.SDK_INT >= 31) {
             builder.setContentIntent(stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_MUTABLE));
         } else {
             builder.setContentIntent(stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT));

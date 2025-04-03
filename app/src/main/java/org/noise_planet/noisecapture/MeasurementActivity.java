@@ -40,12 +40,15 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import com.google.android.material.tabs.TabLayout;
+
+import android.provider.Settings;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -82,12 +85,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MeasurementActivity extends MainActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener, MapFragment.MapFragmentAvailableListener {
 
-    //public ImageButton buttonRecord;
-    //public ImageButton buttoncancel;
+    private static final int MAXIMUM_PERMISSION_QUERY = 5;
+    private AtomicInteger permissionFailCount = new AtomicInteger(0);
 
     private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
     // For the Charts
@@ -305,8 +309,15 @@ public class MeasurementActivity extends MainActivity implements
                             doBindService();
                         } else {
                             // permission denied
-                            // Ask again
-                            checkAndAskPermissions();
+                            if(permissionFailCount.getAndAdd(1) > MAXIMUM_PERMISSION_QUERY) {
+                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                Uri uri = Uri.fromParts("package", getApplicationContext().getPackageName(), null);
+                                intent.setData(uri);
+                                startActivity(intent);
+                            } else {
+                                // Ask again
+                                checkAndAskPermissions();
+                            }
                         }
                     } else if(permissions[permissionId].equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
                         // If accepted, request background location
@@ -317,9 +328,17 @@ public class MeasurementActivity extends MainActivity implements
                                         PERMISSION_RECORD_AUDIO_AND_GPS);
                             }
                         } else {
-                            ActivityCompat.requestPermissions(this,
-                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                    PERMISSION_RECORD_AUDIO_AND_GPS);
+                            // permission denied
+                            if(permissionFailCount.getAndAdd(1) > MAXIMUM_PERMISSION_QUERY) {
+                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                Uri uri = Uri.fromParts("package", getApplicationContext().getPackageName(), null);
+                                intent.setData(uri);
+                                startActivity(intent);
+                            } else {
+                                ActivityCompat.requestPermissions(this,
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                        PERMISSION_RECORD_AUDIO_AND_GPS);
+                            }
                         }
                     }
                 }

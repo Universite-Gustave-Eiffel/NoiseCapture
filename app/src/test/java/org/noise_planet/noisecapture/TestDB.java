@@ -27,10 +27,10 @@
 
 package org.noise_planet.noisecapture;
 
-import static junit.framework.Assert.assertTrue;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 import android.content.SharedPreferences;
 import android.database.SQLException;
@@ -384,6 +384,8 @@ public class TestDB {
                 measurementManager.getRecordLocations(29, true, 25);
 
         assertTrue(storedLeq.size() <= 25);
+
+        db.close();
     }
 
     @Test

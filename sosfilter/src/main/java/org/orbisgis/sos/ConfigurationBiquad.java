@@ -16,6 +16,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 })
 public class ConfigurationBiquad {
 
+    public ConfigurationBiquad() {
+    }
+
     @JsonProperty("sos")
     private ConfigurationSos sos;
     @JsonProperty("center_frequency")

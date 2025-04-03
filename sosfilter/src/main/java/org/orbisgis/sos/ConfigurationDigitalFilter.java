@@ -15,11 +15,14 @@ import java.util.List;
 })
 public class ConfigurationDigitalFilter {
 
+    public ConfigurationDigitalFilter() {
+    }
+
     @JsonProperty("filter_denominator")
-    private List<Double> filterDenominator = new ArrayList<Double>();
+    public List<Double> filterDenominator = new ArrayList<Double>();
 
     @JsonProperty("filter_numerator")
-    private List<Double> filterNumerator = new ArrayList<Double>();
+    public List<Double> filterNumerator = new ArrayList<Double>();
 
     @JsonProperty("filter_denominator")
     public List<Double> getFilterDenominator() {

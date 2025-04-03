@@ -366,18 +366,17 @@ public class MeasurementManager {
      */
     public double[] getRecordCenterPosition(int recordId, double maxAccuracy) {
         SQLiteDatabase database = storage.getReadableDatabase();
-        Cursor cursor = database.rawQuery("SELECT AVG(" +
+
+        try (Cursor cursor = database.rawQuery("SELECT AVG(" +
                 Storage.Leq.COLUMN_LATITUDE + ") LATAVG, AVG(" +
                 Storage.Leq.COLUMN_LONGITUDE + ") LONGAVG FROM " + Storage.Leq.TABLE_NAME + " L " +
                 "WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND " + Storage.Leq
                 .COLUMN_ACCURACY + " BETWEEN 1 AND " +
-                "? ", new String[]{String.valueOf(recordId), String.valueOf(maxAccuracy)});
-
-        try {
+                "? ", new String[]{String.valueOf(recordId), String.valueOf(maxAccuracy)})) {
             if (cursor.moveToNext()) {
                 Double latavg = cursor.getDouble(0);
                 Double longavg = cursor.getDouble(1);
-                if(latavg.equals(0.0) && longavg.equals(0.0)) {
+                if (latavg.equals(0.0) && longavg.equals(0.0)) {
                     return null;
                 } else {
                     return new double[]{latavg, longavg};
@@ -386,7 +385,7 @@ public class MeasurementManager {
         } catch (IllegalStateException ex) {
             // Ignore
         } finally {
-            cursor.close();
+            database.close();
         }
         return null;
     }

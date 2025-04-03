@@ -10,6 +10,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 })
 public class ConfigurationMeta {
 
+    public ConfigurationMeta() {
+    }
+
     @JsonProperty("sample_rate")
     private Integer sampleRate;
 

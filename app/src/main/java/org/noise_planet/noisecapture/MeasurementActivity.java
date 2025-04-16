@@ -40,12 +40,15 @@ import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.Color;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import com.google.android.material.tabs.TabLayout;
+
+import android.provider.Settings;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
@@ -80,13 +83,15 @@ import java.beans.PropertyChangeListener;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class MeasurementActivity extends MainActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener, MapFragment.MapFragmentAvailableListener {
 
-    //public ImageButton buttonRecord;
-    //public ImageButton buttoncancel;
+    private static final int MAXIMUM_PERMISSION_QUERY = 5;
+    private AtomicInteger permissionFailCount = new AtomicInteger(0);
 
     private AtomicBoolean isComputingMovingLeq = new AtomicBoolean(false);
     // For the Charts
@@ -273,8 +278,8 @@ public class MeasurementActivity extends MainActivity implements
         setupViewPager(viewPager);
         TabLayout tabLayout = (TabLayout) findViewById(R.id.measurement_tabs);
         tabLayout.setupWithViewPager(viewPager);
-        // Select spectrogram by default
-        viewPager.setCurrentItem(1);
+        // Select map by default
+        viewPager.setCurrentItem(2);
         // Instantaneous sound level VUMETER
         // Stacked bars are used for represented Min, Current and Max values
         // Horizontal barchart
@@ -304,21 +309,36 @@ public class MeasurementActivity extends MainActivity implements
                             doBindService();
                         } else {
                             // permission denied
-                            // Ask again
-                            checkAndAskPermissions();
+                            if(permissionFailCount.getAndAdd(1) > MAXIMUM_PERMISSION_QUERY) {
+                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                Uri uri = Uri.fromParts("package", getApplicationContext().getPackageName(), null);
+                                intent.setData(uri);
+                                startActivity(intent);
+                            } else {
+                                // Ask again
+                                checkAndAskPermissions();
+                            }
                         }
                     } else if(permissions[permissionId].equals(Manifest.permission.ACCESS_FINE_LOCATION)) {
                         // If accepted, request background location
                         if(grantResults[permissionId] == PackageManager.PERMISSION_GRANTED) {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
                                 ActivityCompat.requestPermissions(this,
-                                        new String[]{Manifest.permission.ACCESS_BACKGROUND_LOCATION},
+                                        new String[]{Manifest.permission.FOREGROUND_SERVICE_LOCATION},
                                         PERMISSION_RECORD_AUDIO_AND_GPS);
                             }
                         } else {
-                            ActivityCompat.requestPermissions(this,
-                                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
-                                    PERMISSION_RECORD_AUDIO_AND_GPS);
+                            // permission denied
+                            if(permissionFailCount.getAndAdd(1) > MAXIMUM_PERMISSION_QUERY) {
+                                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                Uri uri = Uri.fromParts("package", getApplicationContext().getPackageName(), null);
+                                intent.setData(uri);
+                                startActivity(intent);
+                            } else {
+                                ActivityCompat.requestPermissions(this,
+                                        new String[]{Manifest.permission.ACCESS_FINE_LOCATION},
+                                        PERMISSION_RECORD_AUDIO_AND_GPS);
+                            }
                         }
                     }
                 }
@@ -437,12 +457,12 @@ public class MeasurementActivity extends MainActivity implements
         ArrayList<String> xVals = new ArrayList<String>();
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
         double[] freqLabels = measurementService.getAudioProcess().getRealtimeCenterFrequency();
-        float[] freqValues = measurementService.getAudioProcess().getThirdOctaveFrequencySPL();
+        double[] freqValues = measurementService.getAudioProcess().getThirdOctaveFrequencySPL();
         for(int idfreq =0; idfreq < freqLabels.length; idfreq++) {
             xVals.add(Spectrogram.formatFrequency((int)freqLabels[idfreq]));
             // Sum values
             // Compute frequency range covered by frequency
-            yVals1.add(new BarEntry(new float[] {freqValues[idfreq]}, idfreq));
+            yVals1.add(new BarEntry(new float[] {(float)freqValues[idfreq]}, idfreq));
         }
 
         BarDataSet set1 = new BarDataSet(yVals1, "DataSet");
@@ -482,7 +502,7 @@ public class MeasurementActivity extends MainActivity implements
                     AudioProcess.STATE.CLOSED && !activity.measurementService.isCanceled()) {
                 try {
                     Thread.sleep(200);
-                    int progress =  activity.measurementService.getAudioProcess().getRemainingNotProcessSamples();
+                    int progress =  (int)(activity.measurementService.getAudioProcess().getRemainingNotProcessTime());
                     if(progress != lastShownProgress) {
                         lastShownProgress = progress;
                         activity.runOnUiThread(new SetDialogMessage(processingDialog, activity.getResources().getString(R.string.measurement_processlastsamples,
@@ -569,7 +589,7 @@ public class MeasurementActivity extends MainActivity implements
                 for(MeasurementManager.LeqBatch location : locations) {
                     Storage.Leq leq = location.getLeq();
                     String htmlColor = MeasurementExport.getColorFromLevel
-                            (location.computeGlobalLeq());
+                            (location.computeGlobalLAeq());
                     mapFragment.addMeasurement(new MapFragment.LatLng(leq.getLatitude(), leq
                             .getLongitude()), htmlColor);
                 }
@@ -662,6 +682,10 @@ public class MeasurementActivity extends MainActivity implements
 
         @Override
         public void onClick(View v) {
+            if(activity.measurementService == null) {
+                // Service not ready
+                return;
+            }
             Resources resources = activity.getResources();
             ImageButton buttonPause= (ImageButton) activity.findViewById(R.id.pauseBtn);
             buttonPause.setEnabled(true);
@@ -682,7 +706,8 @@ public class MeasurementActivity extends MainActivity implements
                 ProgressDialog myDialog = new ProgressDialog(activity);
                 if (!activity.measurementService.isCanceled()) {
                     myDialog.setMessage(resources.getString(R.string.measurement_processlastsamples,
-                            activity.measurementService.getAudioProcess().getRemainingNotProcessSamples()));
+                            (int)(activity.measurementService.getAudioProcess()
+                                    .getRemainingNotProcessTime())));
                     myDialog.setCancelable(false);
                     myDialog.setButton(DialogInterface.BUTTON_NEGATIVE,
                             resources.getText(R.string.text_CANCEL_data_transfer),
@@ -708,7 +733,7 @@ public class MeasurementActivity extends MainActivity implements
 
         private static void formatdBA(double dbAValue, TextView textView) {
             if(dbAValue > MIN_SHOWN_DBA_VALUE && dbAValue < MAX_SHOWN_DBA_VALUE) {
-                textView.setText(String.format(" %.1f", dbAValue));
+                textView.setText(String.format(Locale.getDefault(), " %.1f", dbAValue));
             } else {
                 textView.setText(R.string.no_valid_dba_value);
             }
@@ -769,15 +794,15 @@ public class MeasurementActivity extends MainActivity implements
                         accuracyImageHint.setImageResource(R.drawable.gps_off);
                         accuracyText.setText(R.string.no_gps_hint);
                     }
-                    // Update current location of user
-                    final double leq = activity.measurementService.getAudioProcess().getLeq(false);
-                    activity.setData(activity.measurementService.getAudioProcess().getLeq(false));
                     // Change the text and the textcolor in the corresponding textview
                     // for the Leqi value
                     LeqStats leqStats =
                             activity.measurementService.getFastLeqStats();
-                    final TextView mTextView = (TextView) activity.findViewById(R.id.textView_value_SL_i);
-                    formatdBA(leq, mTextView);
+                    // Update current location of user
+                    double lastLaeqFast = activity.measurementService.getLAeq();
+                    activity.setData(lastLaeqFast);
+                    final TextView mTextView = activity.findViewById(R.id.textView_value_SL_i);
+                    formatdBA(lastLaeqFast, mTextView);
                     if(activity.measurementService.getLeqAdded() != 0) {
                         // Stats are only available if the recording of previous leq are activated
                         final TextView valueMin = (TextView) activity.findViewById(R.id
@@ -790,9 +815,7 @@ public class MeasurementActivity extends MainActivity implements
                                 .textView_value_Mean_i);
                         formatdBA(leqStats.getLeqMean(), valueMean);
                     }
-
-
-                    int nc = MeasurementActivity.getNEcatColors(leq);    // Choose the color category in
+                    int nc = MeasurementActivity.getNEcatColors(lastLaeqFast);    // Choose the color category in
                     // function of the sound level
                     mTextView.setTextColor(activity.NE_COLORS[nc]);
 

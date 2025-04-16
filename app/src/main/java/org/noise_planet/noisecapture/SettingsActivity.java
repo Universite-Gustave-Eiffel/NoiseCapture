@@ -41,10 +41,9 @@ public class SettingsActivity extends MainActivity implements SharedPreferences.
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         Intent intent = getIntent();
-        initDrawer(intent != null ? intent.getIntExtra(RESULTS_RECORD_ID, -1) : null);
+        initDrawer(intent != null ? intent.getIntExtra(RESULTS_RECORD_ID, -1) : -1);
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
         sharedPref.registerOnSharedPreferenceChangeListener(this);
-
     }
 
     @Override

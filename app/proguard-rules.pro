@@ -8,6 +8,11 @@
 -keep class com.github.mikephil.** { *; }
 -keep class com.nhaarman.supertooltips.** { *; }
 -keep class org.renjin.** { *; }
+-keep class org.orbisgis.** { *; }
+-keep class org.orbisgis.** { *; }
+-keep class com.fasterxml.** { *; }
+-keep class java.beans.** {*;}
+-keep class java.nio.file.Path.** {*;}
 
 -dontwarn pl.edu.icm.jlargearrays.**
 -dontwarn org.renjin.**
@@ -15,3 +20,6 @@
 -dontwarn com.google.android.gms.**
 -dontwarn com.github.mikephil.**
 -dontwarn com.nhaarman.supertooltips.**
+-dontwarn java.beans.ConstructorProperties
+-dontwarn java.beans.Transient
+-dontwarn org.w3c.dom.bootstrap.DOMImplementationRegistry

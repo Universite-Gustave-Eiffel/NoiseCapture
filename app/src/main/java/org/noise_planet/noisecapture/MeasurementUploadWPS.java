@@ -28,6 +28,8 @@
 package org.noise_planet.noisecapture;
 
 import android.app.Activity;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Base64;
 import android.util.Base64OutputStream;
 
@@ -49,7 +51,6 @@ import javax.net.ssl.HttpsURLConnection;
 public class MeasurementUploadWPS {
     Activity activity;
     public static final String BASE_URL = "https://onomap-gs.noise-planet.org";
-    public static final String CHECK_UPLOAD_AVAILABILITY = "https://onomap-gs.noise-planet.org/geoserver/ows?service=wps&version=1.0.0&request=GetCapabilities";
 
     public MeasurementUploadWPS(Activity activity) {
         this.activity = activity;
@@ -65,9 +66,9 @@ public class MeasurementUploadWPS {
         //    throw new IOException(activity.getText(R.string.error_already_uploaded).toString());
         //}
 
-        URL url;
-        url = new URL(BASE_URL + "/geoserver/wps");
-
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(activity);
+        String serverUrl = sharedPref.getString("settings_onomap_url", BASE_URL);
+        URL url = new URL(serverUrl + "/geoserver/wps");
         HttpURLConnection conn = (HttpURLConnection) url.openConnection();
         conn.setRequestProperty("Content-Type", "text/xml");
         conn.setReadTimeout(15000);

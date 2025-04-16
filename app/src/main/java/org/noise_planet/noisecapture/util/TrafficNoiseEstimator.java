@@ -97,7 +97,7 @@ public class TrafficNoiseEstimator {
         // Compute LaMax on 8 moving values
         double[] maxLaeq = new double[laeq.length / 8];
         for(int i = 0; i < maxLaeq.length; i++) {
-            maxLaeq[i] = Double.MIN_VALUE;
+            maxLaeq[i] = - Double.MAX_VALUE;
         }
         for(int i = 0; i < maxLaeq.length * 8; i++) {
             maxLaeq[i / 8] = Math.max( maxLaeq[i / 8], laeq[i]);

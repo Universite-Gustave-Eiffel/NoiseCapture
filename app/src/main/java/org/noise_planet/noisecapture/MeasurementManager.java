@@ -27,16 +27,18 @@
 
 package org.noise_planet.noisecapture;
 
+import android.annotation.SuppressLint;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteDatabaseLockedException;
 import android.database.sqlite.SQLiteException;
 import android.database.sqlite.SQLiteStatement;
 import android.location.Location;
+import android.media.MicrophoneInfo;
 import android.net.Uri;
+import android.os.Build;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringTokenizer;
 
 /**
@@ -226,6 +229,62 @@ public class MeasurementManager {
         }
     }
 
+    public void updateRecordMicrophoneDeviceSettings(int recordId, MicrophoneInfo microphoneInfo) {
+        String microphoneTypeName = Storage.microphoneDeviceTypeName[0];
+        String microphoneDeviceSettings = "{}";
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            if(microphoneInfo.getType() >= 0 && microphoneInfo.getType() < Storage.microphoneDeviceTypeName.length) {
+                microphoneTypeName = Storage.microphoneDeviceTypeName[microphoneInfo.getType()];
+            }
+            StringBuilder sb = new StringBuilder("{");
+            if(microphoneInfo.getDescription() != null) {
+                sb.append(String.format(Locale.ROOT,
+                        "\"description\":\"%s\",",
+                        microphoneInfo.getDescription()).replace("\n", ""));
+            }
+            if(Float.compare(MicrophoneInfo.SENSITIVITY_UNKNOWN, microphoneInfo.getSensitivity()) != 0) {
+                sb.append(String.format(Locale.ROOT,
+                        "\"sensitivity\":%f,",
+                        microphoneInfo.getSensitivity()));
+            }
+            if(Float.compare(MicrophoneInfo.SPL_UNKNOWN, microphoneInfo.getMaxSpl()) != 0) {
+                sb.append(String.format(Locale.ROOT,
+                        "\"max_spl\":%f,",
+                        microphoneInfo.getMaxSpl()));
+            }
+            if(Float.compare(MicrophoneInfo.SPL_UNKNOWN, microphoneInfo.getMinSpl()) != 0) {
+                sb.append(String.format(Locale.ROOT,
+                        "\"min_spl\":%f,",
+                        microphoneInfo.getMinSpl()));
+            }
+            String[] location_text = new String[] {"LOCATION_UNKNOWN","LOCATION_MAINBODY",
+                    "LOCATION_MAINBODY_MOVABLE", "LOCATION_PERIPHERAL"};
+            String locationValue = location_text[0];
+            if(microphoneInfo.getLocation() >= 0 && microphoneInfo.getLocation() < location_text.length) {
+                locationValue=location_text[microphoneInfo.getLocation()];
+            }
+            sb.append(String.format(Locale.ROOT,
+                    "\"location\":\"%s\",",
+                    locationValue));
+            sb.append("}");
+            microphoneDeviceSettings = sb.toString();
+        }
+        SQLiteDatabase database = storage.getWritableDatabase();
+        try {
+            try {
+                database.execSQL("UPDATE " + Storage.Record.TABLE_NAME + " SET " +
+                        Storage.Record.COLUMN_MICROPHONE_DEVICE_ID + " = ?," +
+                        Storage.Record.COLUMN_MICROPHONE_DEVICE_SETTINGS + " = ? WHERE " +
+                        Storage.Record.COLUMN_ID + " = ?",
+                        new Object[]{microphoneTypeName, microphoneDeviceSettings, recordId});
+            } catch (SQLException sqlException) {
+                LOGGER.error(sqlException.getLocalizedMessage(), sqlException);
+            }
+        } finally {
+            database.close();
+        }
+    }
+
     /**
      * Fetch all leq values of a record
      * @param recordId Record identifier
@@ -307,18 +366,17 @@ public class MeasurementManager {
      */
     public double[] getRecordCenterPosition(int recordId, double maxAccuracy) {
         SQLiteDatabase database = storage.getReadableDatabase();
-        Cursor cursor = database.rawQuery("SELECT AVG(" +
+
+        try (Cursor cursor = database.rawQuery("SELECT AVG(" +
                 Storage.Leq.COLUMN_LATITUDE + ") LATAVG, AVG(" +
                 Storage.Leq.COLUMN_LONGITUDE + ") LONGAVG FROM " + Storage.Leq.TABLE_NAME + " L " +
                 "WHERE L." + Storage.Leq.COLUMN_RECORD_ID + " = ? AND " + Storage.Leq
                 .COLUMN_ACCURACY + " BETWEEN 1 AND " +
-                "? ", new String[]{String.valueOf(recordId), String.valueOf(maxAccuracy)});
-
-        try {
+                "? ", new String[]{String.valueOf(recordId), String.valueOf(maxAccuracy)})) {
             if (cursor.moveToNext()) {
                 Double latavg = cursor.getDouble(0);
                 Double longavg = cursor.getDouble(1);
-                if(latavg.equals(0.0) && longavg.equals(0.0)) {
+                if (latavg.equals(0.0) && longavg.equals(0.0)) {
                     return null;
                 } else {
                     return new double[]{latavg, longavg};
@@ -327,7 +385,7 @@ public class MeasurementManager {
         } catch (IllegalStateException ex) {
             // Ignore
         } finally {
-            cursor.close();
+            database.close();
         }
         return null;
     }
@@ -367,6 +425,7 @@ public class MeasurementManager {
      * @param recordId Record identifier, -1 for all
      * @param recordVisitor Visitor of records
      */
+    @SuppressLint("Range")
     public void getRecordLocations(int recordId, RecordVisitor<LeqBatch> recordVisitor) {
         SQLiteDatabase database = storage.getReadableDatabase();
         double[] lastLatLng = null;
@@ -441,6 +500,7 @@ public class MeasurementManager {
      * @param withCoordinatesOnly Do not extract leq that does not contain a coordinate
      * @param limitation Extract up to limitation point
      */
+    @SuppressLint("Range")
     public List<LeqBatch> getRecordLocations(int recordId, boolean withCoordinatesOnly, int limitation, ProgressionCallBack progressionCallBack, Double minDistance) {
         SQLiteDatabase database = storage.getReadableDatabase();
         double[] lastLatLng = null;
@@ -650,10 +710,9 @@ public class MeasurementManager {
      * @param leqBatches List of Leq to add
      */
     public void addLeqBatches(List<LeqBatch> leqBatches) {
-        int retry = 5;
-        SQLiteDatabase database = storage.getWritableDatabase();
+        int retry = 8;
         while(true) {
-            try {
+            try (SQLiteDatabase database = storage.getWritableDatabase()) {
                 database.beginTransaction();
                 SQLiteStatement leqStatement = database.compileStatement(
                         "INSERT INTO " + Storage.Leq.TABLE_NAME + "(" +
@@ -665,8 +724,9 @@ public class MeasurementManager {
                                 Storage.Leq.COLUMN_ACCURACY + "," +
                                 Storage.Leq.COLUMN_LOCATION_UTC + "," +
                                 Storage.Leq.COLUMN_SPEED + "," +
-                                Storage.Leq.COLUMN_BEARING +
-                                ") VALUES (?, ?,?,?,?,?,?,?,?)");
+                                Storage.Leq.COLUMN_BEARING + "," +
+                                Storage.Leq.COLUMN_LAEQ +
+                                ") VALUES (?, ?,?,?,?,?,?,?,?,?)");
                 SQLiteStatement leqValueStatement = database.compileStatement("INSERT INTO " +
                         Storage.LeqValue.TABLE_NAME + " VALUES (?,?,?)");
                 for (LeqBatch leqBatch : leqBatches) {
@@ -693,6 +753,7 @@ public class MeasurementManager {
                     } else {
                         leqStatement.bindNull(9);
                     }
+                    leqStatement.bindDouble(10, leq.getLAeq());
                     long leqId = leqStatement.executeInsert();
                     for (Storage.LeqValue leqValue : leqBatch.getLeqValues()) {
                         leqValueStatement.clearBindings();
@@ -704,21 +765,19 @@ public class MeasurementManager {
                 }
                 database.setTransactionSuccessful();
                 database.endTransaction();
-                break;
-            }catch (SQLiteException ex) {
+                break; // exit loop as we processed the records
+            } catch (SQLiteException | IllegalStateException ex) {
                 // Sql issue
                 retry -= 1;
-                if(retry <= 0) {
+                if (retry <= 0) {
                     break;
                 } else {
                     try {
-                        Thread.sleep(500);
+                        Thread.sleep(125);
                     } catch (InterruptedException ex2) {
                         break;
                     }
                 }
-            } finally {
-                database.close();
             }
         }
     }
@@ -794,12 +853,18 @@ public class MeasurementManager {
             leqValues.add(leqValue);
         }
 
-        public double computeGlobalLeq() {
-            double globalLeq = 0;
-            for(Storage.LeqValue leqValue : leqValues) {
-                globalLeq += Math.pow(10, leqValue.getSpl() / 10.);
+        public double computeGlobalLAeq() {
+            if(leq.getLAeq() > 0) {
+                return leq.getLAeq();
+            } else {
+                // old measurements does not store LAeq but compute third octave LAeq
+                // From NoiseCapture 1.3 spectrum is not A weighted
+                double energeticSum = 0;
+                for (Storage.LeqValue leqValue : leqValues) {
+                    energeticSum += Math.pow(10, leqValue.getSpl() / 10.);
+                }
+                return 10 * Math.log10(energeticSum);
             }
-            return 10 * Math.log10(globalLeq);
         }
 
         public Storage.Leq getLeq() {

@@ -266,7 +266,7 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="policy_button_continue">Suivant</string>
     <string name="privacy_policy_webpage">file:///android_asset/html/privacy_policy_FR.html</string>
     <string name="privacy_policy_title">Politique de confidentialité</string>
-    <string name="notification_record_content">Mesure en cours...</string>
+    <string name="notification_record_content">Mesure en cours ...</string>
     <string name="result_title_progress_loading">Chargement de la mesure</string>
     <string name="userinfo_tags_measurement_conditions">Conditions de mesure</string>
     <string name="notification_goto_community_map_title">Mesures communautaires</string>
@@ -306,20 +306,20 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="calibration_noise_ambient">Bruit ambiant</string>
     <string name="auto_calibration">Auto avec un smartphone calibré</string>
     <string name="title_activity_calibration_auto_menu" >Automatique</string>
-    <string name="manual_calibration_with_calibrator">Manuel avec un calibrateur</string>
+    <string name="manual_calibration_with_calibrator">Manuel avec un calibreur</string>
     <string name="manual_calibration_with_reference">Manuel avec une référence</string>
-    <string name="auto_calibration_host">Utiliser mon propre smartphone (calibré) pour calibrer d\'autres smartphones avec NoiseCapture</string>
+    <string name="auto_calibration_host">Utiliser mon propre smartphone calibré pour calibrer d\'autres smartphones avec NoiseCapture</string>
     <string name="auto_calibration_guest">Calibrer mon smartphone à partir d\'un autre smartphone déjà calibré avec NoiseCapture</string>
     <string name="calibration_manual_ref">La procédure de calibrage nécessite l\'utilisation d\'un appareil de référence déjà calibré, comme un sonomètre. Rendez-vous sur la <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">page d\'aide</a> de l\'application pour plus d\'informations.</string>
     <string name="calibration_manual_calibrator">La procédure de calibrage nécessite l\'utilisation d\'un calibrateur acoustique. Rendez-vous sur la <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">page d\'aide</a> de l\'application pour plus d\'informations.</string>
     <string name="traffic_calibration">Calibrage avec le trafic routier</string>
-    <string name="new_measurement">Nouvelle session</string>
+    <string name="new_measurement">Nouvelle mesure</string>
     <string name="meters">mètres</string>
     <string name="km_h">km/h</string>
-    <string name="calibration_average_vehicle_speed">Vitesse du véhicule</string>
+    <string name="calibration_average_vehicle_speed">Vitesse estimée du véhicule</string>
     <string name="calibration_distance_vehicle">Distance du centre de la voie</string>
     <string name="calibration_manual_traffic">La position de mesure pour le calibrage doit être suffisamment proche de la route tout en assurant votre sécurité. La route doit être sèche et en bon état.</string>
-    <string name="title_activity_calibration_history">Sessions de Calibrage</string>
+    <string name="title_activity_calibration_history">Sessions de calibrage du trafic</string>
     <string name="title_activity_calibration_traffic">Calibrage avec le trafic</string>
     <string name="plusminus">±</string>
     <string name="traffic_history_count">%d véhicules</string>
@@ -329,4 +329,9 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="localisation_policy_title" >Accès à votre position</string>
     <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice_fr.html</string>
     <string name="policy_button_understood">J\'ai compris</string>
+    <string name="title_settings_onomap_url">URL du serveur communautaire</string>
+    <string name="title_settings_onomap_url_summary">NoiseCapture téléchargera la mesure vers ce serveur communautaire</string>
+    <string name="result_laeq">LAeq</string>
+    <string name="result_linechart_description">Évolution temporelle des niveaux de bruit en dB(A)</string>
+    <string name="result_tab_linechart">Temps</string>
 </resources>

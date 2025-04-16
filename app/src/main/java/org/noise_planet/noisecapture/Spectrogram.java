@@ -49,7 +49,7 @@ import java.util.Locale;
 public class Spectrogram extends View {
     public enum SCALE_MODE {SCALE_LINEAR, SCALE_LOG};
     private SCALE_MODE scaleMode = SCALE_MODE.SCALE_LOG;
-    private final List<float[]> spectrumData = new LinkedList<>();
+    private final List<double[]> spectrumData = new LinkedList<>();
     private Bitmap spectrogramBuffer = null;
     private Bitmap frequencyLegend = null;
     private Bitmap timeLegend = null;
@@ -145,7 +145,7 @@ public class Spectrogram extends View {
      * @param spectrum FFT response
      * @param hertzBySpectrumCell Used to build the legend. How many hertz are covered by one FFT response cell
      */
-    public void addTimeStep(float[] spectrum, double hertzBySpectrumCell) {
+    public void addTimeStep(double[] spectrum, double hertzBySpectrumCell) {
         final int ticWidth = 4; // Timestep width in pixels
         spectrumData.add(0, spectrum);
         if(spectrumData.size() > MAXIMUM_SPECTROGRAM_BUFFER) {
@@ -246,7 +246,7 @@ public class Spectrogram extends View {
             final int spectrogramHeight = spectrogramBuffer.getHeight();
             final int spectrogramWidth = spectrogramBuffer.getWidth();
             while ( !spectrumData.isEmpty()) {
-                float[] ticSpectrum = spectrumData.remove(0);
+                double[] ticSpectrum = spectrumData.remove(0);
                 // Rescale to the range of color ramp
                 Bitmap ticBuffer = Bitmap.createBitmap(ticWidth, spectrogramHeight,
                         Bitmap.Config.ARGB_8888);

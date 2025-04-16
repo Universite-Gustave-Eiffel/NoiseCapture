@@ -82,8 +82,7 @@ public class MapFragment extends Fragment {
             WebSettings webSettings = leaflet.getSettings();
             webSettings.setJavaScriptEnabled(true);
             WebSettings settings = leaflet.getSettings();
-            settings.setAppCachePath(new File(getContext().getCacheDir(), "webview").getPath());
-            settings.setAppCacheEnabled(true);
+            settings.setCacheMode(WebSettings.LOAD_DEFAULT);
             leaflet.setWebViewClient(new WebViewClient() {
                 @Override
                 public void onPageFinished(WebView view, String url) {

@@ -331,4 +331,9 @@ Utilice su propio smartphone para calibrar otros smartphones.</string>
     <string name="localisation_policy_title" >Tu posición</string>
     <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
     <string name="policy_button_understood">Reconocer</string>
+    <string name="title_settings_onomap_url">URL del servidor comunitario</string>
+    <string name="title_settings_onomap_url_summary">NoiseCapture cargará las mediciones en este servidor comunitario</string>
+    <string name="result_laeq">LAeq</string>
+    <string name="result_linechart_description">Evolución temporal de los niveles de ruido en dB(A)</string>
+    <string name="result_tab_linechart">Tiempo</string>
 </resources>

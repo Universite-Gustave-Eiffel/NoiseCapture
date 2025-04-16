@@ -84,9 +84,19 @@ public class AcousticIndicators {
      * @param inputSignal time signal [Pa]
      * @return equivalent sound pressure level [dB] not normalised by reference pressure.
      */
+    public static double getLeq(float[] inputSignal, double refSoundPressure) {
+        return todBspl(computeRms(inputSignal), refSoundPressure);
+    }
+
+    /**
+     * Calculation of the equivalent sound pressure level
+     * @param inputSignal time signal [Pa]
+     * @return equivalent sound pressure level [dB] not normalised by reference pressure.
+     */
     public static double getLeq(short[] inputSignal, double refSoundPressure) {
         return todBspl(computeRms(inputSignal), refSoundPressure);
     }
+
     /**
      * Calculation of the equivalent sound pressure levels over a time period
      * @param inputSignal time signal [Pa]

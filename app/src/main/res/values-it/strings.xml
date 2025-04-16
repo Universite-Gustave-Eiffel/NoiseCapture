@@ -330,4 +330,9 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="localisation_policy_title" >La tua posizione</string>
     <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
     <string name="policy_button_understood">Riconoscere</string>
+    <string name="title_settings_onomap_url">URL del server comunitario</string>
+    <string name="title_settings_onomap_url_summary">NoiseCapture caricherà le misure sul server della comunità.</string>
+    <string name="result_laeq">LAeq</string>
+    <string name="result_linechart_description">Evoluzione temporale dei livelli di rumore in dB(A)</string>
+    <string name="result_tab_linechart">Tempo</string>
 </resources>

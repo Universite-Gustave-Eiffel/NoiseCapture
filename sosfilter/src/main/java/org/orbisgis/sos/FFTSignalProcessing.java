@@ -38,35 +38,40 @@ public class FFTSignalProcessing {
 
     public enum WINDOW_TYPE { RECTANGULAR, HANN, TUKEY }
     public final int samplingRate;
-    private short[] sampleBuffer;
+    private float[] sampleBuffer;
+    private int sampleBufferPosition=0;
     double[] standardFrequencies;
     double tukeyAlpha = 0.2;
     private final int windowSize;
     private FloatFFT_1D floatFFT_1D;
-    private static final double RMS_REFERENCE_90DB = 2500;
-    public static final double DB_FS_REFERENCE = - (20 * Math.log10(RMS_REFERENCE_90DB)) + 90;
-    private final double refSoundPressure;
+    // RMS level for 90 dB on 16 bits according to Android specification
+    public static final double RMS_REFERENCE_90DB = 2500;
+    // -22.35 dB Full Scale level of a 90 dB sinusoidal signal for PCM values
+    public static final double DB_FS_REFERENCE = - (20 * Math.log10(RMS_REFERENCE_90DB/Short.MAX_VALUE)) + 90;
+    private double refSoundPressure;
     private long sampleAdded = 0;
 
     public FFTSignalProcessing(int samplingRate, double[] standardFrequencies, int windowSize) {
         this.windowSize = windowSize;
         this.standardFrequencies = standardFrequencies;
         this.samplingRate = samplingRate;
-        this.sampleBuffer = new short[windowSize];
+        this.sampleBuffer = new float[windowSize];
         this.floatFFT_1D = new FloatFFT_1D(windowSize);
-        this.refSoundPressure = 1 / Math.pow(10, DB_FS_REFERENCE / 20);
+        setDbFsReference(DB_FS_REFERENCE);
     }
 
     public FFTSignalProcessing(int samplingRate, double[] standardFrequencies, int windowSize, double dbFsReference) {
         this.windowSize = windowSize;
         this.standardFrequencies = standardFrequencies;
         this.samplingRate = samplingRate;
-        this.sampleBuffer = new short[windowSize];
+        this.sampleBuffer = new float[windowSize];
         this.floatFFT_1D = new FloatFFT_1D(windowSize);
-        this.refSoundPressure = 1 / Math.pow(10, dbFsReference / 20);
+        setDbFsReference(dbFsReference);
     }
 
-
+    public void setDbFsReference(double dbFsReference) {
+        this.refSoundPressure = 1 / Math.pow(10, dbFsReference / 20);
+    }
 
     public static double[] computeFFTCenterFrequency(int maxLimitation) {
         double[] allCenterFreq = ThirdOctaveBandsFiltering.getStandardFrequencies(ThirdOctaveBandsFiltering.FREQUENCY_BANDS.REDUCED);
@@ -103,7 +108,7 @@ public class FFTSignalProcessing {
     /**
      * @return Internal sample buffer where length depends on minimal frequency.
      */
-    public short[] getSampleBuffer() {
+    public float[] getSampleBuffer() {
         return sampleBuffer;
     }
 
@@ -112,18 +117,13 @@ public class FFTSignalProcessing {
      * 1000 Hz sinusoidal 2500 RMS for 16-bits audio samples yields a 90dB SPL value.
      * @param sample audio sample
      */
-    public void addSample(short[] sample) {
-        if(sample.length < sampleBuffer.length) {
-            // Move previous samples backward
-            System.arraycopy(sampleBuffer, sample.length, sampleBuffer, 0, sampleBuffer.length - sample.length);
-            System.arraycopy(sample, 0, sampleBuffer, sampleBuffer.length - sample.length, sample.length);
-            sampleAdded+=sample.length;
-        } else {
-            // Take last samples
-            System.arraycopy(sample, Math.max(0, sample.length - sampleBuffer.length), sampleBuffer, 0,
-                    sampleBuffer.length);
-            sampleAdded+=sampleBuffer.length;
+    public void addSample(float[] sample) {
+        if(sample.length+sampleBufferPosition > sampleBuffer.length) {
+            throw new IllegalArgumentException("Too much samples for configured window size");
         }
+        System.arraycopy(sample,0, sampleBuffer, sampleBufferPosition, sample.length);
+        sampleBufferPosition+=sample.length;
+        sampleAdded+=sample.length;
     }
 
     public double computeRms() {
@@ -138,29 +138,17 @@ public class FFTSignalProcessing {
         return AcousticIndicators.todBspl (rms,  refSoundPressure);
     }
 
-    public double computeSpl(boolean aWeighting) {
-        if(aWeighting) {
-            float[] signal = new float[sampleBuffer.length];
-            for(int i=0; i < signal.length; i++) {
-                signal[i] = sampleBuffer[i];
-            }
-            signal = AWeighting.aWeightingSignal(signal);
-            return AcousticIndicators.todBspl(AcousticIndicators.computeRms(signal),
-                    refSoundPressure);
-        } else {
-            return todBspl(computeRms());
-        }
-    }
     /**
      * Calculation of the equivalent sound pressure level per third octave bands
      * @see "http://stackoverflow.com/questions/18684948/how-to-measure-sound-volume-in-db-scale-android"
      * @return List of double array of equivalent sound pressure level per third octave bands
      */
-    public ProcessingResult processSample(WINDOW_TYPE window, boolean aWeighting, boolean outputThinFrequency) {
-        float[] signal = new float[sampleBuffer.length];
-        for(int i=0; i < signal.length; i++) {
-            signal[i] = sampleBuffer[i];
+    public ProcessingResult processSampleBuffer(WINDOW_TYPE window, boolean outputThinFrequency) {
+        if(sampleBufferPosition > 0 && sampleBufferPosition != sampleBuffer.length) {
+            throw new IllegalStateException("Sample window incomplete");
         }
+        sampleBufferPosition = 0;
+        float[] signal = Arrays.copyOf(sampleBuffer, sampleBuffer.length);
         double energyCorrection = signal.length;
         switch (window) {
             case HANN:
@@ -170,9 +158,6 @@ public class FFTSignalProcessing {
                 energyCorrection = AcousticIndicators.tukeyWindow(signal, tukeyAlpha);
         }
         energyCorrection = 1.0 / Math.sqrt(energyCorrection / signal.length);
-        if(aWeighting) {
-            signal = AWeighting.aWeightingSignal(signal);
-        }
         floatFFT_1D.realForward(signal);
         final double freqByCell = samplingRate / (double)windowSize;
         float[] squareAbsoluteFFT = new float[signal.length / 2];
@@ -184,21 +169,24 @@ public class FFTSignalProcessing {
             squareAbsoluteFFT[k] = re * re + im * im;
             sumRMS += squareAbsoluteFFT[k];
         }
-        //rmsFft = Math.sqrt((rmsFft / 2) / (fftResult.length * fftResult.length));
         // Compute A weighted third octave bands
         float[] splLevels = thirdOctaveProcessing(squareAbsoluteFFT, false, energyCorrection);
         // Limit spectrum output by specified frequencies and convert to dBspl
         float[] spectrumSplLevels = null;
         if(outputThinFrequency) {
-            spectrumSplLevels = new float[(int) (Math.min(samplingRate / 2, standardFrequencies[standardFrequencies.length - 1]) /
+            spectrumSplLevels = new float[(int) (Math.min(samplingRate / 2.0,
+                    standardFrequencies[standardFrequencies.length - 1]) /
                     freqByCell)];
             for (int i = 0; i < spectrumSplLevels.length; i++) {
                 spectrumSplLevels[i] = (float) todBspl(squareAbsoluteFFTToRMS(squareAbsoluteFFT[i
                         ], squareAbsoluteFFT.length) * energyCorrection);
             }
         }
-        return new ProcessingResult(sampleAdded, spectrumSplLevels, splLevels,
-                (float)todBspl(squareAbsoluteFFTToRMS(sumRMS, squareAbsoluteFFT.length)
+        return new ProcessingResult(sampleAdded,
+                spectrumSplLevels == null ? null : Window.convertFloatToDouble(
+                        spectrumSplLevels),
+                Window.convertFloatToDouble(splLevels),
+                todBspl(squareAbsoluteFFTToRMS(sumRMS, squareAbsoluteFFT.length)
                         * energyCorrection));
     }
 
@@ -209,6 +197,7 @@ public class FFTSignalProcessing {
     public double getRefSoundPressure() {
         return refSoundPressure;
     }
+
 
     /**
      * Third-octave recombination method
@@ -252,15 +241,16 @@ public class FFTSignalProcessing {
      * TODO provide warning information about approximate value about 30 dB range from -18 dB to +12dB around 90 dB
      */
     public static final class ProcessingResult {
-        float[] fftResult;
-        float[] dBaLevels;
-        float globaldBaValue;
+        double[] fftResult;
+        double[] spl;
+        double windowLeq;
         long id;
+        double windowLaeq=0;
 
-        ProcessingResult(long id, float[] fftResult, float[] dBaLevels, float globaldBaValue) {
+        public ProcessingResult(long id, double[] fftResult, double[] spl, double windowLeq) {
             this.fftResult = fftResult;
-            this.dBaLevels = dBaLevels;
-            this.globaldBaValue = globaldBaValue;
+            this.spl = spl;
+            this.windowLeq = windowLeq;
             this.id = id;
         }
 
@@ -272,16 +262,24 @@ public class FFTSignalProcessing {
             this.id = id;
         }
 
+        public double getWindowLaeq() {
+            return windowLaeq;
+        }
+
+        public void setWindowLaeq(double windowLaeq) {
+            this.windowLaeq = windowLaeq;
+        }
+
         /**
          * Energetic avg of provided results.
          */
         public ProcessingResult(double windowCount, ProcessingResult... toMerge) {
             // Take the last processing result as reference because results are moved from
             // the right to the left in the array
-            if(toMerge[toMerge.length - 1] != null && toMerge.length > 0) {
+            if(toMerge[toMerge.length - 1] != null) {
                 id = toMerge[toMerge.length - 1].id;
                 if(toMerge[toMerge.length - 1].fftResult != null) {
-                    this.fftResult = new float[toMerge[toMerge.length - 1].fftResult.length];
+                    this.fftResult = new double[toMerge[toMerge.length - 1].fftResult.length];
                     for(ProcessingResult merge : toMerge) {
                         if(merge != null) {
                             for (int i = 0; i < fftResult.length; i++) {
@@ -293,37 +291,42 @@ public class FFTSignalProcessing {
                         fftResult[i] = (float)(10. * Math.log10(fftResult[i] / windowCount));
                     }
                 }
-                this.dBaLevels = new float[toMerge[toMerge.length - 1].dBaLevels.length];
+                this.spl = new double[toMerge[toMerge.length - 1].spl.length];
                 for(ProcessingResult merge : toMerge) {
                     if(merge != null) {
-                        for (int i = 0; i < dBaLevels.length; i++) {
-                            dBaLevels[i] += Math.pow(10, merge.dBaLevels[i] / 10.);
+                        for (int i = 0; i < spl.length; i++) {
+                            spl[i] += Math.pow(10, merge.spl[i] / 10.);
                         }
                     }
                 }
-                for(int i = 0; i < dBaLevels.length; i++) {
-                    dBaLevels[i] = (float)(10. * Math.log10(dBaLevels[i] / windowCount));
+                for(int i = 0; i < spl.length; i++) {
+                    spl[i] = (float)(10. * Math.log10(spl[i] / windowCount));
                 }
                 double sum = 0;
+                double sumLAeq=0;
+                int sumCount=0;
                 for(ProcessingResult merge : toMerge) {
                     if(merge != null) {
-                        sum += Math.pow(10, merge.getGlobaldBaValue() / 10.);
+                        sumCount++;
+                        sum += Math.pow(10, merge.getWindowLeq() / 10.);
+                        sumLAeq += Math.pow(10, merge.getWindowLaeq() / 10.);
                     }
                 }
-                this.globaldBaValue = (float)(10. * Math.log10(sum / windowCount));
+                this.windowLeq = (float)(10. * Math.log10(sum / sumCount));
+                this.windowLaeq = 10. * Math.log10(sumLAeq / sumCount);
             }
         }
 
-        public float[] getFftResult() {
+        public double[] getFftResult() {
             return fftResult;
         }
 
-        public float[] getdBaLevels() {
-            return dBaLevels;
+        public double[] getSpl() {
+            return spl;
         }
 
-        public float getGlobaldBaValue() {
-            return globaldBaValue;
+        public double getWindowLeq() {
+            return windowLeq;
         }
     }
 }

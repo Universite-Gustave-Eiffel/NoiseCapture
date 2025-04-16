@@ -42,7 +42,10 @@ import android.location.GpsStatus;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.media.AudioDeviceCallback;
+import android.media.AudioDeviceInfo;
 import android.media.AudioManager;
+import android.media.AudioRecordingConfiguration;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
@@ -115,6 +118,8 @@ public class MeasurementService extends Service {
     private int NOTIFICATION = R.string.local_service_started;
     private NotificationCompat.Builder notification;
     private Notification notificationInstance;
+    private ListenToMicrophoneDeviceSwitch audioRecordingCallback = null;
+    private double LAeq = 0; // last acquired fast lAeq
 
     /**
      * Class for clients to access.  Because we know this service always
@@ -143,6 +148,13 @@ public class MeasurementService extends Service {
         return leqStats;
     }
 
+    public double getLAeq() {
+        return LAeq;
+    }
+
+    public void setLAeq(double LAeq) {
+        this.LAeq = LAeq;
+    }
 
     public LeqStats getFastLeqStats() {
         return leqStatsFast;
@@ -182,6 +194,13 @@ public class MeasurementService extends Service {
         try {
             AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
             mgr.setStreamMute(AudioManager.STREAM_SYSTEM, true);
+            // Attach a listener to detect active microphone
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                if(audioRecordingCallback == null) {
+                    audioRecordingCallback = new ListenToMicrophoneDeviceSwitch(this);
+                }
+                mgr.registerAudioDeviceCallback(audioRecordingCallback, null);
+            }
         } catch (SecurityException ex) {
             // Ignore
         }
@@ -212,6 +231,12 @@ public class MeasurementService extends Service {
         try {
             AudioManager mgr = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
             mgr.setStreamMute(AudioManager.STREAM_SYSTEM, false);
+            // Detach a listener to detect active microphone switch
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                if(audioRecordingCallback != null) {
+                    mgr.unregisterAudioDeviceCallback(audioRecordingCallback);
+                }
+            }
         } catch (SecurityException ex) {
             // Ignore
         }
@@ -300,7 +325,7 @@ public class MeasurementService extends Service {
 
             // The PendingIntent to launch our activity if the user selects this notification
             PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                    new Intent(this, MeasurementActivity.class), 0);
+                    new Intent(this, MeasurementActivity.class), PendingIntent.FLAG_MUTABLE);
 
             String channelId = "";
             // If earlier version channel ID is not used
@@ -592,17 +617,20 @@ public class MeasurementService extends Service {
                     Storage.Leq leq;
                     if (location == null) {
                         leq = new Storage.Leq(measurementService.recordId, -1, measure
-                                .getBeginRecordTime(), 0, 0, null, null, null, 0.f, 0);
+                                .getBeginRecordTime(), 0, 0, null,
+                                null, null, 0.f, 0,
+                                (float)measure.getGlobaldBaValue());
                     } else {
                         leq = new Storage.Leq(measurementService.recordId, -1, measure
                                 .getBeginRecordTime(), location.getLatitude(), location.getLongitude(),
                                 location.hasAltitude() ? location.getAltitude() : null,
                                 location.hasSpeed() ? location.getSpeed() : null,
                                 location.hasBearing() ? location.getBearing() : null,
-                                location.getAccuracy(), location.getTime());
+                                location.getAccuracy(), location.getTime(),
+                                (float)measure.getGlobaldBaValue());
                     }
                     double[] freqValues = measurementService.audioProcess.getDelayedCenterFrequency();
-                    final float[] leqs = measure.getLeqs();
+                    final double[] leqs = measure.getLeqs();
                     // Add leqs to stats
                     measurementService.leqStats.addLeq(measure.getGlobaldBaValue());
                     List<Storage.LeqValue> leqValueList = new ArrayList<>(leqs.length);
@@ -616,9 +644,10 @@ public class MeasurementService extends Service {
                     measurementService.listeners.firePropertyChange(PROP_NEW_MEASUREMENT, null, new MeasurementEventObject(measure, leq));
                 }
             } else if(AudioProcess.PROP_FAST_LEQ.equals(event.getPropertyName())) {
+                AudioProcess.AudioMeasureResult measure =
+                        (AudioProcess.AudioMeasureResult) event.getNewValue();
+                measurementService.setLAeq(measure.getGlobaldBaValue());
                 if (measurementService.isStoring() && !measurementService.isPaused.get()) {
-                    AudioProcess.AudioMeasureResult measure =
-                            (AudioProcess.AudioMeasureResult) event.getNewValue();
                     measurementService.leqStatsFast.addLeq(measure.getGlobaldBaValue());
                 }
             } else if (AudioProcess.PROP_STATE_CHANGED.equals(event.getPropertyName())) {
@@ -634,8 +663,13 @@ public class MeasurementService extends Service {
                                     .deleteRecord(measurementService.recordId);
                         } else {
                             // Update record
-                            measurementService.measurementManager
-                                    .updateRecordFinal(measurementService.recordId,
+                            if(measurementService.audioProcess.getMicrophoneInfo() != null) {
+                                measurementService.measurementManager.
+                                        updateRecordMicrophoneDeviceSettings(measurementService.recordId,
+                                                measurementService.audioProcess.getMicrophoneInfo());
+                            }
+                            measurementService.measurementManager.
+                                    updateRecordFinal(measurementService.recordId,
                                             (float) measurementService.leqStats.getLeqMean(),
                                             measurementService.leqAdded.get(),
                                             (float)measurementService.dBGain);
@@ -694,6 +728,32 @@ public class MeasurementService extends Service {
         public MeasurementEventObject(AudioProcess.AudioMeasureResult measure, Storage.Leq leq) {
             this.measure = measure;
             this.leq = leq;
+        }
+    }
+
+    /**
+     * Listen to microphone device switch (the user plug a new microphone)
+     */
+    @RequiresApi(api = Build.VERSION_CODES.N)
+    private static final class ListenToMicrophoneDeviceSwitch extends AudioDeviceCallback {
+        MeasurementService measurementService;
+
+        public ListenToMicrophoneDeviceSwitch(MeasurementService measurementService) {
+            this.measurementService = measurementService;
+        }
+
+        @Override
+        public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
+            if(measurementService.audioProcess != null) {
+                measurementService.audioProcess.refreshMicrophoneInfo();
+            }
+        }
+
+        @Override
+        public void onAudioDevicesRemoved(AudioDeviceInfo[] removedDevices) {
+            if(measurementService.audioProcess != null) {
+                measurementService.audioProcess.refreshMicrophoneInfo();
+            }
         }
     }
 }

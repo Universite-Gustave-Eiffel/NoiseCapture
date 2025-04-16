@@ -126,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
                     != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                    Manifest.permission.FOREGROUND_SERVICE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED) {
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                         Manifest.permission.RECORD_AUDIO)) {
@@ -260,9 +260,10 @@ public class MainActivity extends AppCompatActivity {
             };
             // Set the drawer toggle as the DrawerListener
             mDrawerLayout.setDrawerListener(mDrawerToggle);
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setHomeButtonEnabled(true);
-
+            if(getSupportActionBar() != null) {
+                getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                getSupportActionBar().setHomeButtonEnabled(true);
+            }
         } catch (Exception e) {
             MAINLOGGER.error(e.getLocalizedMessage(), e);
         }
@@ -282,7 +283,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onBackPressed() {
         if(!(this instanceof MeasurementActivity)) {
-            if(mDrawerLayout != null) {
+            if(mDrawerLayout != null && mDrawerList != null) {
                 mDrawerLayout.closeDrawer(mDrawerList);
             }
             super.onBackPressed();
@@ -489,7 +490,11 @@ public class MainActivity extends AppCompatActivity {
      */
     public boolean isOnline() {
         try {
-            URL url = new URL(MeasurementUploadWPS.CHECK_UPLOAD_AVAILABILITY);
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+            String serverUrl = sharedPref.getString("settings_onomap_url",
+                    MeasurementUploadWPS.BASE_URL);
+            serverUrl += "/geoserver/ows?service=wps&version=1.0.0&request=GetCapabilities";
+            URL url = new URL(serverUrl);
             HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
             int code = urlConnection.getResponseCode();
             return code == 200 || code == 301 || code == 302;
@@ -610,7 +615,13 @@ public class MainActivity extends AppCompatActivity {
         TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
         stackBuilder.addParentStack(this);
         stackBuilder.addNextIntent(intent);
-        builder.setContentIntent(stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT));
+        if (Build.VERSION.SDK_INT >= 34) {
+            builder.setContentIntent(stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_MUTABLE + PendingIntent.FLAG_NO_CREATE + PendingIntent.FLAG_ALLOW_UNSAFE_IMPLICIT_INTENT));
+        } else if (Build.VERSION.SDK_INT >= 31) {
+            builder.setContentIntent(stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT + PendingIntent.FLAG_MUTABLE));
+        } else {
+            builder.setContentIntent(stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT));
+        }
         NotificationManager mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         mNM.notify(NOTIFICATION_MAP, builder.build());
     }

@@ -1,12 +1,17 @@
 [main]
-host = https://www.transifex.com
+host = https://app.transifex.com
 
-[noisecapture.stringsxml]
-file_filter = app/src/main/res/values-<lang>/strings.xml
-minimum_perc = 90
-source_file = app/src/main/res/values/strings.xml
-source_lang = en
-trans.ro_RO = app/src/main/res/values-ro-rRO/strings.xml
-trans.pt_BR = app/src/main/res/values-pt-rBR/strings.xml
-type = android
+[o:LAE:p:noisecapture:r:stringsxml]
+file_filter            = app/src/main/res/values-<lang>/strings.xml
+source_file            = app/src/main/res/values/strings.xml
+source_lang            = en
+type                   = ANDROID
+minimum_perc           = 90
+resource_name          = strings.xml
+trans.ro_RO            = app/src/main/res/values-ro-rRO/strings.xml
+trans.pt_BR            = app/src/main/res/values-pt-rBR/strings.xml
+trans.co            = app/src/main/res/values-co/strings.xml
+replace_edited_strings = false
+keep_translations      = false
+
 

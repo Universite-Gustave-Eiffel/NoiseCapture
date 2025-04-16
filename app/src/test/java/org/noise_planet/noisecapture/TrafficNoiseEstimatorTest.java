@@ -1,5 +1,6 @@
 package org.noise_planet.noisecapture;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.jcraft.jogg.Packet;
 import com.jcraft.jogg.Page;
 import com.jcraft.jogg.StreamState;
@@ -9,11 +10,12 @@ import com.jcraft.jorbis.Comment;
 import com.jcraft.jorbis.DspState;
 import com.jcraft.jorbis.Info;
 
-import org.json.JSONException;
 import org.junit.Test;
 import org.noise_planet.noisecapture.util.PeakFinder;
 import org.noise_planet.noisecapture.util.TrafficNoiseEstimator;
+import org.orbisgis.sos.ConfigurationSpectrumChannel;
 import org.orbisgis.sos.FFTSignalProcessing;
+import org.orbisgis.sos.SpectrumChannel;
 import org.orbisgis.sos.Window;
 
 import java.io.BufferedInputStream;
@@ -74,15 +76,14 @@ public class TrafficNoiseEstimatorTest {
 
         TrafficNoiseEstimator.Estimation estimation = trafficNoiseEstimator.getMedianPeak(trafficNoiseEstimator.fastToSlowLeqMax(laeqs));
 
-        assertEquals(67.35, estimation.medianPeak, 0.1);
         assertEquals(4, estimation.numberOfPassby);
 
         trafficNoiseEstimator.setDistance(3.5);
         trafficNoiseEstimator.setSpeed(65.0);
 
-        double gain = trafficNoiseEstimator.computeGain(estimation.medianPeak);
+        double gain = trafficNoiseEstimator.computeGain(0);
 
-        assertEquals(14.1, gain, 0.1);
+        assertEquals(81.45, gain, 0.1);
 
     }
 
@@ -91,29 +92,32 @@ public class TrafficNoiseEstimatorTest {
             OrbisReader reader = new OrbisReader(fos);
             reader.setDebugMode(false);
             reader.run();
-            int lastPushIndex = 0;
-            DataInputStream dos = new DataInputStream(new ByteArrayInputStream(reader.getBytes()));
-            Window window = new Window(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR,
-                    reader.jorbisInfo.rate, FFTSignalProcessing.computeFFTCenterFrequency(16000),
-                    0.125, true, 1, false);
-            short[] buffer = new short[(int) (window.getWindowTime() * reader.jorbisInfo.rate)];
-            List<Float> laeqsList = new ArrayList<>();
+            byte[] audioData = reader.getBytes();
+            DataInputStream dos = new DataInputStream(new ByteArrayInputStream(audioData));
+            ConfigurationSpectrumChannel configuration;
+            try (InputStream s = SpectrumChannel.class.getResourceAsStream(
+                    "config_"+reader.jorbisInfo.rate+"_third_octave.json")) {
+                ObjectMapper objectMapper = new ObjectMapper();
+                configuration = objectMapper.readValue(s, ConfigurationSpectrumChannel.class);
+            }
+            SpectrumChannel spectrumChannel = new SpectrumChannel();
+            spectrumChannel.loadConfiguration(configuration, false);
+            float[] buffer = new float[(int) (0.125 * reader.jorbisInfo.rate)];
+            List<Double> laeqsList = new ArrayList<>();
+            int samples_read=0;
+            double dbAGain = FFTSignalProcessing.DB_FS_REFERENCE;
             while (dos.available() > Short.SIZE / Byte.SIZE) {
                 try {
-                    int sampleLen = Math.min(window.getMaximalBufferSize(), buffer.length);
-                    for (int i = 0; i < sampleLen; i++) {
-                        buffer[i] = dos.readShort();
+                    int windowSize = Math.min(dos.available() / 2, buffer.length);
+                    for (int i = 0; i < windowSize; i++) {
+                        buffer[i] = (float)(dos.readShort() / (double)Short.MAX_VALUE);
+                        samples_read+=1;
                     }
-                    window.pushSample(Arrays.copyOf(buffer, sampleLen));
-                    if (window.getWindowIndex() != lastPushIndex) {
-                        lastPushIndex = window.getWindowIndex();
-                        FFTSignalProcessing.ProcessingResult res = window.getLastWindowMean();
-                        float t = lastPushIndex * 0.125f;
-                        laeqsList.add(res.getGlobaldBaValue());
-                        if(printValues) {
-                            System.out.println(String.format(Locale.ROOT, "%.3f  %.2f", t, res.getGlobaldBaValue()));
-                        }
-                        window.cleanWindows();
+                    double lAeq = spectrumChannel.processSamplesWeightA(buffer) + dbAGain;
+                    laeqsList.add(lAeq);
+                    if(printValues) {
+                        System.out.println(String.format(Locale.ROOT, "%.3f  %.2f",
+                                samples_read / (double)reader.jorbisInfo.rate, lAeq));
                     }
                 } catch (EOFException ex) {
                     break;

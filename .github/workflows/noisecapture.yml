@@ -1,0 +1,44 @@
+name: androidbuild
+
+on: [ push, pull_request, workflow_dispatch ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+      - name: Put gradle.properties settings
+        run: |
+          touch gradle.properties
+          echo android.useAndroidX=true >> gradle.properties
+          echo android.defaults.buildfeatures.buildconfig=true >> gradle.properties
+          echo android.enableJetifier=true >> gradle.properties
+          echo android.nonFinalResIds=false >> gradle.properties
+          echo android.nonTransitiveRClass=false >> gradle.properties
+          echo org.gradle.jvmargs=-Xmx4096M >> gradle.properties
+      - name: Building
+        run: ./gradlew build -x test --info --stacktrace
+      - name: Test
+        run: ./gradlew test --info --stacktrace
+      - name: Clean
+        run: rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+      - name: Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            $HOME/.m2/
+            $HOME/.gradle/caches/
+            $HOME/.gradle/wrapper/
+          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: NoiseCapture_unsigned
+          path: app/build/outputs/apk/release/app-release-unsigned.apk

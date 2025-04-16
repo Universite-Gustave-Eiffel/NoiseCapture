@@ -496,11 +496,6 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         double rms = dbToRms(99 - (splLoop++) * DB_STEP);
         short[] data = makeWhiteNoiseSignal(44100, rms);
         double[] fftCenterFreq = FFTSignalProcessing.computeFFTCenterFrequency(AudioProcess.REALTIME_SAMPLE_RATE_LIMITATION);
-        FFTSignalProcessing fftSignalProcessing = new FFTSignalProcessing(44100, fftCenterFreq, 44100);
-        fftSignalProcessing.addSample(data);
-        whiteNoisedB = fftSignalProcessing.computeGlobalLeq();
-        freqLeqStats.add(new LinearCalibrationResult(fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.TUKEY, false, false)));
-        LOGGER.info("Emit white noise of "+whiteNoisedB+" dB");
         if(audioTrack == null) {
             audioTrack = new AudioTrack(getAudioOutput(), 44100, AudioFormat.CHANNEL_OUT_MONO,
                     AudioFormat.ENCODING_PCM_16BIT, data.length * (Short.SIZE / 8), AudioTrack.MODE_STATIC);
@@ -623,7 +618,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
 
         // Read all white noise values for indexing before usage
         int idStep = 0;
-        double referenceLevel = freqLeqStats.get(0).whiteNoiseLevel.getGlobaldBaValue();
+        double referenceLevel = freqLeqStats.get(0).whiteNoiseLevel.getWindowLeq();
         for(LinearCalibrationResult result : freqLeqStats) {
             ArrayList<Entry> yMeasure = new ArrayList<Entry>();
             int idfreq = 0;
@@ -634,7 +629,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                 yMeasure.add(new Entry(dbLevel, idfreq++));
             }
             LineDataSet freqSet = new LineDataSet(yMeasure, String.format(Locale.getDefault(),"%d dB",
-                    (int)(result.whiteNoiseLevel.getGlobaldBaValue() - referenceLevel)));
+                    (int)(result.whiteNoiseLevel.getWindowLeq() - referenceLevel)));
             freqSet.setColor(ColorTemplate.COLORFUL_COLORS[idStep % ColorTemplate.COLORFUL_COLORS.length]);
             freqSet.setFillColor(ColorTemplate.COLORFUL_COLORS[idStep % ColorTemplate.COLORFUL_COLORS.length]);
             freqSet.setValueTextColor(Color.WHITE);
@@ -680,16 +675,16 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         ArrayList<IScatterDataSet> dataSets = new ArrayList<IScatterDataSet>();
 
         // Frequency count, one dataset by frequency
-        int dataSetCount = freqLeqStats.get(freqLeqStats.size() - 1).whiteNoiseLevel.getdBaLevels().length;
+        int dataSetCount = freqLeqStats.get(freqLeqStats.size() - 1).whiteNoiseLevel.getSpl().length;
 
         Set<Integer> whiteNoiseValuesSet = new TreeSet<Integer>();
 
 
         // Read all white noise values for indexing before usage
         for(LinearCalibrationResult result : freqLeqStats) {
-            for(int idFreq = 0; idFreq < result.whiteNoiseLevel.getdBaLevels().length; idFreq++) {
-                float dbLevel = result.whiteNoiseLevel.getdBaLevels()[idFreq];
-                float referenceDbLevel = freqLeqStats.get(0).whiteNoiseLevel.getdBaLevels()[idFreq];
+            for(int idFreq = 0; idFreq < result.whiteNoiseLevel.getSpl().length; idFreq++) {
+                double dbLevel = result.whiteNoiseLevel.getSpl()[idFreq];
+                double referenceDbLevel = freqLeqStats.get(0).whiteNoiseLevel.getSpl()[idFreq];
                 whiteNoiseValuesSet.add((int)(dbLevel - referenceDbLevel));
             }
         }
@@ -712,8 +707,8 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
                 ArrayList<Entry> yMeasure = new ArrayList<Entry>();
                 for (LinearCalibrationResult result : freqLeqStats) {
                     float dbLevel = (float) result.measure[freqId].getLeqMean();
-                    float referenceDbLevel = freqLeqStats.get(0).whiteNoiseLevel.getdBaLevels()[freqId];
-                    int whiteNoise = (int) (result.whiteNoiseLevel.getdBaLevels()[freqId] - referenceDbLevel);
+                    double referenceDbLevel = freqLeqStats.get(0).whiteNoiseLevel.getSpl()[freqId];
+                    int whiteNoise = (int) (result.whiteNoiseLevel.getSpl()[freqId] - referenceDbLevel);
                     YMax = Math.max(YMax, dbLevel);
                     YMin = Math.min(YMin, dbLevel);
                     yMeasure.add(new Entry(dbLevel, Arrays.binarySearch(whiteNoiseValues, whiteNoise)));
@@ -746,7 +741,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             return null;
         }
         // Frequency count, one dataset by frequency
-        int dataSetCount = freqLeqStats.get(freqLeqStats.size() - 1).whiteNoiseLevel.getdBaLevels().length;
+        int dataSetCount = freqLeqStats.get(freqLeqStats.size() - 1).whiteNoiseLevel.getSpl().length;
         double[] pearsonCoefficient = new double[dataSetCount];
 
         StringBuilder log = new StringBuilder();
@@ -756,7 +751,7 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
             int idStep = 0;
             for(LinearCalibrationResult result : freqLeqStats) {
                 double dbLevel = result.measure[freqId].getLeqMean();
-                double whiteNoise = result.whiteNoiseLevel.getdBaLevels()[freqId];
+                double whiteNoise = result.whiteNoiseLevel.getSpl()[freqId];
                 xValues[idStep] = whiteNoise;
                 yValues[idStep] = dbLevel;
                 if(freqId == 0) {
@@ -955,9 +950,9 @@ public class CalibrationLinearityActivity extends MainActivity implements Proper
         }
 
         public void pushMeasure(FFTSignalProcessing.ProcessingResult measure) {
-            float[] measureLevels = measure.getdBaLevels();
+            double[] measureLevels = measure.getSpl();
             if(this.measure == null) {
-                this.measure = new LeqStats[measure.getdBaLevels().length];
+                this.measure = new LeqStats[measure.getSpl().length];
                 for(int idFreq = 0; idFreq < this.measure.length; idFreq++) {
                     this.measure[idFreq] = new LeqStats();
                 }

@@ -43,7 +43,6 @@ import static org.junit.Assert.*;
  */
 public class WindowTest {
     public static final double[] STANDARD_FREQUENCIES_UNITTEST = new double[]{100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1000, 1250, 1600, 2000, 2500, 3150, 4000, 5000, 6300, 8000, 10000, 12500, 16000};
-    public static final double REF_SOUND_PRESSURE = 1 / Math.pow(10, FFTSignalProcessing.DB_FS_REFERENCE / 20);
 
     private double getGlobalLeq(double[] leq) {
         double expectedGlobalLeq = 0;
@@ -74,7 +73,8 @@ public class WindowTest {
      * @param delta            Apply this delta to dbResult before comparing
      * @param maximalDeviation Fail if one of frequency band is superior than this error (dB)
      */
-    private void checkSplSpectrum(double[] expectedLeq, float[] dbResult, double delta, double maximalDeviation) {
+    public static void checkSplSpectrum(double[] expectedLeq, double[] dbResult, double delta,
+                                        double maximalDeviation) {
         double[] normalisedDbResult = new double[dbResult.length];
         for (int idFreq = 0; idFreq < dbResult.length; idFreq++) {
             normalisedDbResult[idFreq] = dbResult[idFreq] - delta;
@@ -85,10 +85,12 @@ public class WindowTest {
             err += Math.pow(normalisedDbResult[idFreq] - expectedLeq[idFreq], 2);
         }
         err = Math.sqrt(err / dbResult.length);
-        assertEquals("Deviation of " + err + "\nExpected: \n" + Arrays.toString(expectedLeq) + "\nGot:\n" + Arrays.toString(normalisedDbResult), 0, err, maximalDeviation);
+        assertEquals("Deviation of " + err + "\nExpected: \n" +
+                Arrays.toString(expectedLeq) + "\nGot:\n" + Arrays.toString(normalisedDbResult),
+                0, err, maximalDeviation);
     }
 
-    private float[] testFFTWindow(short[] signal, int sampleRate, double windowTime, FFTSignalProcessing.WINDOW_TYPE windowType, double dbFsReference) {
+    private double[] testFFTWindow(float[] signal, int sampleRate, double windowTime, FFTSignalProcessing.WINDOW_TYPE windowType, double dbFsReference) {
         Window window = new Window(windowType, sampleRate,
                 STANDARD_FREQUENCIES_UNITTEST, windowTime, false, dbFsReference, false);
 
@@ -99,7 +101,8 @@ public class WindowTest {
         while (idSampleStart < signal.length) {
             // Compute sub-sample size in order to not skip samples
             int sampleLen = Math.min(window.getMaximalBufferSize(), packetSize);
-            short[] samples = Arrays.copyOfRange(signal, idSampleStart, Math.min(signal.length, idSampleStart + sampleLen));
+            float[] samples = Arrays.copyOfRange(signal, idSampleStart, Math.min(signal.length,
+                    idSampleStart + sampleLen));
             idSampleStart += samples.length;
 
             window.pushSample(samples);
@@ -123,7 +126,7 @@ public class WindowTest {
         FFTSignalProcessing.ProcessingResult fullSampleResult =
                 new FFTSignalProcessing.ProcessingResult((signal.length / sampleRate) / windowTime, res.toArray(new FFTSignalProcessing.ProcessingResult[res.size()]));
 
-        return fullSampleResult.getdBaLevels();
+        return fullSampleResult.getSpl();
     }
 
     @Test
@@ -143,17 +146,19 @@ public class WindowTest {
         // Test error induced by window overlapping
         // Read input signal
         InputStream inputStream = WindowTest.class.getResourceAsStream("speak_44100Hz_16bitsPCM_10s.raw");
-        short[] signal = SOSSignalProcessing.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN);
+        float[] signal = Window.convertShortToFloat(
+                Window.loadShortStream(inputStream, ByteOrder.LITTLE_ENDIAN),
+                false);
         // Reference value from ITA Toolbox
 
         // Test FFT without cutting
         FFTSignalProcessing fftSignalProcessing =
                 new FFTSignalProcessing(sampleRate, ThirdOctaveBandsFiltering.STANDARD_FREQUENCIES_REDUCED, signal.length, dbFsReference);
         fftSignalProcessing.addSample(signal);
-        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSample(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, false, false);
+        FFTSignalProcessing.ProcessingResult processingResult = fftSignalProcessing.processSampleBuffer(FFTSignalProcessing.WINDOW_TYPE.RECTANGULAR, false);
 
         assertEquals(refGlobalSpl, fftSignalProcessing.computeGlobalLeq(), 0.01);
-        assertEquals(refGlobalSpl, processingResult.getGlobaldBaValue(), 0.01);
+        assertEquals(refGlobalSpl, processingResult.getWindowLeq(), 0.01);
 
         // Test FFT windows
 

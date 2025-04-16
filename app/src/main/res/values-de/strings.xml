@@ -334,4 +334,9 @@ track.geojson 1s Beispielmessungen. Nutzung des geojson-Formats (http://geojson.
     <string name="localisation_policy_title" >Ihre Position</string>
     <string name="localisation_policy_webpage">file:///android_asset/html/localisation_notice.html</string>
     <string name="policy_button_understood">Bestätigen</string>
+    <string name="title_settings_onomap_url">Url des Gemeinschaftsservers</string>
+    <string name="title_settings_onomap_url_summary">NoiseCapture lädt Messungen auf diesen Gemeinschaftsserver hoch</string>
+    <string name="result_laeq">LAeq</string>
+    <string name="result_linechart_description">Zeitliche Entwicklung der Lärmpegel in dB(A)</string>
+    <string name="result_tab_linechart">Zeit</string>
 </resources>

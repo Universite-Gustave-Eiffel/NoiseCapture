@@ -426,7 +426,7 @@ public class MeasurementManager {
      * @param recordVisitor Visitor of records
      */
     @SuppressLint("Range")
-    public void getRecordLocations(int recordId, RecordVisitor<LeqBatch> recordVisitor) {
+    public void getRecordLocations(int recordId, RecordVisitor<LeqBatch> recordVisitor) throws IllegalStateException {
         SQLiteDatabase database = storage.getReadableDatabase();
         double[] lastLatLng = null;
         recordVisitor.onCreateCursor(getRecordLocationsCount(recordId, false));

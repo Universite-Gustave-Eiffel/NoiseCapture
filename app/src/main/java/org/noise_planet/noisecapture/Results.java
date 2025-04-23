@@ -575,7 +575,18 @@ public class Results extends MainActivity {
             final OneSecondLeqVisitor leqVisitor = new OneSecondLeqVisitor();
 
             // Query 1s database without storing all values in memory
-            activity.measurementManager.getRecordLocations(activity.record.getId(), leqVisitor);
+            try {
+                activity.measurementManager.getRecordLocations(activity.record.getId(), leqVisitor);
+            } catch (IllegalStateException ex) {
+                // got db issues, will try again later
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    return;
+                }
+                AsyncTask.execute(new LoadMeasurements(activity));
+                return;
+            }
 
             final List<Float> splHistogram = new ArrayList<>(leqVisitor.leqStatsByFreq.length);
             // List of third-octave bands

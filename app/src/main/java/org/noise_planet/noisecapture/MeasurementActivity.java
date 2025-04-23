@@ -286,7 +286,6 @@ public class MeasurementActivity extends MainActivity implements
         // Instantaneous sound level VUMETER
         // Stacked bars are used for represented Min, Current and Max values
         // Horizontal barchart
-        LinearLayout graphLayouts = (LinearLayout) findViewById(R.id.graph_components_layout);
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
         mChart.setTouchEnabled(false);
 

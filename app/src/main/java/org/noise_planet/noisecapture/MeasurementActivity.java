@@ -77,6 +77,8 @@ import com.github.mikephil.charting.formatter.YAxisValueFormatter;
 import com.github.mikephil.charting.interfaces.datasets.IBarDataSet;
 
 import org.orbisgis.sos.LeqStats;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -90,6 +92,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class MeasurementActivity extends MainActivity implements
         SharedPreferences.OnSharedPreferenceChangeListener, MapFragment.MapFragmentAvailableListener {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(MeasurementActivity.class);
     private static final int MAXIMUM_PERMISSION_QUERY = 5;
     private AtomicInteger permissionFailCount = new AtomicInteger(0);
 
@@ -283,7 +286,6 @@ public class MeasurementActivity extends MainActivity implements
         // Instantaneous sound level VUMETER
         // Stacked bars are used for represented Min, Current and Max values
         // Horizontal barchart
-        LinearLayout graphLayouts = (LinearLayout) findViewById(R.id.graph_components_layout);
         mChart = (HorizontalBarChart) findViewById(R.id.vumeter);
         mChart.setTouchEnabled(false);
 
@@ -661,21 +663,15 @@ public class MeasurementActivity extends MainActivity implements
             }
             else if(MeasurementService.PROP_NEW_MEASUREMENT.equals(event.getPropertyName())) {
                 if(BuildConfig.DEBUG) {
-                    System.out.println("Measure offset "+activity.measurementService.getAudioProcess().getFastNotProcessedMilliseconds()+" ms");
+                    LOGGER.info("Measure offset {} ms", activity.measurementService.getAudioProcess().getFastNotProcessedMilliseconds());
                 }
-                MapFragment mapFragment = activity.getMapControler();
-                if(mapFragment != null) {
-                    final MeasurementService.MeasurementEventObject measurement = (MeasurementService.MeasurementEventObject) event.getNewValue();
-                    if(!(Double.compare(measurement.leq.getLatitude(), 0) == 0 && Double.compare(measurement.leq.getLongitude(), 0) == 0)) {
-                        activity.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                String htmlColor = MeasurementExport.getColorFromLevel
-                                        (measurement.measure.getGlobaldBaValue());
-                                activity.getMapControler().addMeasurement(new MapFragment.LatLng(measurement.leq.getLatitude(), measurement.leq.getLongitude()), htmlColor);
-                            }
-                        });
-                    }
+                final MeasurementService.MeasurementEventObject measurement = (MeasurementService.MeasurementEventObject) event.getNewValue();
+                if(!(Double.compare(measurement.leq.getLatitude(), 0) == 0 && Double.compare(measurement.leq.getLongitude(), 0) == 0)) {
+                    activity.runOnUiThread(() -> {
+                        String htmlColor = MeasurementExport.getColorFromLevel
+                                (measurement.measure.getGlobaldBaValue());
+                        activity.getMapControler().addMeasurement(new MapFragment.LatLng(measurement.leq.getLatitude(), measurement.leq.getLongitude()), htmlColor);
+                    });
                 }
             }
         }

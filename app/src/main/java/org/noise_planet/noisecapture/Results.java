@@ -575,7 +575,18 @@ public class Results extends MainActivity {
             final OneSecondLeqVisitor leqVisitor = new OneSecondLeqVisitor();
 
             // Query 1s database without storing all values in memory
-            activity.measurementManager.getRecordLocations(activity.record.getId(), leqVisitor);
+            try {
+                activity.measurementManager.getRecordLocations(activity.record.getId(), leqVisitor);
+            } catch (IllegalStateException ex) {
+                // got db issues, will try again later
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    return;
+                }
+                AsyncTask.execute(new LoadMeasurements(activity));
+                return;
+            }
 
             final List<Float> splHistogram = new ArrayList<>(leqVisitor.leqStatsByFreq.length);
             // List of third-octave bands
@@ -671,10 +682,10 @@ public class Results extends MainActivity {
 
         @Override
         public boolean next(MeasurementManager.LeqBatch record) {
-            leqStats.addLeq(record.computeGlobalLAeq());
+            leqStats.addLeq(Math.max(0, record.computeGlobalLAeq()));
             int idFreq = 0;
             for(Storage.LeqValue leqValue : record.getLeqValues()) {
-                leqStatsByFreq[idFreq].addLeq(leqValue.getSpl());
+                leqStatsByFreq[idFreq].addLeq(Math.max(0, leqValue.getSpl()));
                 idFreq++;
             }
             if(firstUTC == 0) {
@@ -683,7 +694,7 @@ public class Results extends MainActivity {
             long elapsedTime = (record.getLeq().getLeqUtc() - firstUTC) / 1000 + 1;
             if(elapsedTime % step == 0) {
                 splSecond.add((int)elapsedTime);
-                splValues.add((float)record.computeGlobalLAeq());
+                splValues.add(Math.max(0, (float)record.computeGlobalLAeq()));
             }
             return true;
         }

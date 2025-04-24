@@ -14,15 +14,6 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
-      - name: Put gradle.properties settings
-        run: |
-          touch gradle.properties
-          echo android.useAndroidX=true >> gradle.properties
-          echo android.defaults.buildfeatures.buildconfig=true >> gradle.properties
-          echo android.enableJetifier=true >> gradle.properties
-          echo android.nonFinalResIds=false >> gradle.properties
-          echo android.nonTransitiveRClass=false >> gradle.properties
-          echo org.gradle.jvmargs=-Xmx4096M >> gradle.properties
       - name: Building
         run: ./gradlew build -x test --info --stacktrace
       - name: Test

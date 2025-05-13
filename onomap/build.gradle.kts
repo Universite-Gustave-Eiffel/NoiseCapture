@@ -4,6 +4,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   kotlin ("jvm") version "1.7.21"
+  groovy
   application
   id("com.github.johnrengelman.shadow") version "7.1.2"
 }
@@ -30,12 +31,14 @@ application {
 
 dependencies {
   implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
+  implementation("org.apache.groovy:groovy-all:4.0.26")
   implementation("io.vertx:vertx-web")
   implementation("io.vertx:vertx-pg-client")
   implementation("io.vertx:vertx-lang-kotlin")
   implementation(kotlin("stdlib-jdk8"))
   implementation("com.ongres.scram:client:2.1")
   testImplementation("io.vertx:vertx-junit5")
+  testImplementation("io.vertx:vertx-web-client")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }
 

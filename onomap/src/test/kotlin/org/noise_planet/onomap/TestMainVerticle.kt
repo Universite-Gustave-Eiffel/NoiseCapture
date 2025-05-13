@@ -35,7 +35,7 @@ class TestMainVerticle {
     val webClient: WebClient = WebClient.create(vertx)
     val deploymentCheckpoint = testContext.checkpoint()
     val requestCheckpoint = testContext.checkpoint()
-
+    System.setProperty("user.dir", "build")
     vertx.deployVerticle(MainVerticle()).onComplete(testContext.succeeding<String?>(Handler { id: String? ->
       deploymentCheckpoint.flag()
       val fs = vertx.fileSystem()

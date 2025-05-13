@@ -185,3 +185,5 @@ nbdist/
 !.vscode/extensions.json
 
 build/
+
+data_dir/

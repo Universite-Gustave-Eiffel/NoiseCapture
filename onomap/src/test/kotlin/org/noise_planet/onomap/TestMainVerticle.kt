@@ -73,16 +73,22 @@ class TestMainVerticle {
     val requestCheckpoint = testContext.checkpoint()
     System.setProperty("user.dir", "build")
     vertx.deployVerticle(MainVerticle()).onComplete(testContext.succeeding<String?>(Handler { id: String? ->
+      // HTTP server is ready
       deploymentCheckpoint.flag()
       val fs = vertx.fileSystem()
       val filename = "org/noise_planet/noisecapturegs/track_upload_test.zip"
+      // Open local file to create the WPS query with this file embedded into a xml text element
       fs.open(filename, OpenOptions()).compose { asyncFile ->
         asyncFile.toBase64().onComplete { base64String ->
+          // Record file has been fully converted into base 64
+          // send a POST query to Vert.X http server
           webClient.post(ONOMAP_DEFAULT_PORT, "localhost", "/geoserver/wps")
             .`as`(BodyCodec.jsonObject())
             .sendBuffer(generateWPSUpload(base64String.result()))
             .onComplete(testContext.succeeding { resp ->
+              // We got a response from Vert.X http server
               testContext.verify(ExecutionBlock {
+                // Check HTTP status code
                 assertThat(resp.statusCode(), equalTo(200))
                 // Check written file content
                 val response = resp.body().map

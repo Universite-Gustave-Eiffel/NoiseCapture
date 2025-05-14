@@ -1,0 +1,7 @@
+
+The geometries in the file ut_deps.geojson has been derived from the file
+ http://osm13.openstreetmap.fr/~cquest/openfla/export/departements-20140306-100m-shp.zip
+
+ of this webpage https://www.data.gouv.fr/fr/datasets/contours-des-departements-francais-issus-d-openstreetmap/
+
+ This file is for unit test purpose only and does not contains some departements and contains large geometry and properties errors.

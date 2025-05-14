@@ -1,30 +1,26 @@
 package org.noise_planet.onomap
 
-import groovy.lang.GroovyShell
 import groovy.lang.Script
-import groovy.namespace.QName
-import io.netty.buffer.ByteBufInputStream
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
-import io.vertx.core.buffer.Buffer
-import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
-import org.codehaus.groovy.reflection.ReflectionUtils
+import io.vertx.ext.web.handler.BodyHandler
 import java.io.ByteArrayInputStream
-import javax.xml.stream.XMLInputFactory
+import java.io.InputStream
 import java.io.InputStreamReader
-import java.lang.reflect.Constructor
+import io.vertx.core.json.Json
+import javax.xml.stream.XMLInputFactory
 
-public const val ONOMAP_DEFAULT_PORT = 8888
+const val ONOMAP_DEFAULT_PORT = 8888
 
 class MainVerticle : AbstractVerticle() {
 
   override fun start(startPromise: Promise<Void>) {
 
     val router = Router.router(vertx).apply {
-      post("/geoserver/wps").handler (this@MainVerticle::noisecapture1WPS)
-      post("/geoserver/ows").handler (this@MainVerticle::noisecapture1WPS)
+      post("/geoserver/wps").handler(BodyHandler.create()).handler (this@MainVerticle::noisecapture1WPS)
+      post("/geoserver/ows").handler(BodyHandler.create()).handler (this@MainVerticle::noisecapture1WPS)
     }
 
     vertx
@@ -44,20 +40,23 @@ class MainVerticle : AbstractVerticle() {
    * Process WPS queries from NoiseCapture V1 Application
    */
   private fun noisecapture1WPS(context: RoutingContext) {
-    context.request().bodyHandler{ buffer ->
-      val returnValue = wpsBodyHandle(buffer)
-      context.response().putHeader("Content-Type", "text/xml");
-      context.response().end(returnValue.toString())
-    }
+    val body = context.body()
+    // Parse the POST XML content
+    val wpsQuery = parseWpsXmlQuery(ByteArrayInputStream(body.buffer().bytes))
+    // Run the WPS process
+    val result = runWPSScript(wpsQuery)
+    // Produce the xml result
+    context.response().putHeader("Content-Type", "text/xml");
+    context.response().end(Json.encode(result))
   }
 
   /**
-   * Process WPS queries XML from NoiseCapture V1 Application
+   * Parse WPS XML query document
    */
-  private fun wpsBodyHandle(buffer: Buffer) : Map<String, Any> {
+  fun parseWpsXmlQuery(stream : InputStream) : WPSQuery {
     val reader =
       XMLInputFactory.newFactory().createXMLStreamReader(
-        InputStreamReader(ByteArrayInputStream(buffer.bytes), "UTF-8"))
+        InputStreamReader(stream, "UTF-8"))
     val dataInputs = HashMap<String, String>()
     var keyStack = emptyArray<String>()
     var lastLiteralData = ""
@@ -81,10 +80,14 @@ class MainVerticle : AbstractVerticle() {
             }
           }
         }
+        if(reader.isStartElement) {
+          // clear for next multi-part text
+          lastLiteralData = ""
+        }
       } else if(reader.hasText()) {
         when(keyStack.last()) {
-           "LiteralData" -> {
-            lastLiteralData = reader.text
+          "LiteralData" -> {
+            lastLiteralData += reader.text
           }
           "Identifier" -> {
             when(keyStack.takeLast(2).first()) {
@@ -95,17 +98,22 @@ class MainVerticle : AbstractVerticle() {
         }
       }
     }
-    return runWPSScript(wpsProcessName, dataInputs)
+    return WPSQuery(wpsProcessName, dataInputs)
   }
 
-  fun runWPSScript(wpsProcessName : String, dataInputs : Map<String, String>) : Map<String, Any> {
-    if(wpsProcessName.startsWith("groovy:")) {
-      val scriptName = wpsProcessName.substring(wpsProcessName.indexOf(":") + 1, wpsProcessName.length)
+  fun runWPSScript(wpsQuery: WPSQuery) : Map<*, *> {
+    if(wpsQuery.wpsProcessName.startsWith("groovy:")) {
+      val scriptName = wpsQuery.wpsProcessName.substring(wpsQuery.wpsProcessName.indexOf(":") + 1, wpsQuery.wpsProcessName.length)
       try {
         val groovyClass = javaClass.classLoader.loadClass("org.noise_planet.onomap.$scriptName")
         val instance = groovyClass.getConstructor().newInstance()
         if(instance is Script) {
-          instance.invokeMethod("run", dataInputs)
+          val result = instance.invokeMethod("run", wpsQuery.wpsInput)
+          if(result is Map<*, *>) {
+            return result
+          } else {
+            return mapOf("result" to result)
+          }
         }
       } catch (e: ClassNotFoundException) {
         return mapOf("result" to "<ows:ExceptionReport version=\"1.1.0\" " +
@@ -113,13 +121,15 @@ class MainVerticle : AbstractVerticle() {
           "https://onomap-gs.noise-planet.org/geoserver/schemas/ows/1.1.0/owsAll.xsd\">\n" +
           "<ows:Exception exceptionCode=\"MissingParameterValue\" locator=\"request\">\n" +
           "<ows:ExceptionText>\n" +
-          "This WPS process does not exists $wpsProcessName\n" +
+          "This WPS process does not exists ${wpsQuery.wpsProcessName}\n" +
           "</ows:ExceptionText>\n" +
           "</ows:Exception>\n" +
           "</ows:ExceptionReport>")
       }
     }
-    return emptyMap()
+    return mapOf("result" to "")
   }
 
 }
+
+data class WPSQuery(val wpsProcessName: String, val wpsInput: Map<String, Any>)

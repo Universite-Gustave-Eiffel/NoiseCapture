@@ -46,7 +46,7 @@ def Map run(Map input) {
     def id = UUID.randomUUID()
     File file = new File("data_dir/onomap_uploading", "track_" + id + ".tmp")
     if(!file.getParentFile().exists()) {
-        file.mkdirs()
+        file.getParentFile().mkdirs()
     }
     try {
       file.withDataOutputStream {

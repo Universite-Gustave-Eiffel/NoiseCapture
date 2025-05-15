@@ -113,10 +113,10 @@ def processInput(Connection connection, URI csvPath, String dataType) {
         String csvContent = csvPath.toURL().getText();
         def lines = csvContent.split("\n")
         sql.execute("DROP TABLE IF EXISTS stations_ref")
-        sql.execute("CREATE TABLE stations_ref(id_station integer, hour integer, std_dev real, mu real, sigma real, " +
-                "CONSTRAINT stations_ref_id_station_pk PRIMARY KEY (id_station, hour))");
+        sql.execute("CREATE TABLE stations_ref(id_station integer, local_hour integer, std_dev real, mu real, sigma real, " +
+                "CONSTRAINT stations_ref_id_station_pk PRIMARY KEY (id_station, local_hour))");
         def refHour = 0;
-        sql.withBatch("INSERT INTO stations_ref(id_station, hour, std_dev, mu,sigma) VALUES (:id_station, :hour, :std_dev, :mu, :sigma)") { batch ->
+        sql.withBatch("INSERT INTO stations_ref(id_station, local_hour, std_dev, mu,sigma) VALUES (:id_station, :hour, :std_dev, :mu, :sigma)") { batch ->
             try {
                 for (String line : lines) {
                     def cols = line.split(",")

@@ -286,7 +286,7 @@ static Integer processFile(Connection connection, File zipFile, Map trackData = 
   if (idParty != null && startLocation != null) {
     sql.eachRow("SELECT ST_CONTAINS(ST_SETSRID(THE_GEOM, 4326), ST_GEOMFROMTEXT(:geom, 4326)) ISCONTAINS, filter_area FROM" +
       " noisecapture_party WHERE pk_party = :pkparty", [pkparty: idParty, geom: startLocation]) { queryParty ->
-      if (queryParty.properties.filter_area && !queryParty.properties.iscontains) {
+      if (queryParty["filter_area"] && !queryParty["iscontains"]) {
         sql.execute("UPDATE NOISECAPTURE_TRACK SET PK_PARTY = NULL WHERE PK_TRACK = :pktrack", [pktrack: recordId])
         idParty = null
       }

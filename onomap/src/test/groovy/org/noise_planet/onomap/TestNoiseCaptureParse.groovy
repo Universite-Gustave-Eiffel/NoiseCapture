@@ -101,9 +101,9 @@ class TestNoiseCaptureParse extends JdbcTestCase {
       new File(TestNoiseCaptureParse.getResource("track_426f00da-dd68-408f-bd7b-f166ba022f4d.zip").file))
     // Read db; check content
     Sql sql = new Sql(connection)
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     sql.eachRow("SELECT * FROM noisecapture_track") { ResultSet row ->
-      Integer idTrack = row.properties.pk_track as Integer
+      Integer idTrack = row.getInt("pk_track")
       assertNotNull(idTrack)
       assertEquals("LGE", row.getString("device_manufacturer"))
       assertEquals("iproj_vdf_de", row.getString("device_product"))
@@ -114,11 +114,11 @@ class TestNoiseCaptureParse extends JdbcTestCase {
       assertEquals("426f00da-dd68-408f-bd7b-f166ba022f4d", row.getString("track_uuid"))
       assertEquals(new Timestamp(1465826253000), row.getTimestamp("record_utc"))
       // Check tags
-      assertEquals(0, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_tag").get("cpt"))
+      assertEquals(0, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_tag").get("cpt") as Integer)
       // Check records
       assertEquals(11, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_point where pk_track=:idtrack",
-        [idtrack: idTrack]).get("cpt"))
-      assertEquals(23 * 11, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_freq").get("cpt"))
+        [idtrack: idTrack]).get("cpt") as Integer)
+      assertEquals(23 * 11, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_freq").get("cpt") as Integer)
     }
   }
 
@@ -131,9 +131,9 @@ class TestNoiseCaptureParse extends JdbcTestCase {
     new nc_parse().processFile(connection,
       new File(TestNoiseCaptureParse.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
     // Read db; check content
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     sql.eachRow("SELECT * FROM noisecapture_track") { ResultSet row ->
-      Integer idTrack = row.properties.pk_track as Integer
+      Integer idTrack =row.getInt("pk_track")
       assertNotNull(idTrack)
       assertEquals("Logicom", row.getString("device_manufacturer"))
       assertEquals("L-ITE502", row.getString("device_product"))
@@ -144,7 +144,7 @@ class TestNoiseCaptureParse extends JdbcTestCase {
       assertEquals("f7ff7498-ddfd-46a3-ab17-36a96c01ba1b", row.getString("track_uuid"))
       assertEquals(new Timestamp(1465474618000), row.getTimestamp("record_utc"))
       // Check tags
-      assertEquals(4, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_tag").get("cpt"))
+      assertEquals(4, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_tag").get("cpt") as Integer)
       Set<String> tagStored = new HashSet()
       def expected = ["test", "indoor", "silent"] as Set
       sql.eachRow("SELECT tag_name FROM noisecapture_track_tag TT, noisecapture_tag T WHERE T.PK_TAG = TT.PK_TAG" +
@@ -154,8 +154,8 @@ class TestNoiseCaptureParse extends JdbcTestCase {
       assertEquals(expected, tagStored)
       // Check records
       assertEquals(87, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_point where pk_track=:idtrack",
-        [idtrack: idTrack]).get("cpt"))
-      assertEquals(23 * 87, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_freq").get("cpt"))
+        [idtrack: idTrack]).get("cpt") as Integer)
+      assertEquals(23 * 87, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_freq").get("cpt") as Integer)
       assertEquals(334.59d, sql.firstRow("SELECT orientation FROM noisecapture_point where time_date = :lequtc::timestamptz", [lequtc: new nc_parse().epochToRFCTime(1465474658594)]).get("orientation") as Double, 0.01d)
       assertEquals(0.077723056d, sql.firstRow("SELECT speed FROM noisecapture_point where time_date = :lequtc::timestamptz", [lequtc: new nc_parse().epochToRFCTime(1465474658594)]).get("speed") as Double, 1e-6d)
     }
@@ -167,12 +167,12 @@ class TestNoiseCaptureParse extends JdbcTestCase {
       new File(TestNoiseCaptureParse.getResource("track_e0f5dd71-75f9-44b2-a106-98712a826719.zip").file))
     // Read db; check content
     Sql sql = new Sql(connection)
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     assertEquals("NONE", sql.firstRow("SELECT * FROM  noisecapture_user").profile)
     // Check records
-    assertEquals(107, sql.firstRow("SELECT ORIENTATION FROM  noisecapture_point where time_date=:time_date",
+    assertEquals(107d, sql.firstRow("SELECT ORIENTATION FROM  noisecapture_point where time_date=:time_date",
       [time_date: new nc_parse().epochToRFCTime(1504245786780)]).orientation)
-    assertEquals(1.83, sql.firstRow("SELECT SPEED FROM  noisecapture_point where time_date=:time_date",
+    assertEquals(1.83d, sql.firstRow("SELECT SPEED FROM  noisecapture_point where time_date=:time_date",
       [time_date: new nc_parse().epochToRFCTime(1504245786780)]).speed)
 
 
@@ -188,7 +188,7 @@ class TestNoiseCaptureParse extends JdbcTestCase {
     new nc_parse().processFile(connection,
       new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file))
     // Read db; check content
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     assertNull(sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
   }
 
@@ -201,7 +201,7 @@ class TestNoiseCaptureParse extends JdbcTestCase {
     new nc_parse().processFile(connection,
       new File(TestNoiseCaptureParse.getResource("track_aaa26b2a-3345-4e58-9055-1a6567b055ad.zip").file))
     // Read db; check content
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     assertNull(sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
   }
 
@@ -215,7 +215,7 @@ class TestNoiseCaptureParse extends JdbcTestCase {
     assertEquals(1, new nc_parse().processFile(connection,
       new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
     // Read db; check content
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     assertEquals(1, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
   }
 
@@ -227,7 +227,7 @@ class TestNoiseCaptureParse extends JdbcTestCase {
     assertEquals(null, new nc_parse().processFile(connection,
       new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
     // Read db; check content
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     assertEquals(null, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
   }
 
@@ -239,7 +239,7 @@ class TestNoiseCaptureParse extends JdbcTestCase {
     assertEquals(1, new nc_parse().processFile(connection,
       new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
     // Read db; check content
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     assertEquals(1, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
   }
 
@@ -248,10 +248,11 @@ class TestNoiseCaptureParse extends JdbcTestCase {
     Sql sql = new Sql(connection)
     sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, filter_area) VALUES ('POLYGON((2.38717 48.8944,2.38717 48.8964,2.38917 48.8964,2.38917 48.8944,2.38717 48.8944))','OGRS 2018 event','OGRS_2018'," +
       "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018', true);")
-    assertEquals(null, new nc_parse().processFile(connection,
-      new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
+    Integer pkParty = new nc_parse().processFile(connection,
+      new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file))
+    assertEquals(null, pkParty)
     // Read db; check content
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     assertEquals(null, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
   }
 
@@ -263,7 +264,7 @@ class TestNoiseCaptureParse extends JdbcTestCase {
     assertEquals(1, new nc_parse().processFile(connection,
       new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
     // Read db; check content
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     assertEquals(1, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
   }
 
@@ -319,7 +320,7 @@ class TestNoiseCaptureParse extends JdbcTestCase {
       new File(TestNoiseCaptureParse.getResource("track_88a20ba7-22f7-4ac4-923b-9d43dd5348b8.zip").file))
     // Read db; check content
     Sql sql = new Sql(connection)
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     assertEquals("Traffic", sql.firstRow("SELECT calibration_method::varchar calibration_method FROM  noisecapture_track").calibration_method)
   }
 
@@ -329,7 +330,7 @@ class TestNoiseCaptureParse extends JdbcTestCase {
       new File(TestNoiseCaptureParse.getResource("track_63571573-b549-485e-b289-8150e4450270.zip").file))
     // Read db; check content
     Sql sql = new Sql(connection)
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     assertEquals("TYPE_BUILTIN_MIC", sql.firstRow("SELECT microphone_identifier::varchar microphone_identifier FROM  noisecapture_track").microphone_identifier as String)
     assertEquals("{\"description\":\"19\",\"location\":\"LOCATION_MAINBODY\",}", sql.firstRow("SELECT MICROPHONE_SETTINGS::varchar MICROPHONE_SETTINGS FROM  noisecapture_track").microphone_settings as String)
   }
@@ -340,7 +341,7 @@ class TestNoiseCaptureParse extends JdbcTestCase {
       new File(TestNoiseCaptureParse.getResource("track_umik.zip").file))
     // Read db; check content
     Sql sql = new Sql(connection)
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt"))
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     assertEquals("TYPE_USB_DEVICE", sql.firstRow("SELECT microphone_identifier::varchar microphone_identifier FROM  noisecapture_track").microphone_identifier as String)
     assertEquals("{\"description\":\"USB-Audio - Umik-1  Gain: 18dB2398\",\"location\":\"LOCATION_PERIPHERAL\",}", sql.firstRow("SELECT MICROPHONE_SETTINGS::varchar MICROPHONE_SETTINGS FROM  noisecapture_track").microphone_settings as String)
   }

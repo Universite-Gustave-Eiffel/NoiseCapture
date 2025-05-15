@@ -17,37 +17,31 @@ import java.sql.SQLException
 @CompileStatic
 class JdbcTestCase {
   Connection connection
-  File dbFile = new File(new File("build/tmp"), UUID.randomUUID().toString().replace("-", "") + ".mv.db")
 
-  static DataSource createDataSource(String user, String password, String dbDirectory, String dbName, boolean debug) throws SQLException {
+  static DataSource createDataSource(String user, String password, boolean debug) throws SQLException {
     // Create H2 memory DataSource
     Driver driver = Driver.load();
     OsgiDataSourceFactory dataSourceFactory = new OsgiDataSourceFactory(driver);
     Properties properties = new Properties();
-    String databasePath = "jdbc:h2:" + new File(dbDirectory, dbName).getAbsolutePath();
-    properties.setProperty(DataSourceFactory.JDBC_URL, databasePath);
-    properties.setProperty(DataSourceFactory.JDBC_USER, user);
-    properties.setProperty(DataSourceFactory.JDBC_PASSWORD, password);
+    String databasePath = "jdbc:h2:mem:junit"
+    properties.setProperty(DataSourceFactory.JDBC_URL, databasePath)
+    properties.setProperty(DataSourceFactory.JDBC_USER, user)
+    properties.setProperty(DataSourceFactory.JDBC_PASSWORD, password)
     if (debug) {
-      properties.setProperty("TRACE_LEVEL_FILE", "3"); // enable debug
+      properties.setProperty("TRACE_LEVEL_FILE", "3") // enable debug
     }
-    DataSource dataSource = dataSourceFactory.createDataSource(properties);
-    // Init spatial ext
-    try (Connection connection = dataSource.getConnection()) {
-      H2GISFunctions.load(connection);
-    }
-    return dataSource
+    return dataSourceFactory.createDataSource(properties)
   }
 
   @BeforeEach
   void initConnection() {
-    DataSource dataSource = createDataSource("sa", "sa", dbFile.getParent(), dbFile.getName().replace(".mv.db", ""), false)
+    DataSource dataSource = createDataSource("sa", "sa", false)
     connection = JDBCUtilities.wrapConnection(dataSource.getConnection())
+    H2GISFunctions.load(connection)
   }
 
   @AfterEach
   void closeConnection() throws SQLException {
     connection.close()
-    dbFile.delete()
   }
 }

@@ -29,15 +29,23 @@
 package org.noise_planet.onomap
 
 import groovy.sql.Sql
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.io.TempDir
+
+import java.nio.file.Path
+
+import static org.junit.jupiter.api.Assertions.*
+
 /**
  * Test parsing of csv files using H2GIS database
  */
 class TestNoiseCaptureFeedStats extends JdbcTestCase {
 
-    void testFeed1() {
+  @Test
+    void testFeed1(@TempDir Path folder) {
         Sql.LOG.level = java.util.logging.Level.SEVERE
         // Generate CSV file
-        File csvFile = folder.newFile("time_matrix_mu.csv")
+        File csvFile = folder.resolve("time_matrix_mu.csv").toFile()
         csvFile.withWriter { out ->
             for(int hour_ref = 1; hour_ref <= 72; hour_ref++) {
                 for(int hour_target = 1; hour_target <= 72; hour_target++) {
@@ -50,7 +58,7 @@ class TestNoiseCaptureFeedStats extends JdbcTestCase {
                 out.write("\n")
             }
         }
-        File csvSigmaFile = folder.newFile("time_matrix_sigma.csv")
+        File csvSigmaFile = folder.resolve("time_matrix_sigma.csv").toFile()
         csvSigmaFile.withWriter { out ->
             for(int hour_ref = 1; hour_ref <= 72; hour_ref++) {
                 for(int hour_target = 1; hour_target <= 72; hour_target++) {
@@ -77,11 +85,11 @@ class TestNoiseCaptureFeedStats extends JdbcTestCase {
     }
 
 
-
-    void testStation() {
+@Test
+    void testStation(@TempDir Path folder) {
         Sql.LOG.level = java.util.logging.Level.SEVERE
         // Generate CSV file
-        File csvFile = folder.newFile("stations.csv")
+        File csvFile = folder.resolve("stations.csv").toFile()
         csvFile.withWriter { out ->
             for(int hour_ref = 1; hour_ref <= 72; hour_ref++) {
                 for(int stationid = 0; stationid < 23; stationid++) {

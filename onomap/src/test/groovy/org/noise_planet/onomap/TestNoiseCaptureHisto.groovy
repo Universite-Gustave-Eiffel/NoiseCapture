@@ -30,30 +30,25 @@ package org.noise_planet.onomap
 
 import groovy.json.JsonOutput
 import groovy.sql.Sql
-import org.junit.Before
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
-import java.sql.Statement
+import java.util.logging.Level
+
+import static org.junit.jupiter.api.Assertions.assertEquals
 /**
  * Test parsing of zip file using H2GIS database
  */
 class TestNoiseCaptureHisto extends JdbcTestCase {
 
-    @Before
+    @BeforeEach
     void setUp() {
-        Object.setUp()
-        Statement st = connection.createStatement()
-        // Init schema
-        st.execute(new File(TestNoiseCaptureHisto.class.getResource("inith2.sql").getFile()).text)
-        // Load timezone file
-        st.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
-        st.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
-        // ut_deps has been derived from https://www.data.gouv.fr/fr/datasets/contours-des-departements-francais-issus-d-openstreetmap/ (c) osm
-        // See ut_deps.txt for more details
-        st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
+      installGadmAndTimeZone()
     }
 
+  @Test
     void testGetLastMeasures() {
-        Sql.LOG.level = java.util.logging.Level.SEVERE
+        Sql.LOG.level = Level.SEVERE
         // Parse file to database
         new nc_parse().processFile(connection,
                 new File(TestNoiseCaptureDumpRecords.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
@@ -78,7 +73,7 @@ class TestNoiseCaptureHisto extends JdbcTestCase {
         def jsonData = JsonOutput.toJson(arrayData);
     }
 
-
+  @Test
     void testGetLastMeasuresParty() {
         Sql.LOG.level = java.util.logging.Level.SEVERE
         // Parse file to database
@@ -92,7 +87,7 @@ class TestNoiseCaptureHisto extends JdbcTestCase {
         assertEquals(1, arrayData.size())
     }
 
-
+  @Test
     void testGetLastMeasuresRawParty() {
         Sql.LOG.level = java.util.logging.Level.SEVERE
         // Parse file to database

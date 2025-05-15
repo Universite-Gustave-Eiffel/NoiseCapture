@@ -29,29 +29,22 @@
 package org.noise_planet.onomap
 
 import groovy.sql.Sql
-import org.junit.Before
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
-import java.sql.Statement
+import static org.junit.jupiter.api.Assertions.assertEquals
+import static org.junit.jupiter.api.Assertions.assertTrue
 /**
  * Test party stats
  */
 class TestNoiseCaptureGetPartyStats extends JdbcTestCase {
 
-    @Before
+    @BeforeEach
     void setUp() {
-        Object.setUp()
-        Statement st = connection.createStatement()
-        // Init schema
-        st.execute(new File(TestNoiseCaptureGetPartyStats.class.getResource("inith2.sql").getFile()).text)
-        // Load timezone file
-        st.execute("CALL FILE_TABLE('"+TestNoiseCaptureGetPartyStats.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
-        st.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
-        // ut_deps has been derived from https://www.data.gouv.fr/fr/datasets/contours-des-departements-francais-issus-d-openstreetmap/ (c) osm
-        // See ut_deps.txt for more details
-        st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureGetPartyStats.getResource("ut_deps.geojson").file+"', 'GADM28');")
+        installGadmAndTimeZone()
     }
 
-
+  @Test
     void testPartyBestContributors() {
         Sql.LOG.level = java.util.logging.Level.SEVERE
         // Parse file to database

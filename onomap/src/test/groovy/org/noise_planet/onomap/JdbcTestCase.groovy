@@ -13,6 +13,7 @@ import org.osgi.service.jdbc.DataSourceFactory
 import javax.sql.DataSource
 import java.sql.Connection
 import java.sql.SQLException
+import java.sql.Statement
 
 @CompileStatic
 class JdbcTestCase {
@@ -31,6 +32,19 @@ class JdbcTestCase {
       properties.setProperty("TRACE_LEVEL_FILE", "3") // enable debug
     }
     return dataSourceFactory.createDataSource(properties)
+  }
+
+  void installGadmAndTimeZone() {
+    Statement st = connection.createStatement()
+    // Init schema
+    st.execute(new File(TestNoiseCaptureHisto.class.getResource("inith2.sql").getFile()).text)
+    // Load timezone file
+    st.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
+    st.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
+    // ut_deps has been derived from https://www.data.gouv.fr/fr/datasets/contours-des-departements-francais-issus-d-openstreetmap/ (c) osm
+    // See ut_deps.txt for more details
+    st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
+    st.execute("CALL UPDATEGEOMETRYSRID('GADM28', 'THE_GEOM', 4326)")
   }
 
   @BeforeEach

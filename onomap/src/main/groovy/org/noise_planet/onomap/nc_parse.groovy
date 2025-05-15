@@ -37,6 +37,7 @@ import org.codehaus.groovy.runtime.StackTraceUtils
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.nio.file.Paths
 import java.security.InvalidParameterException
 import java.sql.Connection
 import java.sql.DriverManager
@@ -315,6 +316,7 @@ def static void buildStatistics(Connection connection, Integer pkParty) {
 
 @CompileStatic
 def static int processFiles(Connection connection, File[] files, int processFileLimit, boolean writeFiles) {
+  def workingDir = System.getProperty("workingDir", "data_dir")
   Logger logger = LoggerFactory.getLogger("logger_nc_parse")
   int processed = 0
   Set<Integer> partyIds = new HashSet<>();
@@ -339,14 +341,14 @@ def static int processFiles(Connection connection, File[] files, int processFile
       }
       // Log track in error
       if (writeFiles) {
-        new File("data_dir/onomap_archive", "track_exception.csv") << zipFile.getName() << "," << StringEscapeUtils.escapeCsv(ex.getMessage()) << "\n"
+        Paths.get(workingDir,"onomap_archive", "track_exception.csv").toFile() << zipFile.getName() << "," << StringEscapeUtils.escapeCsv(ex.getMessage()) << "\n"
       }
       // Cancel transaction
       connection.rollback()
     }
     // Move file to processed folder
     if (writeFiles) {
-      File processedDir = new File("data_dir/onomap_archive", trackData.uuid.substring(0, 2))
+      File processedDir = Paths.get(workingDir,"onomap_archive", trackData.uuid.substring(0, 2)).toFile()
       processedDir = new File(processedDir, trackData.uuid.substring(2, 4))
       processedDir = new File(processedDir, trackData.uuid.substring(4, 6))
       processedDir = new File(processedDir, trackData.uuid)
@@ -385,8 +387,9 @@ def static int processFiles(Connection connection, File[] files, int processFile
 
 @CompileStatic
 def exec(Connection connection, Map input) {
-  int processFileLimit = input["processFileLimit"] as Integer;
-  File dataDir = new File("data_dir/onomap_uploading");
+  int processFileLimit = input["processFileLimit"] as Integer
+  def workingDir = System.getProperty("workingDir", "data_dir")
+  File dataDir = Paths.get(workingDir,"onomap_uploading").toFile()
   int processed = 0
   if (dataDir.exists()) {
     File[] files = dataDir.listFiles(new ZipFileFilter())

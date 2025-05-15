@@ -1,6 +1,10 @@
 package org.noise_planet.onomap
 
+import groovy.inspect.Inspector
+import groovy.lang.GroovyClassLoader
+import groovy.lang.GroovyShell
 import groovy.lang.Script
+import groovy.util.GroovyScriptEngine
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
 import io.vertx.ext.web.Router
@@ -108,12 +112,13 @@ class MainVerticle : AbstractVerticle() {
         val groovyClass = javaClass.classLoader.loadClass("org.noise_planet.onomap.$scriptName")
         val instance = groovyClass.getConstructor().newInstance()
         if(instance is Script) {
-          val result = instance.invokeMethod("run", wpsQuery.wpsInput)
-          if(result is Map<*, *>) {
-            return result
-          } else {
-            return mapOf("result" to result)
-          }
+          // invoke the script
+          instance.invokeMethod("run", null)
+          val inputs = instance.evaluate("inputs") as Map<*, *>
+          val title = instance.evaluate("title") as String
+          val description = instance.evaluate("description") as String
+          val insp = Inspector(instance).methodsWithInfo
+          println(instance)
         }
       } catch (e: ClassNotFoundException) {
         return mapOf("result" to "<ows:ExceptionReport version=\"1.1.0\" " +

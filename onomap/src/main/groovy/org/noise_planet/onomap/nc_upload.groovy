@@ -28,6 +28,8 @@
 
 package org.noise_planet.onomap
 
+import java.nio.file.Paths
+
 
 title = 'nc_upload'
 description = 'Receive uploaded zip file from NoiseCapture client'
@@ -41,10 +43,11 @@ outputs = [
 ]
 
 def Map run(Map input) {
+    def workingDir = System.getProperty("workingDir", "data_dir")
     // Archive zip for further processing
     // build unique identifier of provided zip file
     def id = UUID.randomUUID()
-    File file = new File("data_dir/onomap_uploading", "track_" + id + ".tmp")
+    File file = Paths.get(workingDir,"onomap_uploading", "track_" + id + ".tmp").toFile()
     if(!file.getParentFile().exists()) {
         file.getParentFile().mkdirs()
     }
@@ -53,7 +56,7 @@ def Map run(Map input) {
         it.write(Base64.decoder.decode(input.encode64ZIP as String))
       }
       // write complete, rename file
-      file.renameTo(new File("data_dir/onomap_uploading", "track_" + id + ".zip"))
+      file.renameTo(Paths.get(workingDir,"onomap_uploading", "track_" + id + ".zip").toFile())
       return [result : id]
     } catch (Exception e) {
       file.delete()

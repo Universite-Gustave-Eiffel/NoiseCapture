@@ -5,10 +5,6 @@ import io.vertx.core.Promise
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.file.AsyncFile
 import java.util.Base64
-import org.hamcrest.Description
-import org.hamcrest.TypeSafeMatcher
-import java.io.File
-
 
 fun AsyncFile.toBase64(): Future<String> {
   val promise = Promise.promise<String>()
@@ -30,19 +26,3 @@ fun AsyncFile.toBase64(): Future<String> {
 fun ByteArray.base64Encode(): String {
   return Base64.getEncoder().encodeToString(this)
 }
-
-class FileContentMatcher(private val expected: File) : TypeSafeMatcher<File>() {
-  override fun matchesSafely(actual: File): Boolean {
-    return actual.readBytes().contentEquals(expected.readBytes())
-  }
-
-  override fun describeTo(description: Description) {
-    description.appendText("file with content matching ${expected.name}")
-  }
-
-  override fun describeMismatchSafely(item: File, description: Description) {
-    description.appendText("found different content in ${item.name}")
-  }
-}
-
-fun hasSameContentAs(expected: File) = FileContentMatcher(expected)

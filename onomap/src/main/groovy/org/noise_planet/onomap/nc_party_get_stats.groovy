@@ -26,15 +26,10 @@
  *  or write to scientific.computing@ifsttar.fr
  */
 
-package org.noise_planet.noisecapturegs
+package org.noise_planet.onomap
 
-import geoserver.GeoServer
-import geoserver.catalog.Store
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 import groovy.sql.Sql
-import groovy.time.TimeCategory
-import org.geotools.jdbc.JDBCDataStore
 
 import java.sql.Connection
 
@@ -76,19 +71,7 @@ def getStatistics(Connection connection, Integer pk_party) {
     return statistics
 }
 
-static def Connection openPostgreSQLDataStoreConnection() {
-    Store store = new GeoServer().catalog.getStore("postgis")
-    JDBCDataStore jdbcDataStore = (JDBCDataStore) store.getDataStoreInfo().getDataStore(null)
-    return jdbcDataStore.getDataSource().getConnection()
-}
-
-def run(input) {
-    // Open PostgreSQL connection
+def exec(Connection connection, Map input) {
     // Create dump folder
-    Connection connection = openPostgreSQLDataStoreConnection()
-    try {
-        return [result: JsonOutput.toJson(getStatistics(connection, input["noiseparty"] as Integer))]
-    } finally {
-        connection.close()
-    }
+    return [result: JsonOutput.toJson(getStatistics(connection, input["noiseparty"] as Integer))]
 }

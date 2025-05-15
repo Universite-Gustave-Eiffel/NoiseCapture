@@ -30,11 +30,8 @@ package org.noise_planet.onomap
 
 import groovy.sql.Sql
 import org.junit.Before
-import org.noise_planet.noisecapturegs.nc_parse
-import org.noise_planet.noisecapturegs.nc_party_get_stats
 
 import java.sql.Statement
-
 /**
  * Test party stats
  */

@@ -26,7 +26,7 @@
  *  or write to scientific.computing@ifsttar.fr
  */
 
-package org.noise_planet.noisecapturegs
+package org.noise_planet.onomap
 
 import groovy.sql.Sql
 import org.slf4j.Logger

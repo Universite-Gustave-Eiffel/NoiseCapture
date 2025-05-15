@@ -29,18 +29,6 @@
 package org.noise_planet.onomap
 
 import groovy.sql.Sql
-import org.h2.Driver
-import org.h2gis.functions.factory.H2GISDBFactory
-import org.h2gis.utilities.SFSUtilities
-import org.junit.After
-import org.junit.Before
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import org.noise_planet.noisecapturegs.nc_feed_stats
-
-import java.sql.Connection
-import java.sql.Statement
-
 /**
  * Test parsing of csv files using H2GIS database
  */

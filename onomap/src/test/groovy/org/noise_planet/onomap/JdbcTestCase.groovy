@@ -1,21 +1,21 @@
 package org.noise_planet.onomap
 
 import groovy.test.GroovyTestCase
+import groovy.transform.CompileStatic
 import org.h2.Driver
 import org.h2.util.OsgiDataSourceFactory
 import org.h2gis.functions.factory.H2GISFunctions
 import org.h2gis.utilities.JDBCUtilities
-import org.junit.After
-import org.junit.Before
-import org.junit.Ignore
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
 import org.osgi.service.jdbc.DataSourceFactory
 
 import javax.sql.DataSource
 import java.sql.Connection
 import java.sql.SQLException
 
-@Ignore
-class JdbcTestCase extends GroovyTestCase {
+@CompileStatic
+class JdbcTestCase {
   Connection connection
   File dbFile = new File(new File("build/tmp"), UUID.randomUUID().toString().replace("-", "") + ".mv.db")
 
@@ -39,14 +39,14 @@ class JdbcTestCase extends GroovyTestCase {
     return dataSource
   }
 
-  @Before
-  void setUp() {
+  @BeforeEach
+  void initConnection() {
     DataSource dataSource = createDataSource("sa", "sa", dbFile.getParent(), dbFile.getName().replace(".mv.db", ""), false)
     connection = JDBCUtilities.wrapConnection(dataSource.getConnection())
   }
 
-  @After
-  void tearDown() throws SQLException {
+  @AfterEach
+  void closeConnection() throws SQLException {
     connection.close()
     dbFile.delete()
   }

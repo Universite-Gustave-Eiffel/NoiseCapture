@@ -26,7 +26,7 @@
  *  or write to scientific.computing@ifsttar.fr
  */
 
-package org.noise_planet.noisecapturegs
+package org.noise_planet.onomap
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper

@@ -28,27 +28,12 @@
 
 package org.noise_planet.onomap
 
-import groovy.json.JsonSlurper
+
 import groovy.sql.Sql
-import org.h2.Driver
-import org.h2gis.functions.factory.H2GISDBFactory
-import org.h2gis.utilities.SFSUtilities
-import org.junit.After
 import org.junit.Before
-import org.junit.BeforeClass
 import org.junit.Ignore
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import org.noise_planet.noisecapturegs.nc_get_stats
-import org.noise_planet.noisecapturegs.nc_parse
 
-import java.sql.Connection
 import java.sql.Statement
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-import java.util.zip.ZipInputStream
-
 /**
  * Test parsing of zip file using H2GIS database
  */

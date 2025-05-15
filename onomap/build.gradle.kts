@@ -31,14 +31,17 @@ application {
 
 dependencies {
   implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
-  implementation("org.apache.groovy:groovy-all:4.0.26")
+  implementation("org.apache.groovy:groovy-all:[4.0.26,5)")
   implementation("io.vertx:vertx-web")
   implementation("org.postgresql:postgresql:9.4-1201-jdbc41")
   implementation("org.orbisgis:h2gis:[2.2.3,3)")
   implementation("org.osgi:org.osgi.service.jdbc:[1.0.0,2)")
   implementation("io.vertx:vertx-lang-kotlin")
+  implementation("org.apache.commons:commons-text:[1.13.1,2)")
   implementation(kotlin("stdlib-jdk8"))
+  implementation("org.osgi:org.osgi.framework:1.10.0")
   implementation("com.ongres.scram:client:2.1")
+  testImplementation("org.slf4j:slf4j-simple:[2.0.17,3)")
   testImplementation("io.vertx:vertx-junit5")
   testImplementation("io.vertx:vertx-web-client")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")

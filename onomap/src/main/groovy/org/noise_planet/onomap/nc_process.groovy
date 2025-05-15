@@ -26,25 +26,18 @@
  *  or write to scientific.computing@ifsttar.fr
  */
 
-package org.noise_planet.noisecapturegs
+package org.noise_planet.onomap
 
 
-import geoserver.GeoServer
-import geoserver.catalog.Store
-import groovy.sql.BatchingStatementWrapper
-import groovy.sql.GroovyResultSet
 import groovy.sql.Sql
 import groovy.transform.CompileStatic
-import org.geotools.jdbc.JDBCDataStore
 import org.locationtech.jts.geom.Coordinate
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-import java.security.InvalidParameterException
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.SQLException
-import java.sql.Statement
 import java.sql.Timestamp
 import java.time.DayOfWeek
 import java.time.ZonedDateTime
@@ -200,7 +193,7 @@ def processArea(Hex hex,float precisionFiler, Sql sql, Integer partyPk) {
             "ST_Transform(ST_GeomFromText(:the_geom,3857),4326) , :laeq, :la50,:lden ," +
             " :mean_pleasantness, :measure_count, :first_measure, :last_measure, :pk_party)", fields)[0][0] as Integer
     // Add profile
-    PreparedStatement ps = sql.getConnection().prepareStatement("INSERT INTO NOISECAPTURE_AREA_PROFILE(PK_AREA, HOUR, LAEQ, LA50) VALUES (?, ?, ?, ?)");
+    PreparedStatement ps = sql.getConnection().prepareStatement("INSERT INTO NOISECAPTURE_AREA_PROFILE(PK_AREA, LOCAL_HOUR, LAEQ, LA50) VALUES (?, ?, ?, ?)");
     records.each{ k, v ->
         ps.setInt(1, pkArea)
         ps.setInt(2, k)
@@ -353,20 +346,8 @@ def process(Connection connection, float precisionFilter, int trackLimit) {
     return processed
 }
 
-def Connection openPostgreSQLDataStoreConnection() {
-    Store store = new GeoServer().catalog.getStore("postgis")
-    JDBCDataStore jdbcDataStore = (JDBCDataStore)store.getDataStoreInfo().getDataStore(null)
-    return jdbcDataStore.getDataSource().getConnection()
-}
-
-def run(input) {
-    // Open PostgreSQL connection
-    Connection connection = openPostgreSQLDataStoreConnection()
-    try {
-        return [result : process(connection, input["locationPrecisionFilter"], input["processTracksLimit"] as Integer)]
-    } finally {
-        connection.close()
-    }
+def exec(Connection connection, Map input) {
+    return [result : process(connection, input["locationPrecisionFilter"], input["processTracksLimit"] as Integer)]
 }
 
 @CompileStatic

@@ -1,18 +1,14 @@
 package org.noise_planet.onomap
 
-import com.fasterxml.jackson.core.util.ByteArrayBuilder
 import io.vertx.core.Handler
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
-import io.vertx.core.file.AsyncFile
 import io.vertx.core.file.OpenOptions
-import io.vertx.core.streams.ReadStream
 import io.vertx.ext.web.client.WebClient
 import io.vertx.ext.web.codec.BodyCodec
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import io.vertx.junit5.VertxTestContext.ExecutionBlock
-import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.jupiter.api.BeforeEach
@@ -76,7 +72,7 @@ class TestMainVerticle {
       // HTTP server is ready
       deploymentCheckpoint.flag()
       val fs = vertx.fileSystem()
-      val filename = "org/noise_planet/noisecapturegs/track_upload_test.zip"
+      val filename = "org/noise_planet/onomap/track_upload_test.zip"
       // Open local file to create the WPS query with this file embedded into a xml text element
       fs.open(filename, OpenOptions()).compose { asyncFile ->
         asyncFile.toBase64().onComplete { base64String ->

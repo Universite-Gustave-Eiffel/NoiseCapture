@@ -26,18 +26,13 @@
  *  or write to scientific.computing@ifsttar.fr
  */
 
-package org.noise_planet.noisecapturegs
+package org.noise_planet.onomap
 
-import geoserver.GeoServer
-import geoserver.catalog.Store
 import groovy.json.JsonOutput
-import groovy.json.JsonSlurper
 import groovy.sql.Sql
-import org.geotools.jdbc.JDBCDataStore
 
 import java.sql.Connection
 import java.sql.SQLException
-import java.time.format.DateTimeFormatter
 
 title = 'nc_raw_measurements'
 description = 'List measurements raw files filtered by noisecapture party'
@@ -99,18 +94,6 @@ def getStats(Connection connection, Integer noise_party_id, String dateFilter) {
     return data;
 }
 
-def Connection openPostgreSQLDataStoreConnection() {
-    Store store = new GeoServer().catalog.getStore("postgis")
-    JDBCDataStore jdbcDataStore = (JDBCDataStore)store.getDataStoreInfo().getDataStore(null)
-    return jdbcDataStore.getDataSource().getConnection()
-}
-
-def run(input) {
-    // Open PostgreSQL connection
-    Connection connection = openPostgreSQLDataStoreConnection()
-    try {
-        return [result : JsonOutput.toJson(getStats(connection, input["noiseparty"] as Integer, input["datefilter"] as String))]
-    } finally {
-        connection.close()
-    }
+def run(Connection connection, Map input) {
+  return [result : JsonOutput.toJson(getStats(connection, input["noiseparty"] as Integer, input["datefilter"] as String))]
 }

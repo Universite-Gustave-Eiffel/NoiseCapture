@@ -31,14 +31,9 @@ package org.noise_planet.onomap
 import groovy.json.JsonSlurper
 import groovy.sql.Sql
 import org.junit.Before
-import org.noise_planet.noisecapturegs.nc_dump_records
-import org.noise_planet.noisecapturegs.nc_feed_stats
-import org.noise_planet.noisecapturegs.nc_parse
-import org.noise_planet.noisecapturegs.nc_process
 
 import java.sql.Statement
 import java.util.zip.ZipInputStream
-
 /**
  * Test parsing of zip file using H2GIS database
  */

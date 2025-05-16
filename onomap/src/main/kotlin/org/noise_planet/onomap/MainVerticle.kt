@@ -1,19 +1,15 @@
 package org.noise_planet.onomap
 
- import com.zaxxer.hikari.HikariConfig
-import com.zaxxer.hikari.HikariDataSource
+ import com.zaxxer.hikari.HikariDataSource
 import groovy.lang.Script
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
  import io.vertx.core.json.Json
- import io.vertx.core.json.JsonObject
-import io.vertx.ext.web.Router
+ import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
-import org.postgresql.PGProperty
-import org.postgresql.ds.PGSimpleDataSource
-import org.slf4j.Logger
+ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
 import java.io.InputStream
@@ -27,22 +23,6 @@ class MainVerticle : AbstractVerticle() {
   val log: Logger = LoggerFactory.getLogger(MainVerticle::class.java)
 
   var ds: HikariDataSource? = null
-
-  fun initDataBaseConfiguration(configuration: JsonObject?) : HikariDataSource {
-    val config = HikariConfig()
-    config.username = configuration?.getString("POSTGRES_USER", "onomap") ?: "onomap"
-    config.password = configuration?.getString("POSTGRES_PASSWORD", "onomap") ?: "onomap"
-    config.maximumPoolSize = configuration?.getInteger("POSTGRES_MAXPOOL_SIZE", 20) ?: 20
-    config.dataSourceClassName = PGSimpleDataSource::class.qualifiedName
-    config.addDataSourceProperty("portNumbers",
-      configuration?.getInteger("PGPORT", 5432) ?: 5432)
-    config.addDataSourceProperty("databaseName",
-      configuration?.getString("PGDBNAME", "noisecapture") ?: "noisecapture")
-    config.addDataSourceProperty("serverNames",
-      configuration?.getString("PGHOST", "localhost") ?: "localhost")
-    return HikariDataSource(config)
-  }
-
 
   override fun start(startPromise: Promise<Void>) {
 
@@ -58,7 +38,8 @@ class MainVerticle : AbstractVerticle() {
       .config
       .compose { json ->
         try {
-          ds = initDataBaseConfiguration(json)
+          ds = DataBaseManagement.initDataBaseConfiguration(json)
+          DataBaseManagement.checkDataBaseState(vertx, ds)
         } catch (ex: Exception) {
           log.error("Error while creating the database data source", ex)
           startPromise.fail(ex)

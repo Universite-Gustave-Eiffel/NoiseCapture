@@ -228,7 +228,7 @@ static Integer processFile(Connection connection, File zipFile, Map trackData = 
   def realNumberOfSeconds = 0
   def startLocation = null
   jsonRoot.features.each() { Map feature ->
-    def theGeom = "GEOMETRYCOLLECTION EMPTY"
+    def theGeom = "POINTZ EMPTY"
     if (feature.geometry != null) {
       List<Double> coordinates = (feature.geometry as Map).coordinates as List
       if (coordinates[0] >= -180 && coordinates[0] <= 180 && coordinates[1] >= -90 && coordinates[1] <= 90) {

@@ -39,6 +39,7 @@ dependencies {
   implementation("org.osgi:org.osgi.service.jdbc:[1.0.0,2)")
   implementation("io.vertx:vertx-config")
   implementation("io.vertx:vertx-lang-kotlin")
+  implementation("org.jetbrains.kotlinx:dataframe:1.0.0-Beta2")
   implementation("org.apache.commons:commons-text:[1.13.1,2)")
   implementation(kotlin("stdlib-jdk8"))
   implementation("org.osgi:org.osgi.framework:1.10.0")

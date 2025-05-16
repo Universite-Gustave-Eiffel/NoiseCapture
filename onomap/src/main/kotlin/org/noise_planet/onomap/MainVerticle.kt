@@ -1,16 +1,18 @@
 package org.noise_planet.onomap
 
-import com.zaxxer.hikari.HikariConfig
+ import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
 import groovy.lang.Script
 import io.vertx.config.ConfigRetriever
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.Promise
-import io.vertx.core.json.Json
-import io.vertx.core.json.JsonObject
+ import io.vertx.core.json.Json
+ import io.vertx.core.json.JsonObject
 import io.vertx.ext.web.Router
 import io.vertx.ext.web.RoutingContext
 import io.vertx.ext.web.handler.BodyHandler
-import org.postgresql.ds.PGPoolingDataSource
+import org.postgresql.PGProperty
+import org.postgresql.ds.PGSimpleDataSource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.ByteArrayInputStream
@@ -24,21 +26,21 @@ const val ONOMAP_DEFAULT_PORT = 8888
 class MainVerticle : AbstractVerticle() {
   val log: Logger = LoggerFactory.getLogger(MainVerticle::class.java)
 
-  var pgPool: HikariConfig? = null
+  var ds: HikariDataSource? = null
 
-  fun initDataBaseConnection(configuration: JsonObject?) : HikariConfig {
+  fun initDataBaseConfiguration(configuration: JsonObject?) : HikariDataSource {
     val config = HikariConfig()
     config.username = configuration?.getString("POSTGRES_USER", "onomap") ?: "onomap"
     config.password = configuration?.getString("POSTGRES_PASSWORD", "onomap") ?: "onomap"
-    config.addDataSourceProperty("cachePrepStmts", "true")
-    config.addDataSourceProperty("prepStmtCacheSize", "250")
-    config.addDataSourceProperty("prepStmtCacheSqlLimit", "2048")
     config.maximumPoolSize = configuration?.getInteger("POSTGRES_MAXPOOL_SIZE", 20) ?: 20
-    val port= configuration?.getInteger("POSTGRES_PORT", 5432) ?: 5432
-    val database = configuration?.getString("POSTGRES_DATABASE", "onomap") ?: "onomap"
-    val server = configuration?.getString("POSTGRES_HOST", "localhost") ?: "localhost"
-    config.jdbcUrl = "jdbc:postgresql://$server:$port/$database"
-    return config
+    config.dataSourceClassName = PGSimpleDataSource::class.qualifiedName
+    config.addDataSourceProperty("portNumbers",
+      configuration?.getInteger("PGPORT", 5432) ?: 5432)
+    config.addDataSourceProperty("databaseName",
+      configuration?.getString("PGDBNAME", "noisecapture") ?: "noisecapture")
+    config.addDataSourceProperty("serverNames",
+      configuration?.getString("PGHOST", "localhost") ?: "localhost")
+    return HikariDataSource(config)
   }
 
 
@@ -55,7 +57,13 @@ class MainVerticle : AbstractVerticle() {
     retriever
       .config
       .compose { json ->
-        pgPool = initDataBaseConnection(json)
+        try {
+          ds = initDataBaseConfiguration(json)
+        } catch (ex: Exception) {
+          log.error("Error while creating the database data source", ex)
+          startPromise.fail(ex)
+          return@compose null
+        }
         vertx.createHttpServer()
           .requestHandler(router)
           .listen(json.getInteger("ONOMAP_PORT", ONOMAP_DEFAULT_PORT)).onComplete { http ->
@@ -147,12 +155,12 @@ class MainVerticle : AbstractVerticle() {
           val inputs = instance.evaluate("inputs") as Map<*, *>
           val title = instance.evaluate("title") as String
           val description = instance.evaluate("description") as String
-          pgPool?.connection.use { connection ->
-            val result = instance.invokeMethod("exec", listOf(connection, inputs))
+          ds?.connection.use { connection ->
+            val result = instance.invokeMethod("exec", listOf(connection, wpsQuery.wpsInput))
             if (result is Map<*, *>) {
               if (result.containsKey("result")) {
                 // Produce the xml result
-                context.response().putHeader("Content-Type", "text/xml");
+                context.response().putHeader("Content-Type", "application/json");
                 context.response().end(Json.encode(result))
               } else {
                 log.warn("No return map in $scriptName")

@@ -3,7 +3,7 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-  kotlin ("jvm") version "1.7.21"
+  kotlin("jvm") version "2.1.21" // Kotlin version to use
   groovy
   application
   id("com.github.johnrengelman.shadow") version "7.1.2"
@@ -16,7 +16,7 @@ repositories {
   mavenCentral()
 }
 
-val vertxVersion = "4.5.14"
+val vertxVersion = "5.0.0"
 val junitJupiterVersion = "5.9.1"
 
 val mainVerticleName = "org.noise_planet.onomap.MainVerticle"
@@ -31,11 +31,13 @@ application {
 
 dependencies {
   implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
+  implementation("com.zaxxer:HikariCP:[6.3.0,7)")
   implementation("org.apache.groovy:groovy-all:[4.0.26,5)")
+  implementation("org.postgresql:postgresql:42.7.2")
   implementation("io.vertx:vertx-web")
-  implementation("io.vertx:vertx-pg-client:[5.0.0, 6)")
   implementation("org.orbisgis:h2gis:[2.2.3,3)")
   implementation("org.osgi:org.osgi.service.jdbc:[1.0.0,2)")
+  implementation("io.vertx:vertx-config")
   implementation("io.vertx:vertx-lang-kotlin")
   implementation("org.apache.commons:commons-text:[1.13.1,2)")
   implementation(kotlin("stdlib-jdk8"))
@@ -46,9 +48,6 @@ dependencies {
   testImplementation("io.vertx:vertx-web-client")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
 }
-
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions.jvmTarget = "17"
 
 tasks.withType<ShadowJar> {
   archiveClassifier.set("fat")

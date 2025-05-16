@@ -29,6 +29,7 @@
 package org.noise_planet.onomap
 
 import java.nio.file.Paths
+import java.sql.Connection
 
 
 title = 'nc_upload'
@@ -42,7 +43,7 @@ outputs = [
         result: [name: 'result', title: 'measurement id',  type: String.class]
 ]
 
-def Map run(Map input) {
+def Map exec(Connection connection, Map input) {
     def workingDir = System.getProperty("workingDir", "data_dir")
     // Archive zip for further processing
     // build unique identifier of provided zip file

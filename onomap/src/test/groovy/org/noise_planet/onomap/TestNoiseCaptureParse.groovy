@@ -47,8 +47,7 @@ class TestNoiseCaptureParse extends JdbcTestCase {
   @BeforeEach
   void setUp() {
     Statement st = connection.createStatement()
-    // Init schema
-    st.execute(new File(TestNoiseCaptureParse.class.getResource("inith2.sql").getFile()).text)
+    initDb()
   }
 
   @Test

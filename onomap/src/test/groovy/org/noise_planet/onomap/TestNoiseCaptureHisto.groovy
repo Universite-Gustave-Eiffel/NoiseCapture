@@ -43,6 +43,7 @@ class TestNoiseCaptureHisto extends JdbcTestCase {
 
     @BeforeEach
     void setUp() {
+      initDb()
       installGadmAndTimeZone()
     }
 

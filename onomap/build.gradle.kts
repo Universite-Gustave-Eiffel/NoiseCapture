@@ -33,7 +33,7 @@ dependencies {
   implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
   implementation("org.apache.groovy:groovy-all:[4.0.26,5)")
   implementation("io.vertx:vertx-web")
-  implementation("org.postgresql:postgresql:9.4-1201-jdbc41")
+  implementation("io.vertx:vertx-pg-client:[5.0.0, 6)")
   implementation("org.orbisgis:h2gis:[2.2.3,3)")
   implementation("org.osgi:org.osgi.service.jdbc:[1.0.0,2)")
   implementation("io.vertx:vertx-lang-kotlin")

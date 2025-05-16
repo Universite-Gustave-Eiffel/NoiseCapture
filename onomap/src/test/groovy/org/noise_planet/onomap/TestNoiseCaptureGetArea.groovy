@@ -44,6 +44,7 @@ class TestNoiseCaptureGetArea extends JdbcTestCase {
 
   @BeforeEach
   void setUp() {
+    initDb()
     installGadmAndTimeZone()
     new nc_feed_stats().processInput(connection,
       TestNoiseCaptureProcess.getResource("gevfit_of_stations.txt").toURI(), "stations")

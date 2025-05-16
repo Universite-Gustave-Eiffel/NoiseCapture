@@ -46,8 +46,7 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
   @BeforeEach
   void setUp() {
     Statement st = connection.createStatement()
-    // Init schema
-    st.execute(new File(TestNoiseCaptureProcess.class.getResource("inith2.sql").getFile()).text)
+    initDb()
   }
 
   static def addTestRecord(Sql sql, String time, String location, List<Double> levels) {

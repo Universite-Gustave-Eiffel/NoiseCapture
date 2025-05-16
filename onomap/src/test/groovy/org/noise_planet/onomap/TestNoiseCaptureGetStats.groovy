@@ -41,6 +41,7 @@ class TestNoiseCaptureGetStats extends JdbcTestCase {
 
     @BeforeEach
     void setUp() {
+         initDb()
         installGadmAndTimeZone()
     }
 

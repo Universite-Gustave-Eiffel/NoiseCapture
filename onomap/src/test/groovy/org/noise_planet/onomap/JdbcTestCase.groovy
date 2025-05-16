@@ -34,12 +34,18 @@ class JdbcTestCase {
     return dataSourceFactory.createDataSource(properties)
   }
 
-  void installGadmAndTimeZone() {
+  void initDb() {
     Statement st = connection.createStatement()
     // Init schema
+    st.execute("CREATE DOMAIN IF NOT EXISTS TIMESTAMPTZ AS TIMESTAMP")
+    st.execute(new File(TestNoiseCaptureHisto.class.getResource("init_db_common.sql").getFile()).text)
     st.execute(new File(TestNoiseCaptureHisto.class.getResource("inith2.sql").getFile()).text)
+  }
+
+  void installGadmAndTimeZone() {
+    Statement st = connection.createStatement()
     // Load timezone file
-    st.execute("CALL FILE_TABLE('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
+    st.execute("CALL SHPREAD('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
     st.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
     // ut_deps has been derived from https://www.data.gouv.fr/fr/datasets/contours-des-departements-francais-issus-d-openstreetmap/ (c) osm
     // See ut_deps.txt for more details

@@ -1,0 +1,38 @@
+# docker-compose build
+volumes:
+  postgis-data:
+    driver: local
+  cloudbeaver:
+    driver: local
+
+services:
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    container_name: cloudbeaver
+    restart: on-failure
+    ports:
+      - '8978:8978'
+    volumes:
+      - cloudbeaver:/opt/cloudbeaver/workspace
+  db:
+    container_name: postgis
+    build:
+      context: .
+      dockerfile: postgis/Dockerfile
+    user: "${UID}:${GID}"
+    volumes:
+      - postgis-data:/var/lib/postgresql/data
+      - ./:/data
+    environment:
+      # If you need to create multiple database you can add coma separated databases eg gis,data
+      - POSTGRES_DB=noisecapture
+      - POSTGRES_USER=onomap
+      - POSTGRES_PASSWORD=onomap
+    ports:
+      - 5432:5432
+    restart: on-failure
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U onomap"]
+      interval: 60s
+      timeout: 5s
+      retries: 5

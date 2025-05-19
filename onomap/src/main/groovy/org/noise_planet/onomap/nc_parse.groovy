@@ -34,13 +34,16 @@ import groovy.sql.Sql
 import groovy.transform.CompileStatic
 import org.apache.commons.text.StringEscapeUtils
 import org.codehaus.groovy.runtime.StackTraceUtils
+import org.locationtech.jts.geom.Coordinate
+import org.locationtech.jts.geom.CoordinateSequence
+import org.locationtech.jts.geom.Envelope
+import org.locationtech.jts.geom.GeometryFactory
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.nio.file.Paths
 import java.security.InvalidParameterException
 import java.sql.Connection
-import java.sql.DriverManager
 import java.sql.SQLException
 import java.time.Instant
 import java.time.ZoneId
@@ -79,6 +82,7 @@ static def epochToRFCTime(long epochMillisecond) {
 
 @CompileStatic
 static Integer processFile(Connection connection, File zipFile, Map trackData = [:], boolean storeFrequencyLevels = true) throws Exception {
+  Logger logger = LoggerFactory.getLogger("NC_PARSE")
   def zipFileName = zipFile.getName()
   def recordUUID = zipFileName.substring("track_".length(), zipFileName.length() - ".zip".length())
   connection.setAutoCommit(false)
@@ -226,7 +230,7 @@ static Integer processFile(Connection connection, File zipFile, Map trackData = 
     throw new InvalidParameterException("No track.geojson file")
   }
   def realNumberOfSeconds = 0
-  def startLocation = null
+  Envelope trackEnvelope = new Envelope()
   jsonRoot.features.each() { Map feature ->
     def theGeom = "POINTZ EMPTY"
     if (feature.geometry != null) {
@@ -237,14 +241,12 @@ static Integer processFile(Connection connection, File zipFile, Map trackData = 
           coordinates = [x, y, null] as List<Double>
         }
         def (x, y, z) = [coordinates[0], coordinates[1], coordinates[2]]
+        trackEnvelope.expandToInclude(new Coordinate(x as Double, y as Double))
         if (z != null) {
           theGeom = "POINTZ($x $y $z)" as String
         } else {
           // The_geom column are 3d forced, so, must set a Z value
-          theGeom = "POINT($x $y)" as String
-        }
-        if (startLocation == null) {
-          startLocation = theGeom
+          theGeom = "POINTZ($x $y 0)" as String
         }
       }
     }
@@ -284,10 +286,12 @@ static Integer processFile(Connection connection, File zipFile, Map trackData = 
   }
 
   // Remove pk_party if the track is out of bounds
-  if (idParty != null && startLocation != null) {
-    sql.eachRow("SELECT ST_CONTAINS(ST_SETSRID(THE_GEOM, 4326), ST_GEOMFROMTEXT(:geom, 4326)) ISCONTAINS, filter_area FROM" +
-      " noisecapture_party WHERE pk_party = :pkparty", [pkparty: idParty, geom: startLocation]) { queryParty ->
-      if (queryParty["filter_area"] && !queryParty["iscontains"]) {
+  if (idParty != null && !trackEnvelope.isNull()) {
+    GeometryFactory gf = new GeometryFactory()
+    def geom = gf.toGeometry(trackEnvelope)
+    sql.eachRow("SELECT ST_INTERSECTS(ST_SETSRID(THE_GEOM, 4326), ST_GEOMFROMTEXT(:geom, 4326)) intersects, filter_area FROM" +
+      " noisecapture_party WHERE pk_party = :pkparty", [pkparty: idParty, geom: geom]) { queryParty ->
+      if (queryParty["filter_area"] && !queryParty["intersects"]) {
         sql.execute("UPDATE NOISECAPTURE_TRACK SET PK_PARTY = NULL WHERE PK_TRACK = :pktrack", [pktrack: recordId])
         idParty = null
       }
@@ -326,7 +330,7 @@ def static int processFiles(Connection connection, File[] files, int processFile
       partyIds.add(processFile(connection, zipFile, trackData, false))
     } catch (SQLException | InvalidParameterException | MissingPropertyException | IOException ex) {
       // Log error
-      logger.error(zipFile.getName() + " Message: " + ex.getMessage(), StackTraceUtils.sanitize(new Exception(ex)))
+      logger.warn(zipFile.getName() + " Message: " + ex.getMessage(), StackTraceUtils.sanitize(new Exception(ex)))
       if (ex instanceof SQLException) {
         logger.error("SQLState: " +
           ex.getSQLState())
@@ -341,7 +345,10 @@ def static int processFiles(Connection connection, File[] files, int processFile
       }
       // Log track in error
       if (writeFiles) {
-        Paths.get(workingDir,"onomap_archive", "track_exception.csv").toFile() << zipFile.getName() << "," << StringEscapeUtils.escapeCsv(ex.getMessage()) << "\n"
+        def exceptionFile = Paths.get(workingDir,"onomap_archive", "track_exception.csv").toFile()
+        if(exceptionFile.parentFile.exists()) {
+          exceptionFile << zipFile.getName() << "," << StringEscapeUtils.escapeCsv(ex.getMessage()) << "\n"
+        }
       }
       // Cancel transaction
       connection.rollback()

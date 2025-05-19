@@ -150,8 +150,8 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
     // Insert measure data
     // insert records
     // Create party before parsing party measurement
-    sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
-      "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018');")
+    def partyPk = sql.executeInsert("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
+      "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018');").first()[0] as Integer
     new nc_parse().processFile(connection,
       new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file))
 
@@ -159,10 +159,10 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
     // Two area processed (same place, but one for party area)
     assertEquals(2, processed)
     // Read db; check content
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area where pk_party = 1").get("cpt"))
-    assertEquals(54.9d, (Double) sql.firstRow("SELECT AP.LAEQ FROM NOISECAPTURE_AREA_PROFILE AP,NOISECAPTURE_AREA A WHERE A.pk_area = ap.pk_area and LOCAL_HOUR = 10 and pk_party = 1").get("LAEQ"),
+    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area where pk_party = $partyPk").get("cpt"))
+    assertEquals(54.9d, (Double) sql.firstRow("SELECT AP.LAEQ FROM NOISECAPTURE_AREA_PROFILE AP,NOISECAPTURE_AREA A WHERE A.pk_area = ap.pk_area and LOCAL_HOUR = 10 and pk_party = $partyPk").get("LAEQ"),
       0.1d)
-    assertEquals(51.8d, (Double) sql.firstRow("SELECT AP.LA50 FROM NOISECAPTURE_AREA_PROFILE AP,NOISECAPTURE_AREA A WHERE A.pk_area = ap.pk_area and LOCAL_HOUR = 10 and pk_party = 1").get("LA50"),
+    assertEquals(51.8d, (Double) sql.firstRow("SELECT AP.LA50 FROM NOISECAPTURE_AREA_PROFILE AP,NOISECAPTURE_AREA A WHERE A.pk_area = ap.pk_area and LOCAL_HOUR = 10 and pk_party = $partyPk").get("LA50"),
       0.1d)
     assertEquals(54.9d, (Double) sql.firstRow("SELECT AP.LAEQ FROM NOISECAPTURE_AREA_PROFILE AP,NOISECAPTURE_AREA A WHERE A.pk_area = ap.pk_area and LOCAL_HOUR = 10 and pk_party is null").get("LAEQ"),
       0.1d)
@@ -175,19 +175,22 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
     Sql.LOG.level = java.util.logging.Level.SEVERE
     Sql sql = new Sql(connection)
     // Load timezone file
-    sql.execute("CALL FILE_TABLE('" + TestNoiseCaptureProcess.getResource("tz_world.shp").file + "', 'TZ_WORLD');")
-    sql.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
+    installGadmAndTimeZone()
     // Insert measure data
     // insert records
     // Create party before parsing party measurement
-    sql.execute("INSERT INTO noisecapture_party (the_geom, layer_name, title, tag, description) VALUES ('POLYGON((-2.34041 47.25688,-2.34041 47.26488,-2.33241 47.26488,-2.33241 47.25688,-2.34041 47.25688))'::geometry, 'noisecapture:noisecapture_area_dw2017', 'Digital Week 2017 Pornichet', 'SNDIGITALWEEK', '<p>La Ville de Pornichet s''associe à la Saint-Nazaire Digital Week le mercredi 20 septembre, et propose de nombreuses animations gratuites et ouvertes à tous dédiées au numérique à l''hippodrome.</p><p>Venez contribuer à la création d''une carte du bruit participative, en temps réel sur les territoires de la CARENE / CAP ATLANTIQUE grâce à l''utilisation d''une application smartphone : Noise Capture.</p>');")
+    sql.execute("DELETE FROM noisecapture_party WHERE tag = 'SNDIGITALWEEK'")
+    sql.execute("INSERT INTO noisecapture_party (the_geom, layer_name, title, tag, description) VALUES ('SRID=4326;POLYGON ((-2.34638905638550188 47.25090094361451065, -2.34638905638550188 47.270859056385504, -2.32643094361449698 47.270859056385504, -2.32643094361449698 47.25090094361451065, -2.34638905638550188 47.25090094361451065))'::geometry, 'noisecapture:noisecapture_area_dw2017', 'Digital Week 2017 Pornichet', 'SNDIGITALWEEK', '<p>La Ville de Pornichet s''associe à la Saint-Nazaire Digital Week le mercredi 20 septembre, et propose de nombreuses animations gratuites et ouvertes à tous dédiées au numérique à l''hippodrome.</p><p>Venez contribuer à la création d''une carte du bruit participative, en temps réel sur les territoires de la CARENE / CAP ATLANTIQUE grâce à l''utilisation d''une application smartphone : Noise Capture.</p>');")
     // Parse Gwendall measurement
-    assertEquals(1, new nc_parse().processFile(connection,
-      new File(TestNoiseCaptureParse.getResource("track_07efe9f7-bda1-4e49-8514-f3a2a1fc576d.zip").file)))
+    def pkParty = new nc_parse().processFile(connection,
+      new File(TestNoiseCaptureParse.getResource("track_07efe9f7-bda1-4e49-8514-f3a2a1fc576d.zip").file))
+    assertNotNull(pkParty)
 
     def processed = new nc_process().process(connection, 50, 1)
-    assertEquals(16, processed);
-    assertEquals(8, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area where pk_party = 1").get("cpt"))
+    assertEquals(16, processed)
+    // check if area of party is found
+    assertEquals(8, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area where pk_party = $pkParty").get("cpt"))
+    // check if it was also processed into standard area too
     assertEquals(8, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_area where pk_party is null").get("cpt"))
   }
 }

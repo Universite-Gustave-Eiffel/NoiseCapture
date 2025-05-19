@@ -33,6 +33,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 import static org.junit.jupiter.api.Assertions.assertEquals
+import static org.junit.jupiter.api.Assertions.assertNotNull
 import static org.junit.jupiter.api.Assertions.assertTrue
 /**
  * Test party stats
@@ -50,12 +51,14 @@ class TestNoiseCaptureGetPartyStats extends JdbcTestCase {
         Sql.LOG.level = java.util.logging.Level.SEVERE
         // Parse file to database
         Sql sql = new Sql(connection)
-        sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, filter_area) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
+        def res = sql.executeInsert("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, filter_area) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
                 "'Open Geospatial consortium 2018','OGRS', true);")
         assertEquals(1, new nc_parse().processFiles(connection,
                 [new File(TestNoiseCaptureGetPartyStats.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)] as File[], 0, false))
         // Fetch data
-        def arrayData = new nc_party_get_stats().getStatistics (connection, 1)
+        assertNotNull(res.first())
+        def pk_party = res.first()[0] as Integer
+        def arrayData = new nc_party_get_stats().getStatistics (connection, pk_party)
         assertTrue("contributors" in arrayData.keySet())
         assertEquals(1, arrayData["contributors"].size())
         assertEquals("ea8ecf6e-3357-4680-bbd9-62389b029ac4", arrayData["contributors"][0]["userid"])

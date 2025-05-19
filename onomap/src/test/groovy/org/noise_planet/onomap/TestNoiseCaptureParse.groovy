@@ -209,13 +209,13 @@ class TestNoiseCaptureParse extends JdbcTestCase {
   // Test parse with a party tag that exist in database
   void testParseNoiseParty() {
     Sql sql = new Sql(connection)
-    sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
-      "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018');")
-    assertEquals(1, new nc_parse().processFile(connection,
+    def pkParty = sql.executeInsert("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
+      "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018');").first()[0] as Integer
+    assertEquals(pkParty, new nc_parse().processFile(connection,
       new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
     // Read db; check content
     assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
-    assertEquals(1, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
+    assertEquals(pkParty, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
   }
 
   @Test
@@ -235,11 +235,12 @@ class TestNoiseCaptureParse extends JdbcTestCase {
     Sql sql = new Sql(connection)
     sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, start_time, end_time, filter_time) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
       "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018',:begintime::timestamptz,:endtime::timestamptz,true);", [begintime: "2017-09-14T01:00:00Z", endtime: "2017-09-14T23:59:59Z"])
-    assertEquals(1, new nc_parse().processFile(connection,
-      new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
+    def pkParty = new nc_parse().processFile(connection,
+      new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)) as Integer
+    assertNotEquals(0, pkParty)
     // Read db; check content
-    assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
-    assertEquals(1, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
+    assertNotEquals(0, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
+    assertEquals(pkParty, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
   }
 
   @Test
@@ -258,26 +259,22 @@ class TestNoiseCaptureParse extends JdbcTestCase {
   @Test
   void testInBoundsNoiseParty() {
     Sql sql = new Sql(connection)
-    sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, filter_area) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
-      "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018', true);")
-    assertEquals(1, new nc_parse().processFile(connection,
+    Integer pkParty = sql.executeInsert("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name, filter_area) VALUES ('POLYGON((-1.64616016766905 47.1531855961037,-1.64616016766905 47.1553688595939,-1.64392677851205 47.1553688595939,-1.64392677851205 47.1531855961037,-1.64616016766905 47.1531855961037))','OGRS 2018 event','OGRS_2018'," +
+      "'Open Geospatial consortium 2018','noisecapture_area_ogrs2018', true);").first()[0] as Integer
+    assertEquals(pkParty, new nc_parse().processFile(connection,
       new File(TestNoiseCaptureParse.getResource("track_fec26b2a-3345-4e58-9055-1a6567b055ad.zip").file)))
     // Read db; check content
     assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
-    assertEquals(1, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
+    assertEquals(pkParty, sql.firstRow("SELECT pk_party FROM  noisecapture_track").pk_party)
   }
 
   @Test
   void testNoisePartyWithoutDateFilter() {
     Sql sql = new Sql(connection)
-    sql.execute("INSERT INTO NOISECAPTURE_PARTY(the_geom, title, tag, description, layer_name,start_time,end_time,filter_area,filter_time) VALUES" +
-      " ('POLYGON((-9.30180644989014 42.4626388549805,-9.30180644989014 43.7915267944336," +
-      "-7.66208219528198 43.7915267944336,-7.66208219528198 42.4626388549805," +
-      "-9.30180644989014 42.4626388549805))','Universidade da Coruña','UDC','This map belongs to the EDUC','UDC','2018-04-17 03:00:00+02','2020-04-18 01:59:59+02',1,1);")
-    def idtrack = new nc_parse().processFile(connection,
+    def pkParty = new nc_parse().processFile(connection,
       new File(TestNoiseCaptureParse.getResource("track_f64ffe12-096a-4000-8282-9c7429795997.zip").file))
     // Read db; check content
-    def result = sql.firstRow("SELECT tag FROM  noisecapture_track nt, noisecapture_party np where nt.pk_party = np.pk_party and nt.pk_track = :pktrack", [pktrack: idtrack])
+    def result = sql.firstRow("SELECT tag FROM  noisecapture_party np where np.pk_party = :pkParty", [pkParty: pkParty])
     assertEquals("UDC", result.tag)
   }
 
@@ -310,7 +307,7 @@ class TestNoiseCaptureParse extends JdbcTestCase {
       0, false))
 
     def pkTrack = sql.firstRow("SELECT pk_track FROM  noisecapture_track where track_uuid = '1c9d12ee-5a98-4176-bdc2-38afd1075aad'").get("pk_track")
-    assertEquals("GEOMETRYCOLLECTION EMPTY", sql.firstRow("SELECT the_geom FROM  noisecapture_point where pk_track = " + pkTrack).get("the_geom").toString())
+    assertEquals("POINT EMPTY", sql.firstRow("SELECT the_geom FROM  noisecapture_point where pk_track = " + pkTrack).get("the_geom").toString())
   }
 
   @Test

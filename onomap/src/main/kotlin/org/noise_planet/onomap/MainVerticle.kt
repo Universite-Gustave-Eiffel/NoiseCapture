@@ -1,20 +1,21 @@
 package org.noise_planet.onomap
 
  import com.zaxxer.hikari.HikariDataSource
-import groovy.lang.Script
-import io.vertx.config.ConfigRetriever
-import io.vertx.core.AbstractVerticle
-import io.vertx.core.Promise
+ import groovy.json.JsonOutput
+ import groovy.lang.Script
+ import io.vertx.config.ConfigRetriever
+ import io.vertx.core.AbstractVerticle
+ import io.vertx.core.Promise
  import io.vertx.core.json.Json
  import io.vertx.ext.web.Router
-import io.vertx.ext.web.RoutingContext
-import io.vertx.ext.web.handler.BodyHandler
+ import io.vertx.ext.web.RoutingContext
+ import io.vertx.ext.web.handler.BodyHandler
  import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-import java.io.ByteArrayInputStream
-import java.io.InputStream
-import java.io.InputStreamReader
-import javax.xml.stream.XMLInputFactory
+ import org.slf4j.LoggerFactory
+ import java.io.ByteArrayInputStream
+ import java.io.InputStream
+ import java.io.InputStreamReader
+ import javax.xml.stream.XMLInputFactory
 
 
 const val ONOMAP_DEFAULT_PORT = 8888
@@ -137,15 +138,23 @@ class MainVerticle : AbstractVerticle() {
           val title = instance.evaluate("title") as String
           val description = instance.evaluate("description") as String
           ds?.connection.use { connection ->
-            val result = instance.invokeMethod("exec", listOf(connection, wpsQuery.wpsInput))
-            if (result is Map<*, *>) {
-              if (result.containsKey("result")) {
-                // Produce the xml result
-                context.response().putHeader("Content-Type", "application/json");
-                context.response().end(Json.encode(result))
-              } else {
-                log.warn("No return map in $scriptName")
-              }
+            context.response().putHeader("Content-Type", "application/json")
+            try {
+              val result = instance.invokeMethod("exec", listOf(connection, wpsQuery.wpsInput))
+              context.response().end(Json.encode(result))
+//              if (result is Map<*, *> && result.containsKey("result")) {
+//                  // Produce the xml result
+//                  if(result["result"] is JsonOutput) {
+//                    context.response().end(result["result"].toString())
+//                  } else {
+//                    context.response().end(Json.encode(result["result"])) // could be json encoded ? Json.encode(result)
+//                  }
+//              } else {
+//                log.warn("No return map in $scriptName")
+//              }
+            } catch (ex : Exception) {
+              log.error("Error while running $scriptName", ex)
+              context.response().end(Json.encode(mapOf("result" to ex.toString())))
             }
           }
         } else {

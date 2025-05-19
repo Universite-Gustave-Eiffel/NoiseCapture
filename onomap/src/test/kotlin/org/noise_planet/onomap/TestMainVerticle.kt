@@ -2,6 +2,7 @@ package org.noise_planet.onomap
 
 import io.vertx.core.Handler
 import io.vertx.core.Vertx
+import io.vertx.core.Vertx.vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.file.OpenOptions
 import io.vertx.ext.web.client.WebClient
@@ -9,6 +10,8 @@ import io.vertx.ext.web.codec.BodyCodec
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import io.vertx.junit5.VertxTestContext.ExecutionBlock
+import org.h2.value.ValueBoolean
+import org.h2gis.functions.io.geojson.GeoJsonRead
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.jupiter.api.BeforeEach
@@ -19,9 +22,12 @@ import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import javax.sql.DataSource
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
+import kotlin.io.path.createDirectory
 import kotlin.io.path.exists
+import kotlin.use
 
 
 @ExtendWith(VertxExtension::class)
@@ -99,7 +105,8 @@ class TestMainVerticle {
     val deploymentCheckpoint = testContext.checkpoint()
     val requestCheckpoint = testContext.checkpoint()
     System.setProperty("user.dir", "build")
-    vertx.deployVerticle(MainVerticle()).onComplete(testContext.succeeding<String?>(Handler {
+    val app = MainVerticle()
+    vertx.deployVerticle(app).onComplete(testContext.succeeding<String?>(Handler {
       // HTTP server is ready
       deploymentCheckpoint.flag()
       val fs = vertx.fileSystem()
@@ -133,6 +140,21 @@ class TestMainVerticle {
     }))
   }
 
+  fun prepareDbForUnitTest(ds: DataSource?) {
+    ds?.connection?.use { connection ->
+      val resourceFile = TestMainVerticle::class.java.getResource("ut_deps.geojson")
+      if (resourceFile != null) {
+        GeoJsonRead.importTable(connection, resourceFile.file ,"GADM28", ValueBoolean.get(true))
+        connection.createStatement().use { statement ->
+          statement.execute("SELECT UPDATEGEOMETRYSRID('gadm28', 'the_geom', 4326)")
+          statement.execute("TRUNCATE TABLE NOISECAPTURE_AREA CASCADE")
+          statement.execute("TRUNCATE TABLE NOISECAPTURE_USER CASCADE") // will cascade suppression of tracks
+          statement.execute("TRUNCATE TABLE NOISECAPTURE_TAG CASCADE")
+        }
+      }
+    }
+  }
+
   @Test
   @DisplayName("NC_PARSE WPS Query")
   fun parseWPSTest(vertx: Vertx, testContext: VertxTestContext) {
@@ -142,13 +164,19 @@ class TestMainVerticle {
     val fs = vertx.fileSystem()
     // Copy example file into the temporary directory as it was uploaded
     val filename = "org/noise_planet/onomap/track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip"
+    // create test dirs
+    Paths.get(workingDirectory.absolutePath, "onomap_uploading").createDirectory()
+    Paths.get(workingDirectory.absolutePath, "onomap_archives").createDirectory()
+    // Copy test data file
     val path =
       Paths.get(workingDirectory.absolutePath, "onomap_uploading", "track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip")
     path.parent.createDirectories()
     fs.copyBlocking(filename, path.absolutePathString())
 
+    val app = MainVerticle()
     // launch web server and ask to process the file through WPS query
-    vertx.deployVerticle(MainVerticle()).onComplete(testContext.succeeding<String?>(Handler {
+    vertx.deployVerticle(app).onComplete(testContext.succeeding<String?>(Handler {
+      prepareDbForUnitTest(app.ds)
       // HTTP server is ready
       deploymentCheckpoint.flag()
       // Open local file to create the WPS query with this file embedded into a xml text element
@@ -164,12 +192,13 @@ class TestMainVerticle {
             testContext.verify(ExecutionBlock {
               // Check HTTP status code
               assertThat(resp.statusCode(), equalTo(200))
-              // Check database
-
+              // Check return result
+              println("got ${resp.body()}")
+              assertThat(resp.body().map["result"], equalTo(1))
               requestCheckpoint.flag()
               testContext.completeNow()
             })
-          }).onSuccess { response -> println("Got HTTP response with status ${response.statusCode()} ") }
+          })
       }
 
     }))

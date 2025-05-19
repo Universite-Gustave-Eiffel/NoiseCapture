@@ -38,8 +38,6 @@ jobs:
       - name: Building
         run: ./gradlew build -x test --info --stacktrace
       - name: Test
-        env:
-          PGHOST: postgres
         run: ./gradlew test --info --stacktrace
       - name: Clean
         run: rm -f $HOME/.gradle/caches/modules-2/modules-2.lock

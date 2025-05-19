@@ -76,7 +76,7 @@ class TestNoiseCaptureGetStats extends JdbcTestCase {
                           time_date    : time,
                           time_location: time]
             def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
-                    " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
+                    " accuracy, orientation, time_date, time_location) VALUES (:the_geom," +
                     " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location)", fields)[0][0] as Integer
         }
         // Push track into process queue
@@ -88,9 +88,9 @@ class TestNoiseCaptureGetStats extends JdbcTestCase {
     void testTracksExport() {
         Sql.LOG.level = java.util.logging.Level.SEVERE
         Sql sql = new Sql(connection)
-        addTestRecord(sql, new nc_parse().epochToRFCTime(System.currentTimeMillis()), "POINT(2.4710 44.2772)", [70, 75, 72])
-        addTestRecord(sql, new nc_parse().epochToRFCTime(System.currentTimeMillis()- (1000 * 3600 * 24 * 8)) , "POINT(13.1853 43.0961)", [60, 61, 58])
-        addTestRecord(sql, new nc_parse().epochToRFCTime(System.currentTimeMillis()- (1000 * 3600 * 24 * 16)) , "POINT(9.0038 42.2513)", [65, 68, 64])
+        addTestRecord(sql, new nc_parse().epochToRFCTime(System.currentTimeMillis()), "SRID=4326; POINTZ(2.4710 44.2772 0)", [70, 75, 72])
+        addTestRecord(sql, new nc_parse().epochToRFCTime(System.currentTimeMillis()- (1000 * 3600 * 24 * 8)) , "SRID=4326; POINTZ(13.1853 43.0961 0)", [60, 61, 58])
+        addTestRecord(sql, new nc_parse().epochToRFCTime(System.currentTimeMillis()- (1000 * 3600 * 24 * 16)) , "SRID=4326; POINTZ(9.0038 42.2513 0)", [65, 68, 64])
         // Compute stats
         def stats = new nc_get_stats().getStatistics(connection)
         assertEquals(1, stats["week_new_contributors"])

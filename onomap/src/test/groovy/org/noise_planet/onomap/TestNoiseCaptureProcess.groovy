@@ -100,9 +100,9 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
       TestNoiseCaptureProcess.getResource("delta_matrix_sigma.txt").toURI(), "time_matrix_sigma")
     // Insert measure data
     // insert records
-    addTestRecord(sql, "2016-09-07T13:43:13Z", "POINT(23.73847 37.97503)", [70, 75, 72])
-    addTestRecord(sql, "2016-09-04T18:43:13Z", "POINT(23.73847 37.97503)", [60, 61, 58])
-    addTestRecord(sql, "2016-09-03T16:43:13Z", "POINT(23.73847 37.97503)", [65, 68, 64])
+    addTestRecord(sql, "2016-09-07T13:43:13Z", "POINTZ(23.73847 37.97503 0)", [70, 75, 72])
+    addTestRecord(sql, "2016-09-04T18:43:13Z", "POINTZ(23.73847 37.97503 0)", [60, 61, 58])
+    addTestRecord(sql, "2016-09-03T16:43:13Z", "POINTZ(23.73847 37.97503 0)", [65, 68, 64])
     def processed = new nc_process().process(connection, 10, 0)
     assertEquals(1, processed)
     // Read db; check content

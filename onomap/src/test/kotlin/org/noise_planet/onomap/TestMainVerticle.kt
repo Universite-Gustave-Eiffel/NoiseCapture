@@ -1,8 +1,10 @@
 package org.noise_planet.onomap
 
+import groovy.lang.Closure
+import groovy.sql.GroovyResultSet
+import groovy.sql.Sql
 import io.vertx.core.Handler
 import io.vertx.core.Vertx
-import io.vertx.core.Vertx.vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.file.OpenOptions
 import io.vertx.ext.web.client.WebClient
@@ -13,21 +15,23 @@ import io.vertx.junit5.VertxTestContext.ExecutionBlock
 import org.h2.value.ValueBoolean
 import org.h2gis.functions.io.geojson.GeoJsonRead
 import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.closeTo
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.io.TempDir
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.sql.Timestamp
 import javax.sql.DataSource
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
 import kotlin.io.path.createDirectory
 import kotlin.io.path.exists
-import kotlin.use
 
 
 @ExtendWith(VertxExtension::class)
@@ -106,7 +110,7 @@ class TestMainVerticle {
     val requestCheckpoint = testContext.checkpoint()
     System.setProperty("user.dir", "build")
     val app = MainVerticle()
-    vertx.deployVerticle(app).onComplete(testContext.succeeding<String?>(Handler {
+    vertx.deployVerticle(app).onComplete(testContext.succeeding(Handler {
       // HTTP server is ready
       deploymentCheckpoint.flag()
       val fs = vertx.fileSystem()
@@ -193,8 +197,31 @@ class TestMainVerticle {
               // Check HTTP status code
               assertThat(resp.statusCode(), equalTo(200))
               // Check return result
-              println("got ${resp.body()}")
               assertThat(resp.body().map["result"], equalTo(1))
+              // Check database content
+              app.ds?.connection?.use { connection ->
+                val sql = Sql(connection)
+                val trackCount = sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track")["cpt"] as Long
+                assertThat(trackCount, equalTo(1L))
+                sql.eachRow("SELECT * FROM noisecapture_track",
+                  object : Closure<Any?>(this, this) {
+                    override fun call(row: Any?): Any? {
+                      if(row is GroovyResultSet) {
+                        val pkTrack = row.getString("pk_track")
+                        assertNotNull(pkTrack)
+                        assertThat( row.getString("device_manufacturer"), equalTo( "Logicom"))
+                        assertThat( row.getString("device_product"), equalTo("L-ITE502"))
+                        assertThat( row.getString("device_model") ,equalTo("L-ITE 502"))
+                        assertThat(row.getInt("pleasantness"), equalTo( 69))
+                        assertThat( row.getDouble("time_length"),closeTo( 84.0, 0.01))
+                        assertThat(row.getDouble("noise_level"), closeTo(72.94, 0.01))
+                        assertThat( row.getString("track_uuid"),equalTo("f7ff7498-ddfd-46a3-ab17-36a96c01ba1b"))
+                        assertThat( row.getTimestamp("record_utc"),equalTo( Timestamp(1465474618000)))
+                      }
+                      return null
+                    }
+                })
+              }
               requestCheckpoint.flag()
               testContext.completeNow()
             })
@@ -203,4 +230,30 @@ class TestMainVerticle {
 
     }))
   }
+//  <?xml version="1.0" encoding="UTF-8"?>
+//<wps:Execute version="1.0.0"      service="WPS"
+//	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+//	xmlns="http://www.opengis.net/wps/1.0.0"
+//	xmlns:wfs="http://www.opengis.net/wfs"
+//	xmlns:wps="http://www.opengis.net/wps/1.0.0"
+//	xmlns:ows="http://www.opengis.net/ows/1.1"
+//	xmlns:gml="http://www.opengis.net/gml"
+//	xmlns:ogc="http://www.opengis.net/ogc"
+//	xmlns:wcs="http://www.opengis.net/wcs/1.1.1"
+//	xmlns:xlink="http://www.w3.org/1999/xlink"        xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+//	<ows:Identifier>groovy:nc_last_measures</ows:Identifier>
+//	<wps:DataInputs>
+//		<wps:Input>
+//			<ows:Identifier>noiseparty</ows:Identifier>
+//			<wps:Data>
+//				<wps:LiteralData></wps:LiteralData>
+//			</wps:Data>
+//		</wps:Input>
+//	</wps:DataInputs>
+//	<wps:ResponseForm>
+//		<wps:RawDataOutput>
+//			<ows:Identifier>result</ows:Identifier>
+//		</wps:RawDataOutput>
+//	</wps:ResponseForm>
+//</wps:Execute>
 }

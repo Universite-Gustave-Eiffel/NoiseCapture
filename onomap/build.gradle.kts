@@ -52,6 +52,7 @@ dependencies {
   testImplementation("io.vertx:vertx-junit5")
   testImplementation("io.vertx:vertx-web-client")
   testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
+  testImplementation("org.hamcrest:hamcrest-library:1.3")
 }
 
 tasks.withType<ShadowJar> {

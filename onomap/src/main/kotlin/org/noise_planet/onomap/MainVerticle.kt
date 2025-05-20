@@ -123,6 +123,7 @@ class MainVerticle : AbstractVerticle() {
           context.response().putHeader("Content-Type", "application/json")
           val result = instance.invokeMethod("exec", listOf(connection, wpsInput))
           context.response().end(Json.encode(result))
+          log.info("Executed $wpsProcess with result $result")
         }
       } else {
         throw IllegalArgumentException("Not a script")

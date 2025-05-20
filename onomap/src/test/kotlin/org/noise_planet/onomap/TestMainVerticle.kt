@@ -200,27 +200,23 @@ class TestMainVerticle {
               assertThat(resp.body().map["result"], equalTo(1))
               // Check database content
               app.ds?.connection?.use { connection ->
-                val sql = Sql(connection)
-                val trackCount = sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track")["cpt"] as Long
-                assertThat(trackCount, equalTo(1L))
-                sql.eachRow("SELECT * FROM noisecapture_track",
-                  object : Closure<Any?>(this, this) {
-                    override fun call(row: Any?): Any? {
-                      if(row is GroovyResultSet) {
-                        val pkTrack = row.getString("pk_track")
-                        assertNotNull(pkTrack)
-                        assertThat( row.getString("device_manufacturer"), equalTo( "Logicom"))
-                        assertThat( row.getString("device_product"), equalTo("L-ITE502"))
-                        assertThat( row.getString("device_model") ,equalTo("L-ITE 502"))
-                        assertThat(row.getInt("pleasantness"), equalTo( 69))
-                        assertThat( row.getDouble("time_length"),closeTo( 84.0, 0.01))
-                        assertThat(row.getDouble("noise_level"), closeTo(72.94, 0.01))
-                        assertThat( row.getString("track_uuid"),equalTo("f7ff7498-ddfd-46a3-ab17-36a96c01ba1b"))
-                        assertThat( row.getTimestamp("record_utc"),equalTo( Timestamp(1465474618000)))
-                      }
-                      return null
-                    }
-                })
+                connection.createStatement().use { st ->
+                  st.executeQuery("SELECT COUNT(*) cpt FROM  noisecapture_track").use { rs ->
+                    assert(rs.next())
+                    assertThat(rs.getInt("cpt"), equalTo(1))
+                  }
+                  st.executeQuery("SELECT * FROM noisecapture_track").use { rs ->
+                    assert(rs.next())
+                    assertThat(rs.getString("device_manufacturer"), equalTo("Logicom"))
+                    assertThat(rs.getString("device_product"), equalTo("L-ITE502"))
+                    assertThat(rs.getString("device_model"), equalTo("L-ITE 502"))
+                    assertThat(rs.getInt("pleasantness"), equalTo(69))
+                    assertThat(rs.getDouble("time_length"), closeTo(84.0, 0.01))
+                    assertThat(rs.getDouble("noise_level"), closeTo(72.94, 0.01))
+                    assertThat(rs.getString("track_uuid"), equalTo("f7ff7498-ddfd-46a3-ab17-36a96c01ba1b"))
+                    assertThat(rs.getTimestamp("record_utc"), equalTo(Timestamp(1465474618000)))
+                  }
+                }
               }
               requestCheckpoint.flag()
               testContext.completeNow()

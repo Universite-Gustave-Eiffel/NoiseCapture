@@ -13,6 +13,8 @@ group = "org.noise-planet"
 version = "1.0.0-SNAPSHOT"
 
 repositories {
+  maven("https://maven.geotoolkit.org")
+  maven("https://repo.osgeo.org/repository/release/")
   mavenCentral()
 }
 
@@ -44,6 +46,8 @@ dependencies {
   implementation(kotlin("stdlib-jdk8"))
   implementation("org.osgi:org.osgi.framework:1.10.0")
   implementation("com.ongres.scram:client:2.1")
+  implementation("org.geotools.xsd:gt-xsd-wps:[22.2,23)")
+  implementation("org.geotools.xsd:gt-xsd-core:[22.2,23)")
   testImplementation("org.slf4j:slf4j-simple:[2.0.17,3)")
   testImplementation("io.vertx:vertx-junit5")
   testImplementation("io.vertx:vertx-web-client")

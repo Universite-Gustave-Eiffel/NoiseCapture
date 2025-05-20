@@ -4,15 +4,24 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
+import org.h2gis.api.ProgressVisitor
+import org.h2gis.functions.io.geojson.GeoJsonReaderDriver
 import org.h2gis.utilities.JDBCUtilities
-import org.postgresql.ds.PGSimpleDataSource
-import kotlin.use
+import org.h2gis.utilities.TableLocation
+import org.h2gis.utilities.dbtypes.DBUtils
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.first
 import org.jetbrains.kotlinx.dataframe.io.readResultSet
+import org.locationtech.jts.geom.GeometryFactory
+import org.locationtech.jts.geom.PrecisionModel
+import org.postgresql.ds.PGSimpleDataSource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import kotlin.math.log
+import java.io.FileInputStream
+import java.sql.SQLException
+import java.sql.Statement
+import java.util.*
+import java.util.zip.GZIPInputStream
 
 val ONOMAP_LAST_DATABASE_VERSION = 1
 
@@ -45,7 +54,7 @@ class DataBaseManagement {
      * Check the content of the database
      * Upgrade if necessary
      */
-    fun checkDataBaseState(vertx: Vertx, ds: HikariDataSource?) {
+    fun checkDataBaseState(vertx: Vertx, ds: HikariDataSource?, configuration: JsonObject?) {
       ds?.connection?.use { connection ->
         val hasUserTable = JDBCUtilities.tableExists(connection, "noisecapture_user")
         val hasVersionTable = JDBCUtilities.tableExists(connection, "noisecapture_db_version")
@@ -72,6 +81,13 @@ class DataBaseManagement {
                   statement.execute(
                     fs.readFileBlocking("org/noise_planet/onomap/initdb_postgres.sql").toString("UTF-8")
                   )
+                }
+              }
+              // Check special data tables
+              if(configuration.getBoolean("download_data_tables", true)) {
+                val hasGadmTable = JDBCUtilities.tableExists(connection, "gadm28")
+                if(!hasGadmTable) {
+                  GeoJsonReaderDriver(connection)
                 }
               }
             }

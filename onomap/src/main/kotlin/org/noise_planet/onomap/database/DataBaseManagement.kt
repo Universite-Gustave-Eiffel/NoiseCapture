@@ -39,12 +39,16 @@ import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.first
 import org.jetbrains.kotlinx.dataframe.io.readResultSet
 import org.noise_planet.onomap.utilities.DisplayProgressVisitor
+import org.noise_planet.onomap.utilities.downloadFile
 import org.postgresql.ds.PGSimpleDataSource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.net.URI
+import java.nio.file.Path
+import java.sql.Connection
 import java.util.*
+import kotlin.io.path.pathString
 
 const val ONOMAP_LAST_DATABASE_VERSION = 1
 const val DEFAULT_GADM_URI = "https://github.com/nicolas-f/gadm/releases/download/4.1/gadm410.geojson.gz"
@@ -83,7 +87,7 @@ class DataBaseManagement {
         val hasUserTable = JDBCUtilities.tableExists(connection, "noisecapture_user")
         val hasVersionTable = JDBCUtilities.tableExists(connection, "noisecapture_db_version")
         if (!hasVersionTable) {
-          connection.autoCommit=false
+          connection.autoCommit = false
           try {
             connection.createStatement().use { statement ->
               statement.execute(
@@ -108,7 +112,6 @@ class DataBaseManagement {
                 }
               }
             }
-            connection.commit()
             connection.autoCommit = true
           } catch (ex: Exception) {
             log.error("Error while init database", ex)
@@ -116,20 +119,36 @@ class DataBaseManagement {
             return
           }
         }
-        // Check special data tables
-        if(configuration?.getBoolean("download_data_tables", true) ?: true) {
-          val hasGadmTable = JDBCUtilities.tableExists(connection, "gadm28")
-          if(!hasGadmTable) {
-            val readerDriver = GeoJsonReaderDriver(connection, File(""), JsonEncoding.UTF8.name, true)
-            val rootProgress : ProgressVisitor = DisplayProgressVisitor(1, true, 1.0)
-            readerDriver.readGzipFromUri(URI(configuration?.getString("GADM_URI", DEFAULT_GADM_URI) ?: DEFAULT_GADM_URI), "gadm28", rootProgress)
-          }
-        }
         // Upgrade database version
         var dbVersion = 0
-        connection.createStatement().use {
-          statement -> statement.executeQuery("select db_version from noisecapture_db_version").use { rs ->
-            dbVersion = DataFrame.readResultSet (rs, connection).first()["db_version"] as Int
+        connection.createStatement().use { statement ->
+          statement.executeQuery("select db_version from noisecapture_db_version").use { rs ->
+            dbVersion = DataFrame.readResultSet(rs, connection).first()["db_version"] as Int
+          }
+        }
+      }
+
+      // Check special data tables
+      if (configuration?.getBoolean("download_data_tables", true) ?: true) {
+        val hasGadmTable = ds?.connection?.use(fun(connection: Connection): Boolean {
+          return JDBCUtilities.tableExists(connection, "gadm28")
+        })
+        if (hasGadmTable == false) {
+          vertx.fileSystem().createTempDirectory("gadm").onComplete { res ->
+            val tempDirectory = res.result()
+            val gadmFile = Path.of(tempDirectory, "gadm.geojson.gz")
+            val url = URI(configuration?.getString("GADM_URI", DEFAULT_GADM_URI) ?: DEFAULT_GADM_URI).toURL()
+            log.info("Table GADM28 is not in database download the file from $url to ${gadmFile.pathString}..")
+            url.downloadFile(gadmFile.toFile(), DisplayProgressVisitor(1, true, 1.0))
+            log.info("File download parse the data and transfer it in the database")
+            ds.connection?.use { connection ->
+              val readerDriver = GeoJsonReaderDriver(
+                connection, gadmFile.toFile(),
+                JsonEncoding.UTF8.name, true
+              )
+              readerDriver.read(DisplayProgressVisitor(1, true, 1.0), "gadm28")
+              connection.createStatement().execute("SELECT UPDATEGEOMETRYSRID('gadm28', 'the_geom', 4326)")
+            }
           }
         }
       }

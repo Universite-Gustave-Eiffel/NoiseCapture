@@ -53,6 +53,7 @@ open class DefaultProgressVisitor(var subprocessSize: Int, var parentProcess: De
     }
 
     override fun setStep(i: Int) {
+      pushProgression(i - subprocessDone.get())
     }
 
     override fun getStepCount(): Int {

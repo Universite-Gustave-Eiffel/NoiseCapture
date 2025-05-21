@@ -18,4 +18,5 @@ onomap-geoserver/geoserver/data_dir
 gradle.properties
 onomap-geoserver/geoserver/out/
 *.hprof
+*.log
 

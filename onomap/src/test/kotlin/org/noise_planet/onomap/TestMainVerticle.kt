@@ -98,6 +98,10 @@ class TestMainVerticle {
   fun initEnv(@TempDir folder : Path) {
     workingDirectory = folder.toFile()
     System.setProperty("workingDir", workingDirectory.absolutePath)
+    val resourceGadm = TestMainVerticle::class.java.getResource("ut_deps.geojson")
+    if (resourceGadm != null) {
+      System.setProperty("GADM_URI", resourceGadm.file)
+    }
   }
 
   var workingDirectory = File("")
@@ -148,9 +152,7 @@ class TestMainVerticle {
     ds?.connection?.use { connection ->
       val resourceFile = TestMainVerticle::class.java.getResource("ut_deps.geojson")
       if (resourceFile != null) {
-//        GeoJsonRead.importTable(connection, resourceFile.file ,"GADM28", ValueBoolean.get(true))
         connection.createStatement().use { statement ->
-//          statement.execute("SELECT UPDATEGEOMETRYSRID('gadm28', 'the_geom', 4326)")
           statement.execute("TRUNCATE TABLE NOISECAPTURE_AREA CASCADE")
           statement.execute("TRUNCATE TABLE NOISECAPTURE_USER CASCADE") // will cascade suppression of tracks
           statement.execute("TRUNCATE TABLE NOISECAPTURE_TAG CASCADE")

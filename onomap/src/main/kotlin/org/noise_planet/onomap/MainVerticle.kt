@@ -36,29 +36,71 @@ package org.noise_planet.onomap
  import io.vertx.ext.web.Router
  import io.vertx.ext.web.RoutingContext
  import io.vertx.ext.web.handler.BodyHandler
+ import io.vertx.launcher.application.VertxApplication
+ import kotlinx.coroutines.DelicateCoroutinesApi
+ import kotlinx.coroutines.GlobalScope
+ import kotlinx.coroutines.launch
  import net.opengis.ows11.Ows11Factory
  import net.opengis.wps10.ExecuteType
  import net.opengis.wps10.InputType
+ import org.apache.log4j.PatternLayout
+ import org.apache.log4j.PropertyConfigurator
+ import org.apache.log4j.RollingFileAppender
+ import org.geotools.ows.v1_1.OWS
  import org.geotools.ows.v1_1.OWSConfiguration
  import org.geotools.wps.WPSConfiguration
+ import org.geotools.xsd.Encoder
  import org.geotools.xsd.Parser
+ import org.noise_planet.onomap.database.DataBaseManagement
  import org.slf4j.Logger
  import org.slf4j.LoggerFactory
  import java.io.ByteArrayInputStream
- import org.geotools.xsd.Encoder;
- import org.geotools.ows.v1_1.OWS
- import org.noise_planet.onomap.database.DataBaseManagement
+ import java.io.File
 
 
 const val ONOMAP_DEFAULT_PORT = 8888
 
+
+fun main() {
+  PropertyConfigurator.configure(MainVerticle::class.java.getResource("log4j.properties"));
+  VertxApplication.main(arrayOf<String?>(MainVerticle::class.java.getName()))
+}
+
 class MainVerticle : AbstractVerticle() {
   val log: Logger = LoggerFactory.getLogger(MainVerticle::class.java)
-
   var ds: HikariDataSource? = null
 
-  override fun start(startPromise: Promise<Void>) {
+  fun configureFileLogger(workingDir: String) {
 
+    // configure file logger
+    try {
+      // Create rolling file appender
+      val rollingAppender: RollingFileAppender = RollingFileAppender()
+
+      // Configure appender properties
+      rollingAppender.name = "rollingFile"
+      rollingAppender.file = File(workingDir, "application.log").path
+      rollingAppender.append = true
+      rollingAppender.setMaxBackupIndex(5)
+      rollingAppender.maximumFileSize = 10000000
+
+      // Create and set pattern layout
+      val layout = PatternLayout("[%t] %-5p %d{dd MMM HH:mm:ss} - %m%n")
+      rollingAppender.setLayout(layout)
+
+      // init stream
+      rollingAppender.activateOptions()
+
+      // Configure root logger
+      val rootLogger: org.apache.log4j.Logger = org.apache.log4j.Logger.getRootLogger()
+      rootLogger.addAppender(rollingAppender)
+    } catch (e: java.lang.Exception) {
+      System.err.println("Failed to configure logger: " + e.message)
+    }
+  }
+
+  @OptIn(DelicateCoroutinesApi::class)
+  override fun start(startPromise: Promise<Void>) {
     // Init the configuration manager
     val retriever = ConfigRetriever.create(vertx)
 
@@ -70,9 +112,9 @@ class MainVerticle : AbstractVerticle() {
     retriever
       .config
       .compose { json ->
+        configureFileLogger(json.getString("workingDir", File("").absolutePath))
         try {
           ds = DataBaseManagement.initDataBaseConfiguration(json)
-          DataBaseManagement.checkDataBaseState(vertx, ds, json)
         } catch (ex: Exception) {
           log.error("Error while creating the database data source", ex)
           startPromise.fail(ex)
@@ -84,6 +126,9 @@ class MainVerticle : AbstractVerticle() {
             if (http.succeeded()) {
               startPromise.complete()
               log.info("HTTP server started on port ${json.getInteger("ONOMAP_PORT", ONOMAP_DEFAULT_PORT)}")
+              GlobalScope.launch {
+                DataBaseManagement.checkDataBaseState(vertx, ds, json)
+              }
             } else {
               startPromise.fail(http.cause());
             }
@@ -157,4 +202,3 @@ class MainVerticle : AbstractVerticle() {
   }
 }
 
-data class WPSQuery(val wpsProcessName: String, val wpsInput: Map<String, Any>)

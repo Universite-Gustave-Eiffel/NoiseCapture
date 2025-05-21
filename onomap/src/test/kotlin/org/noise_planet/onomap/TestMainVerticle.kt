@@ -148,9 +148,9 @@ class TestMainVerticle {
     ds?.connection?.use { connection ->
       val resourceFile = TestMainVerticle::class.java.getResource("ut_deps.geojson")
       if (resourceFile != null) {
-        GeoJsonRead.importTable(connection, resourceFile.file ,"GADM28", ValueBoolean.get(true))
+//        GeoJsonRead.importTable(connection, resourceFile.file ,"GADM28", ValueBoolean.get(true))
         connection.createStatement().use { statement ->
-          statement.execute("SELECT UPDATEGEOMETRYSRID('gadm28', 'the_geom', 4326)")
+//          statement.execute("SELECT UPDATEGEOMETRYSRID('gadm28', 'the_geom', 4326)")
           statement.execute("TRUNCATE TABLE NOISECAPTURE_AREA CASCADE")
           statement.execute("TRUNCATE TABLE NOISECAPTURE_USER CASCADE") // will cascade suppression of tracks
           statement.execute("TRUNCATE TABLE NOISECAPTURE_TAG CASCADE")

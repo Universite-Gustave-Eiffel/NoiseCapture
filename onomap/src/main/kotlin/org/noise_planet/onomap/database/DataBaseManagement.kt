@@ -1,29 +1,53 @@
-package org.noise_planet.onomap
+/*
+ * This file is part of the NoiseCapture application and OnoMap system.
+ *
+ * The 'OnoMaP' system is led by Lab-STICC and Ifsttar and generates noise maps via
+ * citizen-contributed noise data.
+ *
+ * This application is co-funded by the ENERGIC-OD Project (European Network for
+ * Redistributing Geospatial Information to user Communities - Open Data). ENERGIC-OD
+ * (http://www.energic-od.eu/) is partially funded under the ICT Policy Support Programme (ICT
+ * PSP) as part of the Competitiveness and Innovation Framework Programme by the European
+ * Community. The application work is also supported by the French geographic portal GEOPAL of the
+ * Pays de la Loire region (http://www.geopal.org).
+ *
+ * Copyright (C) IFSTTAR - LAE and Lab-STICC – CNRS UMR 6285 Equipe DECIDE Vannes
+ *
+ * NoiseCapture is a free software; you can redistribute it and/or modify it under the terms of the
+ * GNU General Public License as published by the Free Software Foundation; either version 3 of
+ * the License, or(at your option) any later version. NoiseCapture is distributed in the hope that
+ * it will be useful,but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+ * more details.You should have received a copy of the GNU General Public License along with this
+ * program; if not, write to the Free Software Foundation,Inc., 51 Franklin Street, Fifth Floor,
+ * Boston, MA 02110-1301  USA or see For more information,  write to Ifsttar,
+ * 14-20 Boulevard Newton Cite Descartes, Champs sur Marne F-77447 Marne la Vallee Cedex 2 FRANCE
+ *  or write to scientific.computing@ifsttar.fr
+ */
+package org.noise_planet.onomap.database
 
+import com.fasterxml.jackson.core.JsonEncoding
 import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
+import org.h2gis.api.EmptyProgressVisitor
 import org.h2gis.api.ProgressVisitor
 import org.h2gis.functions.io.geojson.GeoJsonReaderDriver
 import org.h2gis.utilities.JDBCUtilities
-import org.h2gis.utilities.TableLocation
-import org.h2gis.utilities.dbtypes.DBUtils
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.first
 import org.jetbrains.kotlinx.dataframe.io.readResultSet
-import org.locationtech.jts.geom.GeometryFactory
-import org.locationtech.jts.geom.PrecisionModel
+import org.noise_planet.onomap.utilities.DisplayProgressVisitor
 import org.postgresql.ds.PGSimpleDataSource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.io.FileInputStream
-import java.sql.SQLException
-import java.sql.Statement
+import java.io.File
+import java.net.URI
 import java.util.*
-import java.util.zip.GZIPInputStream
 
-val ONOMAP_LAST_DATABASE_VERSION = 1
+const val ONOMAP_LAST_DATABASE_VERSION = 1
+const val DEFAULT_GADM_URI = "https://github.com/nicolas-f/gadm/releases/download/4.1/gadm410.geojson.gz"
 
 class DataBaseManagement {
   companion object {
@@ -83,13 +107,6 @@ class DataBaseManagement {
                   )
                 }
               }
-              // Check special data tables
-              if(configuration.getBoolean("download_data_tables", true)) {
-                val hasGadmTable = JDBCUtilities.tableExists(connection, "gadm28")
-                if(!hasGadmTable) {
-                  GeoJsonReaderDriver(connection)
-                }
-              }
             }
             connection.commit()
             connection.autoCommit = true
@@ -99,6 +116,16 @@ class DataBaseManagement {
             return
           }
         }
+        // Check special data tables
+        if(configuration?.getBoolean("download_data_tables", true) ?: true) {
+          val hasGadmTable = JDBCUtilities.tableExists(connection, "gadm28")
+          if(!hasGadmTable) {
+            val readerDriver = GeoJsonReaderDriver(connection, File(""), JsonEncoding.UTF8.name, true)
+            val rootProgress : ProgressVisitor = DisplayProgressVisitor(1, true, 1.0)
+            readerDriver.readGzipFromUri(URI(configuration?.getString("GADM_URI", DEFAULT_GADM_URI) ?: DEFAULT_GADM_URI), "gadm28", rootProgress)
+          }
+        }
+        // Upgrade database version
         var dbVersion = 0
         connection.createStatement().use {
           statement -> statement.executeQuery("select db_version from noisecapture_db_version").use { rs ->

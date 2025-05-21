@@ -77,8 +77,3 @@ tasks.withType<Test> {
 tasks.withType<JavaExec> {
   args = listOf("run", mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$launcherClassName", "--on-redeploy=$doOnChange")
 }
-
-
-application {
-  mainClass = "org.noise_planet.onomap.MainVerticle"
-}

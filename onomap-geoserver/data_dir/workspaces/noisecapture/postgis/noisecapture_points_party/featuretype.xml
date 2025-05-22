@@ -1,0 +1,58 @@
+<featureType>
+  <id>FeatureTypeInfoImpl--6747c6ae:16a784acb7d:-1828</id>
+  <name>noisecapture_points_party</name>
+  <nativeName>noisecapture_points_party</nativeName>
+  <namespace>
+    <id>NamespaceInfoImpl-43966147:16a68f09946:-7ffd</id>
+  </namespace>
+  <title>noisecapture_points_party</title>
+  <keywords>
+    <string>features</string>
+    <string>noisecapture_points_party</string>
+  </keywords>
+  <srs>EPSG:4326</srs>
+  <nativeBoundingBox>
+    <minx>-180.0</minx>
+    <maxx>180.0</maxx>
+    <miny>-90.0</miny>
+    <maxy>90.0</maxy>
+    <crs>EPSG:4326</crs>
+  </nativeBoundingBox>
+  <latLonBoundingBox>
+    <minx>-180.0</minx>
+    <maxx>180.0</maxx>
+    <miny>-90.0</miny>
+    <maxy>90.0</maxy>
+    <crs>EPSG:4326</crs>
+  </latLonBoundingBox>
+  <projectionPolicy>FORCE_DECLARED</projectionPolicy>
+  <enabled>true</enabled>
+  <metadata>
+    <entry key="JDBC_VIRTUAL_TABLE">
+      <virtualTable>
+        <name>noisecapture_points_party</name>
+        <sql>SELECT pk_point, NP.THE_GEOM, pk_party FROM NOISECAPTURE_TRACK NT, NOISECAPTURE_POINT NP WHERE NT.PK_TRACK = NP.PK_TRACK&#xd;
+ AND NP.accuracy &lt;= 15 AND NOT ST_ISEMPTY(THE_GEOM) and pk_party &gt;= -1
+</sql>
+        <escapeSql>false</escapeSql>
+        <keyColumn>pk_point</keyColumn>
+        <geometry>
+          <name>the_geom</name>
+          <type>Geometry</type>
+          <srid>-1</srid>
+        </geometry>
+      </virtualTable>
+    </entry>
+  </metadata>
+  <store class="dataStore">
+    <id>DataStoreInfoImpl-43966147:16a68f09946:-7ffc</id>
+  </store>
+  <serviceConfiguration>false</serviceConfiguration>
+  <maxFeatures>0</maxFeatures>
+  <numDecimals>0</numDecimals>
+  <padWithZeros>false</padWithZeros>
+  <forcedDecimal>false</forcedDecimal>
+  <overridingServiceSRS>false</overridingServiceSRS>
+  <skipNumberMatched>false</skipNumberMatched>
+  <circularArcPresent>false</circularArcPresent>
+</featureType>

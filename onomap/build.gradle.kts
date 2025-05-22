@@ -22,13 +22,13 @@ val vertxVersion = "5.0.0"
 val junitJupiterVersion = "5.9.1"
 
 val mainVerticleName = "org.noise_planet.onomap.MainVerticle"
-val launcherClassName = "io.vertx.core.Launcher"
+val launcherClassName = "io.vertx.launcher.application.VertxApplication"
 
 val watchForChange = "src/**/*"
 val doOnChange = "${projectDir}/gradlew classes"
 
 application {
-  mainClass.set(launcherClassName)
+  mainClass.set(mainVerticleName)
 }
 
 dependencies {

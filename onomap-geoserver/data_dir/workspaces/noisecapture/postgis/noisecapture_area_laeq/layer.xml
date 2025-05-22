@@ -1,0 +1,20 @@
+<layer>
+  <name>noisecapture_area_laeq</name>
+  <id>LayerInfoImpl--24aa7b2d:16a6e4ebdb2:-7fba</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl--24aa7b2d:16a6e4ebdb2:-7fbd</id>
+  </defaultStyle>
+  <styles class="linked-hash-set">
+    <style>
+      <id>StyleInfoImpl--24aa7b2d:16a6e4ebdb2:-7fbd</id>
+    </style>
+  </styles>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--24aa7b2d:16a6e4ebdb2:-7fbb</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

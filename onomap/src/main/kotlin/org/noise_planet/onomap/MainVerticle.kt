@@ -59,14 +59,17 @@ package org.noise_planet.onomap
 const val ONOMAP_DEFAULT_PORT = 8888
 
 
-fun main() {
-  PropertyConfigurator.configure(MainVerticle::class.java.getResource("log4j.properties"));
-  VertxApplication.main(arrayOf<String?>(MainVerticle::class.java.getName()))
-}
 
 class MainVerticle : AbstractVerticle() {
   val log: Logger = LoggerFactory.getLogger(MainVerticle::class.java)
   var ds: HikariDataSource? = null
+
+  companion object {
+    @JvmStatic fun main(args : Array<String>) {
+      PropertyConfigurator.configure(MainVerticle::class.java.getResource("log4j.properties"));
+      VertxApplication.main(arrayOf<String?>(MainVerticle::class.java.getName()) + args)
+    }
+  }
 
   fun configureFileLogger(workingDir: String) {
 
@@ -83,7 +86,7 @@ class MainVerticle : AbstractVerticle() {
       rollingAppender.maximumFileSize = 10000000
 
       // Create and set pattern layout
-      val layout = PatternLayout("[%t] %-5p %d{dd MMM HH:mm:ss} - %m%n")
+      val layout = PatternLayout("[%t] %-5p %d{yyyy-MM-dd HH:mm:ss} - %m%n")
       rollingAppender.setLayout(layout)
 
       // init stream

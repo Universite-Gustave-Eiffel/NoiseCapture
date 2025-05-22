@@ -60,6 +60,12 @@ const val DEFAULT_TIMEZONE_URI = "https://github.com/nicolas-f/gadm/releases/dow
 
 private const val FILE_DOWNLOADED_MESSAGE = "File downloaded parse the data and transfer it in the database"
 
+/**
+ * This class provides methods to initialize, check, and manage the database for the NoiseCapture application.
+ * It includes functions to check if a data table exists in the database, download the file from a given URL,
+ * and parse it into the database.
+ * The class also checks the content of the database and upgrades it if necessary.
+ */
 class DataBaseManagement {
   companion object {
     val log: Logger = LoggerFactory.getLogger(DataBaseManagement::class.java)
@@ -141,8 +147,11 @@ class DataBaseManagement {
     }
 
     /**
-     * Check the content of the database
-     * Upgrade if necessary
+     * Checks the content of the database and upgrades it if necessary.
+     *
+     * @param vertx The Vertx instance used for file operations.
+     * @param ds The data source used to connect to the database.
+     * @param configuration The configuration object containing the database connection details and options.
      */
     @OptIn(DelicateCoroutinesApi::class)
     fun checkDataBaseState(vertx: Vertx, ds: HikariDataSource?, configuration: JsonObject?) {

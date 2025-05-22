@@ -38,8 +38,6 @@ package org.noise_planet.onomap
  import io.vertx.ext.web.handler.BodyHandler
  import io.vertx.launcher.application.VertxApplication
  import kotlinx.coroutines.DelicateCoroutinesApi
- import kotlinx.coroutines.GlobalScope
- import kotlinx.coroutines.launch
  import net.opengis.ows11.Ows11Factory
  import net.opengis.wps10.ExecuteType
  import net.opengis.wps10.InputType
@@ -140,8 +138,8 @@ class MainVerticle : AbstractVerticle() {
   private fun noisecapture1WPS(context: RoutingContext) {
     try {
       val body = context.body()
-      val wps: WPSConfiguration = WPSConfiguration()
-      val parser: Parser = Parser(wps)
+      val wps = WPSConfiguration()
+      val parser = Parser(wps)
       ByteArrayInputStream(body.buffer().bytes).use { inputStream ->
         val parsed = parser.parse(inputStream)
         if(parsed is ExecuteType) {
@@ -190,8 +188,9 @@ class MainVerticle : AbstractVerticle() {
         ds?.connection.use { connection ->
           context.response().putHeader("Content-Type", "application/json")
           val result = instance.invokeMethod("exec", listOf(connection, wpsInput))
-          context.response().end(Json.encode(result))
-          log.info("Executed $wpsProcess with result $result")
+          val encodedResult = Json.encode(result)
+          context.response().end(encodedResult)
+          log.info("Executed $wpsProcess with result $encodedResult")
         }
       } else {
         throw IllegalArgumentException("Not a script")

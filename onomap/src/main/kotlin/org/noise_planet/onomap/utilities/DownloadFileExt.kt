@@ -1,16 +1,20 @@
 package org.noise_planet.onomap.utilities
 
 import org.h2gis.api.ProgressVisitor
+import org.jetbrains.kotlinx.dataframe.io.isFile
 import java.net.HttpURLConnection
 import java.net.URL
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.Path
 
 fun URL.downloadFile(outputFile: File, progressVisitor: ProgressVisitor) {
   val progressSteps = 10000
   val connection = openConnection()
-  if(connection is HttpURLConnection) {
+  if(isFile(this)) {
+    Files.copy(Path.of(this.toURI()), Path.of(outputFile.toURI()))
+  } else if(connection is HttpURLConnection) {
     connection.connect()
-
     try {
       // Check if the response code is OK (200)
       if (connection.responseCode != HttpURLConnection.HTTP_OK) {

@@ -115,6 +115,7 @@ class MainVerticle : AbstractVerticle() {
         configureFileLogger(json.getString("workingDir", File("").absolutePath))
         try {
           ds = DataBaseManagement.initDataBaseConfiguration(json)
+          DataBaseManagement.checkDataBaseState(vertx, ds, json)
         } catch (ex: Exception) {
           log.error("Error while creating the database data source", ex)
           startPromise.fail(ex)
@@ -126,9 +127,6 @@ class MainVerticle : AbstractVerticle() {
             if (http.succeeded()) {
               startPromise.complete()
               log.info("HTTP server started on port ${json.getInteger("ONOMAP_PORT", ONOMAP_DEFAULT_PORT)}")
-              GlobalScope.launch {
-                DataBaseManagement.checkDataBaseState(vertx, ds, json)
-              }
             } else {
               startPromise.fail(http.cause());
             }

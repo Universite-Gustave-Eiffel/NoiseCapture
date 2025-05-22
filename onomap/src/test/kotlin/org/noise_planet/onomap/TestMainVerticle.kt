@@ -37,16 +37,6 @@ import kotlin.io.path.exists
 @ExtendWith(VertxExtension::class)
 class TestMainVerticle {
 
-  @BeforeEach
-  fun deploy_verticle(vertx: Vertx, testContext: VertxTestContext) {
-    vertx.deployVerticle(MainVerticle()).onComplete(testContext.succeeding<String> { _ -> testContext.completeNow() })
-  }
-
-  @Test
-  fun verticle_deployed(testContext: VertxTestContext) {
-    testContext.completeNow()
-  }
-
   fun generateWPSParse() : Buffer {
     return Buffer.buffer("""<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
   <ows:Identifier>groovy:nc_parse</ows:Identifier>
@@ -100,7 +90,11 @@ class TestMainVerticle {
     System.setProperty("workingDir", workingDirectory.absolutePath)
     val resourceGadm = TestMainVerticle::class.java.getResource("ut_deps.geojson")
     if (resourceGadm != null) {
-      System.setProperty("GADM_URI", resourceGadm.file)
+      System.setProperty("GADM_URI", resourceGadm.toURI().toString())
+    }
+    val resourceTimeZone = TestMainVerticle::class.java.getResource("tz_world.shp")
+    if (resourceTimeZone != null) {
+      System.setProperty("TIMEZONE_URI", resourceTimeZone.toURI().toString())
     }
   }
 

@@ -33,12 +33,12 @@ import org.slf4j.LoggerFactory
 import java.beans.PropertyChangeListener
 import java.beans.PropertyChangeSupport
 
-class DisplayProgressVisitor(subprocessSize: Long, logProgression: Boolean, minimumSecondsBetweenPrint: Double) :
+class DisplayProgressVisitor(subprocessSize: Long, logProgression: Boolean, minimumSecondsBetweenPrint: Double,
+                             val logger: Logger = LoggerFactory.getLogger(DisplayProgressVisitor::class.java)) :
   DefaultProgressVisitor(subprocessSize.toInt(), null) {
   val propertyChangeSupport = PropertyChangeSupport(this)
   var canceled = false
   var logProgression = false
-  val logger: Logger = LoggerFactory.getLogger(this.javaClass)
   var lastLoggedProgression = ""
   var minimumSecondsBetweenPrint = 1.0
   var lastPrint: Long = 0

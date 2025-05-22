@@ -31,10 +31,14 @@ import com.zaxxer.hikari.HikariConfig
 import com.zaxxer.hikari.HikariDataSource
 import io.vertx.core.Vertx
 import io.vertx.core.json.JsonObject
-import org.h2gis.api.EmptyProgressVisitor
-import org.h2gis.api.ProgressVisitor
+import io.vertx.kotlin.coroutines.dispatcher
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import org.h2gis.functions.io.geojson.GeoJsonReaderDriver
+import org.h2gis.functions.io.shp.SHPDriverFunction
 import org.h2gis.utilities.JDBCUtilities
+import org.h2gis.utilities.dbtypes.DBUtils
 import org.jetbrains.kotlinx.dataframe.DataFrame
 import org.jetbrains.kotlinx.dataframe.api.first
 import org.jetbrains.kotlinx.dataframe.io.readResultSet
@@ -43,15 +47,18 @@ import org.noise_planet.onomap.utilities.downloadFile
 import org.postgresql.ds.PGSimpleDataSource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.io.File
 import java.net.URI
+import java.net.URL
 import java.nio.file.Path
 import java.sql.Connection
-import java.util.*
+import javax.sql.DataSource
 import kotlin.io.path.pathString
 
 const val ONOMAP_LAST_DATABASE_VERSION = 1
 const val DEFAULT_GADM_URI = "https://github.com/nicolas-f/gadm/releases/download/4.1/gadm410.geojson.gz"
+const val DEFAULT_TIMEZONE_URI = "https://github.com/nicolas-f/gadm/releases/download/4.1/timezones-with-oceans.geojson.gz"
+
+private const val FILE_DOWNLOADED_MESSAGE = "File downloaded parse the data and transfer it in the database"
 
 class DataBaseManagement {
   companion object {
@@ -77,13 +84,70 @@ class DataBaseManagement {
       return HikariDataSource(config)
     }
 
+    /**
+     * Checks if a data table exists in the database. If it doesn't exist,
+     * downloads the file from the given URL and parses it into the database.
+     *
+     * @param vertx The Vertx instance used for file operations.
+     * @param ds The data source used to connect to the database.
+     * @param dataTable The name of the data table to check.
+     * @param url The URL from which to download the data table file.
+     */
+    fun checkDataTable(vertx: Vertx, ds: DataSource?, dataTable: String, url : URL) {
+      val hasDataTable = ds?.connection?.use(fun(connection: Connection): Boolean {
+        return JDBCUtilities.tableExists(connection, dataTable)
+      })
+      if (hasDataTable == false) {
+        GlobalScope.launch(vertx.dispatcher()) {
+          vertx.fileSystem().createTempDirectory("gadm").onComplete { res ->
+            val tempDirectory = res.result()
+            val fileName = url.path.substringAfterLast('/')
+            val fileExtension = fileName.substringAfterLast('.')
+            val dataFile = Path.of(tempDirectory, fileName)
+            log.info("Table $dataTable is not in database download the file from $url to ${dataFile.pathString}..")
+            url.downloadFile(dataFile.toFile(), DisplayProgressVisitor(1, true, 1.0, logger = log))
+            // download additional files for specific formats
+            if(fileExtension.equals("shp",true)) {
+              val otherExt = arrayOf("dbf", "prj", "shx")
+              otherExt.forEach { ext->
+                val otherFile = Path.of(url.path.substringBeforeLast('/'),
+                  fileName.substringBeforeLast('.') + ".$ext")
+                val otherDataFile = Path.of(tempDirectory,
+                  otherFile.pathString.substringAfterLast('/'))
+                otherFile.toUri().toURL().downloadFile(otherDataFile.toFile(),
+                  DisplayProgressVisitor(1,
+                    true, 1.0, logger = log))
+              }
+            }
+            log.info(FILE_DOWNLOADED_MESSAGE)
+            ds.connection?.use { connection ->
+              if(fileExtension.equals("shp",true)) {
+                SHPDriverFunction().importFile(connection, dataTable, dataFile.toFile(),
+                  DisplayProgressVisitor(1, true, 1.0, logger = log))
+              } else if(fileExtension.equals("geojson",true) ||
+                fileExtension.equals("geojson.gz",true)) {
+                val readerDriver = GeoJsonReaderDriver(
+                  connection, dataFile.toFile(),
+                  JsonEncoding.UTF8.name, true
+                )
+                readerDriver.read(DisplayProgressVisitor(1, true,
+                  1.0, logger = log), dataTable)
+                connection.createStatement().execute("SELECT UPDATEGEOMETRYSRID('$dataTable', 'the_geom', 4326)")
+              }
+            }
+          }
+        }
+      }
+    }
 
     /**
      * Check the content of the database
      * Upgrade if necessary
      */
+    @OptIn(DelicateCoroutinesApi::class)
     fun checkDataBaseState(vertx: Vertx, ds: HikariDataSource?, configuration: JsonObject?) {
       ds?.connection?.use { connection ->
+        val dbType = DBUtils.getDBType(connection)
         val hasUserTable = JDBCUtilities.tableExists(connection, "noisecapture_user")
         val hasVersionTable = JDBCUtilities.tableExists(connection, "noisecapture_db_version")
         if (!hasVersionTable) {
@@ -91,7 +155,7 @@ class DataBaseManagement {
           try {
             connection.createStatement().use { statement ->
               statement.execute(
-                "CREATE TABLE NOISECAPTURE_DB_VERSION (\n" +
+                "CREATE TABLE IF NOT EXISTS NOISECAPTURE_DB_VERSION (\n" +
                   "  DB_VERSION int NOT NULL\n" +
                   ")"
               )
@@ -130,27 +194,12 @@ class DataBaseManagement {
 
       // Check special data tables
       if (configuration?.getBoolean("download_data_tables", true) ?: true) {
-        val hasGadmTable = ds?.connection?.use(fun(connection: Connection): Boolean {
-          return JDBCUtilities.tableExists(connection, "gadm28")
-        })
-        if (hasGadmTable == false) {
-          vertx.fileSystem().createTempDirectory("gadm").onComplete { res ->
-            val tempDirectory = res.result()
-            val gadmFile = Path.of(tempDirectory, "gadm.geojson.gz")
-            val url = URI(configuration?.getString("GADM_URI", DEFAULT_GADM_URI) ?: DEFAULT_GADM_URI).toURL()
-            log.info("Table GADM28 is not in database download the file from $url to ${gadmFile.pathString}..")
-            url.downloadFile(gadmFile.toFile(), DisplayProgressVisitor(1, true, 1.0))
-            log.info("File download parse the data and transfer it in the database")
-            ds.connection?.use { connection ->
-              val readerDriver = GeoJsonReaderDriver(
-                connection, gadmFile.toFile(),
-                JsonEncoding.UTF8.name, true
-              )
-              readerDriver.read(DisplayProgressVisitor(1, true, 1.0), "gadm28")
-              connection.createStatement().execute("SELECT UPDATEGEOMETRYSRID('gadm28', 'the_geom', 4326)")
-            }
-          }
-        }
+        checkDataTable(vertx, ds, "gadm28",
+          URI(configuration?.getString("GADM_URI",
+            DEFAULT_GADM_URI) ?: DEFAULT_GADM_URI).toURL())
+        checkDataTable(vertx, ds, "tz_world",
+          URI(configuration?.getString("TIMEZONE_URI",
+            DEFAULT_TIMEZONE_URI) ?: DEFAULT_TIMEZONE_URI).toURL())
       }
     }
   }

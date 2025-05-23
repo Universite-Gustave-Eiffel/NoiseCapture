@@ -1,12 +1,9 @@
-import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   kotlin("jvm") version "2.1.21" // Kotlin version to use
   groovy
   application
-  id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "org.noise-planet"
@@ -65,14 +62,6 @@ tasks.compileGroovy {
 
 tasks.compileKotlin {
   libraries.from(sourceSets.main.get().groovy.classesDirectory)
-}
-
-tasks.withType<ShadowJar> {
-  archiveClassifier.set("fat")
-  manifest {
-    attributes(mapOf("Main-Verticle" to mainVerticleName))
-  }
-  mergeServiceFiles()
 }
 
 tasks.withType<Test> {

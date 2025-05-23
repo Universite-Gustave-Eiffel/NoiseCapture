@@ -44,4 +44,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: onomap
-          path: onomap/build/distributions
+          path: onomap/build/distributions/*.zip

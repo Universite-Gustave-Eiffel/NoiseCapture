@@ -28,8 +28,8 @@
 
 package org.noise_planet.onomap.utilities
 
+import org.apache.logging.log4j.core.util.FileUtils.isFile
 import org.h2gis.api.ProgressVisitor
-import org.jetbrains.kotlinx.dataframe.io.isFile
 import java.net.HttpURLConnection
 import java.net.URL
 import java.io.File

@@ -39,9 +39,6 @@ import org.h2gis.functions.io.geojson.GeoJsonReaderDriver
 import org.h2gis.functions.io.shp.SHPDriverFunction
 import org.h2gis.utilities.JDBCUtilities
 import org.h2gis.utilities.dbtypes.DBUtils
-import org.jetbrains.kotlinx.dataframe.DataFrame
-import org.jetbrains.kotlinx.dataframe.api.first
-import org.jetbrains.kotlinx.dataframe.io.readResultSet
 import org.noise_planet.onomap.utilities.DisplayProgressVisitor
 import org.noise_planet.onomap.utilities.downloadFile
 import org.postgresql.ds.PGSimpleDataSource
@@ -196,7 +193,8 @@ class DataBaseManagement {
         var dbVersion = 0
         connection.createStatement().use { statement ->
           statement.executeQuery("select db_version from noisecapture_db_version").use { rs ->
-            dbVersion = DataFrame.readResultSet(rs, connection).first()["db_version"] as Int
+            rs.next()
+            dbVersion = rs.getInt("db_version")
           }
         }
       }

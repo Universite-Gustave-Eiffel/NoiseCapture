@@ -31,7 +31,7 @@ WORKDIR $APP_DIR
 COPY --from=builder /onomap/build/distributions $APP_DIR
 
 RUN mv onomap-*.tar onomap.tar; \
-    tar -xvf onomap.tar --strip-components=1 \
+    tar -xvf onomap.tar --strip-components=1; \
     rm onomap.tar
 
 

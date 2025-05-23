@@ -190,8 +190,15 @@ class MainVerticle : AbstractVerticle() {
         val description = instance.evaluate("description") as String
         ds?.connection.use { connection ->
           context.response().putHeader("Content-Type", "application/json")
-          val result = instance.invokeMethod("exec", listOf(connection, wpsInput))
-          val encodedResult = Json.encode(result)
+          val scriptOutput = instance.invokeMethod("exec", listOf(connection, wpsInput))
+          // Convert output from WPS script to JSON Object if necessary
+          val encodedResult =
+          if (scriptOutput is Map<*, *> && scriptOutput.containsKey("result")) {
+            scriptOutput["result"].toString()
+          } else {
+            Json.encode(scriptOutput)
+          }
+          // Send response to client
           context.response().end(encodedResult)
           log.info("Executed $wpsProcess with result $encodedResult")
         }

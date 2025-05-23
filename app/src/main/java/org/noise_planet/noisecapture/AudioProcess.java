@@ -147,7 +147,9 @@ public class AudioProcess implements Runnable {
     public STATE getCurrentState() {
         return currentState;
     }
-
+    public int getRecordingState () {
+        return audioRecord.getRecordingState();
+    }
     private void loadFFTSlowAnalyzer() {
         this.slowLeqProcessing = new LeqProcessingThread(this,
         AcousticIndicators.TIMEPERIOD_SLOW, false,
@@ -404,7 +406,7 @@ public class AudioProcess implements Runnable {
         void setGain(double gain);
         double getProcessingDelayTime();
         boolean isProcessing();
-        double getLeq();
+        double getlAeq();
     }
 
     public static final class FilterBankProcessingThread implements ProcessingThread {
@@ -414,12 +416,11 @@ public class AudioProcess implements Runnable {
         private String propertyName;
         private long pushedSamples = 0;
         private long processedSamples = 0;
-        private int lastPushIndex = 0;
         private SpectrumChannel spectrumChannel;
         private final double windowTime;
         private ConfigurationSpectrumChannel configuration;
         private boolean aWeighting = true;
-        private double leq = 0;
+        private double lAeq = 0;
         private static final double NATIVE_GAIN = 90-20*Math.log10(FFTSignalProcessing.RMS_REFERENCE_90DB / Short.MAX_VALUE);
         private double dbGain = NATIVE_GAIN;
         double processingDelayTime;
@@ -466,8 +467,8 @@ public class AudioProcess implements Runnable {
         }
 
 
-        public double getLeq() {
-            return leq;
+        public double getlAeq() {
+            return lAeq;
         }
 
         @Override
@@ -499,13 +500,13 @@ public class AudioProcess implements Runnable {
                                     // complete audio samples to analyze
                                     long startAnalyze = System.currentTimeMillis();
                                     if(aWeighting) {
-                                        leq = spectrumChannel.processSamplesWeightA(windowBuffer) + dbGain;
+                                        lAeq = spectrumChannel.processSamplesWeightA(windowBuffer) + dbGain;
                                     } else {
-                                        leq = AcousticIndicators.getLeq(windowBuffer,
+                                        lAeq = AcousticIndicators.getLeq(windowBuffer,
                                                 1/Math.pow(10, dbGain / 20));
                                     }
                                     LOGGER.debug(String.format(Locale.ROOT,
-                                            "For gain %.2f -> Leq %.2f%n", dbGain, leq));
+                                            "For gain %.2f -> Leq %.2f%n", dbGain, lAeq));
                                     double[] spectrum = spectrumChannel.processSamples(windowBuffer);
                                     long analysis_time = System.currentTimeMillis() - startAnalyze;
                                     for (int i = 0; i < spectrum.length; i++) {
@@ -518,16 +519,15 @@ public class AudioProcess implements Runnable {
                                     processingDelayTime = sumSamples /
                                             configuration.getConfiguration().getSampleRate();
                                     Log.d(AudioProcess.class.getName(),String.format(Locale.ROOT,
-                                            "Analysis done in %d milliseconds queue is %.3f seconds",
-                                            analysis_time, processingDelayTime
-                                    ));
+                                            "Analysis done in %d milliseconds queue is %.3f seconds Leq: %.2f",
+                                            analysis_time, processingDelayTime, lAeq));
                                     long beginRecordTime = System.currentTimeMillis()
                                             - (int)(windowTime * 1000)
                                             - (int)(processingDelayTime * 1000);
                                     FFTSignalProcessing.ProcessingResult processingResult =
                                             new FFTSignalProcessing.ProcessingResult(
-                                                    processedSamples, new double[0], spectrum, leq);
-                                    processingResult.setWindowLaeq(leq);
+                                                    processedSamples, new double[0], spectrum, lAeq);
+                                    processingResult.setWindowLaeq(lAeq);
                                     audioProcess.listeners.firePropertyChange(propertyName,
                                             null, new AudioMeasureResult(processingResult,
                                                     beginRecordTime));
@@ -624,7 +624,7 @@ public class AudioProcess implements Runnable {
             return 1 / timePeriod;
         }
 
-        public double getLeq() {
+        public double getlAeq() {
             return leq;
         }
 

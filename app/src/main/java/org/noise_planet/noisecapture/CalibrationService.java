@@ -633,7 +633,7 @@ public class CalibrationService extends Service implements PropertyChangeListene
         }
 
         @Override
-        public double getLeq() {
+        public double getlAeq() {
             return 0;
         }
     }

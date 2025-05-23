@@ -116,6 +116,7 @@ public class MeasurementService extends Service {
     // Unique Identification Number for the Notification.
     // We use it on Notification start, and to cancel it.
     private int NOTIFICATION = R.string.local_service_started;
+    private static final int NOTIFICATION_ID = 100;
     private NotificationCompat.Builder notification;
     private Notification notificationInstance;
     private ListenToMicrophoneDeviceSwitch audioRecordingCallback = null;
@@ -188,8 +189,6 @@ public class MeasurementService extends Service {
     public void onCreate() {
         mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         this.measurementManager = new MeasurementManager(getApplicationContext());
-        // Display a notification about us starting.  We put an icon in the status bar.
-        showNotification();
         // Mute NoiseCapture while measuring (do not capture android sounds)
         try {
             AudioManager mgr = (AudioManager)getSystemService(Context.AUDIO_SERVICE);
@@ -216,8 +215,8 @@ public class MeasurementService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-
-        return START_NOT_STICKY;
+        LOGGER.info("onStartCommand");
+        return super.onStartCommand(intent, flags, startId);
     }
 
     @Override
@@ -309,7 +308,7 @@ public class MeasurementService extends Service {
     /**
      * Show a notification while this service is running.
      */
-    private void showNotification() {
+    private Notification showNotification() {
         // Do not stack notifications
         try {
             mNM.cancelAll();
@@ -346,8 +345,9 @@ public class MeasurementService extends Service {
             notification.setContentText(text);
         }
         // Send the notification.
-        notificationInstance = notification.getNotification();
+        notificationInstance = notification.build();
         mNM.notify(NOTIFICATION, notificationInstance);
+        return notificationInstance;
     }
 
     private void initLocalisationServices() {
@@ -700,6 +700,26 @@ public class MeasurementService extends Service {
         return isStorageActivated.get();
     }
 
+    private void startForeground() {
+        Notification notification = showNotification();
+        // Set is foreground in order to let this service running without stopping
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    int type = ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION;
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                        type = type | ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE;
+                    }
+                    startForeground(NOTIFICATION_ID, notification, type);
+                } else {
+                    startForeground(NOTIFICATION_ID, notification);
+                }
+            } catch (SecurityException ex) {
+                // Ignore, noisecapture can not be run on background on this smartphone
+            }
+        }
+    }
+
     /**
      * Start the storage of leq in database
      */
@@ -710,15 +730,7 @@ public class MeasurementService extends Service {
         recordId = measurementManager.addRecord(Storage.Record.CALIBRATION_METHODS.values()[calibrationMethod]);
         leqAdded.set(0);
         isStorageActivated.set(true);
-        showNotification();
-        // Set is foreground in order to let this service running without stopping
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            try {
-                startForeground(NOTIFICATION, notificationInstance);
-            } catch (SecurityException ex) {
-                // Ignore, noisecapture can not be run on background on this smartphone
-            }
-        }
+        startForeground();
     }
 
     public static final class MeasurementEventObject {

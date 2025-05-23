@@ -1,4 +1,4 @@
-name: androidbuild
+name: Onomap Web Server
 
 on: [ push, pull_request, workflow_dispatch ]
 

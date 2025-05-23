@@ -73,6 +73,12 @@ class TestMainVerticle {
             <wps:LiteralData>$dataB64</wps:LiteralData>
           </wps:Data>
         </wps:Input>
+        <wps:Input>
+          <ows:Identifier>triggerWpsEvent</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>false</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
       </wps:DataInputs>
       <wps:ResponseForm>
         <wps:RawDataOutput>

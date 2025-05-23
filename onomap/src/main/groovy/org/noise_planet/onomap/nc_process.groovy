@@ -345,7 +345,8 @@ def process(Connection connection, float precisionFilter, int trackLimit) {
 }
 
 def exec(Connection connection, Map input) {
-    return [result : process(connection, input["locationPrecisionFilter"], input["processTracksLimit"] as Integer)]
+    return [result : process(connection, (input["locationPrecisionFilter"] as Number).floatValue(),
+      input["processTracksLimit"] as Integer)]
 }
 
 @CompileStatic

@@ -59,6 +59,14 @@ dependencies {
   testImplementation("org.hamcrest:hamcrest-library:1.3")
 }
 
+tasks.compileGroovy {
+  classpath = sourceSets.main.get().compileClasspath
+}
+
+tasks.compileKotlin {
+  libraries.from(sourceSets.main.get().groovy.classesDirectory)
+}
+
 tasks.withType<ShadowJar> {
   archiveClassifier.set("fat")
   manifest {

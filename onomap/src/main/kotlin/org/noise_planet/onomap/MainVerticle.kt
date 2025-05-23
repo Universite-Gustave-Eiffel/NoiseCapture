@@ -36,8 +36,15 @@ package org.noise_planet.onomap
  import io.vertx.ext.web.Router
  import io.vertx.ext.web.RoutingContext
  import io.vertx.ext.web.handler.BodyHandler
+ import io.vertx.kotlin.coroutines.dispatcher
  import io.vertx.launcher.application.VertxApplication
+ import kotlinx.coroutines.CoroutineScope
  import kotlinx.coroutines.DelicateCoroutinesApi
+ import kotlinx.coroutines.Dispatchers
+ import kotlinx.coroutines.GlobalScope
+ import kotlinx.coroutines.launch
+ import kotlinx.coroutines.runBlocking
+ import kotlinx.coroutines.withTimeout
  import net.opengis.ows11.Ows11Factory
  import net.opengis.wps10.ExecuteType
  import net.opengis.wps10.InputType
@@ -54,6 +61,7 @@ package org.noise_planet.onomap
  import org.slf4j.LoggerFactory
  import java.io.ByteArrayInputStream
  import java.io.File
+ import java.sql.Connection
 
 
 const val ONOMAP_DEFAULT_PORT = 8888
@@ -63,6 +71,10 @@ const val ONOMAP_DEFAULT_PORT = 8888
 class MainVerticle : AbstractVerticle() {
   val log: Logger = LoggerFactory.getLogger(MainVerticle::class.java)
   var ds: HikariDataSource? = null
+  // Jobs to process noisecapture measurements
+  // such jobs must no process in parallel so it should be called only after the last call is complete
+  var parsePendingJob = runBlocking { CoroutineScope(Dispatchers.IO).launch { } }
+  var processPendingJob = runBlocking { CoroutineScope(Dispatchers.IO).launch { } }
 
   companion object {
     @JvmStatic fun main(args : Array<String>) {
@@ -201,9 +213,55 @@ class MainVerticle : AbstractVerticle() {
           // Send response to client
           context.response().end(encodedResult)
           log.info("Executed $wpsProcess with result $encodedResult")
+          // Caller ask to not automatically call other wps process (for unit test)
+          if(!wpsInput.containsKey("triggerWpsEvent") || wpsInput["triggerWpsEvent"] == true) {
+            onEndCallWps(scriptName)
+          }
         }
       } else {
         throw IllegalArgumentException("Not a script")
+      }
+    }
+  }
+
+  suspend fun parseFiles() {
+    ds?.connection?.use { connection ->
+      val result = nc_parse().exec(connection, mapOf("processFileLimit" to 20) as Map<String, *>)
+      log.info("Measurements parsed, result $result")
+    }
+  }
+
+  suspend fun processFiles() {
+    ds?.connection?.use { connection ->
+      val result = nc_process().exec(connection, mapOf("locationPrecisionFilter" to 15.0, "processTracksLimit" to 20))
+      log.info("Measurements processed, result $result")
+    }
+  }
+
+  @OptIn(DelicateCoroutinesApi::class)
+  fun onEndCallWps(scriptName: String) {
+    when(scriptName.lowercase()) {
+      "nc_upload" -> {
+        val lastJob = parsePendingJob
+        parsePendingJob = GlobalScope.launch(vertx.dispatcher()) {
+            withTimeout(120000) {
+              lastJob.join()
+            }
+            parseFiles()
+            onEndCallWps("nc_parse")
+          }
+          log.info("Detect uploading job is done, parse it")
+      }
+      "nc_parse" -> {
+        val lastJob = processPendingJob
+        processPendingJob = GlobalScope.launch(vertx.dispatcher()) {
+          withTimeout(120000) {
+            lastJob.join()
+          }
+          processFiles()
+          onEndCallWps("nc_process")
+          log.info("Detect parse job is done, process it")
+        }
       }
     }
   }

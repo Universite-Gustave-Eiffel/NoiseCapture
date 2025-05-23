@@ -14,6 +14,8 @@ services:
       - '8978:8978'
     volumes:
       - cloudbeaver:/opt/cloudbeaver/workspace
+    environment:
+      - CLOUDBEAVER_EXPIRE_SESSION_AFTER_PERIOD=1800000
   db:
     container_name: postgis
     build:

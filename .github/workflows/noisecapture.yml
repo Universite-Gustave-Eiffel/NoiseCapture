@@ -5,18 +5,6 @@ on: [ push, pull_request, workflow_dispatch ]
 jobs:
   build:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgis/postgis:16-3.4
-        env:
-          # must specify password for PG Docker container image, see: https://registry.hub.docker.com/_/postgres?tab=description&page=1&name=10
-          POSTGRES_USER: onomap
-          POSTGRES_PASSWORD: onomap
-          POSTGRES_DB: noisecapture
-        ports:
-          - 5432:5432
-        # needed because the postgres container does not provide a healthcheck
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v4
         with:
@@ -36,9 +24,9 @@ jobs:
           echo android.nonTransitiveRClass=false >> gradle.properties
           echo org.gradle.jvmargs=-Xmx4096M >> gradle.properties
       - name: Building
-        run: ./gradlew build -x test --info --stacktrace
+        run: ./gradlew :sosfilter:build :app:build -x test --info --stacktrace
       - name: Test
-        run: ./gradlew test --info --stacktrace
+        run: ./gradlew :sosfilter:test :app:test --info --stacktrace
       - name: Clean
         run: rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
       - name: Cache

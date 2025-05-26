@@ -1,7 +1,15 @@
 apply plugin: 'com.android.application'
 
 def getCheckedOutGitCommitHash() {
-    'git rev-parse --verify --short HEAD'.execute().text.trim()
+    // Read the last commit hash without using git client (maybe not available)
+    try {
+        def gitHash = new File(".git/logs/HEAD").readLines("UTF-8")[-1].tokenize(" ")[1]
+        println("Found git hash: $gitHash")
+        return gitHash
+    } catch (Exception ex) {
+        System.err.println("Could not read git file $ex.localizedMessage")
+        return "not_found"
+    }
 }
 
 def getAvailableLocales() {

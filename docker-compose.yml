@@ -19,8 +19,7 @@ services:
   db:
     container_name: postgis
     build:
-      context: .
-      dockerfile: postgis/Dockerfile
+      dockerfile: onomap/postgis/Dockerfile
     user: "${UID}:${GID}"
     volumes:
       - postgis-data:/var/lib/postgresql/data
@@ -38,3 +37,20 @@ services:
       interval: 60s
       timeout: 5s
       retries: 5
+  onomap:
+    build:
+      context: ./onomap
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8888:8888"
+    environment:
+      # If you need to create multiple database you can add coma separated databases eg gis,data
+      - PGHOST=postgis
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

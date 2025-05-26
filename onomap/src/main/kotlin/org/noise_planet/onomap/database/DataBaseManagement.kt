@@ -137,6 +137,10 @@ class DataBaseManagement {
                   1.0, logger = log), dataTable)
                 connection.createStatement().execute("SELECT UPDATEGEOMETRYSRID('$dataTable', 'the_geom', 4326)")
               }
+              val isDataTableCreated = JDBCUtilities.tableExists(connection, dataTable)
+              if(!isDataTableCreated) {
+                log.info("Table $dataTable is not present in the database")
+              }
             }
           }
         }

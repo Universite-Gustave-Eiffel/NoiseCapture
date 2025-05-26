@@ -7,7 +7,11 @@ ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
 WORKDIR /onomap
 COPY . /onomap/
 
-RUN ./gradlew assemble --no-daemon
+RUN <<EOF
+./gradlew assemble --no-daemon
+mkdir onomap
+tar -xvf build/distributions/onomap-*.tar --strip-components=1  --directory onomap
+EOF
 
 FROM eclipse-temurin:latest
 
@@ -25,13 +29,10 @@ EOF
 
 WORKDIR $APP_DIR
 
-COPY --from=builder /onomap/build/distributions $APP_DIR
+COPY --from=builder /onomap/onomap $APP_DIR
 COPY --from=builder /onomap/deploy/scripts/launch.sh $APP_DIR/launch.sh
 
 RUN <<EOF
-mv onomap-*.tar onomap.tar
-tar -xvf onomap.tar --strip-components=1
-rm onomap.tar
 find . -type d -exec chmod 775 {} \;
 chmod +x "launch.sh" "$APP_FILE"
 EOF

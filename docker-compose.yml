@@ -4,6 +4,8 @@ volumes:
     driver: local
   cloudbeaver:
     driver: local
+  onomap-data:
+    driver: local
 
 services:
   cloudbeaver:
@@ -14,12 +16,15 @@ services:
       - '8978:8978'
     volumes:
       - cloudbeaver:/opt/cloudbeaver/workspace
+      - ./onomap/cloudbeaver/conf:/opt/cloudbeaver/conf
     environment:
       - CLOUDBEAVER_EXPIRE_SESSION_AFTER_PERIOD=1800000
   db:
     container_name: postgis
-    build:
-      dockerfile: onomap/postgis/Dockerfile
+    image: tobi312/rpi-postgresql-postgis:15-3.5-alpine-arm64
+#    build:
+#      dockerfile: onomap/postgis/Dockerfile #x64 only
+#      #dockerfile: onomap/postgis/Dockerfile_macos_arm64
     user: "${UID}:${GID}"
     volumes:
       - postgis-data:/var/lib/postgresql/data
@@ -29,11 +34,9 @@ services:
       - POSTGRES_DB=noisecapture
       - POSTGRES_USER=onomap
       - POSTGRES_PASSWORD=onomap
-    ports:
-      - 5432:5432
     restart: on-failure
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U onomap"]
+      test: ["CMD-SHELL", "pg_isready -U onomap -d noisecapture"]
       interval: 60s
       timeout: 5s
       retries: 5
@@ -45,9 +48,18 @@ services:
         condition: service_healthy
     ports:
       - "8888:8888"
+    volumes:
+      - onomap-data:/onomap/workspace/
     environment:
       # If you need to create multiple database you can add coma separated databases eg gis,data
       - PGHOST=postgis
+      - PGDBNAME=noisecapture
+      - POSTGRES_USER=onomap
+      - POSTGRES_PASSWORD=onomap
+      - workingDir=/onomap/workspace/
+      # Restrict to small dataset for test purposes (remove theses two lines on production)
+      - GADM_URI=https://github.com/Universite-Gustave-Eiffel/NoiseCapture/raw/refs/heads/onomapv2/onomap/src/test/resources/org/noise_planet/onomap/ut_deps.geojson
+      - TIMEZONE_URI=https://github.com/Universite-Gustave-Eiffel/NoiseCapture/raw/refs/heads/onomapv2/onomap/src/test/resources/org/noise_planet/onomap/tz_world.shp
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888"]
       interval: 15s

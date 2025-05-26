@@ -38,22 +38,28 @@ A docker image can be built, it will compile the kotlin code and create the web 
 
 [source,console]
 ----
-$ cd onomap/deploy/docker/
-$ bash build_docker.sh
-----
-
-=== Run container
-
-If your PostGIS database is in a container named "postgis" (default is "localhost")
-
-[source,console]
-----
-$ docker run onomap -e PGHOST='postgis'
+$ docker build .
 ----
 
 == Docker compose
 
 The full onomap service is composed by the Onomap web server and a PostGIS database. A docker compose file will create and automatically configure theses two services.
+
+Run this command on the root of this project:
+
+[source,console]
+----
+$ docker compose up -d
+----
+
+Onomap server is accessible on http://localhost:8888
+
+You can see the database content on this address http://localhost:8978
+
+Create an account on CloudBeaver then edit the onomap connection with:
+
+login:: onomap
+password:: onomap
 
 == Help
 

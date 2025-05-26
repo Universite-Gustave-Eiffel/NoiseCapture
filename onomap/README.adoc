@@ -1,6 +1,7 @@
 = Onomap
 
-image:https://img.shields.io/badge/vert.x-4.5.14-purple.svg[link="https://vertx.io"]
+
+image:https://img.shields.io/badge/vert.x-5.0.0-purple.svg[link="https://vertx.io"]
 
 - Receive data from NoiseCapture v1 application, read it and store into a folder
 - Parse stored data and send it to PostGIS database
@@ -9,19 +10,50 @@ image:https://img.shields.io/badge/vert.x-4.5.14-purple.svg[link="https://vertx.
 == Building
 
 To launch your tests:
-```
-./gradlew clean test
-```
+
+[source,console]
+----
+$ ./gradlew clean test
+----
 
 To package your application:
-```
-./gradlew clean assemble
-```
+
+[source,console]
+----
+$ ./gradlew clean assemble
+----
 
 To run your application:
-```
-./gradlew clean run
-```
+
+[source,console]
+----
+$ ./gradlew clean run
+----
+
+== Docker
+
+A docker image can be built, it will compile the kotlin code and create the web server image.
+
+=== Build image
+
+[source,console]
+----
+$ cd onomap/deploy/docker/
+$ bash build_docker.sh
+----
+
+=== Run container
+
+If your PostGIS database is in a container named "postgis" (default is "localhost")
+
+[source,console]
+----
+$ docker run onomap -e PGHOST='postgis'
+----
+
+== Docker compose
+
+The full onomap service is composed by the Onomap web server and a PostGIS database. A docker compose file will create and automatically configure theses two services.
 
 == Help
 

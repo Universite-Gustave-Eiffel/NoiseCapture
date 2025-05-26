@@ -26,4 +26,4 @@
 #
 
 cd ../../
-podman build . --file deploy/docker/onomap/Dockerfile
+podman build --tag 'onomap' --file deploy/docker/onomap/Dockerfile .

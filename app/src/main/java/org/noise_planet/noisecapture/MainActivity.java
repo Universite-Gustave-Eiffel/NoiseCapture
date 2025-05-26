@@ -124,10 +124,19 @@ public class MainActivity extends AppCompatActivity {
             if (ContextCompat.checkSelfPermission(this,
                     Manifest.permission.RECORD_AUDIO)
                     != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
+                    Manifest.permission.FOREGROUND_SERVICE_MICROPHONE)
+                    != PackageManager.PERMISSION_GRANTED ||ContextCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED || ContextCompat.checkSelfPermission(this,
                     Manifest.permission.FOREGROUND_SERVICE_LOCATION)
                     != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                        Manifest.permission.FOREGROUND_SERVICE_MICROPHONE)) {
+                    // After the user
+                    // sees the explanation, try again to request the permission.
+                    Toast.makeText(this,
+                            R.string.permission_explain_audio_record, Toast.LENGTH_LONG).show();
+                }
                 if (ActivityCompat.shouldShowRequestPermissionRationale(this,
                         Manifest.permission.RECORD_AUDIO)) {
                     // After the user
@@ -143,7 +152,15 @@ public class MainActivity extends AppCompatActivity {
                             R.string.permission_explain_gps, Toast.LENGTH_LONG).show();
                 }
                 // Request the permission.
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.RECORD_AUDIO,
+                                    Manifest.permission.ACCESS_FINE_LOCATION,
+                                    Manifest.permission.FOREGROUND_SERVICE,
+                                    Manifest.permission.FOREGROUND_SERVICE_MICROPHONE,
+                                    Manifest.permission.FOREGROUND_SERVICE_LOCATION},
+                            PERMISSION_RECORD_AUDIO_AND_GPS);
+                } if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     ActivityCompat.requestPermissions(this,
                             new String[]{Manifest.permission.RECORD_AUDIO,
                                     Manifest.permission.ACCESS_FINE_LOCATION,

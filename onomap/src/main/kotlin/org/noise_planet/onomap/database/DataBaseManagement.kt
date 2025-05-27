@@ -44,6 +44,7 @@ import org.noise_planet.onomap.utilities.downloadFile
 import org.postgresql.ds.PGSimpleDataSource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.net.URI
 import java.net.URL
 import java.nio.file.Path
@@ -68,22 +69,28 @@ class DataBaseManagement {
     val log: Logger = LoggerFactory.getLogger(DataBaseManagement::class.java)
     fun initDataBaseConfiguration(configuration: JsonObject?): HikariDataSource {
       val config = HikariConfig()
-      config.username = configuration?.getString("POSTGRES_USER", "onomap") ?: "onomap"
-      config.password = configuration?.getString("POSTGRES_PASSWORD", "onomap") ?: "onomap"
-      config.maximumPoolSize = configuration?.getInteger("POSTGRES_MAXPOOL_SIZE", 20) ?: 20
-      config.dataSourceClassName = PGSimpleDataSource::class.qualifiedName
-      config.addDataSourceProperty(
-        "portNumbers",
-        configuration?.getInteger("PGPORT", 5432) ?: 5432
-      )
-      config.addDataSourceProperty(
-        "databaseName",
-        configuration?.getString("PGDBNAME", "noisecapture") ?: "noisecapture"
-      )
-      config.addDataSourceProperty(
-        "serverNames",
-        configuration?.getString("PGHOST", "localhost") ?: "localhost"
-      )
+      val pgHostConfigurationDefined : Boolean = configuration?.getString("PGHOST", "localhost")?.isEmpty() ?: false
+      if(pgHostConfigurationDefined) {
+        config.username = configuration?.getString("POSTGRES_USER", "onomap") ?: "onomap"
+        config.password = configuration?.getString("POSTGRES_PASSWORD", "onomap") ?: "onomap"
+        config.maximumPoolSize = configuration?.getInteger("POSTGRES_MAXPOOL_SIZE", 20) ?: 20
+        config.dataSourceClassName = PGSimpleDataSource::class.qualifiedName
+        config.addDataSourceProperty(
+          "portNumbers",
+          configuration?.getInteger("PGPORT", 5432) ?: 5432
+        )
+        config.addDataSourceProperty(
+          "databaseName",
+          configuration?.getString("PGDBNAME", "noisecapture") ?: "noisecapture"
+        )
+        config.addDataSourceProperty(
+          "serverNames",
+          configuration?.getString("PGHOST", "localhost") ?: "localhost"
+        )
+      } else {
+        log.warn("PGHOST is not configured, fallback to H2 database")
+        val workingDirectory : String = configuration?.getString("workingDir") ?: File("").absolutePath
+      }
       return HikariDataSource(config)
     }
 
@@ -139,7 +146,7 @@ class DataBaseManagement {
               }
               val isDataTableCreated = JDBCUtilities.tableExists(connection, dataTable)
               if(!isDataTableCreated) {
-                log.info("Table $dataTable is not present in the database")
+                log.warn("Table $dataTable is not present in the database")
               }
             }
           }

@@ -4,6 +4,7 @@ plugins {
   kotlin("jvm") version "2.1.21" // Kotlin version to use
   groovy
   application
+  id("biz.aQute.bnd.builder") version "6.1.0" // To generate MANIFEST file
 }
 
 group = "org.noise-planet"

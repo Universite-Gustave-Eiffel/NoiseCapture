@@ -52,8 +52,8 @@ services:
       - onomap-data:/onomap/workspace/
     environment:
       # If you need to create multiple database you can add coma separated databases eg gis,data
-      - PGHOST=postgis
-      - PGDBNAME=noisecapture
+      - POSTGRES_HOST=postgis
+      - POSTGRES_DB=noisecapture
       - POSTGRES_USER=onomap
       - POSTGRES_PASSWORD=onomap
       - workingDir=/onomap/workspace/

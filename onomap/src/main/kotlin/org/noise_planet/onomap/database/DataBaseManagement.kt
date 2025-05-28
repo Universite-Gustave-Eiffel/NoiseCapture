@@ -73,30 +73,30 @@ class DataBaseManagement {
     val log: Logger = LoggerFactory.getLogger(DataBaseManagement::class.java)
     fun initDataBaseConfiguration(configuration: JsonObject?): HikariDataSource {
       val config = HikariConfig()
-      val pgHostConfigurationDefined : Boolean = configuration?.getString("PGHOST", "localhost")?.isEmpty() ?: false
+      val pgHostConfigurationDefined : Boolean = configuration?.containsKey("POSTGRES_HOST") ?: false
       if(pgHostConfigurationDefined) {
-        config.username = configuration.getString("PGUSER", "onomap") ?: "onomap"
-        config.password = configuration.getString("PGPASSWORD", "onomap") ?: "onomap"
+        config.username = configuration.getString("POSTGRES_USER", "onomap") ?: "onomap"
+        config.password = configuration.getString("POSTGRES_PASSWORD", "onomap") ?: "onomap"
         config.maximumPoolSize = configuration.getInteger("POSTGRES_MAXPOOL_SIZE", 20) ?: 20
         config.dataSourceClassName = PGSimpleDataSource::class.qualifiedName
         config.addDataSourceProperty(
           "portNumbers",
-          configuration.getInteger("PGPORT", 5432) ?: 5432
+          configuration.getInteger("POSTGRES_PORT", 5432) ?: 5432
         )
         config.addDataSourceProperty(
           "databaseName",
-          configuration.getString("PGDBNAME", "noisecapture") ?: "noisecapture"
+          configuration.getString("POSTGRES_DB", "noisecapture") ?: "noisecapture"
         )
         config.addDataSourceProperty(
           "serverNames",
-          configuration.getString("PGHOST", "localhost") ?: "localhost"
+          configuration.getString("POSTGRES_HOST", "localhost") ?: "localhost"
         )
       } else {
-        log.warn("PGHOST is not configured, fallback to H2GIS database")
         val workingDirectory : String = configuration?.getString("workingDir") ?: File("").absolutePath
         val connectionUrl = StringBuilder()
         connectionUrl.append(H2GISDBFactory.START_URL)
         connectionUrl.append(File(workingDirectory, configuration?.getString("PGDBNAME", "noisecapture") ?: "noisecapture").toURI().toURL())
+        log.warn("POSTGRES_HOST is not configured, fallback to H2GIS database: \n${connectionUrl}")
         val properties = Properties()
         properties.setProperty(H2GISDBFactory.JDBC_URL, connectionUrl.toString())
         properties.setProperty(H2GISDBFactory.JDBC_USER, configuration?.getString("H2USER", "sa"))
@@ -139,11 +139,9 @@ class DataBaseManagement {
             if(fileExtension.equals("shp",true)) {
               val otherExt = arrayOf("dbf", "prj", "shx")
               otherExt.forEach { ext->
-                val otherFile = Path.of(url.path.substringBeforeLast('/'),
-                  fileName.substringBeforeLast('.') + ".$ext")
-                val otherDataFile = Path.of(tempDirectory,
-                  otherFile.pathString.substringAfterLast('/'))
-                otherFile.toUri().toURL().downloadFile(otherDataFile.toFile(),
+                val otherUrl = URI.create(url.toString().substringBeforeLast(".") + "." + ext).toURL()
+                val otherDataFile = Path.of(dataFile.pathString.substringBeforeLast(".") + "." + ext)
+                otherUrl.downloadFile(otherDataFile.toFile(),
                   DisplayProgressVisitor(1,
                     true, 1.0, logger = log))
               }

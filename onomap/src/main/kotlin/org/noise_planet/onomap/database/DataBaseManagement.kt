@@ -35,9 +35,12 @@ import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
+import org.h2gis.functions.factory.H2GISDBFactory
 import org.h2gis.functions.io.geojson.GeoJsonReaderDriver
 import org.h2gis.functions.io.shp.SHPDriverFunction
 import org.h2gis.utilities.JDBCUtilities
+import org.h2gis.utilities.TableLocation
+import org.h2gis.utilities.dbtypes.DBTypes
 import org.h2gis.utilities.dbtypes.DBUtils
 import org.noise_planet.onomap.utilities.DisplayProgressVisitor
 import org.noise_planet.onomap.utilities.downloadFile
@@ -49,6 +52,7 @@ import java.net.URI
 import java.net.URL
 import java.nio.file.Path
 import java.sql.Connection
+import java.util.*
 import javax.sql.DataSource
 import kotlin.io.path.pathString
 
@@ -71,25 +75,40 @@ class DataBaseManagement {
       val config = HikariConfig()
       val pgHostConfigurationDefined : Boolean = configuration?.getString("PGHOST", "localhost")?.isEmpty() ?: false
       if(pgHostConfigurationDefined) {
-        config.username = configuration?.getString("POSTGRES_USER", "onomap") ?: "onomap"
-        config.password = configuration?.getString("POSTGRES_PASSWORD", "onomap") ?: "onomap"
-        config.maximumPoolSize = configuration?.getInteger("POSTGRES_MAXPOOL_SIZE", 20) ?: 20
+        config.username = configuration.getString("PGUSER", "onomap") ?: "onomap"
+        config.password = configuration.getString("PGPASSWORD", "onomap") ?: "onomap"
+        config.maximumPoolSize = configuration.getInteger("POSTGRES_MAXPOOL_SIZE", 20) ?: 20
         config.dataSourceClassName = PGSimpleDataSource::class.qualifiedName
         config.addDataSourceProperty(
           "portNumbers",
-          configuration?.getInteger("PGPORT", 5432) ?: 5432
+          configuration.getInteger("PGPORT", 5432) ?: 5432
         )
         config.addDataSourceProperty(
           "databaseName",
-          configuration?.getString("PGDBNAME", "noisecapture") ?: "noisecapture"
+          configuration.getString("PGDBNAME", "noisecapture") ?: "noisecapture"
         )
         config.addDataSourceProperty(
           "serverNames",
-          configuration?.getString("PGHOST", "localhost") ?: "localhost"
+          configuration.getString("PGHOST", "localhost") ?: "localhost"
         )
       } else {
-        log.warn("PGHOST is not configured, fallback to H2 database")
+        log.warn("PGHOST is not configured, fallback to H2GIS database")
         val workingDirectory : String = configuration?.getString("workingDir") ?: File("").absolutePath
+        val connectionUrl = StringBuilder()
+        connectionUrl.append(H2GISDBFactory.START_URL)
+        connectionUrl.append(File(workingDirectory, configuration?.getString("PGDBNAME", "noisecapture") ?: "noisecapture").toURI().toURL())
+        val properties = Properties()
+        properties.setProperty(H2GISDBFactory.JDBC_URL, connectionUrl.toString())
+        properties.setProperty(H2GISDBFactory.JDBC_USER, configuration?.getString("H2USER", "sa"))
+        properties.setProperty(H2GISDBFactory.JDBC_PASSWORD, configuration?.getString("H2PASSWORD", ""))
+        config.dataSource = H2GISDBFactory.createDataSource(properties)
+        config.maximumPoolSize = configuration?.getInteger("POSTGRES_MAXPOOL_SIZE", 20) ?: 20
+        // special postgis compatibility sql stuff
+        config.dataSource.connection.use { connection ->
+          connection.createStatement().use { statement ->
+            statement.execute("CREATE DOMAIN IF NOT EXISTS TIMESTAMPTZ AS TIMESTAMP")
+          }
+        }
       }
       return HikariDataSource(config)
     }
@@ -142,7 +161,10 @@ class DataBaseManagement {
                 )
                 readerDriver.read(DisplayProgressVisitor(1, true,
                   1.0, logger = log), dataTable)
-                connection.createStatement().execute("SELECT UPDATEGEOMETRYSRID('$dataTable', 'the_geom', 4326)")
+                val dbType = DBUtils.getDBType(connection)
+                val tableName = TableLocation.capsIdentifier(dataTable, dbType)
+                val geometryColumnName = TableLocation.capsIdentifier("the_geom", dbType)
+                connection.createStatement().execute("SELECT UPDATEGEOMETRYSRID('$tableName', '$geometryColumnName', 4326)")
               }
               val isDataTableCreated = JDBCUtilities.tableExists(connection, dataTable)
               if(!isDataTableCreated) {
@@ -187,9 +209,16 @@ class DataBaseManagement {
                   statement.execute(
                     fs.readFileBlocking("org/noise_planet/onomap/init_db_common.sql").toString("UTF-8")
                   )
-                  statement.execute(
-                    fs.readFileBlocking("org/noise_planet/onomap/initdb_postgres.sql").toString("UTF-8")
-                  )
+                  val dbType = DBUtils.getDBType(connection)
+                  if(dbType.equals(DBTypes.H2)) {
+                    statement.execute(
+                      fs.readFileBlocking("org/noise_planet/onomap/initdb_h2.sql").toString("UTF-8")
+                    )
+                  } else {
+                    statement.execute(
+                      fs.readFileBlocking("org/noise_planet/onomap/initdb_postgres.sql").toString("UTF-8")
+                    )
+                  }
                 }
               }
             }

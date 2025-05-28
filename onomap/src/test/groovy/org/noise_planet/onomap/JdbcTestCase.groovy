@@ -67,7 +67,7 @@ class JdbcTestCase {
     // Init schema
     st.execute("CREATE DOMAIN IF NOT EXISTS TIMESTAMPTZ AS TIMESTAMP")
     st.execute(new File(TestNoiseCaptureHisto.class.getResource("init_db_common.sql").getFile()).text)
-    st.execute(new File(TestNoiseCaptureHisto.class.getResource("inith2.sql").getFile()).text)
+    st.execute(new File(TestNoiseCaptureHisto.class.getResource("initdb_h2.sql").getFile()).text)
   }
 
   void installGadmAndTimeZone() {

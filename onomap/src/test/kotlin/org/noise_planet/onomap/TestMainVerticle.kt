@@ -180,10 +180,10 @@ class TestMainVerticle {
     ds?.connection?.use { connection ->
       connection.createStatement().use { statement ->
         with(statement) {
-          execute("TRUNCATE TABLE noisecapture_area CASCADE")
-          execute("TRUNCATE TABLE noisecapture_user CASCADE") // will cascade suppression of tracks
-          execute("TRUNCATE TABLE noisecapture_tag CASCADE")
-          execute("TRUNCATE TABLE noisecapture_stats_last_tracks CASCADE")
+          execute("DELETE FROM noisecapture_area")
+          execute("DELETE FROM noisecapture_user") // will cascade suppression of tracks
+          execute("DELETE FROM noisecapture_tag")
+          execute("DELETE FROM noisecapture_stats_last_tracks")
         }
       }
     }

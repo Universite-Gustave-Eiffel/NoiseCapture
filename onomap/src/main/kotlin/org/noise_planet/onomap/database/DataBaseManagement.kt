@@ -199,7 +199,7 @@ class DataBaseManagement {
               statement.execute("INSERT INTO NOISECAPTURE_DB_VERSION VALUES ($ONOMAP_LAST_DATABASE_VERSION)")
               if (hasUserTable) {
                 // version 0 database (geoserver db)
-                statement.execute("ALTER TABLE NOISECAPTURE_AREA_PROFILE ALTER COLUMN HOUR RENAME TO LOCAL_HOUR")
+                statement.execute("ALTER TABLE NOISECAPTURE_AREA_PROFILE RENAME COLUMN HOUR TO LOCAL_HOUR")
               } else {
                 // empty db
                 val fs = vertx.fileSystem()

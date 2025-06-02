@@ -18,7 +18,7 @@ services:
       - cloudbeaver:/opt/cloudbeaver/workspace
       - ./onomap/cloudbeaver/conf:/opt/cloudbeaver/conf
     environment:
-      - CLOUDBEAVER_EXPIRE_SESSION_AFTER_PERIOD=1800000
+      CLOUDBEAVER_EXPIRE_SESSION_AFTER_PERIOD: 1800000
   db:
     container_name: postgis
     # use an image with linux/amd64 and linux/arm64 support.
@@ -26,8 +26,8 @@ services:
     shm_size: 2g
     environment:
       POSTGRES_DB: noisecapture
-      POSTGRES_USER: onomap
-      POSTGRES_PASSWORD: onomap
+      POSTGRES_USER: "${POSTGRES_USER:-onomap}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-onomap}"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U onomap -d noisecapture"]
       interval: 60s
@@ -52,14 +52,14 @@ services:
       - onomap-data:/onomap/workspace/
     environment:
       # If you need to create multiple database you can add coma separated databases eg gis,data
-      - POSTGRES_HOST=postgis
-      - POSTGRES_DB=noisecapture
-      - POSTGRES_USER=onomap
-      - POSTGRES_PASSWORD=onomap
-      - workingDir=/onomap/workspace/
-      # Restrict to small dataset for test purposes (remove theses two lines on production)
-      - GADM_URI=https://github.com/Universite-Gustave-Eiffel/NoiseCapture/raw/refs/heads/onomapv2/onomap/src/test/resources/org/noise_planet/onomap/ut_deps.geojson
-      - TIMEZONE_URI=https://github.com/Universite-Gustave-Eiffel/NoiseCapture/raw/refs/heads/onomapv2/onomap/src/test/resources/org/noise_planet/onomap/tz_world.shp
+      POSTGRES_HOST: postgis
+      POSTGRES_DB: noisecapture
+      POSTGRES_USER: "${POSTGRES_USER:-onomap}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-onomap}"
+      workingDir: /onomap/workspace/
+      # Restrict to small dataset for test purposes (overload this env with .env file in production)
+      GADM_URI: "${GADM_URI:-https://github.com/Universite-Gustave-Eiffel/NoiseCapture/raw/refs/heads/onomapv2/onomap/src/test/resources/org/noise_planet/onomap/ut_deps.geojson}"
+      TIMEZONE_URI: "${TIMEZONE_URI:-https://github.com/Universite-Gustave-Eiffel/NoiseCapture/raw/refs/heads/onomapv2/onomap/src/test/resources/org/noise_planet/onomap/tz_world.shp}"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8888"]
       interval: 15s
@@ -68,13 +68,12 @@ services:
       start_period: 10s
   geoserver:
     build:
-      #context: ./onomap/geoserver-docker
       context: ./onomap-geoserver
       args:
-        - GS_DATA_PATH=data_dir
-        - GEOSERVER_VERSION=2.27.1
-        - CORS_ENABLED=true
-        - CORS_ALLOWED_METHODS=GET,POST,PUT,HEAD,OPTIONS
+        GS_DATA_PATH: data_dir
+        GEOSERVER_VERSION: 2.27.1
+        CORS_ENABLED: true
+        CORS_ALLOWED_METHODS: GET,POST,PUT,HEAD,OPTIONS
     ports:
       - "8080:8080"
     healthcheck:
@@ -84,5 +83,5 @@ services:
       retries: 3
       start_period: 10s
     environment:
-      - GEOSERVER_ADMIN_PASSWORD=$GEOSERVER_ADMIN_PASSWORD
+      GEOSERVER_ADMIN_PASSWORD: "${GEOSERVER_ADMIN_PASSWORD:-geoserver}"
 

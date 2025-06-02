@@ -21,25 +21,25 @@ services:
       - CLOUDBEAVER_EXPIRE_SESSION_AFTER_PERIOD=1800000
   db:
     container_name: postgis
-    image: tobi312/rpi-postgresql-postgis:15-3.5-alpine-arm64
-#    build:
-#      dockerfile: onomap/postgis/Dockerfile #x64 only
-#      #dockerfile: onomap/postgis/Dockerfile_macos_arm64
-    user: "${UID}:${GID}"
-    volumes:
-      - postgis-data:/var/lib/postgresql/data
-      - ./:/data
+    # use an image with linux/amd64 and linux/arm64 support.
+    image: imresamu/postgis:17-3.5
+    shm_size: 2g
     environment:
-      # If you need to create multiple database you can add coma separated databases eg gis,data
-      - POSTGRES_DB=noisecapture
-      - POSTGRES_USER=onomap
-      - POSTGRES_PASSWORD=onomap
-    restart: on-failure
+      POSTGRES_DB: noisecapture
+      POSTGRES_USER: onomap
+      POSTGRES_PASSWORD: onomap
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U onomap -d noisecapture"]
       interval: 60s
       timeout: 5s
       retries: 5
+    volumes:
+      - postgis-data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 4G
   onomap:
     build:
       context: ./onomap
@@ -66,3 +66,26 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
+  geoserver:
+    build:
+      #context: ./onomap/geoserver-docker
+      context: ./onomap-geoserver
+      args:
+        - GS_DATA_PATH=data_dir
+        - GEOSERVER_VERSION=2.27.1
+        - CORS_ENABLED=true
+        - CORS_ALLOWED_METHODS=GET,POST,PUT,HEAD,OPTIONS
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/geoserver"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    environment:
+      - GEOSERVER_DATA_DIR=/var/geoserver/datadir
+      - GEOSERVER_ADMIN_PASSWORD=$GEOSERVER_ADMIN_PASSWORD
+    volumes:
+      - ./onomap-geoserver/data_dir:/var/geoserver/datadir
+

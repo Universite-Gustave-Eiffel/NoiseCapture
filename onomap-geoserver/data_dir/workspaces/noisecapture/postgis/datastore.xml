@@ -15,7 +15,7 @@
     <entry key="Batch insert size">1</entry>
     <entry key="preparedStatements">true</entry>
     <entry key="database">noisecapture</entry>
-    <entry key="host">localhost</entry>
+    <entry key="host">postgis</entry>
     <entry key="Loose bbox">true</entry>
     <entry key="Estimated extends">true</entry>
     <entry key="fetch size">500</entry>

@@ -84,8 +84,5 @@ services:
       retries: 3
       start_period: 10s
     environment:
-      - GEOSERVER_DATA_DIR=/var/geoserver/datadir
       - GEOSERVER_ADMIN_PASSWORD=$GEOSERVER_ADMIN_PASSWORD
-    volumes:
-      - ./onomap-geoserver/data_dir:/var/geoserver/datadir
 

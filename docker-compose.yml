@@ -6,6 +6,8 @@ volumes:
     driver: local
   onomap-data:
     driver: local
+  geoserver-data:
+    driver: local
 
 services:
   cloudbeaver:
@@ -19,10 +21,12 @@ services:
       - ./onomap/cloudbeaver/conf:/opt/cloudbeaver/conf
     environment:
       CLOUDBEAVER_EXPIRE_SESSION_AFTER_PERIOD: 1800000
+      CLOUDBEAVER_ROOT_URI: /cloudbeaver/
   db:
     container_name: postgis
     # use an image with linux/amd64 and linux/arm64 support.
     image: imresamu/postgis:17-3.5
+    restart: on-failure
     shm_size: 2g
     environment:
       POSTGRES_DB: noisecapture
@@ -35,6 +39,7 @@ services:
       retries: 5
     volumes:
       - postgis-data:/var/lib/postgresql/data
+      #- :/etc/postgresql/postgresql.conf
     deploy:
       resources:
         limits:
@@ -46,12 +51,12 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    restart: on-failure
     ports:
       - "8888:8888"
     volumes:
       - onomap-data:/onomap/workspace/
     environment:
-      # If you need to create multiple database you can add coma separated databases eg gis,data
       POSTGRES_HOST: postgis
       POSTGRES_DB: noisecapture
       POSTGRES_USER: "${POSTGRES_USER:-onomap}"
@@ -76,6 +81,9 @@ services:
         CORS_ALLOWED_METHODS: GET,POST,PUT,HEAD,OPTIONS
     ports:
       - "8080:8080"
+    volumes:
+      - geoserver-data:/opt/
+    restart: on-failure
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/geoserver"]
       interval: 15s
@@ -84,4 +92,6 @@ services:
       start_period: 10s
     environment:
       GEOSERVER_ADMIN_PASSWORD: "${GEOSERVER_ADMIN_PASSWORD:-geoserver}"
+      RUN_UNPRIVILEGED: true
+      ROOT_WEBAPP_REDIRECT: true
 

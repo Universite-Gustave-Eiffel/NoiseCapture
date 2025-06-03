@@ -8,6 +8,8 @@ volumes:
     driver: local
   geoserver-data:
     driver: local
+  postgis-backup:
+    driver: local
 
 services:
   cloudbeaver:
@@ -25,7 +27,8 @@ services:
   db:
     container_name: postgis
     # use an image with linux/amd64 and linux/arm64 support.
-    image: imresamu/postgis:17-3.5
+    build:
+      context: ./onomap-postgis
     restart: on-failure
     shm_size: 2g
     environment:
@@ -39,7 +42,7 @@ services:
       retries: 5
     volumes:
       - postgis-data:/var/lib/postgresql/data
-      #- :/etc/postgresql/postgresql.conf
+      - postgis-backup:/var/lib/pgbackrest
     deploy:
       resources:
         limits:

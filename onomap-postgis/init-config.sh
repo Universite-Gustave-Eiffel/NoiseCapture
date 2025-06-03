@@ -5,6 +5,9 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
 	CREATE USER onomap WITH PASSWORD '$POSTGRES_PASSWORD';
 	CREATE DATABASE noisecapture;
 	GRANT ALL PRIVILEGES ON DATABASE noisecapture TO onomap;
+	\c noisecapture
+	GRANT ALL ON SCHEMA public TO onomap;
+	ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL PRIVILEGES ON TABLES TO onomap;
 EOSQL
 
 pgconf="$PGDATA/postgresql.conf"

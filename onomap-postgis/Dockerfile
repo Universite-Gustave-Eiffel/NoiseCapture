@@ -12,5 +12,5 @@ apt-get clean
 rm -rf /var/lib/apt/lists/*
 EOF
 
-COPY ./init-config.sh /docker-entrypoint-initdb.d/20_pgbackrest.sh
+COPY ./init-config.sh /docker-entrypoint-initdb.d/05_pgbackrest.sh
 COPY ./pgbackrest.conf /etc/pgbackrest/pgbackrest.conf

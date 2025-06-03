@@ -33,14 +33,16 @@ services:
     shm_size: 2g
     environment:
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-onomap}"
+      POSTGRES_DB: noisecapture
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U onomap -d noisecapture"]
-      interval: 60s
+      interval: 5s
       timeout: 5s
       retries: 5
     volumes:
       - postgis-data:/var/lib/postgresql/data
       - postgis-backup:/var/lib/pgbackrest
+      - /Users/fortin/backup/noisecapture/:/backup/
     deploy:
       resources:
         limits:

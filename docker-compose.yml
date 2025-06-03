@@ -32,8 +32,6 @@ services:
     restart: on-failure
     shm_size: 2g
     environment:
-      POSTGRES_DB: noisecapture
-      POSTGRES_USER: "${POSTGRES_USER:-onomap}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-onomap}"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U onomap -d noisecapture"]

@@ -1,3 +1,4 @@
+# use an image with linux/amd64 and linux/arm64 support.
 FROM imresamu/postgis:17-3.5
 
 # use https instead of http then install pgbackrest

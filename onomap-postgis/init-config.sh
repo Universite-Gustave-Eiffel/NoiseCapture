@@ -16,7 +16,7 @@ if ! grep -q "pgbackrest" "$pgconf"; then
   echo "wal_level = replica" >> $pgconf
   echo "archive_mode = on" >> $pgconf
   echo "archive_command = 'pgbackrest --stanza=noisecapture archive-push %p'" >> $pgconf
-  echo "archive_timeout = 1d" >> $pgconf
+  echo "start-fast=y" >> $pgconf
   echo "max_wal_senders = 3" >> $pgconf
   echo "max_wal_size = 16GB" >> $pgconf
 fi

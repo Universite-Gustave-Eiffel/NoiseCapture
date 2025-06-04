@@ -26,7 +26,12 @@ services:
       CLOUDBEAVER_ROOT_URI: /cloudbeaver/
   db:
     container_name: postgis
-    # use an image with linux/amd64 and linux/arm64 support.
+    # special image with pgbackrest installed
+    # to launch a backup run the following command
+    # docker compose exec -u postgres db pgbackrest --stanza=noisecapture backup
+    # to get the state of the backup
+    # docker compose exec -u postgres db pgbackrest info
+    # customize the pgbackrest.conf file in order to upload to distant S3 repository for safe backup
     build:
       context: ./onomap-postgis
     restart: on-failure
@@ -42,6 +47,7 @@ services:
     volumes:
       - postgis-data:/var/lib/postgresql/data
       - postgis-backup:/var/lib/pgbackrest
+      - ./onomap-postgis/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
       - /Users/fortin/backup/noisecapture/:/backup/
     deploy:
       resources:

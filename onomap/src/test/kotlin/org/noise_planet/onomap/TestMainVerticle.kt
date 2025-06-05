@@ -279,7 +279,7 @@ class TestMainVerticle {
       // HTTP server is ready
       deploymentCheckpoint.flag()
         // send a POST query to Vert.X http server
-        webClient.post(ONOMAP_DEFAULT_PORT, "localhost", "/geoserver/ows?REQUEST=Execute&SERVICE=wps&VERSION=1.0.0&IDENTIFIER=groovy%3Anc_last_measures")
+        webClient.post(ONOMAP_DEFAULT_PORT, "localhost", "/geoserver/wps?REQUEST=Execute&SERVICE=wps&VERSION=1.0.0&IDENTIFIER=groovy%3Anc_last_measures")
           .sendBuffer(generateWPSLastMeasures())
           .onComplete(testContext.succeeding { resp ->
             // We got a response from Vert.X http server

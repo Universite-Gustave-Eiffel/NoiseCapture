@@ -10,8 +10,11 @@ git clone --depth 1 https://github.com/Universite-Gustave-Eiffel/NoisePlanet.git
 find /NoisePlanet -type f -name "*.html" -exec sed -i 's|https://onomap-gs\.noise-planet\.org|http://localhost:8080|g' {} +
 EOF
 
-FROM lipanski/docker-static-website:latest
+COPY web/map_noisecapture/js/onomap.js /NoisePlanet/map_noisecapture/js/onomap.js
 
-COPY --from=builder /NoisePlanet/ .
+FROM nginx:latest
 
-CMD ["/busybox-httpd", "-f", "-v", "-p", "3000", "-c", "httpd.conf"]
+COPY --from=builder /NoisePlanet/ /usr/share/nginx/html/
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+

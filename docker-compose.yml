@@ -16,8 +16,6 @@ services:
     image: dbeaver/cloudbeaver:latest
     container_name: cloudbeaver
     restart: on-failure
-    ports:
-      - '8978:8978'
     volumes:
       - cloudbeaver:/opt/cloudbeaver/workspace
       - ./onomap/cloudbeaver/conf:/opt/cloudbeaver/conf
@@ -61,8 +59,6 @@ services:
       db:
         condition: service_healthy
     restart: on-failure
-    ports:
-      - "8888:8888"
     volumes:
       - onomap-data:/onomap/workspace/
     environment:
@@ -74,12 +70,6 @@ services:
       # Restrict to small dataset for test purposes (overload this env with .env file in production)
       GADM_URI: "${GADM_URI:-https://github.com/Universite-Gustave-Eiffel/NoiseCapture/raw/refs/heads/onomapv2/onomap/src/test/resources/org/noise_planet/onomap/ut_deps.geojson}"
       TIMEZONE_URI: "${TIMEZONE_URI:-https://github.com/Universite-Gustave-Eiffel/NoiseCapture/raw/refs/heads/onomapv2/onomap/src/test/resources/org/noise_planet/onomap/tz_world.shp}"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
   geoserver:
     build:
       context: ./onomap-geoserver
@@ -88,19 +78,28 @@ services:
         GEOSERVER_VERSION: 2.27.1
         CORS_ENABLED: true
         CORS_ALLOWED_METHODS: GET,POST,PUT,HEAD,OPTIONS
-    ports:
-      - "8080:8080"
     volumes:
       - geoserver-data:/opt/
     restart: on-failure
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/geoserver"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 10s
     environment:
       GEOSERVER_ADMIN_PASSWORD: "${GEOSERVER_ADMIN_PASSWORD:-geoserver}"
       RUN_UNPRIVILEGED: true
       ROOT_WEBAPP_REDIRECT: true
-
+  webserver:
+    depends_on:
+      onomap:
+        condition: service_started
+      geoserver:
+        condition: service_started
+      cloudbeaver:
+        condition: service_started
+    build:
+      context: onomap-webmap
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

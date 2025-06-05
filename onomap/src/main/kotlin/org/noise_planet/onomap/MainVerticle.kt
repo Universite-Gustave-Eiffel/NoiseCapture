@@ -61,7 +61,6 @@ package org.noise_planet.onomap
  import org.slf4j.LoggerFactory
  import java.io.ByteArrayInputStream
  import java.io.File
- import java.sql.Connection
 
 
 const val ONOMAP_DEFAULT_PORT = 8888
@@ -119,7 +118,6 @@ class MainVerticle : AbstractVerticle() {
 
     val router = Router.router(vertx).apply {
       post("/geoserver/wps").handler(BodyHandler.create()).handler(this@MainVerticle::noisecapture1WPS)
-      post("/geoserver/ows").handler(BodyHandler.create()).handler(this@MainVerticle::noisecapture1WPS)
     }
 
     retriever

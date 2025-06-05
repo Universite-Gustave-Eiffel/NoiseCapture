@@ -1,18 +1,17 @@
-FROM nginx AS builder
+FROM alpine:3.13.2 AS builder
 
 RUN <<EOF
-    find /etc/apt -type f -name "*.list" -exec sed -i.bak 's|http:|https:|g' {} +
-    find /etc/apt -type f -name "*.sources" -exec sed -i.bak '/^\s*URIs:/ s|http:|https:|g' {} +
-    apt-get update
-    apt-get install -y --no-install-recommends git
-    apt-get clean
-    rm -rf /var/lib/apt/lists/*
+    # Install all dependencies required for compiling busybox
+    apk add git
 EOF
 
-RUN git clone --depth 1 https://github.com/Universite-Gustave-Eiffel/NoisePlanet.git
+RUN <<EOF
+git clone --depth 1 https://github.com/Universite-Gustave-Eiffel/NoisePlanet.git
+find /NoisePlanet -type f -name "*.html" -exec sed -i 's|https://onomap-gs\.noise-planet\.org|http://localhost:8080|g' {} +
+EOF
 
-FROM nginx
+FROM lipanski/docker-static-website:latest
 
-WORKDIR /usr/share/nginx/html
+COPY --from=builder /NoisePlanet/ .
 
-COPY --from=builder /NoisePlanet/map_noisecapture/ ./
+CMD ["/busybox-httpd", "-f", "-v", "-p", "3000", "-c", "httpd.conf"]

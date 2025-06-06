@@ -36,15 +36,8 @@ package org.noise_planet.onomap
  import io.vertx.ext.web.Router
  import io.vertx.ext.web.RoutingContext
  import io.vertx.ext.web.handler.BodyHandler
- import io.vertx.kotlin.coroutines.dispatcher
  import io.vertx.launcher.application.VertxApplication
- import kotlinx.coroutines.CoroutineScope
  import kotlinx.coroutines.DelicateCoroutinesApi
- import kotlinx.coroutines.Dispatchers
- import kotlinx.coroutines.GlobalScope
- import kotlinx.coroutines.launch
- import kotlinx.coroutines.runBlocking
- import kotlinx.coroutines.withTimeout
  import net.opengis.ows11.Ows11Factory
  import net.opengis.wps10.ExecuteType
  import net.opengis.wps10.InputType
@@ -56,12 +49,29 @@ package org.noise_planet.onomap
  import org.geotools.wps.WPSConfiguration
  import org.geotools.xsd.Encoder
  import org.geotools.xsd.Parser
+ import org.locationtech.jts.geom.Geometry
+ import org.locationtech.jts.io.WKTReader
  import org.noise_planet.onomap.database.DataBaseManagement
  import org.slf4j.Logger
  import org.slf4j.LoggerFactory
  import java.io.ByteArrayInputStream
  import java.io.File
+ import java.lang.Double
+ import java.lang.Float
+ import java.lang.Long
  import java.util.concurrent.atomic.AtomicLong
+ import kotlin.Any
+ import kotlin.Array
+ import kotlin.Exception
+ import kotlin.IllegalArgumentException
+ import kotlin.OptIn
+ import kotlin.String
+ import kotlin.apply
+ import kotlin.arrayOf
+ import kotlin.io.use
+ import kotlin.to
+ import kotlin.toString
+ import kotlin.use
 
 
 const val ONOMAP_DEFAULT_PORT = 8888
@@ -181,14 +191,6 @@ class MainVerticle : AbstractVerticle() {
 
   fun runWPSScript(context: RoutingContext, wpsQuery: ExecuteType) {
     val wpsProcess = wpsQuery.identifier.value
-    val wpsInput = HashMap<String, Any>()
-    wpsQuery.dataInputs.input.forEach { input ->
-      if(input is InputType) {
-        val inputId = input.identifier.value
-        val inputContent = input.data.literalData.value
-        wpsInput.put(inputId, inputContent)
-      }
-    }
     if (wpsProcess.startsWith("groovy:")) {
       val scriptName = wpsProcess.substringAfterLast(":")
       val groovyClass = javaClass.classLoader.loadClass("org.noise_planet.onomap.$scriptName")
@@ -199,6 +201,35 @@ class MainVerticle : AbstractVerticle() {
         val inputs = instance.evaluate("inputs") as Map<*, *>
         val title = instance.evaluate("title") as String
         val description = instance.evaluate("description") as String
+        val wpsInput = HashMap<String, Any>()
+        wpsQuery.dataInputs.input.forEach { input ->
+          if(input is InputType) {
+            try {
+              val inputId = input.identifier.value
+              var inputContent: Any = input.data.literalData.value
+              if (inputId in inputs && inputs[inputId] is Map<*, *> &&
+                (inputs[inputId] as Map<*, *>).containsKey("type")
+              ) {
+                val entry: Map<*, *> = inputs[inputId] as Map<*, *>
+                val dataType = entry["type"]
+                if (dataType is Class<*>) {
+                  // found expected input, try to cast to expect type if not null
+                  when (dataType.name) {
+                    Long::class.java.name -> inputContent = input.data.literalData.value.toLong()
+                    Integer::class.java.name -> inputContent = input.data.literalData.value.toInt()
+                    Float::class.java.name -> inputContent = input.data.literalData.value.toFloat()
+                    Double::class.java.name -> inputContent = input.data.literalData.value.toDouble()
+                    Geometry::class.java.name -> inputContent = WKTReader().read(input.data.literalData.value)
+                  }
+                }
+              }
+              wpsInput.put(inputId, inputContent)
+
+            } catch (ex: Exception) {
+              log.warn("Exception while processing ${context.request().uri()} input ${input.identifier}", ex)
+            }
+          }
+        }
         ds?.connection.use { connection ->
           context.response().putHeader("Content-Type", "application/json")
           val scriptOutput = instance.invokeMethod("exec", listOf(connection, wpsInput))

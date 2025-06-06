@@ -34,6 +34,52 @@ import kotlin.io.path.exists
 @ExtendWith(VertxExtension::class)
 class TestMainVerticle {
 
+  fun generateWpsGetAreaInfo() : Buffer {
+    return Buffer.buffer("""
+      <?xml version="1.0" encoding="UTF-8"?>
+      <wps:Execute version="1.0.0" service="WPS"
+      	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      	xmlns="http://www.opengis.net/wps/1.0.0"
+      	xmlns:wfs="http://www.opengis.net/wfs"
+      	xmlns:wps="http://www.opengis.net/wps/1.0.0"
+      	xmlns:ows="http://www.opengis.net/ows/1.1"
+      	xmlns:gml="http://www.opengis.net/gml"
+      	xmlns:ogc="http://www.opengis.net/ogc"
+      	xmlns:wcs="http://www.opengis.net/wcs/1.1.1"
+      	xmlns:xlink="http://www.w3.org/1999/xlink"
+         xsi:schemaLocation="http://www.opengis.net/wps/1.0.0
+         http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+      	<ows:Identifier>groovy:nc_get_area_info</ows:Identifier>
+      	<wps:DataInputs>
+      		<wps:Input>
+      			<ows:Identifier>rIndex</ows:Identifier>
+      			<wps:Data>
+      				<wps:LiteralData>299791</wps:LiteralData>
+      			</wps:Data>
+      		</wps:Input>
+      		<wps:Input>
+      			<ows:Identifier>qIndex</ows:Identifier>
+      			<wps:Data>
+      				<wps:LiteralData>-167652</wps:LiteralData>
+      			</wps:Data>
+      		</wps:Input>
+      		<wps:Input>
+      			<ows:Identifier>noiseparty</ows:Identifier>
+      			<wps:Data>
+      				<wps:LiteralData>null</wps:LiteralData>
+      			</wps:Data>
+      		</wps:Input>
+      	</wps:DataInputs>
+      	<wps:ResponseForm>
+      		<wps:RawDataOutput>
+      			<ows:Identifier>result</ows:Identifier>
+      		</wps:RawDataOutput>
+      	</wps:ResponseForm>
+      </wps:Execute>
+    """.trimIndent())
+  }
+
+
   fun generateWPSParse() : Buffer {
     return Buffer.buffer("""<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
   <ows:Identifier>groovy:nc_parse</ows:Identifier>
@@ -306,6 +352,49 @@ class TestMainVerticle {
               testContext.completeNow()
             })
           })
+    }))
+  }
+
+
+
+  @Test
+  fun getAreaInfoWPSTest(vertx: Vertx, testContext: VertxTestContext) {
+    val webClient: WebClient = WebClient.create(vertx)
+    val deploymentCheckpoint = testContext.checkpoint()
+    val requestCheckpoint = testContext.checkpoint()
+
+    val app = MainVerticle()
+    // launch web server and ask to process the file through WPS query
+    vertx.deployVerticle(app).onComplete(testContext.succeeding<String?>(Handler {
+      prepareDbForUnitTest(app.ds)
+      // insert test data
+      app.ds?.connection?.use { connection ->
+        connection.createStatement().use { st ->
+          st.execute(TestMainVerticle::class.java.getResource("areainfo_dataset_test.sql")?.readText())
+        }
+      }
+      // HTTP server is ready
+      deploymentCheckpoint.flag()
+      // send a POST query to Vert.X http server
+      webClient.post(ONOMAP_DEFAULT_PORT, "localhost", "/geoserver/wps?REQUEST=Execute&SERVICE=wps&VERSION=1.0.0")
+        .sendBuffer(generateWpsGetAreaInfo())
+        .onComplete(testContext.succeeding { resp ->
+          // We got a response from Vert.X http server
+          testContext.verify(ExecutionBlock {
+            // Check HTTP status code
+            assertThat(resp.statusCode(), equalTo(200))
+            // Check return result
+            val firstEntry = Json.decodeValue(resp.body())
+            assertInstanceOf<JsonObject>(firstEntry)
+            assertThat(firstEntry.map, hasEntry("first_measure", "2025-05-28T11:36:23+01:00"))
+            assertThat(firstEntry.map, hasEntry("last_measure", "2025-05-28T11:36:24+01:00"))
+            assertThat(firstEntry.map, hasEntry("time_zone", "Europe/London"))
+            assertThat(firstEntry.map, hasEntry("laeq", 63.43935001855943))
+            assertThat(firstEntry.map, hasEntry("la50", 63.43935001855943))
+            requestCheckpoint.flag()
+            testContext.completeNow()
+          })
+        })
     }))
   }
 }

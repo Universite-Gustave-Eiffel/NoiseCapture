@@ -85,7 +85,7 @@ services:
       GEOSERVER_ADMIN_PASSWORD: "${GEOSERVER_ADMIN_PASSWORD:-geoserver}"
       RUN_UNPRIVILEGED: true
       ROOT_WEBAPP_REDIRECT: true
-  webserver:
+  webmap:
     depends_on:
       onomap:
         condition: service_started

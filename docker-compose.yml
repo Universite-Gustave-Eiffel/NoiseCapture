@@ -34,6 +34,7 @@ services:
     shm_size: 2g
     environment:
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-onomap}"
+      METABASE_PASSWORD: "${METABASE_PASSWORD:-metabase}"
       POSTGRES_DB: noisecapture
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U onomap -d noisecapture"]
@@ -83,6 +84,17 @@ services:
       GEOSERVER_ADMIN_PASSWORD: "${GEOSERVER_ADMIN_PASSWORD:-geoserver}"
       RUN_UNPRIVILEGED: true
       ROOT_WEBAPP_REDIRECT: true
+  metabase:
+    image: metabase/metabase:latest
+    volumes:
+      - /dev/urandom:/dev/random:ro
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: 5432
+      MB_DB_USER: metabase
+      MB_DB_PASS: "${METABASE_PASSWORD:-metabase}"
+      MB_DB_HOST: postgis
   webmap:
     depends_on:
       onomap:
@@ -90,6 +102,8 @@ services:
       geoserver:
         condition: service_started
       cloudbeaver:
+        condition: service_started
+      metabase:
         condition: service_started
     build:
       context: onomap-webmap

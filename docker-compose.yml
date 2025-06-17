@@ -14,7 +14,6 @@ volumes:
 services:
   cloudbeaver:
     image: dbeaver/cloudbeaver:latest
-    container_name: cloudbeaver
     restart: on-failure
     volumes:
       - cloudbeaver:/opt/cloudbeaver/workspace
@@ -22,8 +21,7 @@ services:
     environment:
       CLOUDBEAVER_EXPIRE_SESSION_AFTER_PERIOD: 1800000
       CLOUDBEAVER_ROOT_URI: /cloudbeaver/
-  db:
-    container_name: postgis
+  postgis:
     # special image with pgbackrest installed
     # to launch a backup run the following command
     # docker compose exec -u postgres db pgbackrest --stanza=noisecapture backup
@@ -56,7 +54,7 @@ services:
     build:
       context: ./onomap
     depends_on:
-      db:
+      postgis:
         condition: service_healthy
     restart: on-failure
     volumes:

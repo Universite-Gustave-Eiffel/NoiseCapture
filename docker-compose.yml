@@ -24,9 +24,9 @@ services:
   postgis:
     # special image with pgbackrest installed
     # to launch a backup run the following command
-    # docker compose exec -u postgres db pgbackrest --stanza=noisecapture backup
+    # docker compose exec -u postgres postgis pgbackrest --stanza=noisecapture backup
     # to get the state of the backup
-    # docker compose exec -u postgres db pgbackrest info
+    # docker compose exec -u postgres postgis pgbackrest info
     # customize the pgbackrest.conf file in order to upload to distant S3 repository for safe backup
     build:
       context: ./onomap-postgis

@@ -97,15 +97,6 @@ services:
       MB_DB_PASS: "${METABASE_PASSWORD:-metabase}"
       MB_DB_HOST: postgis
   webmap:
-    depends_on:
-      onomap:
-        condition: service_started
-      geoserver:
-        condition: service_started
-      cloudbeaver:
-        condition: service_started
-      metabase:
-        condition: service_started
     build:
       context: onomap-webmap
     ports:

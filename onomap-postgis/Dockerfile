@@ -1,3 +1,5 @@
+ARG PGBACKREST_CONF_PATH="./pgbackrest.conf"
+
 # use an image with linux/amd64 and linux/arm64 support.
 FROM imresamu/postgis:17-3.5
 
@@ -14,4 +16,4 @@ rm -rf /var/lib/apt/lists/*
 EOF
 
 COPY ./init-config.sh /docker-entrypoint-initdb.d/05_pgbackrest.sh
-COPY ./pgbackrest.conf /etc/pgbackrest/pgbackrest.conf
+COPY ${PGBACKREST_CONF_PATH} /etc/pgbackrest/pgbackrest.conf

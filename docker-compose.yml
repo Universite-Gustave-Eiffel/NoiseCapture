@@ -30,6 +30,8 @@ services:
     # customize the pgbackrest.conf file in order to upload to distant S3 repository for safe backup
     build:
       context: ./onomap-postgis
+      args:
+        PGBACKREST_CONF_PATH: "./pgbackrest.conf"
     restart: on-failure
     shm_size: 2g
     environment:
@@ -44,8 +46,6 @@ services:
     volumes:
       - postgis-data:/var/lib/postgresql/data
       - postgis-backup:/var/lib/pgbackrest
-      - ./onomap-postgis/pgbackrest.conf:/etc/pgbackrest/pgbackrest.conf
-      - /Users/fortin/backup/noisecapture/:/backup/
     deploy:
       resources:
         limits:
@@ -84,6 +84,7 @@ services:
       GEOSERVER_ADMIN_PASSWORD: "${GEOSERVER_ADMIN_PASSWORD:-geoserver}"
       RUN_UNPRIVILEGED: true
       ROOT_WEBAPP_REDIRECT: true
+      SKIP_DEMO_DATA: true
   metabase:
     image: metabase/metabase:latest
     volumes:

@@ -30,8 +30,6 @@ services:
     # customize the pgbackrest.conf file in order to upload to distant S3 repository for safe backup
     build:
       context: ./onomap-postgis
-      args:
-        PGBACKREST_CONF_PATH: "./pgbackrest.conf"
     restart: on-failure
     shm_size: 2g
     environment:

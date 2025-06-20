@@ -1,4 +1,4 @@
-ARG PGBACKREST_CONF_PATH="./pgbackrest.conf"
+ARG PGBACKREST_CONF_PATH=./pgbackrest.conf
 
 # use an image with linux/amd64 and linux/arm64 support.
 FROM imresamu/postgis:17-3.5

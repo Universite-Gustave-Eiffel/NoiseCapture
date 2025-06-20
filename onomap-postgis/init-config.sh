@@ -9,7 +9,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
 	CREATE DATABASE metabase;
 	ALTER DATABASE metabase OWNER TO metabase;
 	GRANT CONNECT ON DATABASE noisecapture TO metabase;
-  /c noisecapture
+  \c noisecapture
   GRANT USAGE ON SCHEMA public TO metabase;
   GRANT SELECT ON ALL TABLES IN SCHEMA public TO metabase;
   GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO metabase;

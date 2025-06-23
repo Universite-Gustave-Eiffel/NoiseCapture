@@ -81,6 +81,8 @@ services:
     environment:
       GEOSERVER_ADMIN_PASSWORD: "${GEOSERVER_ADMIN_PASSWORD:-geoserver}"
       GEOSERVER_ADMIN_USER: "${GEOSERVER_ADMIN_USER:-admin}"
+      POSTGRES_USER: "${POSTGRES_USER:-onomap}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-onomap}"
       RUN_UNPRIVILEGED: true
       ROOT_WEBAPP_REDIRECT: true
       SKIP_DEMO_DATA: true

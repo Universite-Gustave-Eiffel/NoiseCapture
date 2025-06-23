@@ -134,7 +134,11 @@ class MainVerticle : AbstractVerticle() {
     retriever
       .config
       .compose { json ->
-        configureFileLogger(json.getString("workingDir", File("").absolutePath))
+        val workingDir = json.getString("workingDir", File("").absolutePath)
+        configureFileLogger(workingDir)
+        if(workingDir.isNotEmpty() && (System.getProperty("workingDir") == null || System.getProperty("workingDir").isEmpty())) {
+          System.setProperty("workingDir", File(workingDir).absolutePath)
+        }
         try {
           ds = DataBaseManagement.initDataBaseConfiguration(json)
           DataBaseManagement.checkDataBaseState(vertx, ds, json)
@@ -226,7 +230,7 @@ class MainVerticle : AbstractVerticle() {
               wpsInput.put(inputId, inputContent)
 
             } catch (ex: Exception) {
-              log.warn("Exception while processing ${context.request().uri()} input ${input.identifier}", ex)
+              log.warn("Warning, ignore input as there was an exception while converting input '${input.identifier.value}' processing WPS ${context.request().uri()} ", ex)
             }
           }
         }

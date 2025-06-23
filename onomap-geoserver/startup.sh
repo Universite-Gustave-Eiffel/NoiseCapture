@@ -47,6 +47,9 @@ echo "${HEALTHCHECK_URL:-$DEFAULT_HEALTHCHECK_URL}" > $CATALINA_HOME/conf/health
 if [ ! -e "$GEOSERVER_DATA_DIR" ]; then
   mkdir -p $GEOSERVER_DATA_DIR
   echo "Created new GeoServer data directory $GEOSERVER_DATA_DIR as it did not exist."
+else
+  echo "Replace environment variables in data_dir xml files using envsubst"
+  find $GEOSERVER_DATA_DIR -type f -name "*.xml" -exec sh -c 'for f; do envsubst <"$f" >"$f.tmp" && mv "$f.tmp" "$f"; done' sh {} +
 fi
 
 if [ "${SKIP_DEMO_DATA}" = "true" ]; then

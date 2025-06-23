@@ -80,9 +80,11 @@ services:
     restart: on-failure
     environment:
       GEOSERVER_ADMIN_PASSWORD: "${GEOSERVER_ADMIN_PASSWORD:-geoserver}"
+      GEOSERVER_ADMIN_USER: "${GEOSERVER_ADMIN_USER:-admin}"
       RUN_UNPRIVILEGED: true
       ROOT_WEBAPP_REDIRECT: true
       SKIP_DEMO_DATA: true
+      POSTGRES_PORT: 5432
   metabase:
     image: metabase/metabase:latest
     volumes:

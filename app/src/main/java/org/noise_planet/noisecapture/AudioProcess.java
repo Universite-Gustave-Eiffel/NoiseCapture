@@ -186,7 +186,10 @@ public class AudioProcess implements Runnable {
                 if(!microphoneInfoList.isEmpty()) {
                     microphoneInfo = microphoneInfoList.get(0);
                 }
-            } catch (IOException ex) {
+            } catch (IOException  ex) {
+                LOGGER.warn("Can't read microphone information", ex);
+                // Ignore
+            } catch (IllegalStateException ex) {
                 LOGGER.warn("Can't read microphone information", ex);
                 // Ignore
             }

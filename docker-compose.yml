@@ -99,6 +99,7 @@ services:
       context: onomap-webmap
     ports:
       - "8080:80"
+    restart: on-failure
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080"]
       interval: 15s

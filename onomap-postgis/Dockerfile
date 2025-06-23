@@ -15,3 +15,8 @@ EOF
 
 COPY ./init-config.sh /docker-entrypoint-initdb.d/05_pgbackrest.sh
 COPY ./pgbackrest.conf /etc/pgbackrest/pgbackrest.conf
+
+RUN <<EOF
+chmod 700 /etc/pgbackrest/pgbackrest.conf
+chown postgres:postgres /etc/pgbackrest/pgbackrest.conf
+EOF

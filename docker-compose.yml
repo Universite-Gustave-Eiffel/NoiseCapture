@@ -93,6 +93,8 @@ services:
       ROOT_WEBAPP_REDIRECT: true
       SKIP_DEMO_DATA: true
       POSTGRES_PORT: 5432
+      GEOSERVER_CSRF_WHITELIST: onomap-gs.noise-planet.org
+      PROXY_BASE_URL: https://onomap-gs.noise-planet.org/geoserver/
   metabase:
     image: metabase/metabase:latest
     restart: always

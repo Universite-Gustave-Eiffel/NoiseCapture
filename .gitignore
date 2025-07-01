@@ -17,4 +17,6 @@ app/debug
 onomap-geoserver/geoserver/data_dir
 onomap-geoserver/geoserver/out/
 *.hprof
+*.log
+.env
 

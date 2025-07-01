@@ -1,0 +1,71 @@
+= Onomap
+
+
+image:https://img.shields.io/badge/vert.x-5.0.0-purple.svg[link="https://vertx.io"]
+
+- Receive data from NoiseCapture v1 application, read it and store into a folder
+- Parse stored data and send it to PostGIS database
+- WPS API to fetch data from database
+
+== Building
+
+To launch your tests:
+
+[source,console]
+----
+$ ./gradlew clean test
+----
+
+To package your application:
+
+[source,console]
+----
+$ ./gradlew clean assemble
+----
+
+To run your application:
+
+[source,console]
+----
+$ ./gradlew clean run
+----
+
+== Docker
+
+A docker image can be built, it will compile the kotlin code and create the web server image.
+
+=== Build image
+
+[source,console]
+----
+$ docker build .
+----
+
+== Docker compose
+
+The full onomap service is composed by the Onomap web server and a PostGIS database. A docker compose file will create and automatically configure theses two services.
+
+Run this command on the root of this project:
+
+[source,console]
+----
+$ docker compose up -d
+----
+
+Onomap server is accessible on http://localhost:8888
+
+You can see the database content on this address http://localhost:8978
+
+Create an account on CloudBeaver then edit the onomap connection with:
+
+login:: onomap
+password:: onomap
+
+== Help
+
+* https://vertx.io/docs/[Vert.x Documentation]
+* https://stackoverflow.com/questions/tagged/vert.x?sort=newest&pageSize=15[Vert.x Stack Overflow]
+* https://groups.google.com/forum/?fromgroups#!forum/vertx[Vert.x User Group]
+* https://discord.gg/6ry7aqPWXy[Vert.x Discord]
+
+

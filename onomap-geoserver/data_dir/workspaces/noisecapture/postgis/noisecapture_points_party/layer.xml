@@ -1,0 +1,15 @@
+<layer>
+  <name>noisecapture_points_party</name>
+  <id>LayerInfoImpl--6747c6ae:16a784acb7d:-1827</id>
+  <type>VECTOR</type>
+  <defaultStyle>
+    <id>StyleInfoImpl-37b18cc6:14d5d036d48:-8000</id>
+  </defaultStyle>
+  <resource class="featureType">
+    <id>FeatureTypeInfoImpl--6747c6ae:16a784acb7d:-1828</id>
+  </resource>
+  <attribution>
+    <logoWidth>0</logoWidth>
+    <logoHeight>0</logoHeight>
+  </attribution>
+</layer>

@@ -1,0 +1,32 @@
+<settings>
+  <id>SettingsInfoImpl--371c8e46:17b86da581a:-7d63</id>
+  <workspace>
+    <id>WorkspaceInfoImpl-43966147:16a68f09946:-7ffe</id>
+    <name>noisecapture</name>
+    <isolated>false</isolated>
+  </workspace>
+  <contact>
+    <id>contact</id>
+    <addressCity>Nantes</addressCity>
+    <addressCountry>France</addressCountry>
+    <addressType>Work</addressType>
+    <contactEmail>contact@noise-planet.org</contactEmail>
+    <contactOrganization>Ifsttar-LabSticc CNRS</contactOrganization>
+    <contactPerson>Noise-Planet</contactPerson>
+  </contact>
+  <charset>UTF-8</charset>
+  <numDecimals>8</numDecimals>
+  <onlineResource>http://geoserver.org</onlineResource>
+  <proxyBaseUrl>http://localhost/geoserver</proxyBaseUrl>
+  <verbose>false</verbose>
+  <verboseExceptions>false</verboseExceptions>
+  <metadata>
+    <map>
+      <entry>
+        <string>quietOnNotFound</string>
+        <boolean>false</boolean>
+      </entry>
+    </map>
+  </metadata>
+  <localWorkspaceIncludesPrefix>false</localWorkspaceIncludesPrefix>
+</settings>

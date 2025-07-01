@@ -1,0 +1,124 @@
+# docker-compose build
+volumes:
+  postgis-data:
+    driver: local
+  cloudbeaver:
+    driver: local
+  onomap-data:
+    driver: local
+  geoserver-data:
+    driver: local
+  postgis-backup:
+    driver: local
+
+services:
+  postgis:
+    # special image with pgbackrest installed
+    # to launch a backup run the following command
+    # docker compose exec -u postgres postgis pgbackrest --stanza=noisecapture backup
+    # to get the state of the backup
+    # docker compose exec -u postgres postgis pgbackrest info
+    # customize the pgbackrest.conf file in order to upload to distant S3 repository for safe backup
+    build:
+      context: ./onomap-postgis
+    ports:
+      - "5432:5432"
+    restart: always
+    shm_size: 2g
+    environment:
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-onomap}"
+      METABASE_PASSWORD: "${METABASE_PASSWORD:-metabase}"
+      POSTGRES_DB: noisecapture
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U onomap -d noisecapture"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgis-data:/var/lib/postgresql/data
+      - postgis-backup:/var/lib/pgbackrest
+    deploy:
+      resources:
+        limits:
+          cpus: '4.0'
+          memory: 4G
+  cloudbeaver:
+    image: dbeaver/cloudbeaver:latest
+    depends_on:
+      postgis:
+        condition: service_healthy
+    restart: always
+    volumes:
+      - cloudbeaver:/opt/cloudbeaver/workspace
+      - ./onomap/cloudbeaver/conf:/opt/cloudbeaver/conf
+    environment:
+      CLOUDBEAVER_EXPIRE_SESSION_AFTER_PERIOD: 1800000
+      CLOUDBEAVER_ROOT_URI: /cloudbeaver/
+      CB_SERVER_URL: "${CB_SERVER_URL:-http://localhost:8080/cloudbeaver/}"
+      CB_ADMIN_NAME: "${CB_ADMIN_NAME:-cb_admin}"
+      CB_ADMIN_PASSWORD: "${CB_ADMIN_PASSWORD}"
+      CB_SERVER_NAME: "${CB_SERVER_NAME:-noisecapture}"
+  onomap:
+    build:
+      context: ./onomap
+    depends_on:
+      postgis:
+        condition: service_healthy
+    restart: always
+    volumes:
+      - onomap-data:/onomap/workspace/
+    environment:
+      POSTGRES_HOST: postgis
+      POSTGRES_DB: noisecapture
+      POSTGRES_USER: "${POSTGRES_USER:-onomap}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-onomap}"
+      workingDir: /onomap/workspace/
+      # Restrict to small dataset for test purposes (overload this env with .env file in production)
+      GADM_URI: "${GADM_URI:-https://github.com/Universite-Gustave-Eiffel/NoiseCapture/raw/refs/heads/onomapv2/onomap/src/test/resources/org/noise_planet/onomap/ut_deps.geojson}"
+      TIMEZONE_URI: "${TIMEZONE_URI:-https://github.com/Universite-Gustave-Eiffel/NoiseCapture/raw/refs/heads/onomapv2/onomap/src/test/resources/org/noise_planet/onomap/tz_world.shp}"
+  geoserver:
+    build:
+      context: ./onomap-geoserver
+      args:
+        GS_DATA_PATH: data_dir
+        GEOSERVER_VERSION: 2.27.1
+        CORS_ENABLED: true
+        CORS_ALLOWED_METHODS: GET,POST,PUT,HEAD,OPTIONS
+    volumes:
+      - geoserver-data:/opt/
+    restart: always
+    environment:
+      GEOSERVER_ADMIN_PASSWORD: "${GEOSERVER_ADMIN_PASSWORD:-geoserver}"
+      GEOSERVER_ADMIN_USER: "${GEOSERVER_ADMIN_USER:-admin}"
+      POSTGRES_USER: "${POSTGRES_USER:-onomap}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-onomap}"
+      RUN_UNPRIVILEGED: true
+      ROOT_WEBAPP_REDIRECT: true
+      SKIP_DEMO_DATA: true
+      POSTGRES_PORT: 5432
+      GEOSERVER_CSRF_WHITELIST: onomap-gs.noise-planet.org
+      PROXY_BASE_URL: https://onomap-gs.noise-planet.org/geoserver/
+  metabase:
+    image: metabase/metabase:latest
+    restart: always
+    volumes:
+      - /dev/urandom:/dev/random:ro
+    environment:
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: 5432
+      MB_DB_USER: metabase
+      MB_DB_PASS: "${METABASE_PASSWORD:-metabase}"
+      MB_DB_HOST: postgis
+  webmap:
+    build:
+      context: onomap-webmap
+    ports:
+      - "8080:80"
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

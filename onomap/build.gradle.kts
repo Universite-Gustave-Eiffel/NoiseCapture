@@ -1,0 +1,76 @@
+import org.gradle.api.tasks.testing.logging.TestLogEvent.*
+
+plugins {
+  kotlin("jvm") version "2.1.21" // Kotlin version to use
+  groovy
+  application
+  id("biz.aQute.bnd.builder") version "6.1.0" // To generate MANIFEST file
+}
+
+group = "org.noise-planet"
+version = "1.0.0-SNAPSHOT"
+
+repositories {
+  maven("https://maven.geotoolkit.org")
+  maven("https://repo.osgeo.org/repository/release/")
+  mavenCentral()
+}
+
+val vertxVersion = "5.0.0"
+val junitJupiterVersion = "5.9.1"
+
+val mainVerticleName = "org.noise_planet.onomap.MainVerticle"
+val launcherClassName = "io.vertx.launcher.application.VertxApplication"
+
+val watchForChange = "src/**/*"
+val doOnChange = "${projectDir}/gradlew classes"
+
+application {
+  mainClass.set(mainVerticleName)
+}
+
+dependencies {
+  implementation(platform("io.vertx:vertx-stack-depchain:$vertxVersion"))
+  implementation("com.zaxxer:HikariCP:[6.3.0,7)")
+  implementation("org.apache.groovy:groovy-all:[4.0.26,5)")
+  implementation("org.postgresql:postgresql:42.7.2")
+  implementation("io.vertx:vertx-web")
+  implementation("org.orbisgis:h2gis:[2.2.3,3)")
+  implementation("io.vertx:vertx-launcher-application")
+  implementation("org.osgi:org.osgi.service.jdbc:[1.0.0,2)")
+  implementation("io.vertx:vertx-config")
+  implementation("io.vertx:vertx-lang-kotlin")
+  implementation("io.vertx:vertx-lang-kotlin-coroutines")
+  implementation("org.apache.commons:commons-text:[1.13.1,2)")
+  implementation(kotlin("stdlib-jdk8"))
+  implementation("org.osgi:org.osgi.framework:1.10.0")
+  implementation("com.ongres.scram:client:2.1")
+  implementation("org.geotools.xsd:gt-xsd-wps:[22.2,23)")
+  implementation("org.geotools.xsd:gt-xsd-core:[22.2,23)")
+  implementation(group = "org.slf4j", name = "slf4j-log4j12", version = "[2, 3)")
+  implementation("org.apache.logging.log4j:log4j-core:[2.24.3, 3)")
+  testImplementation("org.slf4j:slf4j-simple:[2.0.17,3)")
+  testImplementation("io.vertx:vertx-junit5")
+  testImplementation("io.vertx:vertx-web-client")
+  testImplementation("org.junit.jupiter:junit-jupiter:$junitJupiterVersion")
+  testImplementation("org.hamcrest:hamcrest-library:1.3")
+}
+
+tasks.compileGroovy {
+  classpath = sourceSets.main.get().compileClasspath
+}
+
+tasks.compileKotlin {
+  libraries.from(sourceSets.main.get().groovy.classesDirectory)
+}
+
+tasks.withType<Test> {
+  useJUnitPlatform()
+  testLogging {
+    events = setOf(PASSED, SKIPPED, FAILED)
+  }
+}
+
+tasks.withType<JavaExec> {
+  args = listOf("run", mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$launcherClassName", "--on-redeploy=$doOnChange")
+}

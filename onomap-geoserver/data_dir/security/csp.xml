@@ -1,0 +1,6 @@
+<config>
+    <enabled>false</enabled>
+    <reportOnly>true</reportOnly>
+    <allowOverride>false</allowOverride>
+    <injectProxyBase>false</injectProxyBase>
+</config>

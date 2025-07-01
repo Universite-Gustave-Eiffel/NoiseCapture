@@ -1,19 +1,37 @@
-name: onomap
+name: Onomap Web Server
 
 on: [ push, pull_request, workflow_dispatch ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgis/postgis:16-3.4
+        env:
+          # must specify password for PG Docker container image, see: https://registry.hub.docker.com/_/postgres?tab=description&page=1&name=10
+          POSTGRES_USER: onomap
+          POSTGRES_PASSWORD: onomap
+          POSTGRES_DB: noisecapture
+        ports:
+          - 5432:5432
+        # needed because the postgres container does not provide a healthcheck
+        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - name: Set up JDK
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '11'
+          distribution: 'zulu'
+          java-version: '17'
       - name: Building
-        run: cd onomap-geoserver/geoserver/ && ./gradlew test --info --stacktrace
+        run: ./gradlew :onomap:build -x test --info --stacktrace
+      - name: Test
+        run: ./gradlew :onomap:test --info --stacktrace
+        env:
+          POSTGRES_HOST: localhost
       - name: Clean
         run: rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
       - name: Cache
@@ -24,3 +42,8 @@ jobs:
             $HOME/.gradle/caches/
             $HOME/.gradle/wrapper/
           key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
+      - name: Archive production artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: onomap
+          path: onomap/build/distributions/*.zip

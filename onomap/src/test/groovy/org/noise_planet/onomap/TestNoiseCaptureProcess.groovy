@@ -45,6 +45,7 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
   void setUp() {
     Statement st = connection.createStatement()
     initDb()
+    installGadmAndTimeZone()
   }
 
   static def addTestRecord(Sql sql, String time, String location, List<Double> levels) {

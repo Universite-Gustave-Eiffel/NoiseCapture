@@ -36,6 +36,7 @@ import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.CoordinateSequence
 import org.locationtech.jts.geom.Envelope
 import org.locationtech.jts.geom.GeometryFactory
+import org.locationtech.jts.io.WKTReader
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -229,6 +230,8 @@ static Integer processFile(Connection connection, File zipFile, Map trackData = 
   }
   def realNumberOfSeconds = 0
   Envelope trackEnvelope = new Envelope()
+  def firstPoint = ""
+  def lastPoint = ""
   jsonRoot.features.each() { Map feature ->
     def theGeom = "POINTZ EMPTY"
     if (feature.geometry != null) {
@@ -246,6 +249,10 @@ static Integer processFile(Connection connection, File zipFile, Map trackData = 
           // The_geom column are 3d forced, so, must set a Z value
           theGeom = "POINTZ($x $y 0)" as String
         }
+        if(firstPoint.empty) {
+          firstPoint = theGeom
+        }
+        lastPoint = theGeom
       }
     }
     def p = feature.properties as Map
@@ -300,20 +307,46 @@ static Integer processFile(Connection connection, File zipFile, Map trackData = 
   Map processQueue = [pk_track: recordId]
   sql.executeInsert("INSERT INTO NOISECAPTURE_PROCESS_QUEUE VALUES (:pk_track)", processQueue)
 
+  // update last track statistics
+  if (!trackEnvelope.isNull() && !firstPoint.empty) {
+    GeometryFactory gf = new GeometryFactory()
+    def envelopeGeom = gf.toGeometry(trackEnvelope)
+
+    // look for country of the measurement
+    def result = sql.firstRow("SELECT name_0, name_1,(CASE WHEN (name_3 IS NULL OR name_3 = '') THEN name_2 ELSE name_3 END) name_3" +
+      " FROM gadm28 WHERE gadm28.the_geom && ST_GEOMFROMTEXT(:startpt, 4326) AND ST_CONTAINS(gadm28.the_geom, ST_GEOMFROMTEXT(:startpt, 4326))", [startpt: firstPoint])
+
+    def fields = [pk_track: recordId,
+                  time_length: realNumberOfSeconds,
+                  record_utc: epochToRFCTime(Long.valueOf(meta.getProperty("record_utc"))),
+                  the_geom: envelopeGeom.toText(),
+                  env:  envelopeGeom.centroid.toText(),
+                  start_pt : firstPoint,
+                  stop_pt: lastPoint,
+                  name_0: result ? result.name_0 : "",
+                  name_1: result ? result.name_1 : "",
+                  name_3: result ? result.name_3 : "",
+                  pk_party: null]
+    insertLastTrackStats(sql, fields)
+    // insert party
+    if (idParty != null) {
+      fields["pk_party"] = idParty
+      insertLastTrackStats(sql, fields)
+    }
+  }
+
   // Accept changes
   connection.commit();
 
   return idParty
 }
 
-@CompileStatic
-def static void buildStatistics(Connection connection, Integer pkParty) {
-  def sql = new Sql(connection)
-  connection.setAutoCommit(false)
-  sql.execute("DELETE FROM NOISECAPTURE_STATS_LAST_TRACKS WHERE (pk_party = :pk_party::int OR (:pk_party::int is null and pk_party is null))", [pk_party: pkParty])
-  sql.execute("INSERT INTO NOISECAPTURE_STATS_LAST_TRACKS select t.pk_track, time_length, record_utc,ST_AsGeoJson(t.env) the_geom, st_astext(ST_Centroid(t.env)) env,ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_start WHERE np_start.pk_track = t.pk_track AND NOT ST_ISEMPTY(np_start.THE_GEOM) AND accuracy < 15 ORDER BY time_date ASC LIMIT 1)) start_pt,  ST_AsGeoJson((SELECT THE_GEOM FROM noisecapture_point np_stop WHERE np_stop.pk_track = t.pk_track AND NOT ST_ISEMPTY(np_stop.THE_GEOM) AND accuracy < 15 ORDER BY time_date DESC LIMIT 1)) stop_pt, name_0, name_1,(CASE WHEN (name_3 IS NULL OR name_3 = '') THEN name_2 ELSE name_3 END) name_3, :pk_party::int from (select t.pk_track,time_length, record_utc, ST_EXTENT(p.the_geom) env, pk_party from noisecapture_track t, noisecapture_point  p where t.pk_track=p.pk_track and p.accuracy > 0 and p.accuracy < 15 and (pk_party = :pk_party::int OR :pk_party::int is null) GROUP BY t.pk_track order by t.record_utc DESC LIMIT 30) t, gadm28 where gadm28.the_geom && t.env AND ST_CONTAINS(gadm28.the_geom, ST_SetSRID(ST_Centroid(t.env),4326))", [pk_party: pkParty])
-  sql.commit()
-  connection.setAutoCommit(true)
+def static List<List<Object>> insertLastTrackStats(Sql sql, LinkedHashMap<String, Object> fields) {
+  sql.executeInsert("INSERT INTO noisecapture_stats_last_tracks\n" +
+    "(pk_track, time_length, record_utc, the_geom, env, start_pt, stop_pt, name_0, name_1, name_3, pk_party)\n" +
+    "VALUES(:pk_track, :time_length, :record_utc::timestamptz, ST_AsGeoJSON(ST_GEOMFROMTEXT(:the_geom, 4326)), :env," +
+    " ST_AsGeoJSON(ST_GeomFromText(:start_pt,4326)), ST_AsGeoJSON(ST_GeomFromText(:stop_pt,4326))," +
+    " :name_0, :name_1, :name_3, :pk_party)", fields)
 }
 
 @CompileStatic
@@ -321,11 +354,10 @@ def static int processFiles(Connection connection, File[] files, int processFile
   def workingDir = System.getProperty("workingDir", "data_dir")
   Logger logger = LoggerFactory.getLogger("logger_nc_parse")
   int processed = 0
-  Set<Integer> partyIds = new HashSet<>();
   for (File zipFile : files) {
     Map trackData = [uuid: '00000000-0000-0000-0000-000000000000']
     try {
-      partyIds.add(processFile(connection, zipFile, trackData, false))
+      processFile(connection, zipFile, trackData, false)
     } catch (SQLException | InvalidParameterException | MissingPropertyException | IOException ex) {
       // Log error
       logger.warn(zipFile.getName() + " Message: " + ex.getMessage(), StackTraceUtils.sanitize(new Exception(ex)))
@@ -367,10 +399,6 @@ def static int processFiles(Connection connection, File[] files, int processFile
       break;
     }
   }
-  // Add null party id in order to be sure to rebuild global history
-  partyIds.add(null)
-  // Build x lasts measurements history for each NoiseParty (id!=null) and for the global histry (id=null)
-  partyIds.each { partyId -> buildStatistics(connection, partyId) }
   // Update envelope of tracks and associated locations
   // Create a table that contains track envelopes
   def sql = new Sql(connection)

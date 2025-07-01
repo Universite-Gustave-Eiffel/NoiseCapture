@@ -29,7 +29,7 @@ jobs:
       - name: Building
         run: ./gradlew :onomap:build -x test --info --stacktrace
       - name: Test
-        run: ./gradlew :onomap:test --info --stacktrace
+        run: ./gradlew -DPOSTGRES_HOST=localhost :onomap:test --info --stacktrace
       - name: Clean
         run: rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
       - name: Cache

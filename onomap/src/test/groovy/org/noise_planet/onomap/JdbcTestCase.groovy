@@ -79,6 +79,7 @@ class JdbcTestCase {
     // See ut_deps.txt for more details
     st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
     st.execute("CALL UPDATEGEOMETRYSRID('GADM28', 'THE_GEOM', 4326)")
+    st.execute("CREATE SPATIAL INDEX ON GADM28(THE_GEOM)")
   }
 
   @BeforeEach

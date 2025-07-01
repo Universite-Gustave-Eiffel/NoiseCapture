@@ -88,9 +88,6 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
   void testProcess1() {
     Sql.LOG.level = Level.SEVERE
     Sql sql = new Sql(connection)
-    // Load timezone file
-    sql.execute("CALL FILE_TABLE('" + TestNoiseCaptureProcess.getResource("tz_world.shp").file + "', 'TZ_WORLD');")
-    sql.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
     new nc_feed_stats().processInput(connection,
       TestNoiseCaptureProcess.getResource("gevfit_of_stations.txt").toURI(), "stations")
     new nc_feed_stats().processInput(connection,
@@ -137,9 +134,6 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
   void testProcessParty() {
     Sql.LOG.level = java.util.logging.Level.SEVERE
     Sql sql = new Sql(connection)
-    // Load timezone file
-    sql.execute("CALL FILE_TABLE('" + TestNoiseCaptureProcess.getResource("tz_world.shp").file + "', 'TZ_WORLD');")
-    sql.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
     new nc_feed_stats().processInput(connection,
       TestNoiseCaptureProcess.getResource("gevfit_of_stations.txt").toURI(), "stations")
     new nc_feed_stats().processInput(connection,
@@ -173,8 +167,6 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
   void testProcessParty2() {
     Sql.LOG.level = java.util.logging.Level.SEVERE
     Sql sql = new Sql(connection)
-    // Load timezone file
-    installGadmAndTimeZone()
     // Insert measure data
     // insert records
     // Create party before parsing party measurement

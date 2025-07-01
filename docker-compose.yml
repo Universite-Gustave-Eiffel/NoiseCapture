@@ -21,8 +21,6 @@ services:
     # customize the pgbackrest.conf file in order to upload to distant S3 repository for safe backup
     build:
       context: ./onomap-postgis
-    ports:
-      - "5432:5432"
     restart: always
     shm_size: 2g
     environment:

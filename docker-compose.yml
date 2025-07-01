@@ -109,8 +109,13 @@ services:
       MB_DB_PASS: "${METABASE_PASSWORD:-metabase}"
       MB_DB_HOST: postgis
   webmap:
+    depends_on:
+      onomap:
+        condition: service_started
     build:
       context: onomap-webmap
+    volumes:
+      - onomap-data:/onomap/workspace/
     ports:
       - "8080:80"
     restart: always

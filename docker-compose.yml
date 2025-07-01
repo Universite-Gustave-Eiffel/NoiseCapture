@@ -52,9 +52,10 @@ services:
     environment:
       CLOUDBEAVER_EXPIRE_SESSION_AFTER_PERIOD: 1800000
       CLOUDBEAVER_ROOT_URI: /cloudbeaver/
-      CB_SERVER_URL: https://onomapv2.noise-planet.org/cloudbeaver/
-      CB_ADMIN_NAME: cb_admin
-      CB_ADMIN_PASSWORD: "${CB_ADMIN_PASSWORD:-S0mePazzworD}"
+      CB_SERVER_URL: "${CB_SERVER_URL:-http://localhost:8080/cloudbeaver/}"
+      CB_ADMIN_NAME: "${CB_ADMIN_NAME:-cb_admin}"
+      CB_ADMIN_PASSWORD: "${CB_ADMIN_PASSWORD}"
+      CB_SERVER_NAME: "${CB_SERVER_NAME:-noisecapture}"
   onomap:
     build:
       context: ./onomap

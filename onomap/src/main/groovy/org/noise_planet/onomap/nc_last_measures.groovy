@@ -88,11 +88,11 @@ def getStats(Connection connection, Integer noise_party_id) {
         // List the 10 last measurements, with aggregation of points
         def sql = new Sql(connection)
         if(noise_party_id == null) {
-            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party is null order by record_utc desc") {
+            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party is null order by record_utc desc LIMIT 30") {
                 record_row -> data.add(processRow(sql, record_row))
             }
         } else {
-            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party = :noise_party_id order by record_utc desc", ["noise_party_id" : noise_party_id]) {
+            sql.eachRow("select T.* from NOISECAPTURE_STATS_LAST_TRACKS T where pk_party = :noise_party_id order by record_utc desc LIMIT 30", ["noise_party_id" : noise_party_id]) {
                 record_row -> data.add(processRow(sql, record_row))
             }
         }

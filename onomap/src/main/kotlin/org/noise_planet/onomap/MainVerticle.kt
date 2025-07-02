@@ -243,7 +243,7 @@ class MainVerticle : AbstractVerticle() {
   fun runWPSScript(context: RoutingContext, wpsQuery: ExecuteType) {
     val wpsProcess = wpsQuery.identifier.value
     if (wpsProcess.startsWith("groovy:")) {
-      val scriptName = wpsProcess.substringAfterLast(":")
+      val scriptName = wpsProcess.substringAfterLast(":").replace(".", "")
       val groovyClass = javaClass.classLoader.loadClass("org.noise_planet.onomap.$scriptName")
       val instance = groovyClass.getConstructor().newInstance()
       if (instance is Script) {

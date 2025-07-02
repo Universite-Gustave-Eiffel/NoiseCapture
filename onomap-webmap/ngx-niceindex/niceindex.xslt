@@ -9,7 +9,7 @@
 
     <html lang="en">
       <head>
-        <title>niceindex of <xsl:value-of select="$dir"/></title>
+        <title>Index of <xsl:value-of select="$dir"/></title>
 
         <meta name="version" conent="1.1.0"/>
         <meta name="viewport" conent="initial-scale=1, minimum-scale=1, shrink-to-fit=no, width=device-width"/>
@@ -18,7 +18,14 @@
       </head>
       <body>
         <div class="container">
-          <h1>Directory index of <xsl:value-of select="$dir"/></h1>
+          <h1 align="center">
+            <img class="img-responsive" style="display: inline;"
+                 src="http://noise-planet.org/assets/img/logos/Logo_noisecapture.png" alt="Logo NoiseCapture"
+                 height="80px" width="80px"/> NoiseCapture
+          </h1>
+          <h1>
+            Directory index of <xsl:value-of select="$dir"/>
+          </h1>
           <hr />
           <pre>
             <xsl:text>&#xd;</xsl:text>

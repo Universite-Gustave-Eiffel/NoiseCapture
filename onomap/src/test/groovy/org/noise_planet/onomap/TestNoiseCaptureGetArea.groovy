@@ -30,6 +30,9 @@ import groovy.json.JsonOutput
 import groovy.sql.Sql
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.noise_planet.onomap.sensitive.nc_feed_stats
+import org.noise_planet.onomap.sensitive.nc_parse
+import org.noise_planet.onomap.sensitive.nc_process
 
 import static org.junit.jupiter.api.Assertions.*
 

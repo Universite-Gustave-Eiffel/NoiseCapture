@@ -52,6 +52,10 @@ package org.noise_planet.onomap
  import org.locationtech.jts.geom.Geometry
  import org.locationtech.jts.io.WKTReader
  import org.noise_planet.onomap.database.DataBaseManagement
+ import org.noise_planet.onomap.sensitive.nc_dump_records
+ import org.noise_planet.onomap.sensitive.nc_get_stats
+ import org.noise_planet.onomap.sensitive.nc_parse
+ import org.noise_planet.onomap.sensitive.nc_process
  import org.slf4j.Logger
  import org.slf4j.LoggerFactory
  import java.io.ByteArrayInputStream
@@ -129,6 +133,9 @@ class MainVerticle : AbstractVerticle() {
 
     val router = Router.router(vertx).apply {
       post("/geoserver/wps").handler(BodyHandler.create()).handler(this@MainVerticle::noisecapture1WPS)
+      get("/dumpData").handler(BodyHandler.create()).handler(this@MainVerticle::doDumpData)
+      get("/dumpStats").handler(BodyHandler.create()).handler(this@MainVerticle::doDumpStats)
+      get("/parse").handler(BodyHandler.create()).handler(this@MainVerticle::doParse)
     }
 
     retriever
@@ -158,6 +165,46 @@ class MainVerticle : AbstractVerticle() {
             }
           }
       }
+  }
+
+  private fun doDumpData(context: RoutingContext) {
+    ds?.connection.use { connection ->
+      val scriptOutput = nc_dump_records().exec(connection, mapOf("exportTracks" to true,
+        "exportMeasures" to true,"exportAreas" to true, "dayFilter" to 1) as Map<String, *>)
+      encodeWpsResponse(context, scriptOutput)
+    }
+  }
+
+  private fun doDumpStats(context: RoutingContext) {
+    ds?.connection.use { connection ->
+      val scriptOutput = nc_get_stats().exec(connection, emptyMap<String, Any>() as Map<String, *>)
+      encodeWpsResponse(context, scriptOutput)
+    }
+  }
+
+  private fun doParse(context: RoutingContext) {
+    ds?.connection.use { connection ->
+      val scriptOutput = nc_parse().exec(connection, mapOf("processFileLimit" to 20) as Map<String, *>)
+      encodeWpsResponse(context, scriptOutput)
+    }
+  }
+
+  private fun encodeWpsResponse(
+      context: RoutingContext,
+      scriptOutput: Any?
+  ): String {
+    // Convert output from WPS script to JSON Object if necessary
+    context.response().putHeader("Content-Type", "application/json")
+    // Send response to client
+    val encodedResult =
+      if (scriptOutput is Map<*, *> && scriptOutput.containsKey("result")) {
+        scriptOutput["result"].toString()
+      } else {
+        Json.encode(scriptOutput)
+      }
+    // Send response to client
+    context.response().end(encodedResult)
+    return encodedResult
   }
 
   /**
@@ -237,15 +284,7 @@ class MainVerticle : AbstractVerticle() {
         ds?.connection.use { connection ->
           context.response().putHeader("Content-Type", "application/json")
           val scriptOutput = instance.invokeMethod("exec", listOf(connection, wpsInput))
-          // Convert output from WPS script to JSON Object if necessary
-          val encodedResult =
-          if (scriptOutput is Map<*, *> && scriptOutput.containsKey("result")) {
-            scriptOutput["result"].toString()
-          } else {
-            Json.encode(scriptOutput)
-          }
-          // Send response to client
-          context.response().end(encodedResult)
+          val encodedResult = encodeWpsResponse(context, scriptOutput)
           log.info("Executed $wpsProcess with result $encodedResult")
           // Caller ask to not automatically call other wps process (for unit test)
           if(!wpsInput.containsKey("triggerWpsEvent") || wpsInput["triggerWpsEvent"] == true) {

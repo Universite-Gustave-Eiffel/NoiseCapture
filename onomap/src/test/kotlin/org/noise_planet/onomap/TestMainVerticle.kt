@@ -79,26 +79,6 @@ class TestMainVerticle {
     """.trimIndent())
   }
 
-
-  fun generateWPSParse() : Buffer {
-    return Buffer.buffer("""<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="1.0.0" service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs" xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1" xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc" xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink" xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
-  <ows:Identifier>groovy:nc_parse</ows:Identifier>
-  <wps:DataInputs>
-    <wps:Input>
-      <ows:Identifier>processFileLimit</ows:Identifier>
-      <wps:Data>
-        <wps:LiteralData>20</wps:LiteralData>
-      </wps:Data>
-    </wps:Input>
-  </wps:DataInputs>
-  <wps:ResponseForm>
-    <wps:RawDataOutput>
-      <ows:Identifier>result</ows:Identifier>
-    </wps:RawDataOutput>
-  </wps:ResponseForm>
-</wps:Execute>""")
-  }
-
   fun generateWPSUpload(dataB64: String): Buffer {
     return Buffer.buffer(
       """<?xml version="1.0" encoding="UTF-8"?>
@@ -260,8 +240,8 @@ class TestMainVerticle {
         assert(path.exists())
 
         // send a POST query to Vert.X http server
-        webClient.post(ONOMAP_DEFAULT_PORT, "localhost", "/geoserver/wps")
-          .sendBuffer(generateWPSParse())
+        webClient.get(ONOMAP_DEFAULT_PORT, "localhost", "/parse")
+          .send()
           .onComplete(testContext.succeeding { resp ->
             // We got a response from Vert.X http server
             testContext.verify(ExecutionBlock {

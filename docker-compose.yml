@@ -63,6 +63,8 @@ services:
       postgis:
         condition: service_healthy
     restart: always
+    ports:
+      - "8888:8888" # sensitive port do not expose on the web
     volumes:
       - onomap-data:/onomap/workspace/
     environment:

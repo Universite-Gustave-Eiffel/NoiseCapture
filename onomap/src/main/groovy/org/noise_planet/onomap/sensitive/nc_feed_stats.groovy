@@ -24,16 +24,13 @@
  *  14-20 Boulevard Newton Cite Descartes, Champs sur Marne F-77447 Marne la Vallee Cedex 2 FRANCE
  *   or write to scientific.computing@univ-eiffel.fr
  */
-package org.noise_planet.onomap
+package org.noise_planet.onomap.sensitive
 
 import groovy.sql.Sql
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.SQLException;
-
 
 title = 'nc_feed_stats'
 description = 'Parse external CSV file to feed the statistics database'

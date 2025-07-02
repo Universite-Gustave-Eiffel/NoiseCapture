@@ -25,7 +25,7 @@
  *   or write to scientific.computing@univ-eiffel.fr
  */
 
-package org.noise_planet.onomap
+package org.noise_planet.onomap.sensitive
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper

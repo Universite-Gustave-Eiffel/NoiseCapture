@@ -31,6 +31,10 @@ import groovy.sql.Sql
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.noise_planet.onomap.sensitive.nc_dump_records
+import org.noise_planet.onomap.sensitive.nc_feed_stats
+import org.noise_planet.onomap.sensitive.nc_parse
+import org.noise_planet.onomap.sensitive.nc_process
 
 import java.nio.file.Path
 import java.util.zip.ZipInputStream

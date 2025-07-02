@@ -1,0 +1,388 @@
+html {
+  font-family: sans-serif;
+  -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
+}
+
+body {
+    margin: 1em 5em;
+    background-color: rgb(14, 175, 211);
+}
+
+a {
+    color: #666;
+    text-decoration: none;
+}
+
+a:hover {
+    color: #961;
+}
+
+.container {
+    overflow: hidden;
+    background-color: #fff;
+    border-radius: 10px;
+}
+
+h1 {
+    padding: 1em;
+    color: #666;
+    font-size: 2em;
+}
+
+hr {
+    border-top: 2px solid #e3e3e3;
+}
+
+pre {
+    font-family: monospace, monospace;
+    font-size: 1em;
+    overflow: auto;
+    margin: 1em;
+    line-height: 2em;
+}
+
+footer {
+    padding: 1em 2em;
+    float: right;
+}
+
+footer a {
+    padding: 2em;
+    text-decoration: none;
+    opacity: 0.6;
+    font-size: 80%;
+}
+
+footer a:hover {
+    opacity: 1;
+}
+
+footer > a {
+    background-repeat: no-repeat;
+    background-position: 5px 50%;
+    background-image:url(../icons/github.png);
+}
+
+/* ***** */
+/* Icons */
+/* ***** */
+
+pre a:before {
+    content: "";
+    padding: 5px 25px 0 0;
+    background-repeat: no-repeat !important;
+    background-position: left bottom !important;
+}
+
+/* Default - will catch anything unless explicity defined below */
+
+:before {
+    background: url(../icons/default.png);
+}
+
+/* Folders */
+
+.dir:before {
+    background: url(../icons/folder.png);
+}
+
+
+/** Checksums **/
+
+.MD5:before,
+.SHA1:before,
+.SHA256:before {
+	background: url(../icons/lock.png);
+}
+
+.md5:before,
+.sha1:before,
+.sha256:before {
+	background: url(../icons/lock2.png);
+}
+
+.pgp:before,
+.asc:before,
+.sig:before {
+	background: url(../icons/lock3.png);
+}
+
+
+/** Compressed **/
+
+.zzzz:before {  /* .7z  */
+	background: url(../icons/7z.png);
+}
+
+.bin:before,
+.cue:before {
+	background: url(../icons/bin.png);
+}
+
+.deb:before {
+	background: url(../icons/deb.png);
+}
+
+.iso:before {
+	background: url(../icons/iso.png);
+}
+
+.rar:before {
+	background: url(../icons/rar.png);
+}
+
+.rpm:before {
+	background: url(../icons/rpm.png);
+}
+
+.tar:before,
+.targz:before {
+	background: url(../icons/tar.png);
+}
+
+.tgz:before {
+	background: url(../icons/tgz.png);
+}
+
+.zip:before {
+	background: url(../icons/zip.png);
+}
+
+.bz2:before {
+	background: url(../icons/bz2.png);
+}
+
+
+/** Data Storage **/
+
+.csv:before {
+	background: url(../icons/csv.png);
+}
+
+.ini:before {
+	background: url(../icons/ini.png);
+}
+
+.json:before {
+	background: url(../icons/json.png);
+}
+
+.sql:before {
+	background: url(../icons/sql.png);
+}
+
+.sqlite:before {
+	background: url(../icons/sqlite.png);
+}
+
+.reg:before {
+	background: url(../icons/reg.png);
+}
+
+.xml:before {
+	background: url(../icons/xml.png);
+}
+
+.yaml:before,
+.yml:before {
+	background: url(../icons/yaml.png);
+}
+
+
+/** Documents **/
+
+.chm:before {
+	background: url(../icons/chm.png);
+}
+
+.djvu:before {
+	background: url(../icons/djvu.png);
+}
+
+.mobi:before {
+	background: url(../icons/mobi.png);
+}
+
+.pdf:before {
+	background: url(../icons/pdf.png);
+}
+
+.txt:before {
+	background: url(../icons/text.png);
+}
+
+.rtf:before {
+	background: url(../icons/rtf.png);
+}
+
+.doc:before {
+	background: url(../icons/doc.png);
+}
+
+.epub:before {
+	background: url(../icons/epub.png);
+}
+
+
+/** Information **/
+
+.README:before {
+	background: url(../icons/readme.png);
+}
+
+.CHANGELOG:before {
+	background: url(../icons/changelog.png);
+}
+
+.INSTALL:before {
+	background: url(../icons/install.png);
+}
+
+.LICENSE:before {
+	background: url(../icons/license.png);
+}
+
+.COPYING:before {
+	background: url(../icons/copying.png);
+}
+
+.nfo:before,
+.diz:before {
+	background: url(../icons/nfo.png);
+}
+
+
+/** Media Files **/
+
+.flac:before {
+	background: url(../icons/flac.png);
+}
+
+.mp3:before {
+	background: url(../icons/mp3.png);
+}
+
+.wav:before {
+	background: url(../icons/wav.png);
+}
+
+.bmp:before {
+	background: url(../icons/bmp.png);
+}
+
+.gif:before {
+	background: url(../icons/gif.png);
+}
+
+.jpg:before,
+.jpeg:before {
+	background: url(../icons/jpg.png);
+}
+
+.png:before {
+	background: url(../icons/png.png);
+}
+
+.psd:before {
+	background: url(../icons/psd.png);
+}
+
+.ra:before,
+.rv:before {
+	background: url(../icons/rp.png);
+}
+
+.avi:before {
+	background: url(../icons/avi.png);
+}
+
+.flv:before {
+	background: url(../icons/flv.png);
+}
+
+.mkv:before {
+	background: url(../icons/mkv.png);
+}
+
+.mov:before {
+	background: url(../icons/mov.png);
+}
+
+.mp4:before {
+	background: url(../icons/mp4.png);
+}
+
+
+/** Source Code **/
+
+.sh:before {
+	background: url(../icons/bash.png);
+}
+
+.cpp:before {
+	background: url(../icons/cpp.png);
+}
+
+.h:before {
+	background: url(../icons/header.png);
+}
+
+.c:before {
+	background: url(../icons/c-lang.png);
+}
+
+.go:before {
+	background: url(../icons/go-lang.png);
+}
+
+.html:before,
+.htm:before {
+	background: url(../icons/html.png);
+}
+
+.java:before,
+.class:before {
+	background: url(../icons/java.png);
+}
+
+.lua:before {
+	background: url(../icons/lua.png);
+}
+
+.nim:before {
+	background: url(../icons/nim.png);
+}
+
+.js:before {
+	background: url(../icons/javascript.png);
+}
+
+.php:before {
+	background: url(../icons/php.png);
+}
+
+.pl:before {
+	background: url(../icons/perl.png);
+}
+
+.py:before {
+	background: url(../icons/python.png);
+}
+
+.rb:before {
+	background: url(../icons/ruby.png);
+}
+
+.rs:before,
+.rlib:before {
+	background: url(../icons/rust.png);
+}
+
+.css:before {
+	background: url(../icons/css.png);
+}
+
+.less:before {
+	background: url(../icons/less.png);
+}

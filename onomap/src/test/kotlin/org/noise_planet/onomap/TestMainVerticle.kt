@@ -11,6 +11,7 @@ import io.vertx.ext.web.client.WebClient
 import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import io.vertx.junit5.VertxTestContext.ExecutionBlock
+import io.vertx.kotlin.core.json.get
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.closeTo
 import org.hamcrest.Matchers.hasEntry
@@ -20,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertInstanceOf
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.io.TempDir
+import org.noise_planet.onomap.sensitive.nc_parse
 import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -240,7 +242,7 @@ class TestMainVerticle {
         assert(path.exists())
 
         // send a POST query to Vert.X http server
-        webClient.get(ONOMAP_DEFAULT_PORT, "localhost", "/parse")
+        webClient.get(ONOMAP_DEFAULT_PORT, "localhost", "/api/parse")
           .send()
           .onComplete(testContext.succeeding { resp ->
             // We got a response from Vert.X http server
@@ -278,6 +280,64 @@ class TestMainVerticle {
     }))
   }
 
+
+  @Test
+  fun dumpStatsApiTest(vertx: Vertx, testContext: VertxTestContext) {
+    val webClient: WebClient = WebClient.create(vertx)
+    val deploymentCheckpoint = testContext.checkpoint()
+    val requestCheckpoint = testContext.checkpoint()
+    val fs = vertx.fileSystem()
+    // Copy example file into the temporary directory as it was uploaded
+    val filename = "org/noise_planet/onomap/track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip"
+    // create test dirs
+    Paths.get(workingDirectory.absolutePath, "onomap_uploading").createDirectory()
+    Paths.get(workingDirectory.absolutePath, "onomap_archives").createDirectory()
+    // Copy test data file
+    val path =
+      Paths.get(workingDirectory.absolutePath, "onomap_uploading", "track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip")
+    path.parent.createDirectories()
+    fs.copyBlocking(filename, path.absolutePathString())
+
+    val app = MainVerticle()
+    // launch web server and ask to process the file through WPS query
+    vertx.deployVerticle(app).onComplete(testContext.succeeding<String?>(Handler {
+      prepareDbForUnitTest(app.ds)
+      app.ds?.connection?.use { connection ->
+        assert(path.exists())
+        nc_parse().exec(connection, mapOf("processFileLimit" to 20) as Map<String, *>)
+      }
+      // HTTP server is ready
+      deploymentCheckpoint.flag()
+      // Open local file to create the WPS query with this file embedded into a xml text element
+      testContext.verify {
+
+        // send a POST query to Vert.X http server
+        webClient.get(ONOMAP_DEFAULT_PORT, "localhost", "/api/dumpStats")
+          .send()
+          .onComplete(testContext.succeeding { resp ->
+            // We got a response from Vert.X http server
+            testContext.verify(ExecutionBlock {
+              // Check HTTP status code
+              assertThat(resp.statusCode(), equalTo(200))
+              // Check return result
+              val json = Json.decodeValue(resp.body())
+              assertInstanceOf<JsonObject>(json)
+              assertThat(json.containsKey("week_new_contributors"), equalTo(true))
+              assertThat(json["week_new_contributors"], equalTo(1))
+              // "countries":{"names":["France"],"total_tracks":[1],"track_length":[84]}
+              assertThat(json.containsKey("countries"), equalTo(true))
+              val countries : JsonObject= json.get("countries")
+              assertInstanceOf<JsonObject>(countries)
+              assertInstanceOf<JsonArray>(countries["names"])
+              assertThat(countries["names"], equalTo(JsonArray(listOf("France"))))
+              requestCheckpoint.flag()
+              testContext.completeNow()
+            })
+          })
+      }
+
+    }))
+  }
 
   @Test
   fun lastMeasuresWPSTest(vertx: Vertx, testContext: VertxTestContext) {

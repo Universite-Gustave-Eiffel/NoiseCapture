@@ -24,7 +24,7 @@
  *  14-20 Boulevard Newton Cite Descartes, Champs sur Marne F-77447 Marne la Vallee Cedex 2 FRANCE
  *   or write to scientific.computing@univ-eiffel.fr
  */
-package org.noise_planet.onomap.sensitive
+package org.noise_planet.onomap
 
 import groovy.json.JsonOutput
 import groovy.sql.Sql

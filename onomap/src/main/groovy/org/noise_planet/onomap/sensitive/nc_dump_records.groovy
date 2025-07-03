@@ -36,6 +36,7 @@ import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.nio.file.Paths
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
@@ -266,8 +267,6 @@ private List<String> getDump(Connection connection, File outPath, boolean export
                 }
                 // Export hexagons file
                 lastFileParams = []
-                lastFileZipOutputStream = null
-                lastFileJsonWriter = null
                 if (exportAreas) {
                     long beginArea = System.currentTimeMillis()
                     // Export track file
@@ -329,8 +328,6 @@ private List<String> getDump(Connection connection, File outPath, boolean export
                     totalDumpAreas+=System.currentTimeMillis() - beginArea
                 }
                 lastFileParams = []
-                lastFileZipOutputStream = null
-                lastFileJsonWriter = null
             }
         } finally {
             // Close opened files
@@ -364,7 +361,8 @@ private List<String> getDump(Connection connection, File outPath, boolean export
 def exec(Connection connection, Map input) {
     // Open PostgreSQL connection
     // Create dump folder
-    File dumpDir = new File("data_dir/onomap_public_dump");
+    def workingDir = System.getProperty("workingDir", "data_dir")
+    File dumpDir = Paths.get(workingDir,"onomap_public_dump").toFile()
     if (!dumpDir.exists()) {
         dumpDir.mkdirs()
     }

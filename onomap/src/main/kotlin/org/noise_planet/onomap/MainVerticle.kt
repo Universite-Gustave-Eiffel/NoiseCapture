@@ -53,7 +53,6 @@ package org.noise_planet.onomap
  import org.locationtech.jts.io.WKTReader
  import org.noise_planet.onomap.database.DataBaseManagement
  import org.noise_planet.onomap.sensitive.nc_dump_records
- import org.noise_planet.onomap.sensitive.nc_get_stats
  import org.noise_planet.onomap.sensitive.nc_parse
  import org.noise_planet.onomap.sensitive.nc_process
  import org.slf4j.Logger
@@ -62,7 +61,6 @@ package org.noise_planet.onomap
  import java.io.File
  import java.lang.Double
  import java.lang.Float
- import java.lang.Long
  import java.util.concurrent.atomic.AtomicLong
  import kotlin.Any
  import kotlin.Array
@@ -81,6 +79,11 @@ package org.noise_planet.onomap
 const val ONOMAP_DEFAULT_PORT = 8888
 
 const val MS_DELAY_PROCESS_MEASUREMENTS = 5000L
+const val MS_DELAY_EXPIRE_CACHE_STATISTICS = 24 * 3600 * 1000
+
+data class CachedWpsResult(val generationTime : Long, val data :  Any?)
+enum class CacheKeys {nc_get_stats}
+val expireCacheDelays = mapOf(CacheKeys.nc_get_stats.name to 24 * 3600 * 1000)
 
 class MainVerticle : AbstractVerticle() {
   val log: Logger = LoggerFactory.getLogger(MainVerticle::class.java)
@@ -89,6 +92,7 @@ class MainVerticle : AbstractVerticle() {
   // such jobs must no process in parallel so it should be called only after the last call is complete
   val parsePendingJob = AtomicLong()
   val processPendingJob = AtomicLong()
+  val cachedWpsResults = HashMap<String, CachedWpsResult>()
 
   companion object {
     @JvmStatic fun main(args : Array<String>) {
@@ -134,7 +138,6 @@ class MainVerticle : AbstractVerticle() {
     val router = Router.router(vertx).apply {
       post("/geoserver/wps").handler(BodyHandler.create()).handler(this@MainVerticle::noisecapture1WPS)
       get("/dumpData").handler(BodyHandler.create()).handler(this@MainVerticle::doDumpData)
-      get("/dumpStats").handler(BodyHandler.create()).handler(this@MainVerticle::doDumpStats)
       get("/parse").handler(BodyHandler.create()).handler(this@MainVerticle::doParse)
     }
 
@@ -171,13 +174,6 @@ class MainVerticle : AbstractVerticle() {
     ds?.connection.use { connection ->
       val scriptOutput = nc_dump_records().exec(connection, mapOf("exportTracks" to true,
         "exportMeasures" to true,"exportAreas" to true, "dayFilter" to 1) as Map<String, *>)
-      encodeWpsResponse(context, scriptOutput)
-    }
-  }
-
-  private fun doDumpStats(context: RoutingContext) {
-    ds?.connection.use { connection ->
-      val scriptOutput = nc_get_stats().exec(connection, emptyMap<String, Any>() as Map<String, *>)
       encodeWpsResponse(context, scriptOutput)
     }
   }
@@ -244,55 +240,71 @@ class MainVerticle : AbstractVerticle() {
     val wpsProcess = wpsQuery.identifier.value
     if (wpsProcess.startsWith("groovy:")) {
       val scriptName = wpsProcess.substringAfterLast(":").replace(".", "")
-      val groovyClass = javaClass.classLoader.loadClass("org.noise_planet.onomap.$scriptName")
-      val instance = groovyClass.getConstructor().newInstance()
-      if (instance is Script) {
-        // invoke the script
-        instance.invokeMethod("run", null)
-        val inputs = instance.evaluate("inputs") as Map<*, *>
-        val title = instance.evaluate("title") as String
-        val description = instance.evaluate("description") as String
-        val wpsInput = HashMap<String, Any>()
-        wpsQuery.dataInputs.input.forEach { input ->
-          if(input is InputType) {
-            try {
-              val inputId = input.identifier.value
-              var inputContent: Any = input.data.literalData.value
-              if (inputId in inputs && inputs[inputId] is Map<*, *> &&
-                (inputs[inputId] as Map<*, *>).containsKey("type")
-              ) {
-                val entry: Map<*, *> = inputs[inputId] as Map<*, *>
-                val dataType = entry["type"]
-                if (dataType is Class<*>) {
-                  // found expected input, try to cast to expect type if not null
-                  when (dataType.name) {
-                    Long::class.java.name -> inputContent = input.data.literalData.value.toLong()
-                    Integer::class.java.name -> inputContent = input.data.literalData.value.toInt()
-                    Float::class.java.name -> inputContent = input.data.literalData.value.toFloat()
-                    Double::class.java.name -> inputContent = input.data.literalData.value.toDouble()
-                    Geometry::class.java.name -> inputContent = WKTReader().read(input.data.literalData.value)
+      // check if a cached value has been produced
+      val cachedEntry = cachedWpsResults[scriptName]
+      if (scriptName in CacheKeys.entries.map { v -> v.name } && cachedEntry != null &&
+          cachedEntry.generationTime + expireCacheDelays.getOrDefault(scriptName, 0) > System.currentTimeMillis()) {
+          encodeWpsResponse(context, cachedEntry.data)
+      } else {
+        val groovyClass = javaClass.classLoader.loadClass("org.noise_planet.onomap.$scriptName")
+        val instance = groovyClass.getConstructor().newInstance()
+        if (instance is Script) {
+          // invoke the script
+          instance.invokeMethod("run", null)
+          val inputs = instance.evaluate("inputs") as Map<*, *>
+          val title = instance.evaluate("title") as String
+          val description = instance.evaluate("description") as String
+          val wpsInput = HashMap<String, Any>()
+          wpsQuery.dataInputs.input.forEach { input ->
+            if (input is InputType) {
+              try {
+                val inputId = input.identifier.value
+                var inputContent: Any = input.data.literalData.value
+                if (inputId in inputs && inputs[inputId] is Map<*, *> &&
+                  (inputs[inputId] as Map<*, *>).containsKey("type")
+                ) {
+                  val entry: Map<*, *> = inputs[inputId] as Map<*, *>
+                  val dataType = entry["type"]
+                  if (dataType is Class<*>) {
+                    // found expected input, try to cast to expect type if not null
+                    when (dataType.name) {
+                      Long::class.java.name -> inputContent = input.data.literalData.value.toLong()
+                      Integer::class.java.name -> inputContent = input.data.literalData.value.toInt()
+                      Float::class.java.name -> inputContent = input.data.literalData.value.toFloat()
+                      Double::class.java.name -> inputContent = input.data.literalData.value.toDouble()
+                      Geometry::class.java.name -> inputContent = WKTReader().read(input.data.literalData.value)
+                    }
                   }
                 }
-              }
-              wpsInput.put(inputId, inputContent)
+                wpsInput.put(inputId, inputContent)
 
-            } catch (ex: Exception) {
-              log.warn("Warning, ignore input as there was an exception while converting input '${input.identifier.value}' processing WPS ${context.request().uri()} ", ex)
+              } catch (ex: Exception) {
+                log.warn(
+                  "Warning, ignore input as there was an exception while converting input '${input.identifier.value}' processing WPS ${
+                    context.request().uri()
+                  } ", ex
+                )
+              }
             }
           }
-        }
-        ds?.connection.use { connection ->
-          context.response().putHeader("Content-Type", "application/json")
-          val scriptOutput = instance.invokeMethod("exec", listOf(connection, wpsInput))
-          val encodedResult = encodeWpsResponse(context, scriptOutput)
-          log.info("Executed $wpsProcess with result $encodedResult")
-          // Caller ask to not automatically call other wps process (for unit test)
-          if(!wpsInput.containsKey("triggerWpsEvent") || wpsInput["triggerWpsEvent"] == true) {
-            onEndCallWps(scriptName)
+          ds?.connection.use { connection ->
+            context.response().putHeader("Content-Type", "application/json")
+            val scriptOutput = instance.invokeMethod("exec", listOf(connection, wpsInput))
+            val encodedResult = encodeWpsResponse(context, scriptOutput)
+
+            if (scriptName in CacheKeys.entries.map { v -> v.name }) {
+              // cache result
+              cachedWpsResults[scriptName] = CachedWpsResult(System.currentTimeMillis(), scriptOutput)
+            }
+            log.info("Executed $wpsProcess with result $encodedResult")
+            // Caller ask to not automatically call other wps process (for unit test)
+            if (!wpsInput.containsKey("triggerWpsEvent") || wpsInput["triggerWpsEvent"] == true) {
+              onEndCallWps(scriptName)
+            }
           }
+        } else {
+          throw IllegalArgumentException("Not a script")
         }
-      } else {
-        throw IllegalArgumentException("Not a script")
       }
     }
   }

@@ -30,6 +30,9 @@ package org.noise_planet.onomap
 import groovy.sql.Sql
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.noise_planet.onomap.sensitive.nc_get_stats
+import org.noise_planet.onomap.sensitive.nc_parse
+
 import static org.junit.jupiter.api.Assertions.*
 
 /**

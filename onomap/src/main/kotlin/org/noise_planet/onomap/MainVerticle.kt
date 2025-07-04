@@ -52,13 +52,16 @@ package org.noise_planet.onomap
  import org.locationtech.jts.geom.Geometry
  import org.locationtech.jts.io.WKTReader
  import org.noise_planet.onomap.database.DataBaseManagement
+ import org.noise_planet.onomap.sensitive.nc_dump_records
+ import org.noise_planet.onomap.sensitive.nc_get_stats
+ import org.noise_planet.onomap.sensitive.nc_parse
+ import org.noise_planet.onomap.sensitive.nc_process
  import org.slf4j.Logger
  import org.slf4j.LoggerFactory
  import java.io.ByteArrayInputStream
  import java.io.File
  import java.lang.Double
  import java.lang.Float
- import java.lang.Long
  import java.util.concurrent.atomic.AtomicLong
  import kotlin.Any
  import kotlin.Array
@@ -85,6 +88,9 @@ class MainVerticle : AbstractVerticle() {
   // such jobs must no process in parallel so it should be called only after the last call is complete
   val parsePendingJob = AtomicLong()
   val processPendingJob = AtomicLong()
+  data class CachedWpsResult(val generationTime : Long, val data :  Any?)
+  enum class CacheKeys {nc_get_stats}
+  val cachedWpsResults = HashMap<String, CachedWpsResult>()
 
   companion object {
     @JvmStatic fun main(args : Array<String>) {
@@ -129,6 +135,10 @@ class MainVerticle : AbstractVerticle() {
 
     val router = Router.router(vertx).apply {
       post("/geoserver/wps").handler(BodyHandler.create()).handler(this@MainVerticle::noisecapture1WPS)
+      get("/api/dumpData").handler(BodyHandler.create()).handler(this@MainVerticle::doDumpData)
+      get("/api/dumpStats").handler(BodyHandler.create()).handler(this@MainVerticle::doDumpStats)
+      get("/statistics.json").handler(BodyHandler.create()).handler(this@MainVerticle::getDumpStats)
+      get("/api/parse").handler(BodyHandler.create()).handler(this@MainVerticle::doParse)
     }
 
     retriever
@@ -158,6 +168,59 @@ class MainVerticle : AbstractVerticle() {
             }
           }
       }
+  }
+
+  private fun doDumpData(context: RoutingContext) {
+    ds?.connection.use { connection ->
+      val scriptOutput = nc_dump_records().exec(connection, mapOf("exportTracks" to true,
+        "exportMeasures" to true,"exportAreas" to true, "dayFilter" to 1) as Map<String, *>)
+      encodeWpsResponse(context, scriptOutput)
+    }
+  }
+
+  /**
+   * Compute measurements statistics or return the previous cached result
+   */
+  private fun doDumpStats(context: RoutingContext) {
+    ds?.connection.use { connection ->
+      val scriptOutput = nc_get_stats().exec(connection, emptyMap<String, Any>() as Map<String, *>)
+      encodeWpsResponse(context, scriptOutput)
+      cachedWpsResults[CacheKeys.nc_get_stats.name] = CachedWpsResult(System.currentTimeMillis(), scriptOutput)
+    }
+  }
+
+  private fun getDumpStats(context: RoutingContext) {
+    val cachedEntry = cachedWpsResults[CacheKeys.nc_get_stats.name]
+    if(cachedEntry != null) {
+      encodeWpsResponse(context, cachedEntry.data)
+    } else {
+      encodeWpsResponse(context, mapOf("result" to emptyMap<String, String>()))
+    }
+  }
+
+  private fun doParse(context: RoutingContext) {
+    ds?.connection.use { connection ->
+      val scriptOutput = nc_parse().exec(connection, mapOf("processFileLimit" to 20) as Map<String, *>)
+      encodeWpsResponse(context, scriptOutput)
+    }
+  }
+
+  private fun encodeWpsResponse(
+      context: RoutingContext,
+      scriptOutput: Any?
+  ): String {
+    // Convert output from WPS script to JSON Object if necessary
+    context.response().putHeader("Content-Type", "application/json")
+    // Send response to client
+    val encodedResult =
+      if (scriptOutput is Map<*, *> && scriptOutput.containsKey("result")) {
+        scriptOutput["result"].toString()
+      } else {
+        Json.encode(scriptOutput)
+      }
+    // Send response to client
+    context.response().end(encodedResult)
+    return encodedResult
   }
 
   /**
@@ -196,7 +259,7 @@ class MainVerticle : AbstractVerticle() {
   fun runWPSScript(context: RoutingContext, wpsQuery: ExecuteType) {
     val wpsProcess = wpsQuery.identifier.value
     if (wpsProcess.startsWith("groovy:")) {
-      val scriptName = wpsProcess.substringAfterLast(":")
+      val scriptName = wpsProcess.substringAfterLast(":").replace(".", "")
       val groovyClass = javaClass.classLoader.loadClass("org.noise_planet.onomap.$scriptName")
       val instance = groovyClass.getConstructor().newInstance()
       if (instance is Script) {
@@ -237,15 +300,7 @@ class MainVerticle : AbstractVerticle() {
         ds?.connection.use { connection ->
           context.response().putHeader("Content-Type", "application/json")
           val scriptOutput = instance.invokeMethod("exec", listOf(connection, wpsInput))
-          // Convert output from WPS script to JSON Object if necessary
-          val encodedResult =
-          if (scriptOutput is Map<*, *> && scriptOutput.containsKey("result")) {
-            scriptOutput["result"].toString()
-          } else {
-            Json.encode(scriptOutput)
-          }
-          // Send response to client
-          context.response().end(encodedResult)
+          val encodedResult = encodeWpsResponse(context, scriptOutput)
           log.info("Executed $wpsProcess with result $encodedResult")
           // Caller ask to not automatically call other wps process (for unit test)
           if(!wpsInput.containsKey("triggerWpsEvent") || wpsInput["triggerWpsEvent"] == true) {

@@ -29,6 +29,7 @@ package org.noise_planet.onomap
 import groovy.sql.Sql
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.noise_planet.onomap.sensitive.nc_feed_stats
 
 import java.nio.file.Path
 

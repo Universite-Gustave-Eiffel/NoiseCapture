@@ -24,7 +24,7 @@
  *  14-20 Boulevard Newton Cite Descartes, Champs sur Marne F-77447 Marne la Vallee Cedex 2 FRANCE
  *   or write to scientific.computing@univ-eiffel.fr
  */
-package org.noise_planet.onomap
+package org.noise_planet.onomap.sensitive
 
 import groovy.json.JsonSlurper
 import groovy.sql.GroovyRowResult
@@ -33,10 +33,8 @@ import groovy.transform.CompileStatic
 import org.apache.commons.text.StringEscapeUtils
 import org.codehaus.groovy.runtime.StackTraceUtils
 import org.locationtech.jts.geom.Coordinate
-import org.locationtech.jts.geom.CoordinateSequence
 import org.locationtech.jts.geom.Envelope
 import org.locationtech.jts.geom.GeometryFactory
-import org.locationtech.jts.io.WKTReader
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 

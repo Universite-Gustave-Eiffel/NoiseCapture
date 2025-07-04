@@ -25,7 +25,7 @@
  *   or write to scientific.computing@univ-eiffel.fr
  */
 
-package org.noise_planet.onomap
+package org.noise_planet.onomap.sensitive
 
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
@@ -36,6 +36,7 @@ import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import java.nio.file.Paths
 import java.sql.Connection
 import java.sql.ResultSet
 import java.sql.SQLException
@@ -144,16 +145,14 @@ private List<String> getDump(Connection connection, File outPath, boolean export
         // Loop through region level
         // Region table has been downloaded from http://www.gadm.org/version2
         def lastFileParams = []
-        ZipOutputStream lastFileZipOutputStream = null
-        Writer lastFileJsonWriter = null
-
         try {
-
             def filter_date = lastModificationDaysFilter == 0 ? "" : "where record_utc > NOW()::date - " + String.valueOf(lastModificationDaysFilter)
             sql.eachRow("select ndc2.name_0,ndc2.name_1,ndc2.name_2 from (select ndc.name_0 from noisecapture_dump_country ndc " + filter_date + " group by ndc.name_0) ndc1, noisecapture_dump_country ndc2 where ndc1.name_0 = ndc2.name_0 group by ndc2.name_0,ndc2.name_1,ndc2.name_2 order by ndc2.name_0,ndc2.name_1,ndc2.name_2") {
                 GroovyResultSet country ->
                 if (exportTracks) {
                     long beginTracks = System.currentTimeMillis()
+                    ZipOutputStream lastFileZipOutputStream = null
+                    Writer lastFileJsonWriter = null
                     // Export track file
                     // Loop over region
                     sql.eachRow("select tzid, nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_AsGeoJson(te.the_geom) the_geom, dc.record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags, (select noisecapture_party.tag from noisecapture_party where noisecapture_party.pk_party = nt.pk_party) partycode from noisecapture_dump_country dc, noisecapture_track nt, NOISECAPTURE_DUMP_TRACK_ENVELOPE te  where dc.pk_track = nt.pk_track and nt.pk_track = te.pk_track and name_0 = :name0 and name_1=:name1 and name_2 = :name2 order by dc.record_utc;", [name0: country['name_0'], name1: country['name_1'], name2: country['name_2']]) {
@@ -209,12 +208,12 @@ private List<String> getDump(Connection connection, File outPath, boolean export
                     totalDumpTracks += System.currentTimeMillis() - beginTracks
                 }
                 lastFileParams = []
-                lastFileZipOutputStream = null
-                lastFileJsonWriter = null
 
                 // Export measures file
                 if (exportMeasures) {
                     long beginPoints = System.currentTimeMillis()
+                    ZipOutputStream lastFileZipOutputStream = null
+                    Writer lastFileJsonWriter = null
                     sql.eachRow("select tzid, np.pk_track, ST_AsGeoJson(np.the_geom) the_geom, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_dump_country dc, noisecapture_point np  where dc.pk_track = np.pk_track and not ST_ISEMPTY(np.the_geom) and name_0 = :name0 and name_1=:name1 and name_2 = :name2", [name0: country.getString('name_0'), name1: country.getString('name_1'), name2: country.getString('name_2')]) {
                         GroovyResultSet track_row ->
                             def thisFileParams = [country['name_2'], country['name_1'], country['name_0']]
@@ -266,10 +265,10 @@ private List<String> getDump(Connection connection, File outPath, boolean export
                 }
                 // Export hexagons file
                 lastFileParams = []
-                lastFileZipOutputStream = null
-                lastFileJsonWriter = null
                 if (exportAreas) {
                     long beginArea = System.currentTimeMillis()
+                    ZipOutputStream lastFileZipOutputStream = null
+                    Writer lastFileJsonWriter = null
                     // Export track file
                     sql.eachRow("SELECT ST_AsGeoJson(na.the_geom) the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure, string_agg(to_char(nap.laeq, 'FM999.9'), '_') leq_profile, string_agg(to_char(local_hour, '999'), '_') hour_profile FROM noisecapture_area na, noisecapture_dump_areas da, (select pk_area, nap.laeq, local_hour from noisecapture_area_profile nap  order by local_hour) nap  where da.pk_area=na.pk_area and nap.pk_area = na.pk_area and na.pk_party is null and name_0 = :name0 and name_1=:name1 and name_2 = :name2 group by na.the_geom, cell_q, cell_r, tzid, la50, na.laeq, lden , mean_pleasantness, measure_count, first_measure, last_measure order by cell_q, cell_r;", [name0: country.getString('name_0'), name1: country.getString('name_1'), name2: country.getString('name_2')]) {
                         GroovyResultSet track_row ->
@@ -329,8 +328,6 @@ private List<String> getDump(Connection connection, File outPath, boolean export
                     totalDumpAreas+=System.currentTimeMillis() - beginArea
                 }
                 lastFileParams = []
-                lastFileZipOutputStream = null
-                lastFileJsonWriter = null
             }
         } finally {
             // Close opened files
@@ -364,7 +361,8 @@ private List<String> getDump(Connection connection, File outPath, boolean export
 def exec(Connection connection, Map input) {
     // Open PostgreSQL connection
     // Create dump folder
-    File dumpDir = new File("data_dir/onomap_public_dump");
+    def workingDir = System.getProperty("workingDir", "data_dir")
+    File dumpDir = Paths.get(workingDir,"onomap_public_dump").toFile()
     if (!dumpDir.exists()) {
         dumpDir.mkdirs()
     }

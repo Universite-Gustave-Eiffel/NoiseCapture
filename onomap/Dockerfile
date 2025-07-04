@@ -31,10 +31,12 @@ WORKDIR $APP_DIR
 
 COPY --from=builder /onomap/onomap $APP_DIR
 COPY --from=builder /onomap/deploy/scripts/launch.sh $APP_DIR/launch.sh
+COPY incremental_backup.sh /onomap/workspace/onomap_archive_tar/
 
 RUN <<EOF
 find . -type d -exec chmod 775 {} \;
 chmod +x "launch.sh" "$APP_FILE"
+chown -R onomap:onomap /onomap/workspace/
 EOF
 
 EXPOSE 8888

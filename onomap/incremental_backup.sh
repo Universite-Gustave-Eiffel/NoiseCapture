@@ -31,8 +31,8 @@
 TAR_FILE="/onomap/workspace/onomap_archive_tar/full_raw_$(date +%Y_%U).tar"
 
 # Snapshot file names
-DIFF_SNAR="/onomap/workspace/onomap_archive_tar/backup_diff.snar"
-INC_SNAR="/onomap/workspace/onomap_archive_tar/backup_inc.snar"
+DIFF_SNAR="/onomap/workspace/backup_diff.snar"
+INC_SNAR="/onomap/workspace/backup_inc.snar"
 
 # Handle snar files based on tar file existence
 if [ -f "$TAR_FILE" ]; then

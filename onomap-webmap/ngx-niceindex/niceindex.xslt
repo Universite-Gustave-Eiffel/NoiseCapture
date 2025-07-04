@@ -14,7 +14,7 @@
         <meta name="version" conent="1.1.0"/>
         <meta name="viewport" conent="initial-scale=1, minimum-scale=1, shrink-to-fit=no, width=device-width"/>
 
-        <link rel="stylesheet" href=".niceindex/css/main.css"/>
+        <link rel="stylesheet" href="/.niceindex/css/main.css"/>
       </head>
       <body>
         <div class="container">

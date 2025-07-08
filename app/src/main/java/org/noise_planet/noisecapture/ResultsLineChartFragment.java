@@ -98,7 +98,7 @@ public class ResultsLineChartFragment extends Fragment {
         timeLevelChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
         timeLevelChart.setHighlightPerDragEnabled(false);
         timeLevelChart.setHighlightPerTapEnabled(false);
-        timeLevelChart.setDescription(getString(R.string.result_linechart_description));
+        timeLevelChart.setDescription(view.getContext().getString(R.string.result_linechart_description));
         timeLevelChart.setDescriptionColor(Color.WHITE);
         timeLevelChart.setDescriptionTextSize(12);
         XAxis xAxis = timeLevelChart.getXAxis();
@@ -138,7 +138,7 @@ public class ResultsLineChartFragment extends Fragment {
             }
             xVals.add(labelString);
         }
-        LineDataSet laeqDataset = new LineDataSet(entries, getString(R.string.result_laeq));
+        LineDataSet laeqDataset = new LineDataSet(entries, view.getContext().getString(R.string.result_laeq));
         laeqDataset.setDrawCircles(false);
         laeqDataset.setDrawValues(true);
         laeqDataset.setColor(Color.WHITE);
@@ -149,14 +149,14 @@ public class ResultsLineChartFragment extends Fragment {
         double la10 = leqOccurrences.getLa10();
         LineDataSet la10LineDataSet = new LineDataSet(Arrays.asList(new Entry( (float)la10, 0),
                 new Entry((float)la10,laeqDataset.getEntryCount() - 1)),
-                getString(R.string.measurement_dba_la10));
+                view.getContext().getString(R.string.measurement_dba_la10));
         la10LineDataSet.setDrawCircles(false);
         la10LineDataSet.setColor(Color.RED);
         la10LineDataSet.setDrawValues(false);
         double la90 = leqOccurrences.getLa90();
         LineDataSet la90LineDataSet = new LineDataSet(Arrays.asList(new Entry( (float)la90, 0),
                 new Entry((float)la90,laeqDataset.getEntryCount() - 1)),
-                getString(R.string.measurement_dba_la90));
+                view.getContext().getString(R.string.measurement_dba_la90));
         la90LineDataSet.setDrawCircles(false);
         la90LineDataSet.setColor(Color.GREEN);
         la90LineDataSet.setDrawValues(false);

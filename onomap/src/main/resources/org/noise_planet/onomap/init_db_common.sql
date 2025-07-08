@@ -278,6 +278,7 @@ CREATE TABLE noisecapture_stats_last_tracks (
 );
 
 --- Add index
+create unique index on NOISECAPTURE_DUMP_TRACK_ENVELOPE(pk_track);
 
 CREATE INDEX ki_noisecapture_area_cellq
   ON noisecapture_area(cell_q);

@@ -165,6 +165,13 @@ public class SettingsFragment extends PreferenceFragment {
                             return false;
                         }
                     }
+                } else if ("settings_onomap_url".equals(preference.getKey())) {
+                    // cancel url change if not an expected url
+                    if(((String) newValue).trim().isEmpty() || !((String) newValue).startsWith("http")) {
+                        return false;
+                    } else {
+                        return true;
+                    }
                 }
                 return true;
             }

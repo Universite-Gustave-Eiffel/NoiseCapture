@@ -138,7 +138,7 @@ public class ResultsLineChartFragment extends Fragment {
             }
             xVals.add(labelString);
         }
-        LineDataSet laeqDataset = new LineDataSet(entries, getString(R.string.result_laeq));
+        LineDataSet laeqDataset = new LineDataSet(entries, view.getContext().getString(R.string.result_laeq));
         laeqDataset.setDrawCircles(false);
         laeqDataset.setDrawValues(true);
         laeqDataset.setColor(Color.WHITE);

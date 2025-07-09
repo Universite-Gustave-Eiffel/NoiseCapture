@@ -52,13 +52,7 @@ else
 fi
 
 # Create/update the tar archive
-tar --create \
-    --absolute-names \
-    --listed-incremental="$DIFF_SNAR" \
-    --file="$TAR_FILE" \
-    --totals \
-    --directory=/onomap/workspace/ \
-    /onomap/workspace/onomap_archive/
+tar --create --listed-incremental="$DIFF_SNAR" --file="$TAR_FILE" --totals /onomap/workspace/onomap_archive/
 
 if [ ! -f "$INC_SNAR" ]; then
   # It is the first TAR_FILE ever created as there is no incremental snar

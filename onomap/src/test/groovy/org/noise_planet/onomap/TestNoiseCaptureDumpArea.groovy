@@ -110,15 +110,11 @@ class TestNoiseCaptureDumpArea extends JdbcTestCase {
   void testTracksExport(@TempDir Path folder) {
     // Parse file to database
     new nc_parse().processFile(connection,
-      new File(TestNoiseCaptureDumpArea.getResource("track_f7ff7498-ddfd-46a3-ab17-36a96c01ba1b.zip").file))
-    new nc_parse().processFile(connection,
       new File(TestNoiseCaptureDumpArea.getResource("track_f720018a-a5db-4859-bd7d-377d29356c6f.zip").file))
+    // convert to hexagons
+    assertEquals(21, new nc_process().process(connection, 10, 0))
     Sql.LOG.level = java.util.logging.Level.SEVERE
-    // Insert measure data
-    // insert records
-    File tmpFolder = folder.toFile()
-
-    def createdFiles = new nc_dump_area().exec(connection, [  startLatitude:43.104708,
+    def createdFile = new nc_dump_area().exec(connection, [  startLatitude:43.104708,
                                                               startLongitude:12.384801,
                                                               stopLatitude:43.11107,
                                                               stopLongitude:12.392135,
@@ -126,5 +122,21 @@ class TestNoiseCaptureDumpArea extends JdbcTestCase {
                                                               exportMeasures:1,
                                                               exportAreas:1,
                                                               emailNotification:'contact@noise-planet.org'])
+
+    def f = createdFile["result"]
+    assertTrue(new File(f).exists())
+    new ZipInputStream(new FileInputStream(f)).withStream { zipInputStream ->
+      assertEquals("tracks.geojson", zipInputStream.getNextEntry().getName())
+      def result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8")
+      assertEquals("Polygon", result.features[0].geometry.type)
+      assertEquals(5, result.features[0].geometry.coordinates[0].size())
+      assertEquals("f720018a-a5db-4859-bd7d-377d29356c6f", result.features[0]["properties"]["track_uuid"])
+      assertEquals("2016-10-12T08:33:49+02:00", result.features[0]["properties"]["time_ISO8601"])
+      assertEquals(3, result.features[0]["properties"]["tags"].size())
+      assertEquals("points.geojson", zipInputStream.getNextEntry().getName())
+      result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8")
+      assertEquals("2016-10-12T08:33:56+02:00", result.features[0]["properties"]["time_ISO8601"])
+    }
+    //new File(f).delete()
   }
 }

@@ -114,6 +114,11 @@ private String getDump(Connection connection, File outPath, Map input) {
   def startLongitude = input["startLongitude"] as Double
   def stopLatitude = input["stopLatitude"] as Double
   def stopLongitude = input["stopLongitude"] as Double
+  boolean exportTracks= input["exportTracks"]
+  boolean exportMeasures = input["exportMeasures"]
+  boolean exportAreas = input["exportAreas"]
+
+
   def envelope = "SRID=2154;Polygon (($startLongitude $startLatitude, $stopLongitude $startLatitude, $stopLongitude $stopLatitude, $startLongitude $stopLatitude, $startLongitude $startLatitude))"
   long totalDumpTracks = 0
   long totalDumpPoints = 0
@@ -145,54 +150,76 @@ private String getDump(Connection connection, File outPath, Map input) {
         "ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom,  COUNT(np.pk_point) measure_count" +
         " from noisecapture_point np where not ST_ISEMPTY(the_geom)  group by pk_track having st_area(ST_Transform(ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326), 3857)) < 1e8")
     }
-
-    try {
+    if (exportTracks) {
+      long beginTracks = System.currentTimeMillis()
       String fileName = "tracks.geojson"
       fileZipOutputStream.putNextEntry(new ZipEntry(fileName))
       fileJsonWriter << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n"
-      sql.eachRow("select (select tzid from tz_world tz where ST_Contains(tz.the_geom, ST_Centroid(te.the_geom)) LIMIT 1) tzid, nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_AsGeoJson(te.the_geom) the_geom, nt.record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag, noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags, (select noisecapture_party.tag from noisecapture_party where noisecapture_party.pk_party = nt.pk_party) partycode from noisecapture_track nt, noisecapture_dump_track_envelope te  where te.the_geom && :envelope::geometry and nt.pk_track = te.pk_track order by nt.record_utc;", [envelope: envelope.toString()]) {
-        GroovyResultSet track_row ->
-          def the_geom = new JsonSlurper().parseText((String) track_row['the_geom'])
-          def time_ISO_8601 = epochToRFCTime(((Timestamp) track_row['record_utc']).time, (String) track_row['tzid'])
-          def track = [type: "Feature", geometry: the_geom, properties: [
-           pleasantness    : track_row['pleasantness'] == null ? null : (Double.isNaN(track_row.getDouble('pleasantness')) ? null : track_row['pleasantness']),
-           pk_track        : track_row['pk_track'],
-           track_uuid      : track_row['track_uuid'],
-           gain_calibration: track_row['gain_calibration'],
-           time_ISO8601    : time_ISO_8601,
-           time_epoch      : ((Timestamp) track_row['record_utc']).time,
-           noise_level     : track_row['noise_level'],
-           time_length     : track_row['time_length'],
-           tags            : track_row['tags'] == null ? null : ((String) track_row['tags']).tokenize(','),
-           party_tag       : track_row['partycode']]]
-          try {
-            if(totalDumpTracks > 0) {
-              fileJsonWriter << ",\n"
-            }
-            fileJsonWriter << JsonOutput.toJson(track)
-            totalDumpTracks += 1
-          } catch (JsonException ex) {
-            logger.error(String.format("Track %d illegal content", track_row.getInt('pk_track')), ex);
+      sql.eachRow("select (select tzid from tz_world tz where ST_Contains(tz.the_geom, ST_Centroid(te.the_geom))" +
+        " LIMIT 1) tzid, nt.pk_track, track_uuid, pleasantness,gain_calibration,ST_AsGeoJson(te.the_geom) the_geom," +
+        " nt.record_utc, noise_level, time_length, (select string_agg(tag_name, ',') from noisecapture_tag ntag," +
+        " noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags," +
+        " (select noisecapture_party.tag from noisecapture_party where noisecapture_party.pk_party = nt.pk_party)" +
+        " partycode from noisecapture_track nt, noisecapture_dump_track_envelope te  " +
+        "where te.the_geom && :envelope::geometry and nt.pk_track = te.pk_track order by nt.record_utc;",
+        [envelope: envelope.toString()]) { GroovyResultSet track_row ->
+        def the_geom = new JsonSlurper().parseText((String) track_row['the_geom'])
+        def time_ISO_8601 = epochToRFCTime(((Timestamp) track_row['record_utc']).time, (String) track_row['tzid'])
+        def track = [type: "Feature", geometry: the_geom, properties: [pleasantness    : track_row['pleasantness'] == null ? null : (Double.isNaN(track_row.getDouble('pleasantness')) ? null : track_row['pleasantness']),
+                                                                       pk_track        : track_row['pk_track'],
+                                                                       track_uuid      : track_row['track_uuid'],
+                                                                       gain_calibration: track_row['gain_calibration'],
+                                                                       time_ISO8601    : time_ISO_8601,
+                                                                       time_epoch      : ((Timestamp) track_row['record_utc']).time,
+                                                                       noise_level     : track_row['noise_level'],
+                                                                       time_length     : track_row['time_length'],
+                                                                       tags            : track_row['tags'] == null ? null : ((String) track_row['tags']).tokenize(','),
+                                                                       party_tag       : track_row['partycode']]]
+        try {
+          if (totalDumpTracks > 0) {
+            fileJsonWriter << ",\n"
           }
+          fileJsonWriter << JsonOutput.toJson(track)
+          totalDumpTracks += 1
+        } catch (JsonException ex) {
+          logger.error(String.format("Track %d illegal content", track_row.getInt('pk_track')), ex);
+        }
       }
       fileJsonWriter << "]\n}\n"
       fileJsonWriter.flush()
-    } finally {
-      fileZipOutputStream.closeEntry()
-      // Write readme file
-      fileZipOutputStream.putNextEntry(new ZipEntry("README.html"))
-      new ByteArrayInputStream(Base64.decoder.decode(README_CONTENT)).withStream {
-        bais ->
-          new GZIPInputStream(bais).withStream {
-            html ->
-              fileZipOutputStream << html;
-          }
-      }
-      fileZipOutputStream.closeEntry()
-      // Close zip file stream
-      fileZipOutputStream.close()
+      totalDumpTracks += System.currentTimeMillis() - beginTracks
     }
+    if (exportMeasures) {
+      long beginPoints = System.currentTimeMillis()
+      String fileName = "points.geojson"
+      fileZipOutputStream.putNextEntry(new ZipEntry(fileName))
+      fileJsonWriter << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n"
+      sql.eachRow("select (select tzid from tz_world tz where ST_Contains(tz.the_geom, np.the_geom) LIMIT 1) tzid, np.pk_track, ST_AsGeoJson(np.the_geom) the_geom, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_point np where the_geom && :envelope::geometry order by np.time_date", [envelope: envelope.toString()]) {
+        GroovyResultSet track_row ->
+        def the_geom = new JsonSlurper().parseText(track_row.getString('the_geom'))
+        def time_ISO_8601 = epochToRFCTime((track_row.getTimestamp('time_date')).time, track_row.getString('tzid'))
+        def time_gps_ISO_8601 = epochToRFCTime(((Timestamp) track_row.getTimestamp('time_location')).time, track_row.getString('tzid'))
+        def track = [type: "Feature", geometry: the_geom, properties: [pk_track        : track_row['pk_track'],
+                                                                       time_ISO8601    : time_ISO_8601,
+                                                                       time_epoch      : (track_row.getTimestamp('time_date')).time,
+                                                                       time_gps_ISO8601: time_gps_ISO_8601,
+                                                                       time_gps_epoch  : (track_row.getTimestamp('time_location')).time,
+                                                                       noise_level     : track_row['noise_level'],
+                                                                       speed           : track_row['speed'],
+                                                                       orientation     : track_row['orientation'],
+                                                                       accuracy        : track_row['accuracy']
+        ]]
+        if (totalDumpPoints > 0) {
+          fileJsonWriter << ",\n"
+        }
+        fileJsonWriter << JsonOutput.toJson(track)
+        totalDumpPoints+=1
 
+      }
+      fileJsonWriter << "]\n}\n"
+      fileJsonWriter.flush()
+      totalDumpPoints += System.currentTimeMillis() - beginPoints
+    }
     // Loop through region level
     // Region table has been downloaded from http://www.gadm.org/version2
     def lastFileParams = []
@@ -399,6 +426,20 @@ private String getDump(Connection connection, File outPath, Map input) {
 //    }
   } catch (SQLException ex) {
     throw ex
+  } finally {
+    fileZipOutputStream.closeEntry()
+    // Write readme file
+    fileZipOutputStream.putNextEntry(new ZipEntry("README.html"))
+    new ByteArrayInputStream(Base64.decoder.decode(README_CONTENT)).withStream {
+      bais ->
+        new GZIPInputStream(bais).withStream {
+          html ->
+            fileZipOutputStream << html;
+        }
+    }
+    fileZipOutputStream.closeEntry()
+    // Close zip file stream
+    fileZipOutputStream.close()
   }
   // Move created files
   zipFileName.renameTo(new File(zipFileName.path.substring(0, zipFileName.path.length() - 4)))
@@ -415,7 +456,7 @@ def exec(Connection connection, Map input) {
     dumpDir.mkdirs()
   }
   try {
-    return [result: JsonOutput.toJson(getDump(connection, dumpDir, input))]
+    return [result: getDump(connection, dumpDir, input)]
   } finally {
     connection.close()
   }

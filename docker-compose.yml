@@ -11,6 +11,10 @@ volumes:
   postgis-backup:
     driver: local
 
+secrets:
+  postgis_pgbackrest_config:
+    file: ./pgbackrest.conf
+
 services:
   postgis:
     # special image with pgbackrest installed
@@ -24,6 +28,7 @@ services:
     restart: always
     shm_size: 2g
     environment:
+      PGBACKREST_CONFIGURATION_FILE: /run/secrets/postgis_pgbackrest_config
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-onomap}"
       METABASE_PASSWORD: "${METABASE_PASSWORD:-metabase}"
       POSTGRES_DB: noisecapture
@@ -35,6 +40,8 @@ services:
     volumes:
       - postgis-data:/var/lib/postgresql/data
       - postgis-backup:/var/lib/pgbackrest
+    secrets:
+      - postgis_pgbackrest_config
     deploy:
       resources:
         limits:

@@ -29,8 +29,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Building
-        run: gradle :onomap:build -x test --info --stacktrace
+        run: gradle build -x test --info --stacktrace
+        working-directory: onomap
       - name: Test
-        run: gradle :onomap:test --info --stacktrace
+        run: gradle test --info --stacktrace
+        working-directory: onomap
         env:
           POSTGRES_HOST: localhost

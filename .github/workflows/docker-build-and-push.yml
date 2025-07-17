@@ -39,6 +39,7 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v6
         with:
+          context: ./onomap
           push: true
           tags: universite-gustave-eiffel/noisecapture:dev
 

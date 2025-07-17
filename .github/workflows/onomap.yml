@@ -29,10 +29,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Building
-        run: gradle build -x test --info --stacktrace
+        run: ./gradlew build -Dorg.gradle.internal.http.socketTimeout=60000 -Dorg.gradle.internal.http.connectionTimeout=60000 -x test --build-cache --info --stacktrace
         working-directory: onomap
       - name: Test
-        run: gradle test --info --stacktrace
+        run: ./gradlew test --info --build-cache --stacktrace
         working-directory: onomap
         env:
           POSTGRES_HOST: localhost

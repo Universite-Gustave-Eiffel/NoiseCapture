@@ -136,7 +136,12 @@ class TestNoiseCaptureDumpArea extends JdbcTestCase {
       assertEquals("points.geojson", zipInputStream.getNextEntry().getName())
       result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8")
       assertEquals("2016-10-12T08:33:56+02:00", result.features[0]["properties"]["time_ISO8601"])
+      assertEquals("areas.geojson", zipInputStream.getNextEntry().getName())
+      result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8")
+      assertEquals(-65335, result.features[0]["properties"]["cell_q"])
+      assertEquals(236823, result.features[0]["properties"]["cell_r"])
+      assertEquals("2016-10-12T08:38:58+02:00", result.features[0]["properties"]["first_measure_ISO_8601"])
     }
-    //new File(f).delete()
+    new File(f).delete()
   }
 }

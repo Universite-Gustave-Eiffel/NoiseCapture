@@ -45,6 +45,7 @@ import java.sql.Statement
 
 @CompileStatic
 class JdbcTestCase {
+  DataSource dataSource
   Connection connection
 
   static DataSource createDataSource(String user, String password, boolean debug) throws SQLException {
@@ -84,7 +85,7 @@ class JdbcTestCase {
 
   @BeforeEach
   void initConnection() {
-    DataSource dataSource = createDataSource("sa", "sa", false)
+    dataSource = createDataSource("sa", "sa", false)
     connection = JDBCUtilities.wrapConnection(dataSource.getConnection())
     H2GISFunctions.load(connection)
   }

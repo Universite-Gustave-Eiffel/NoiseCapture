@@ -27,27 +27,25 @@
 
 package org.noise_planet.onomap
 
-
+import groovy.json.JsonException
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
-import groovy.json.JsonException
 import groovy.sql.GroovyResultSet
 import groovy.sql.Sql
 import groovy.transform.CompileStatic
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import javax.sql.DataSource
 import java.nio.file.Paths
-import java.sql.Connection
-import java.sql.ResultSet
-import java.sql.SQLException
-import java.sql.Statement
-import java.sql.Timestamp
+import java.sql.*
 import java.time.DateTimeException
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.zone.ZoneRulesException
+import java.util.concurrent.Callable
+import java.util.concurrent.Executors
 import java.util.concurrent.TimeoutException
 import java.util.zip.GZIPInputStream
 import java.util.zip.ZipEntry
@@ -72,12 +70,25 @@ inputs = [
   exportAreas         : [name: 'exportAreas', title: 'Export post-processed values',
                          type: Boolean.class],
   emailNotification   : [name: 'emailNotification', title: 'Send links to download content to this email',
-                         type: String.class]
+                         type: String.class],
+  fromEpoch   : [name: 'fromEpoch', title: 'Filter from this utc epoch time',
+                         type: Long.class, min:0, max:1]
 ]
 
 outputs = [
   result: [name: 'result', title: 'Created file', type: String.class]
 ]
+
+
+/**
+ * Convert EPOCH time to ISO 8601
+ * @param epochMillisecond
+ * @return
+ */
+@CompileStatic
+static def epochToRFCTime(long epochMillisecond) {
+  return Instant.ofEpochMilli(epochMillisecond).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))
+}
 
 
 /**
@@ -108,7 +119,7 @@ static def epochToRFCTime(long epochMillisec, String zone) {
  * @return
  */
 @CompileStatic
-private String getDump(Connection connection, File outPath, Map input) {
+public String getDump(DataSource dataSource, File zipFileName, Map input) {
   // Maximum time to generate the dump
   final int MAX_GENERATE_DUMP_TIME = 15 * 60 * 1000
 
@@ -122,6 +133,10 @@ private String getDump(Connection connection, File outPath, Map input) {
   boolean exportTracks= input["exportTracks"]
   boolean exportMeasures = input["exportMeasures"]
   boolean exportAreas = input["exportAreas"]
+  long fromEpoch = 0
+  if("fromEpoch" in input) {
+    fromEpoch = Math.max(0L, input["fromEpoch"] as Long)
+  }
 
   long startDump = System.currentTimeMillis()
 
@@ -131,14 +146,11 @@ private String getDump(Connection connection, File outPath, Map input) {
   long totalDumpPoints = 0
   long totalDumpAreas = 0
 
-  // create unique zip file
-  def uuid = UUID.randomUUID().toString().replace("-", "")
-  File zipFileName = new File(outPath,  "extract_${uuid}.zip.tmp")
   ZipOutputStream fileZipOutputStream = new ZipOutputStream(new FileOutputStream(zipFileName))
   Writer fileJsonWriter = new OutputStreamWriter(fileZipOutputStream, "UTF-8")
 
   // Process export of raw measures
-  try {
+  try(Connection connection = dataSource.getConnection()) {
     connection.setAutoCommit(false)
     def sql = new Sql(connection)
     // Change result set type, this way the PostGIS driver use the db cursor with minimal memory usage
@@ -173,8 +185,8 @@ private String getDump(Connection connection, File outPath, Map input) {
         " noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags," +
         " (select noisecapture_party.tag from noisecapture_party where noisecapture_party.pk_party = nt.pk_party)" +
         " partycode from noisecapture_track nt, noisecapture_dump_track_envelope te  " +
-        "where te.the_geom && :envelope::geometry and nt.pk_track = te.pk_track order by nt.record_utc;",
-        [envelope: envelope.toString()]) { GroovyResultSet track_row ->
+        "where record_utc >= :fromEpoch and te.the_geom && :envelope::geometry and nt.pk_track = te.pk_track order by nt.record_utc;",
+        [envelope: envelope.toString(), fromEpoch: epochToRFCTime(fromEpoch)]) { GroovyResultSet track_row ->
         def the_geom = new JsonSlurper().parseText((String) track_row['the_geom'])
         def time_ISO_8601 = epochToRFCTime(((Timestamp) track_row['record_utc']).time, (String) track_row['tzid'])
         def track = [type: "Feature", geometry: the_geom, properties: [pleasantness    : track_row['pleasantness'] == null ? null : (Double.isNaN(track_row.getDouble('pleasantness')) ? null : track_row['pleasantness']),
@@ -211,7 +223,11 @@ private String getDump(Connection connection, File outPath, Map input) {
       String fileName = "points.geojson"
       fileZipOutputStream.putNextEntry(new ZipEntry(fileName))
       fileJsonWriter << "{\n  \"type\": \"FeatureCollection\",\n  \"features\": [\n"
-      sql.eachRow("select (select tzid from tz_world tz where tz.the_geom && np.the_geom and ST_Contains(tz.the_geom, np.the_geom) LIMIT 1) tzid, np.pk_track, ST_AsGeoJson(np.the_geom) the_geom, np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location  from noisecapture_point np where the_geom && :envelope::geometry order by np.time_date", [envelope: envelope.toString()]) {
+      sql.eachRow("select (select tzid from tz_world tz where tz.the_geom && np.the_geom and" +
+        " ST_Contains(tz.the_geom, np.the_geom) LIMIT 1) tzid, np.pk_track, ST_AsGeoJson(np.the_geom) the_geom," +
+        " np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location " +
+        " from noisecapture_point np where time_date >= :fromEpoch and the_geom && :envelope::geometry order by np.time_date",
+        [envelope: envelope.toString(), fromEpoch: epochToRFCTime(fromEpoch)]) {
         GroovyResultSet track_row ->
         def the_geom = new JsonSlurper().parseText(track_row.getString('the_geom'))
         def time_ISO_8601 = epochToRFCTime((track_row.getTimestamp('time_date')).time, track_row.getString('tzid'))
@@ -253,9 +269,9 @@ private String getDump(Connection connection, File outPath, Map input) {
         " string_agg(to_char(nap.laeq, 'FM999.9'), '_') leq_profile," +
         " string_agg(to_char(local_hour, '999'), '_') hour_profile" +
         " FROM noisecapture_area na, noisecapture_area_profile nap" +
-        " where na.the_geom && :envelope::geometry and nap.pk_area = na.pk_area and" +
+        " where na.last_measure >= :fromEpoch and na.the_geom && :envelope::geometry and nap.pk_area = na.pk_area and" +
         " na.pk_party is null group by na.the_geom, cell_q, cell_r, tzid, na.la50, na.laeq, na.lden , mean_pleasantness," +
-        " measure_count, first_measure, last_measure order by cell_q, cell_r;", [envelope: envelope.toString()]) {
+        " measure_count, first_measure, last_measure order by cell_q, cell_r;", [envelope: envelope.toString(), fromEpoch: epochToRFCTime(fromEpoch)]) {
         GroovyResultSet track_row ->
           def first_measure_ISO_8601 = epochToRFCTime((track_row.getTimestamp('first_measure')).time, track_row.getString('tzid'))
           def last_measure_ISO_8601 = epochToRFCTime((track_row.getTimestamp('last_measure')).time, track_row.getString('tzid'))
@@ -327,9 +343,24 @@ def exec(Connection connection, Map input) {
   if (!dumpDir.exists()) {
     dumpDir.mkdirs()
   }
-  try {
-    return [result: getDump(connection, dumpDir, input)]
-  } finally {
-    connection.close()
+
+  // create unique zip file
+  def uuid = UUID.randomUUID().toString().replace("-", "")
+  File zipFileName = new File(dumpDir,  "extract_${uuid}.zip.tmp")
+
+  Callable<String> task = new Callable<String>() {
+    @Override
+    String call() throws Exception {
+      return getDump(input["dataSource"] as DataSource, zipFileName, input)
+    }
+  }
+
+  if("worker" in input) {
+      // Use special vert.x thread pool
+      def future = input["worker"].executeBlocking(task)
+      return [result: future]
+  } else {
+    def future = Executors.newSingleThreadExecutor().submit(task)
+    return [result: future]
   }
 }

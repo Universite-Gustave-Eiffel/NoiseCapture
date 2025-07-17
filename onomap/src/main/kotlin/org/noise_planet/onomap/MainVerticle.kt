@@ -297,12 +297,14 @@ class MainVerticle : AbstractVerticle() {
             }
           }
         }
+        wpsInput.put("worker", vertx.createSharedWorkerExecutor("groovy"))
+        wpsInput.put("dataSource", ds as javax.sql.DataSource)
         ds?.connection.use { connection ->
           context.response().putHeader("Content-Type", "application/json")
           val scriptOutput = instance.invokeMethod("exec", listOf(connection, wpsInput))
           val encodedResult = encodeWpsResponse(context, scriptOutput)
           log.info("Executed $wpsProcess with result $encodedResult")
-          // Caller ask to not automatically call other wps process (for unit test)
+          // Caller ask not automatically call other wps process (for unit test)
           if(!wpsInput.containsKey("triggerWpsEvent") || wpsInput["triggerWpsEvent"] == true) {
             onEndCallWps(scriptName)
           }

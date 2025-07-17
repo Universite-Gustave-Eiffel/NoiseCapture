@@ -37,6 +37,9 @@ import org.noise_planet.onomap.sensitive.nc_parse
 import org.noise_planet.onomap.sensitive.nc_process
 
 import java.nio.file.Path
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.Future
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
 
 import static org.junit.jupiter.api.Assertions.*
@@ -114,7 +117,8 @@ class TestNoiseCaptureDumpArea extends JdbcTestCase {
     // convert to hexagons
     assertEquals(21, new nc_process().process(connection, 10, 0))
     Sql.LOG.level = java.util.logging.Level.SEVERE
-    def createdFile = new nc_dump_area().exec(connection, [  startLatitude:43.104708,
+    def returnResult = new nc_dump_area().exec(connection, [ dataSource: dataSource,
+                                                              startLatitude:43.104708,
                                                               startLongitude:12.384801,
                                                               stopLatitude:43.11107,
                                                               stopLongitude:12.392135,
@@ -123,9 +127,10 @@ class TestNoiseCaptureDumpArea extends JdbcTestCase {
                                                               exportAreas:1,
                                                               emailNotification:'contact@noise-planet.org'])
 
-    def f = createdFile["result"]
-    assertTrue(new File(f).exists())
-    new ZipInputStream(new FileInputStream(f)).withStream { zipInputStream ->
+    def f = returnResult["result"] as Future<String>
+    def fileName = f.get(5000L, TimeUnit.MILLISECONDS)
+    assertTrue(new File(fileName).exists())
+    new ZipInputStream(new FileInputStream(fileName)).withStream { zipInputStream ->
       assertEquals("tracks.geojson", zipInputStream.getNextEntry().getName())
       def result = new JsonSlurper().parse(new UnClosableInputStream(zipInputStream), "UTF-8")
       assertEquals("Polygon", result.features[0].geometry.type)
@@ -142,6 +147,7 @@ class TestNoiseCaptureDumpArea extends JdbcTestCase {
       assertEquals(236823, result.features[0]["properties"]["cell_r"])
       assertEquals("2016-10-12T08:38:58+02:00", result.features[0]["properties"]["first_measure_ISO_8601"])
     }
-    new File(f).delete()
+    new File(fileName).delete()
   }
+
 }

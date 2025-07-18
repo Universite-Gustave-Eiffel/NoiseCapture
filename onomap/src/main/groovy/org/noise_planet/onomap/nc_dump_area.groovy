@@ -200,12 +200,13 @@ static def sendEmail(Map input, String recipient, String from, String subject, S
     msg.setContent(mp)
     msg.setSentDate(new Date(System.currentTimeMillis()))
     msg.setFrom(from)
+    msg.setSubject(subject, "UTF-8")
     msg.setRecipients(Message.RecipientType.TO, parseAddress(recipient))
     Transport.send(msg)
   } catch(MessagingException e) {
-    LOGGER.error("Error occured while sending e-mail notification.", e);
+    LOGGER.error("Error occurred while sending e-mail notification.", e);
   } catch(RuntimeException e) {
-    LOGGER.error("Error occured while sending e-mail notification.", e);
+    LOGGER.error("Error occurred while sending e-mail notification.", e);
   }
 }
 
@@ -466,7 +467,153 @@ def exec(Connection connection, Map input) {
   Callable<String> task = new Callable<String>() {
     @Override
     String call() throws Exception {
-      return getDump(input["dataSource"] as DataSource, zipFileName, input)
+      String res = getDump(input["dataSource"] as DataSource, zipFileName, input)
+      def body = "<!DOCTYPE html>\n" +
+        "<html lang=\"en\">\n" +
+        "<head><title></title>\n" +
+        "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n" +
+        "    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n" +
+        "    <style>\n" +
+        "        * {\n" +
+        "            box-sizing: border-box\n" +
+        "        }\n" +
+        "        body {\n" +
+        "            margin: 0;\n" +
+        "            padding: 0\n" +
+        "        }\n" +
+        "        a[x-apple-data-detectors] {\n" +
+        "            color: inherit !important;\n" +
+        "            text-decoration: inherit !important\n" +
+        "        }\n" +
+        "        #MessageViewBody a {\n" +
+        "            color: inherit;\n" +
+        "            text-decoration: none\n" +
+        "        }\n" +
+        "        p {\n" +
+        "            line-height: inherit\n" +
+        "        }\n" +
+        "        .image_block img + div {\n" +
+        "            display: none\n" +
+        "        }\n" +
+        "        sub, sup {\n" +
+        "            font-size: 75%;\n" +
+        "            line-height: 0\n" +
+        "        }\n" +
+        "        @media (max-width: 530px) {\n" +
+        "            .stack .column {\n" +
+        "                width: 100%;\n" +
+        "                display: block\n" +
+        "            }\n" +
+        "        }\n" +
+        "    </style>\n" +
+        "</head>\n" +
+        "<body class=\"body\"\n" +
+        "      style=\"background-color:#f14b11;margin:0;padding:0;-webkit-text-size-adjust:none;text-size-adjust:none\">\n" +
+        "<table class=\"nl-container\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\"\n" +
+        "       style=\"mso-table-lspace:0;mso-table-rspace:0;background-color:#f14b11\">\n" +
+        "    <tbody>\n" +
+        "    <tr>\n" +
+        "        <td>\n" +
+        "            <table align=\"center\"\n" +
+        "                   border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"row row-1\" role=\"presentation\"\n" +
+        "                   style=\"mso-table-lspace:0;mso-table-rspace:0\"\n" +
+        "                   width=\"100%\">\n" +
+        "                <tbody>\n" +
+        "                <tr>\n" +
+        "                    <td>\n" +
+        "                        <table class=\"row-content stack\" align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"\n" +
+        "                               role=\"presentation\"\n" +
+        "                               style=\"mso-table-lspace:0;mso-table-rspace:0;color:#000;width:510px;margin:0 auto\"\n" +
+        "                               width=\"510\">\n" +
+        "                            <tbody>\n" +
+        "                            <tr>\n" +
+        "                                <td class=\"column column-1\" width=\"100%\"\n" +
+        "                                    style=\"mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top\">\n" +
+        "                                    <div class=\"spacer_block block-1\"\n" +
+        "                                         style=\"height:20px;line-height:20px;font-size:1px\">&#8202;\n" +
+        "                                    </div>\n" +
+        "                                </td>\n" +
+        "                            </tr>\n" +
+        "                            </tbody>\n" +
+        "                        </table>\n" +
+        "                    </td>\n" +
+        "                </tr>\n" +
+        "                </tbody>\n" +
+        "            </table>\n" +
+        "            <table class=\"row row-2\" align=\"center\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"\n" +
+        "                   role=\"presentation\" style=\"mso-table-lspace:0;mso-table-rspace:0\">\n" +
+        "                <tbody>\n" +
+        "                <tr>\n" +
+        "                    <td>\n" +
+        "                        <table class=\"row-content stack\"\n" +
+        "                               align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\"\n" +
+        "                               style=\"mso-table-lspace:0;mso-table-rspace:0;background-color:#fff;color:#000;width:510px;margin:0 auto\"\n" +
+        "                               width=\"510\">\n" +
+        "                            <tbody>\n" +
+        "                            <tr>\n" +
+        "                                <td class=\"column column-1\" width=\"100%\"\n" +
+        "                                    style=\"mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:30px;padding-left:30px;padding-right:30px;padding-top:30px;vertical-align:top\">\n" +
+        "                                    <table class=\"text_block block-2\" width=\"100%\" border=\"0\" cellpadding=\"10\"\n" +
+        "                                           cellspacing=\"0\" role=\"presentation\"\n" +
+        "                                           style=\"mso-table-lspace:0;mso-table-rspace:0;word-break:break-word\">\n" +
+        "                                        <tr>\n" +
+        "                                            <td class=\"pad\">\n" +
+        "                                                <div style=\"font-family:sans-serif\">\n" +
+        "                                                    <div class\n" +
+        "                                                         style=\"font-size:12px;font-family:Tahoma,Verdana,Segoe,sans-serif;mso-line-height-alt:14.399999999999999px;color:#181c27;line-height:1.2\">\n" +
+        "                                                        <p style=\"margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px\">\n" +
+        "                                                            <span style=\"word-break: break-word; font-size: 30px;\">Your Download is Ready</span>\n" +
+        "                                                        </p></div>\n" +
+        "                                                </div>\n" +
+        "                                            </td>\n" +
+        "                                        </tr>\n" +
+        "                                    </table>\n" +
+        "                                    <table class=\"text_block block-3\" width=\"100%\" border=\"0\" cellpadding=\"0\"\n" +
+        "                                           cellspacing=\"0\" role=\"presentation\"\n" +
+        "                                           style=\"mso-table-lspace:0;mso-table-rspace:0;word-break:break-word\">\n" +
+        "                                        <tr>\n" +
+        "                                            <td class=\"pad\"\n" +
+        "                                                style=\"padding-bottom:30px;padding-left:10px;padding-right:10px;padding-top:10px\">\n" +
+        "                                                <div style=\"font-family:sans-serif\">\n" +
+        "                                                    <div class\n" +
+        "                                                         style=\"font-size:12px;font-family:Tahoma,Verdana,Segoe,sans-serif;mso-line-height-alt:14.399999999999999px;color:#8d94a3;line-height:1.2\">\n" +
+        "                                                        <p style=\"margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px\">\n" +
+        "                                                            <span style=\"word-break: break-word; font-size: 16px;\">Use the link below to download <strong>the NoiseCapture database dump</strong></span>\n" +
+        "                                                        </p></div>\n" +
+        "                                                </div>\n" +
+        "                                            </td>\n" +
+        "                                        </tr>\n" +
+        "                                    </table>\n" +
+        "                                    <table class=\"button_block block-4\" width=\"100%\" border=\"0\" cellpadding=\"10\"\n" +
+        "                                           cellspacing=\"0\" role=\"presentation\"\n" +
+        "                                           style=\"mso-table-lspace:0;mso-table-rspace:0\">\n" +
+        "                                        <tr>\n" +
+        "                                            <td class=\"pad\">\n" +
+        "                                                <div class=\"alignment\" align=\"center\">\n" +
+        "                                                    <span class=\"button\"\n" +
+        "                                                          style=\"background-color: #f14b11; border-bottom: 0px solid transparent; border-left: 0px solid transparent; border-radius: 50px; border-right: 0px solid transparent; border-top: 0px solid transparent; color: #ffffff; display: inline-block; font-family: Tahoma, Verdana, Segoe, sans-serif; font-size: 16px; font-weight: undefined; mso-border-alt: none; padding-bottom: 10px; padding-top: 10px; padding-left: 20px; padding-right: 20px; text-align: center; width: 50%; word-break: keep-all; letter-spacing: normal;\"><span\n" +
+        "                                                            style=\"word-break: break-word; line-height: 32px;\"><a href=\"https://data.noise-planet.org/extract/$res\">Download</a></span></span>\n" +
+        "                                                </div>\n" +
+        "                                            </td>\n" +
+        "                                        </tr>\n" +
+        "                                    </table>\n" +
+        "                                </td>\n" +
+        "                            </tr>\n" +
+        "                            </tbody>\n" +
+        "                        </table>\n" +
+        "                    </td>\n" +
+        "                </tr>\n" +
+        "                </tbody>\n" +
+        "            </table>\n" +
+        "        </td>\n" +
+        "    </tr>\n" +
+        "    </tbody>\n" +
+        "</table><!-- End -->\n" +
+        "</body>\n" +
+        "</html>"
+      sendEmail(input, input["emailNotification"] as String, input["emailFrom"] as String,
+        "Your data extraction is ready", body)
+      return res
     }
   }
 

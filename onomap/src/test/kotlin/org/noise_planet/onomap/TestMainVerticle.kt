@@ -1,6 +1,7 @@
 package org.noise_planet.onomap
 
 import io.vertx.core.Handler
+import io.vertx.core.MultiMap
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.file.OpenOptions
@@ -437,4 +438,69 @@ class TestMainVerticle {
         })
     }))
   }
+
+  @Test
+  fun dumpRecordsTest(vertx: Vertx, testContext: VertxTestContext) {
+    val webClient: WebClient = WebClient.create(vertx)
+    val deploymentCheckpoint = testContext.checkpoint()
+    val requestCheckpoint = testContext.checkpoint()
+    val fs = vertx.fileSystem()
+    // Copy example file into the temporary directory as it was uploaded
+    val filename = "org/noise_planet/onomap/track_a23261b3-b569-4363-95be-e5578d694238.zip"
+    // create test dirs
+    Paths.get(workingDirectory.absolutePath, "onomap_uploading").createDirectory()
+    Paths.get(workingDirectory.absolutePath, "onomap_archives").createDirectory()
+    // Copy test data file
+    val path =
+      Paths.get(workingDirectory.absolutePath, "onomap_uploading", "track_a23261b3-b569-4363-95be-e5578d694238.zip")
+    path.parent.createDirectories()
+    fs.copyBlocking(filename, path.absolutePathString())
+
+    val app = MainVerticle()
+    // launch web server and ask to process the file through WPS query
+    vertx.deployVerticle(app).onComplete(testContext.succeeding<String?>(Handler {
+      prepareDbForUnitTest(app.ds)
+      app.ds?.connection?.use { connection ->
+        assert(path.exists())
+        nc_parse().exec(connection, mapOf("processFileLimit" to 20) as Map<String, *>)
+      }
+      // HTTP server is ready
+      deploymentCheckpoint.flag()
+      // Open local file to create the WPS query with this file embedded into a xml text element
+      testContext.verify {
+        val inputs = MultiMap.caseInsensitiveMultiMap()
+        inputs.add("service", "WPS")
+        inputs.add("request", "Execute")
+        inputs.add("version", "1.0.0")
+        inputs.add("identifier", "nc_dump_records")
+        inputs.add("startLatitude", "46.145837")
+        inputs.add("startLongitude", "-1.158028")
+        inputs.add("stopLatitude", "46.152378")
+        inputs.add("stopLongitude", "-1.150161")
+        inputs.add("dateRange", "01/01/2017+-+12/31/2017")
+        inputs.add("exportTracks", "on")
+        inputs.add("exportMeasures", "on")
+        inputs.add("exportAreas", "on")
+        inputs.add("emailNotification", "test@mail.com")
+        // send a POST query to Vert.X http server
+        webClient.post(ONOMAP_DEFAULT_PORT, "localhost", "/geoserver/wps")
+          .sendForm(inputs)
+          .onComplete(testContext.succeeding { resp ->
+            // We got a response from Vert.X http server
+            testContext.verify(ExecutionBlock {
+              // Check HTTP status code
+              assertThat(resp.statusCode(), equalTo(200))
+              // Check return result
+              val json = Json.decodeValue(resp.body())
+              assertInstanceOf<JsonObject>(json)
+
+              requestCheckpoint.flag()
+              testContext.completeNow()
+            })
+          })
+      }
+
+    }))
+  }
+
 }

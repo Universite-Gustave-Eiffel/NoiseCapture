@@ -111,10 +111,10 @@ static def epochToRFCTime(long epochMillisecond) {
  *  @return mail session, may not be null.
  */
 @CompileStatic
-static def createSession(Map input) {
+static Session createSession(Map<String, Object> input) {
   String smtpProtocol = input.getOrDefault("smtpProtocol", null)
-  def smtpHost = input.getOrDefault("smtpHost", null)
-  def smtpPort = input.getOrDefault("smtpPort", 0)
+  String smtpHost = input.getOrDefault("smtpHost", null)
+  int smtpPort = input.getOrDefault("smtpPort", 0) as Integer
   String smtpPassword = input.getOrDefault("smtpPassword", null)
   String smtpUsername = input.getOrDefault("smtpUsername", null)
   boolean smtpDebug = input.getOrDefault("smtpDebug", false)
@@ -608,7 +608,7 @@ def exec(Connection connection, Map input) {
         "        </td>\n" +
         "    </tr>\n" +
         "    </tbody>\n" +
-        "</table><!-- End -->\n" +
+        "</table>\n" +
         "</body>\n" +
         "</html>"
       sendEmail(input, input["emailNotification"] as String, input["emailFrom"] as String,

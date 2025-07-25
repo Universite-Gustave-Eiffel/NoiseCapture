@@ -35,4 +35,5 @@ else
   echo "Warning ! No pgbackrest configuration secret file file found !"
 fi
 
-pgbackrest --stanza=noisecapture --log-level-console=info stanza-create
+# ignore error, if the stanza cannot be created, we could want to restore a stanza from a backup
+pgbackrest --stanza=noisecapture --log-level-console=info stanza-create || true

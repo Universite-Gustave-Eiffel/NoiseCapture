@@ -1,0 +1,27 @@
+# docker-compose for restoring the database
+# to restore run
+# docker compose -f docker-compose-restore.yml run --rm postgis-restore
+# you need to remove the postgis-data volume before trying to restore from the backup
+volumes:
+  postgis-data:
+    driver: local
+  postgis-backup:
+    driver: local
+
+secrets:
+  postgis_pgbackrest_config:
+    file: ./pgbackrest.conf
+
+
+services:
+  postgis-restore:
+    build:
+      context: ./onomap-postgis
+    command: pgbackrest --config=/run/secrets/postgis_pgbackrest_config --log-level-console=detail --stanza=noisecapture restore
+    environment:
+      POSTGRES_DB: noisecapture
+    volumes:
+      - postgis-data:/var/lib/postgresql/data
+      - postgis-backup:/var/lib/pgbackrest
+    secrets:
+      - postgis_pgbackrest_config

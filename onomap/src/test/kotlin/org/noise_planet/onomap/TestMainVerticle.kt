@@ -12,21 +12,29 @@ import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import io.vertx.junit5.VertxTestContext.ExecutionBlock
 import io.vertx.kotlin.core.json.get
+import org.apache.commons.lang3.ArrayUtils
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.closeTo
 import org.hamcrest.Matchers.hasEntry
+import org.hamcrest.Matchers.hasSize
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertInstanceOf
+import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.io.TempDir
 import org.noise_planet.onomap.sensitive.nc_parse
+import org.slf4j.LoggerFactory
+import java.io.ByteArrayInputStream
 import java.io.File
+import java.lang.Thread.sleep
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 import javax.sql.DataSource
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
@@ -36,6 +44,7 @@ import kotlin.io.path.exists
 
 @ExtendWith(VertxExtension::class)
 class TestMainVerticle {
+  val logger = LoggerFactory.getLogger(TestMainVerticle::class.java)
 
   fun generateWpsGetAreaInfo() : Buffer {
     return Buffer.buffer("""
@@ -543,6 +552,18 @@ class TestMainVerticle {
             assertThat(resp.statusCode(), equalTo(200))
             // Check return result
             val json = Json.decodeValue(resp.body())
+            val outputDir = File(workingDirectory, "onomap_area_dump")
+            val start = System.currentTimeMillis()
+            while (outputDir.listFiles().size == 0 && System.currentTimeMillis() - start < 10000L) {
+              sleep(100)
+            }
+            assertThat(File(workingDirectory, "onomap_area_dump").listFiles().size, equalTo(1))
+            val zipFile = outputDir.listFiles().first()
+            ZipInputStream(ByteArrayInputStream(zipFile.readBytes())).use { zis ->
+              val firstEntry = zis.nextEntry
+              assertInstanceOf<ZipEntry>(firstEntry)
+              assertThat(firstEntry.name, equalTo("tracks.geojson"))
+            }
             requestCheckpoint.flag()
             testContext.completeNow()
           })

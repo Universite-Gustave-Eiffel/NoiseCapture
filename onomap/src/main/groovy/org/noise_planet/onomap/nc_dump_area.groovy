@@ -61,6 +61,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 import java.util.concurrent.TimeoutException
 import java.util.zip.GZIPInputStream
 import java.util.zip.ZipEntry
@@ -299,7 +300,7 @@ public String getDump(DataSource dataSource, File zipFileName, Map input) {
         " noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags," +
         " (select noisecapture_party.tag from noisecapture_party where noisecapture_party.pk_party = nt.pk_party)" +
         " partycode from noisecapture_track nt, noisecapture_dump_track_envelope te  " +
-        "where record_utc >= :fromEpoch and record_utc < :toEpoch and te.the_geom && :envelope::geometry and nt.pk_track = te.pk_track order by nt.record_utc;",
+        "where record_utc >= :fromEpoch::timestamptz and record_utc < :toEpoch::timestamptz and te.the_geom && :envelope::geometry and nt.pk_track = te.pk_track order by nt.record_utc;",
         [envelope: envelope.toString(), fromEpoch: epochToRFCTime(fromEpoch), toEpoch: epochToRFCTime(toEpoch)]) { GroovyResultSet track_row ->
         def the_geom = new JsonSlurper().parseText((String) track_row['the_geom'])
         def time_ISO_8601 = epochToRFCTime(((Timestamp) track_row['record_utc']).time, (String) track_row['tzid'])
@@ -340,7 +341,7 @@ public String getDump(DataSource dataSource, File zipFileName, Map input) {
       sql.eachRow("select (select tzid from tz_world tz where tz.the_geom && np.the_geom and" +
         " ST_Contains(tz.the_geom, np.the_geom) LIMIT 1) tzid, np.pk_track, ST_AsGeoJson(np.the_geom) the_geom," +
         " np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location " +
-        " from noisecapture_point np where time_date >= :fromEpoch and time_date < :toEpoch and the_geom && :envelope::geometry order by np.time_date",
+        " from noisecapture_point np where time_date >= :fromEpoch::timestamptz and time_date < :toEpoch::timestamptz and the_geom && :envelope::geometry order by np.time_date",
         [envelope: envelope.toString(), fromEpoch: epochToRFCTime(fromEpoch), toEpoch: epochToRFCTime(toEpoch)]) {
         GroovyResultSet track_row ->
         def the_geom = new JsonSlurper().parseText(track_row.getString('the_geom'))
@@ -383,7 +384,7 @@ public String getDump(DataSource dataSource, File zipFileName, Map input) {
         " string_agg(to_char(nap.laeq, 'FM999.9'), '_') leq_profile," +
         " string_agg(to_char(local_hour, '999'), '_') hour_profile" +
         " FROM noisecapture_area na, noisecapture_area_profile nap" +
-        " where na.last_measure >= :fromEpoch and na.last_measure < :toEpoch and na.the_geom && :envelope::geometry and nap.pk_area = na.pk_area and" +
+        " where na.last_measure >= :fromEpoch::timestamptz and na.last_measure < :toEpoch::timestamptz and na.the_geom && :envelope::geometry and nap.pk_area = na.pk_area and" +
         " na.pk_party is null group by na.the_geom, cell_q, cell_r, tzid, na.la50, na.laeq, na.lden , mean_pleasantness," +
         " measure_count, first_measure, last_measure order by cell_q, cell_r;", [envelope: envelope.toString(), fromEpoch: epochToRFCTime(fromEpoch), toEpoch: epochToRFCTime(toEpoch)]) {
         GroovyResultSet track_row ->

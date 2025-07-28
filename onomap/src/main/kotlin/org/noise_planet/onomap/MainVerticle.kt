@@ -64,6 +64,7 @@ package org.noise_planet.onomap
  import java.io.File
  import java.lang.Double
  import java.lang.Float
+ import java.lang.Thread.sleep
  import java.util.concurrent.atomic.AtomicLong
  import kotlin.Any
  import kotlin.Array
@@ -80,7 +81,7 @@ package org.noise_planet.onomap
 
 
 const val ONOMAP_DEFAULT_PORT = 8888
-
+const val DEFAULT_WPS_DELAYED_TIMEOUT = 10000L
 const val MS_DELAY_PROCESS_MEASUREMENTS = 5000L
 
 class MainVerticle : AbstractVerticle() {
@@ -224,7 +225,17 @@ class MainVerticle : AbstractVerticle() {
     // Send response to client
     val encodedResult =
       if (scriptOutput is Map<*, *> && scriptOutput.containsKey("result")) {
-        scriptOutput["result"].toString()
+        val res = scriptOutput["result"]
+        var result = "\"delayed\""
+        if(res is Promise<*>) {
+          res.future().onComplete { ar ->
+            result = ar.result().toString()
+            log.info("Delayed processing ${context.request().uri()} result: $result")
+          }
+          result
+        } else {
+          res.toString()
+        }
       } else {
         Json.encode(scriptOutput)
       }

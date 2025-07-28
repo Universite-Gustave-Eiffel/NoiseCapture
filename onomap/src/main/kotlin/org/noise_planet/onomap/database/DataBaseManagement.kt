@@ -222,8 +222,8 @@ class DataBaseManagement {
                 }
               }
             }
-            connection.autoCommit = true
             connection.commit()
+            connection.autoCommit = true
           } catch (ex: Exception) {
             log.error("Error while init database", ex)
             connection.rollback()

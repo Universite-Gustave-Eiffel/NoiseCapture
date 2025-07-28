@@ -34,6 +34,7 @@ import groovy.sql.GroovyResultSet
 import groovy.sql.Sql
 import groovy.transform.CompileStatic
 import groovy.transform.Field
+import org.locationtech.jts.geom.Geometry
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -69,14 +70,8 @@ title = 'nc_dump_records'
 description = 'Dump database data to a folder'
 
 inputs = [
-  startLatitude       : [name: 'startLatitude', title: '',
-                         type: Double.class],
-  startLongitude      : [name: 'startLongitude', title: '',
-                         type: Double.class],
-  stopLatitude        : [name: 'stopLatitude', title: '',
-                         type: Double.class],
-  stopLongitude       : [name: 'stopLongitude', title: '',
-                         type: Double.class],
+  envelope       : [name: 'envelope', title: '',
+                         type: Geometry.class],
   exportTracks        : [name: 'exportTracks', title: 'Export raw track boolean',
                          type: Boolean.class],
   exportMeasures      : [name: 'exportMeasures', title: 'Export raw measures boolean',
@@ -86,7 +81,9 @@ inputs = [
   emailNotification   : [name: 'emailNotification', title: 'Send links to download content to this email',
                          type: String.class],
   fromEpoch   : [name: 'fromEpoch', title: 'Filter from this utc epoch time',
-                         type: Long.class, min:0, max:1]
+                         type: Long.class, min:0, max:1],
+  toEpoch   : [name: 'fromEpoch', title: 'Filter to this utc epoch time',
+                 type: Long.class, min:0, max:1]
 ]
 
 outputs = [
@@ -242,10 +239,7 @@ public String getDump(DataSource dataSource, File zipFileName, Map input) {
 
   // gzip then base64 the content (http://www.txtwizard.net/compression)
   final String README_CONTENT = "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"
-  def startLatitude = input["startLatitude"] as Double
-  def startLongitude = input["startLongitude"] as Double
-  def stopLatitude = input["stopLatitude"] as Double
-  def stopLongitude = input["stopLongitude"] as Double
+  def geom = input["envelope"] as Geometry
   boolean exportTracks= input["exportTracks"]
   boolean exportMeasures = input["exportMeasures"]
   boolean exportAreas = input["exportAreas"]
@@ -253,11 +247,15 @@ public String getDump(DataSource dataSource, File zipFileName, Map input) {
   if("fromEpoch" in input) {
     fromEpoch = Math.max(0L, input["fromEpoch"] as Long)
   }
+  long toEpoch = Long.MAX_VALUE
+  if("toEpoch" in input) {
+    toEpoch = Math.max(0L, input["toEpoch"] as Long)
+  }
 
   long startDump = System.currentTimeMillis()
 
 
-  def envelope = "SRID=2154;Polygon (($startLongitude $startLatitude, $stopLongitude $startLatitude, $stopLongitude $stopLatitude, $startLongitude $stopLatitude, $startLongitude $startLatitude))"
+  def envelope = "SRID=2154; $geom"
   long totalDumpTracks = 0
   long totalDumpPoints = 0
   long totalDumpAreas = 0
@@ -301,8 +299,8 @@ public String getDump(DataSource dataSource, File zipFileName, Map input) {
         " noisecapture_track_tag nttag where ntag.pk_tag = nttag.pk_tag and nttag.pk_track = nt.pk_track) tags," +
         " (select noisecapture_party.tag from noisecapture_party where noisecapture_party.pk_party = nt.pk_party)" +
         " partycode from noisecapture_track nt, noisecapture_dump_track_envelope te  " +
-        "where record_utc >= :fromEpoch and te.the_geom && :envelope::geometry and nt.pk_track = te.pk_track order by nt.record_utc;",
-        [envelope: envelope.toString(), fromEpoch: epochToRFCTime(fromEpoch)]) { GroovyResultSet track_row ->
+        "where record_utc >= :fromEpoch and record_utc < :toEpoch and te.the_geom && :envelope::geometry and nt.pk_track = te.pk_track order by nt.record_utc;",
+        [envelope: envelope.toString(), fromEpoch: epochToRFCTime(fromEpoch), toEpoch: epochToRFCTime(toEpoch)]) { GroovyResultSet track_row ->
         def the_geom = new JsonSlurper().parseText((String) track_row['the_geom'])
         def time_ISO_8601 = epochToRFCTime(((Timestamp) track_row['record_utc']).time, (String) track_row['tzid'])
         def track = [type: "Feature", geometry: the_geom, properties: [pleasantness    : track_row['pleasantness'] == null ? null : (Double.isNaN(track_row.getDouble('pleasantness')) ? null : track_row['pleasantness']),
@@ -342,8 +340,8 @@ public String getDump(DataSource dataSource, File zipFileName, Map input) {
       sql.eachRow("select (select tzid from tz_world tz where tz.the_geom && np.the_geom and" +
         " ST_Contains(tz.the_geom, np.the_geom) LIMIT 1) tzid, np.pk_track, ST_AsGeoJson(np.the_geom) the_geom," +
         " np.noise_level, np.speed, np.accuracy, np.orientation, np.time_date, np.time_location " +
-        " from noisecapture_point np where time_date >= :fromEpoch and the_geom && :envelope::geometry order by np.time_date",
-        [envelope: envelope.toString(), fromEpoch: epochToRFCTime(fromEpoch)]) {
+        " from noisecapture_point np where time_date >= :fromEpoch and time_date < :toEpoch and the_geom && :envelope::geometry order by np.time_date",
+        [envelope: envelope.toString(), fromEpoch: epochToRFCTime(fromEpoch), toEpoch: epochToRFCTime(toEpoch)]) {
         GroovyResultSet track_row ->
         def the_geom = new JsonSlurper().parseText(track_row.getString('the_geom'))
         def time_ISO_8601 = epochToRFCTime((track_row.getTimestamp('time_date')).time, track_row.getString('tzid'))
@@ -385,9 +383,9 @@ public String getDump(DataSource dataSource, File zipFileName, Map input) {
         " string_agg(to_char(nap.laeq, 'FM999.9'), '_') leq_profile," +
         " string_agg(to_char(local_hour, '999'), '_') hour_profile" +
         " FROM noisecapture_area na, noisecapture_area_profile nap" +
-        " where na.last_measure >= :fromEpoch and na.the_geom && :envelope::geometry and nap.pk_area = na.pk_area and" +
+        " where na.last_measure >= :fromEpoch and na.last_measure < :toEpoch and na.the_geom && :envelope::geometry and nap.pk_area = na.pk_area and" +
         " na.pk_party is null group by na.the_geom, cell_q, cell_r, tzid, na.la50, na.laeq, na.lden , mean_pleasantness," +
-        " measure_count, first_measure, last_measure order by cell_q, cell_r;", [envelope: envelope.toString(), fromEpoch: epochToRFCTime(fromEpoch)]) {
+        " measure_count, first_measure, last_measure order by cell_q, cell_r;", [envelope: envelope.toString(), fromEpoch: epochToRFCTime(fromEpoch), toEpoch: epochToRFCTime(toEpoch)]) {
         GroovyResultSet track_row ->
           def first_measure_ISO_8601 = epochToRFCTime((track_row.getTimestamp('first_measure')).time, track_row.getString('tzid'))
           def last_measure_ISO_8601 = epochToRFCTime((track_row.getTimestamp('last_measure')).time, track_row.getString('tzid'))
@@ -468,149 +466,149 @@ def exec(Connection connection, Map input) {
     @Override
     String call() throws Exception {
       String res = getDump(input["dataSource"] as DataSource, zipFileName, input)
-      def body = "<!DOCTYPE html>\n" +
-        "<html lang=\"en\">\n" +
-        "<head><title></title>\n" +
-        "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\">\n" +
-        "    <meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">\n" +
-        "    <style>\n" +
-        "        * {\n" +
-        "            box-sizing: border-box\n" +
-        "        }\n" +
-        "        body {\n" +
-        "            margin: 0;\n" +
-        "            padding: 0\n" +
-        "        }\n" +
-        "        a[x-apple-data-detectors] {\n" +
-        "            color: inherit !important;\n" +
-        "            text-decoration: inherit !important\n" +
-        "        }\n" +
-        "        #MessageViewBody a {\n" +
-        "            color: inherit;\n" +
-        "            text-decoration: none\n" +
-        "        }\n" +
-        "        p {\n" +
-        "            line-height: inherit\n" +
-        "        }\n" +
-        "        .image_block img + div {\n" +
-        "            display: none\n" +
-        "        }\n" +
-        "        sub, sup {\n" +
-        "            font-size: 75%;\n" +
-        "            line-height: 0\n" +
-        "        }\n" +
-        "        @media (max-width: 530px) {\n" +
-        "            .stack .column {\n" +
-        "                width: 100%;\n" +
-        "                display: block\n" +
-        "            }\n" +
-        "        }\n" +
-        "    </style>\n" +
-        "</head>\n" +
-        "<body class=\"body\"\n" +
-        "      style=\"background-color:#f14b11;margin:0;padding:0;-webkit-text-size-adjust:none;text-size-adjust:none\">\n" +
-        "<table class=\"nl-container\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\"\n" +
-        "       style=\"mso-table-lspace:0;mso-table-rspace:0;background-color:#f14b11\">\n" +
-        "    <tbody>\n" +
-        "    <tr>\n" +
-        "        <td>\n" +
-        "            <table align=\"center\"\n" +
-        "                   border=\"0\" cellpadding=\"0\" cellspacing=\"0\" class=\"row row-1\" role=\"presentation\"\n" +
-        "                   style=\"mso-table-lspace:0;mso-table-rspace:0\"\n" +
-        "                   width=\"100%\">\n" +
-        "                <tbody>\n" +
-        "                <tr>\n" +
-        "                    <td>\n" +
-        "                        <table class=\"row-content stack\" align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"\n" +
-        "                               role=\"presentation\"\n" +
-        "                               style=\"mso-table-lspace:0;mso-table-rspace:0;color:#000;width:510px;margin:0 auto\"\n" +
-        "                               width=\"510\">\n" +
-        "                            <tbody>\n" +
-        "                            <tr>\n" +
-        "                                <td class=\"column column-1\" width=\"100%\"\n" +
-        "                                    style=\"mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top\">\n" +
-        "                                    <div class=\"spacer_block block-1\"\n" +
-        "                                         style=\"height:20px;line-height:20px;font-size:1px\">&#8202;\n" +
-        "                                    </div>\n" +
-        "                                </td>\n" +
-        "                            </tr>\n" +
-        "                            </tbody>\n" +
-        "                        </table>\n" +
-        "                    </td>\n" +
-        "                </tr>\n" +
-        "                </tbody>\n" +
-        "            </table>\n" +
-        "            <table class=\"row row-2\" align=\"center\" width=\"100%\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\"\n" +
-        "                   role=\"presentation\" style=\"mso-table-lspace:0;mso-table-rspace:0\">\n" +
-        "                <tbody>\n" +
-        "                <tr>\n" +
-        "                    <td>\n" +
-        "                        <table class=\"row-content stack\"\n" +
-        "                               align=\"center\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" role=\"presentation\"\n" +
-        "                               style=\"mso-table-lspace:0;mso-table-rspace:0;background-color:#fff;color:#000;width:510px;margin:0 auto\"\n" +
-        "                               width=\"510\">\n" +
-        "                            <tbody>\n" +
-        "                            <tr>\n" +
-        "                                <td class=\"column column-1\" width=\"100%\"\n" +
-        "                                    style=\"mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:30px;padding-left:30px;padding-right:30px;padding-top:30px;vertical-align:top\">\n" +
-        "                                    <table class=\"text_block block-2\" width=\"100%\" border=\"0\" cellpadding=\"10\"\n" +
-        "                                           cellspacing=\"0\" role=\"presentation\"\n" +
-        "                                           style=\"mso-table-lspace:0;mso-table-rspace:0;word-break:break-word\">\n" +
-        "                                        <tr>\n" +
-        "                                            <td class=\"pad\">\n" +
-        "                                                <div style=\"font-family:sans-serif\">\n" +
-        "                                                    <div class\n" +
-        "                                                         style=\"font-size:12px;font-family:Tahoma,Verdana,Segoe,sans-serif;mso-line-height-alt:14.399999999999999px;color:#181c27;line-height:1.2\">\n" +
-        "                                                        <p style=\"margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px\">\n" +
-        "                                                            <span style=\"word-break: break-word; font-size: 30px;\">Your Download is Ready</span>\n" +
-        "                                                        </p></div>\n" +
-        "                                                </div>\n" +
-        "                                            </td>\n" +
-        "                                        </tr>\n" +
-        "                                    </table>\n" +
-        "                                    <table class=\"text_block block-3\" width=\"100%\" border=\"0\" cellpadding=\"0\"\n" +
-        "                                           cellspacing=\"0\" role=\"presentation\"\n" +
-        "                                           style=\"mso-table-lspace:0;mso-table-rspace:0;word-break:break-word\">\n" +
-        "                                        <tr>\n" +
-        "                                            <td class=\"pad\"\n" +
-        "                                                style=\"padding-bottom:30px;padding-left:10px;padding-right:10px;padding-top:10px\">\n" +
-        "                                                <div style=\"font-family:sans-serif\">\n" +
-        "                                                    <div class\n" +
-        "                                                         style=\"font-size:12px;font-family:Tahoma,Verdana,Segoe,sans-serif;mso-line-height-alt:14.399999999999999px;color:#8d94a3;line-height:1.2\">\n" +
-        "                                                        <p style=\"margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px\">\n" +
-        "                                                            <span style=\"word-break: break-word; font-size: 16px;\">Use the link below to download <strong>the NoiseCapture database dump</strong></span>\n" +
-        "                                                        </p></div>\n" +
-        "                                                </div>\n" +
-        "                                            </td>\n" +
-        "                                        </tr>\n" +
-        "                                    </table>\n" +
-        "                                    <table class=\"button_block block-4\" width=\"100%\" border=\"0\" cellpadding=\"10\"\n" +
-        "                                           cellspacing=\"0\" role=\"presentation\"\n" +
-        "                                           style=\"mso-table-lspace:0;mso-table-rspace:0\">\n" +
-        "                                        <tr>\n" +
-        "                                            <td class=\"pad\">\n" +
-        "                                                <div class=\"alignment\" align=\"center\">\n" +
-        "                                                    <span class=\"button\"\n" +
-        "                                                          style=\"background-color: #f14b11; border-bottom: 0px solid transparent; border-left: 0px solid transparent; border-radius: 50px; border-right: 0px solid transparent; border-top: 0px solid transparent; color: #ffffff; display: inline-block; font-family: Tahoma, Verdana, Segoe, sans-serif; font-size: 16px; font-weight: undefined; mso-border-alt: none; padding-bottom: 10px; padding-top: 10px; padding-left: 20px; padding-right: 20px; text-align: center; width: 50%; word-break: keep-all; letter-spacing: normal;\"><span\n" +
-        "                                                            style=\"word-break: break-word; line-height: 32px;\"><a href=\"https://data.noise-planet.org/extract/$res\">Download</a></span></span>\n" +
-        "                                                </div>\n" +
-        "                                            </td>\n" +
-        "                                        </tr>\n" +
-        "                                    </table>\n" +
-        "                                </td>\n" +
-        "                            </tr>\n" +
-        "                            </tbody>\n" +
-        "                        </table>\n" +
-        "                    </td>\n" +
-        "                </tr>\n" +
-        "                </tbody>\n" +
-        "            </table>\n" +
-        "        </td>\n" +
-        "    </tr>\n" +
-        "    </tbody>\n" +
-        "</table>\n" +
-        "</body>\n" +
-        "</html>"
+      def body = """<!DOCTYPE html>
+<html lang="en">
+<head><title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        * {
+            box-sizing: border-box
+        }
+        body {
+            margin: 0;
+            padding: 0
+        }
+        a[x-apple-data-detectors] {
+            color: inherit !important;
+            text-decoration: inherit !important
+        }
+        #MessageViewBody a {
+            color: inherit;
+            text-decoration: none
+        }
+        p {
+            line-height: inherit
+        }
+        .image_block img + div {
+            display: none
+        }
+        sub, sup {
+            font-size: 75%;
+            line-height: 0
+        }
+        @media (max-width: 530px) {
+            .stack .column {
+                width: 100%;
+                display: block
+            }
+        }
+    </style>
+</head>
+<body class="body"
+      style="background-color:#f14b11;margin:0;padding:0;-webkit-text-size-adjust:none;text-size-adjust:none">
+<table class="nl-container" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"
+       style="mso-table-lspace:0;mso-table-rspace:0;background-color:#f14b11">
+    <tbody>
+    <tr>
+        <td>
+            <table align="center"
+                   border="0" cellpadding="0" cellspacing="0" class="row row-1" role="presentation"
+                   style="mso-table-lspace:0;mso-table-rspace:0"
+                   width="100%">
+                <tbody>
+                <tr>
+                    <td>
+                        <table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0"
+                               role="presentation"
+                               style="mso-table-lspace:0;mso-table-rspace:0;color:#000;width:510px;margin:0 auto"
+                               width="510">
+                            <tbody>
+                            <tr>
+                                <td class="column column-1" width="100%"
+                                    style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top">
+                                    <div class="spacer_block block-1"
+                                         style="height:20px;line-height:20px;font-size:1px">&#8202;
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <table class="row row-2" align="center" width="100%" border="0" cellpadding="0" cellspacing="0"
+                   role="presentation" style="mso-table-lspace:0;mso-table-rspace:0">
+                <tbody>
+                <tr>
+                    <td>
+                        <table class="row-content stack"
+                               align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
+                               style="mso-table-lspace:0;mso-table-rspace:0;background-color:#fff;color:#000;width:510px;margin:0 auto"
+                               width="510">
+                            <tbody>
+                            <tr>
+                                <td class="column column-1" width="100%"
+                                    style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:30px;padding-left:30px;padding-right:30px;padding-top:30px;vertical-align:top">
+                                    <table class="text_block block-2" width="100%" border="0" cellpadding="10"
+                                           cellspacing="0" role="presentation"
+                                           style="mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
+                                        <tr>
+                                            <td class="pad">
+                                                <div style="font-family:sans-serif">
+                                                    <div class
+                                                         style="font-size:12px;font-family:Tahoma,Verdana,Segoe,sans-serif;mso-line-height-alt:14.399999999999999px;color:#181c27;line-height:1.2">
+                                                        <p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px">
+                                                            <span style="word-break: break-word; font-size: 30px;">Your Download is Ready</span>
+                                                        </p></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table class="text_block block-3" width="100%" border="0" cellpadding="0"
+                                           cellspacing="0" role="presentation"
+                                           style="mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
+                                        <tr>
+                                            <td class="pad"
+                                                style="padding-bottom:30px;padding-left:10px;padding-right:10px;padding-top:10px">
+                                                <div style="font-family:sans-serif">
+                                                    <div class
+                                                         style="font-size:12px;font-family:Tahoma,Verdana,Segoe,sans-serif;mso-line-height-alt:14.399999999999999px;color:#8d94a3;line-height:1.2">
+                                                        <p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px">
+                                                            <span style="word-break: break-word; font-size: 16px;">Use the link below to download <strong>the NoiseCapture database dump</strong></span>
+                                                        </p></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table class="button_block block-4" width="100%" border="0" cellpadding="10"
+                                           cellspacing="0" role="presentation"
+                                           style="mso-table-lspace:0;mso-table-rspace:0">
+                                        <tr>
+                                            <td class="pad">
+                                                <div class="alignment" align="center">
+                                                    <span class="button"
+                                                          style="background-color: #f14b11; border-bottom: 0px solid transparent; border-left: 0px solid transparent; border-radius: 50px; border-right: 0px solid transparent; border-top: 0px solid transparent; color: #ffffff; display: inline-block; font-family: Tahoma, Verdana, Segoe, sans-serif; font-size: 16px; font-weight: undefined; mso-border-alt: none; padding-bottom: 10px; padding-top: 10px; padding-left: 20px; padding-right: 20px; text-align: center; width: 50%; word-break: keep-all; letter-spacing: normal;"><span
+                                                            style="word-break: break-word; line-height: 32px;"><a href="https://data.noise-planet.org/extract/$res">Download</a></span></span>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>"""
       sendEmail(input, input["emailNotification"] as String, input["emailFrom"] as String,
         "Your data extraction is ready", body)
       return res

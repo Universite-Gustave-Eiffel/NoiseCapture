@@ -31,6 +31,8 @@ import groovy.sql.Sql
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.io.TempDir
+import org.locationtech.jts.geom.Envelope
+import org.locationtech.jts.geom.GeometryFactory
 import org.noise_planet.onomap.sensitive.nc_dump_records
 import org.noise_planet.onomap.sensitive.nc_feed_stats
 import org.noise_planet.onomap.sensitive.nc_parse
@@ -117,11 +119,10 @@ class TestNoiseCaptureDumpArea extends JdbcTestCase {
     // convert to hexagons
     assertEquals(21, new nc_process().process(connection, 10, 0))
     Sql.LOG.level = java.util.logging.Level.SEVERE
+    Envelope env = new Envelope(12.384801, 12.392135, 43.104708, 43.11107)
+
     def returnResult = new nc_dump_area().exec(connection, [ dataSource: dataSource,
-                                                              startLatitude:43.104708,
-                                                              startLongitude:12.384801,
-                                                              stopLatitude:43.11107,
-                                                              stopLongitude:12.392135,
+                                                              envelope: new GeometryFactory().toGeometry(env),
                                                               exportTracks:1,
                                                               exportMeasures:1,
                                                               exportAreas:1,

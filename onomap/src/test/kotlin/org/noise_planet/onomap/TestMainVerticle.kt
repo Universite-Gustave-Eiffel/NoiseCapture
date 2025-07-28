@@ -1,7 +1,6 @@
 package org.noise_planet.onomap
 
 import io.vertx.core.Handler
-import io.vertx.core.MultiMap
 import io.vertx.core.Vertx
 import io.vertx.core.buffer.Buffer
 import io.vertx.core.file.OpenOptions
@@ -27,6 +26,7 @@ import java.io.File
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
 import javax.sql.DataSource
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
@@ -128,7 +128,7 @@ class TestMainVerticle {
 	xmlns:ogc="http://www.opengis.net/ogc"
 	xmlns:wcs="http://www.opengis.net/wcs/1.1.1"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
-        xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
 	<ows:Identifier>groovy:nc_last_measures</ows:Identifier>
 	<wps:DataInputs>
 		<wps:Input>
@@ -146,7 +146,66 @@ class TestMainVerticle {
 </wps:Execute>""")
   }
 
-
+  fun generateWPSDumpArea(envelope: String, fromEpoch: Long, toEpoch: Long) : Buffer {
+    return Buffer.buffer("""<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="1.0.0"
+     service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs"
+     xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1"
+     xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc"
+      xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink"
+      xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+      <ows:Identifier>groovy:nc_dump_area</ows:Identifier>
+      <wps:DataInputs>
+        <wps:Input>
+          <ows:Identifier>envelope</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>$envelope</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>exportTracks</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>on</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>exportMeasures</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>on</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>exportAreas</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>on</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>fromEpoch</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>$fromEpoch</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>toEpoch</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>$toEpoch</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>emailNotification</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>ffyy@ff.fr</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+      </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:RawDataOutput>
+      <ows:Identifier>result</ows:Identifier>
+    </wps:RawDataOutput>
+  </wps:ResponseForm>
+</wps:Execute>""")
+  }
   @BeforeEach
   fun initEnv(@TempDir folder : Path) {
     workingDirectory = folder.toFile()
@@ -466,40 +525,28 @@ class TestMainVerticle {
       }
       // HTTP server is ready
       deploymentCheckpoint.flag()
-      // Open local file to create the WPS query with this file embedded into a xml text element
-      testContext.verify {
-        val inputs = MultiMap.caseInsensitiveMultiMap()
-        inputs.add("service", "WPS")
-        inputs.add("request", "Execute")
-        inputs.add("version", "1.0.0")
-        inputs.add("identifier", "nc_dump_records")
-        inputs.add("startLatitude", "46.145837")
-        inputs.add("startLongitude", "-1.158028")
-        inputs.add("stopLatitude", "46.152378")
-        inputs.add("stopLongitude", "-1.150161")
-        inputs.add("dateRange", "01/01/2017+-+12/31/2017")
-        inputs.add("exportTracks", "on")
-        inputs.add("exportMeasures", "on")
-        inputs.add("exportAreas", "on")
-        inputs.add("emailNotification", "test@mail.com")
-        // send a POST query to Vert.X http server
-        webClient.post(ONOMAP_DEFAULT_PORT, "localhost", "/geoserver/wps")
-          .sendForm(inputs)
-          .onComplete(testContext.succeeding { resp ->
-            // We got a response from Vert.X http server
-            testContext.verify(ExecutionBlock {
-              // Check HTTP status code
-              assertThat(resp.statusCode(), equalTo(200))
-              // Check return result
-              val json = Json.decodeValue(resp.body())
-              assertInstanceOf<JsonObject>(json)
 
-              requestCheckpoint.flag()
-              testContext.completeNow()
-            })
+      val startLatitude =46.145837
+      val startLongitude = -1.158028
+      val stopLatitude = 46.152378
+      val stopLongitude = -1.150161
+      val dateStart = "01/01/2017"
+      val dateStop = "12/31/2017"
+      val sdf = SimpleDateFormat("dd/MM/yyyy")
+      val envelope = "Polygon ((${startLongitude} ${startLatitude}, $stopLongitude ${startLatitude}, $stopLongitude ${stopLatitude}, $startLongitude ${stopLatitude}, $startLongitude ${startLatitude}))"
+      webClient.post(ONOMAP_DEFAULT_PORT, "localhost", "/geoserver/wps?REQUEST=Execute&SERVICE=wps&VERSION=1.0.0&IDENTIFIER=groovy%3Anc_dump_area")
+        .sendBuffer(generateWPSDumpArea(envelope = envelope, sdf.parse(dateStart).time, sdf.parse(dateStop).time))
+        .onComplete(testContext.succeeding { resp ->
+          // We got a response from Vert.X http server
+          testContext.verify(ExecutionBlock {
+            // Check HTTP status code
+            assertThat(resp.statusCode(), equalTo(200))
+            // Check return result
+            val json = Json.decodeValue(resp.body())
+            requestCheckpoint.flag()
+            testContext.completeNow()
           })
-      }
-
+        })
     }))
   }
 

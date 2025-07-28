@@ -131,7 +131,7 @@ class DataBaseManagement {
           vertx.fileSystem().createTempDirectory("gadm").onComplete { res ->
             val tempDirectory = res.result()
             val fileName = url.path.substringAfterLast('/')
-            val fileExtension = fileName.substringAfterLast('.')
+            val fileExtension = fileName.substringAfterLast('.').lowercase()
             val dataFile = Path.of(tempDirectory, fileName)
             log.info("Table $dataTable is not in database download the file from $url to ${dataFile.pathString}..")
             url.downloadFile(dataFile.toFile(), DisplayProgressVisitor(1, true, 1.0, logger = log))
@@ -163,6 +163,8 @@ class DataBaseManagement {
                 val tableName = TableLocation.capsIdentifier(dataTable, dbType)
                 val geometryColumnName = TableLocation.capsIdentifier("the_geom", dbType)
                 connection.createStatement().execute("SELECT UPDATEGEOMETRYSRID('$tableName', '$geometryColumnName', 4326)")
+              } else {
+                log.warn("Unknown format: '${dataFile.pathString}'")
               }
               val isDataTableCreated = JDBCUtilities.tableExists(connection, dataTable)
               if(!isDataTableCreated) {
@@ -221,6 +223,7 @@ class DataBaseManagement {
               }
             }
             connection.autoCommit = true
+            connection.commit()
           } catch (ex: Exception) {
             log.error("Error while init database", ex)
             connection.rollback()

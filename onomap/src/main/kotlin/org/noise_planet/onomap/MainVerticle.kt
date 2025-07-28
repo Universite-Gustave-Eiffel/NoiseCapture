@@ -32,10 +32,12 @@ package org.noise_planet.onomap
  import io.vertx.config.ConfigRetriever
  import io.vertx.core.AbstractVerticle
  import io.vertx.core.Promise
+ import io.vertx.core.http.HttpMethod
  import io.vertx.core.json.Json
  import io.vertx.ext.web.Router
  import io.vertx.ext.web.RoutingContext
  import io.vertx.ext.web.handler.BodyHandler
+ import io.vertx.ext.web.handler.CorsHandler
  import io.vertx.launcher.application.VertxApplication
  import kotlinx.coroutines.DelicateCoroutinesApi
  import net.opengis.ows11.Ows11Factory
@@ -134,6 +136,14 @@ class MainVerticle : AbstractVerticle() {
     val retriever = ConfigRetriever.create(vertx)
 
     val router = Router.router(vertx).apply {
+      route().handler(CorsHandler.create()
+        .allowedMethod(HttpMethod.GET)
+        .allowedMethod(HttpMethod.POST)
+        .allowedHeader("Content-Type")
+        .allowedHeader("Authorization")
+        .allowedHeader("Access-Control-Allow-Origin")
+        .allowCredentials(true) // if necessary to send cookies or other credentials
+      )
       post("/geoserver/wps").handler(BodyHandler.create()).handler(this@MainVerticle::noisecapture1WPS)
       get("/api/dumpData").handler(BodyHandler.create()).handler(this@MainVerticle::doDumpData)
       get("/api/dumpStats").handler(BodyHandler.create()).handler(this@MainVerticle::doDumpStats)

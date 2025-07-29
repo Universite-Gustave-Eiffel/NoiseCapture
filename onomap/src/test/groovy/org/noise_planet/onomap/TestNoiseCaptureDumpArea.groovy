@@ -121,15 +121,12 @@ class TestNoiseCaptureDumpArea extends JdbcTestCase {
     Sql.LOG.level = java.util.logging.Level.SEVERE
     Envelope env = new Envelope(12.384801, 12.392135, 43.104708, 43.11107)
 
-    def returnResult = new nc_dump_area().exec(connection, [ dataSource: dataSource,
+    def fileName = new nc_dump_area().getDump(dataSource, new File(folder.toFile(), "ut.zip.tmp"), [
                                                               envelope: new GeometryFactory().toGeometry(env),
                                                               exportTracks:1,
                                                               exportMeasures:1,
-                                                              exportAreas:1,
-                                                              emailNotification:'contact@noise-planet.org'])
+                                                              exportAreas:1])
 
-    def f = returnResult["result"] as Future<String>
-    def fileName = f.get(5000L, TimeUnit.MILLISECONDS)
     assertTrue(new File(fileName).exists())
     new ZipInputStream(new FileInputStream(fileName)).withStream { zipInputStream ->
       assertEquals("tracks.geojson", zipInputStream.getNextEntry().getName())

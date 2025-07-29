@@ -45,6 +45,7 @@ import java.sql.Statement
 
 @CompileStatic
 class JdbcTestCase {
+  DataSource dataSource
   Connection connection
 
   static DataSource createDataSource(String user, String password, boolean debug) throws SQLException {
@@ -52,7 +53,7 @@ class JdbcTestCase {
     Driver driver = Driver.load();
     OsgiDataSourceFactory dataSourceFactory = new OsgiDataSourceFactory(driver);
     Properties properties = new Properties();
-    String databasePath = "jdbc:h2:mem:junit"
+    String databasePath = "jdbc:h2:mem:junit"+System.currentTimeMillis()
     properties.setProperty(DataSourceFactory.JDBC_URL, databasePath)
     properties.setProperty(DataSourceFactory.JDBC_USER, user)
     properties.setProperty(DataSourceFactory.JDBC_PASSWORD, password)
@@ -84,7 +85,7 @@ class JdbcTestCase {
 
   @BeforeEach
   void initConnection() {
-    DataSource dataSource = createDataSource("sa", "sa", false)
+    dataSource = createDataSource("sa", "sa", false)
     connection = JDBCUtilities.wrapConnection(dataSource.getConnection())
     H2GISFunctions.load(connection)
   }

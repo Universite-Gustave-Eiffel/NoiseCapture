@@ -12,20 +12,29 @@ import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import io.vertx.junit5.VertxTestContext.ExecutionBlock
 import io.vertx.kotlin.core.json.get
+import org.apache.commons.lang3.ArrayUtils
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.closeTo
 import org.hamcrest.Matchers.hasEntry
+import org.hamcrest.Matchers.hasSize
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertInstanceOf
+import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.io.TempDir
 import org.noise_planet.onomap.sensitive.nc_parse
+import org.slf4j.LoggerFactory
+import java.io.ByteArrayInputStream
 import java.io.File
+import java.lang.Thread.sleep
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.sql.Timestamp
+import java.text.SimpleDateFormat
+import java.util.zip.ZipEntry
+import java.util.zip.ZipInputStream
 import javax.sql.DataSource
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
@@ -35,6 +44,7 @@ import kotlin.io.path.exists
 
 @ExtendWith(VertxExtension::class)
 class TestMainVerticle {
+  val logger = LoggerFactory.getLogger(TestMainVerticle::class.java)
 
   fun generateWpsGetAreaInfo() : Buffer {
     return Buffer.buffer("""
@@ -127,7 +137,7 @@ class TestMainVerticle {
 	xmlns:ogc="http://www.opengis.net/ogc"
 	xmlns:wcs="http://www.opengis.net/wcs/1.1.1"
 	xmlns:xlink="http://www.w3.org/1999/xlink"
-        xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+  xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
 	<ows:Identifier>groovy:nc_last_measures</ows:Identifier>
 	<wps:DataInputs>
 		<wps:Input>
@@ -145,7 +155,66 @@ class TestMainVerticle {
 </wps:Execute>""")
   }
 
-
+  fun generateWPSDumpArea(envelope: String, fromEpoch: Long, toEpoch: Long) : Buffer {
+    return Buffer.buffer("""<?xml version="1.0" encoding="UTF-8"?><wps:Execute version="1.0.0"
+     service="WPS" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+     xmlns="http://www.opengis.net/wps/1.0.0" xmlns:wfs="http://www.opengis.net/wfs"
+     xmlns:wps="http://www.opengis.net/wps/1.0.0" xmlns:ows="http://www.opengis.net/ows/1.1"
+     xmlns:gml="http://www.opengis.net/gml" xmlns:ogc="http://www.opengis.net/ogc"
+      xmlns:wcs="http://www.opengis.net/wcs/1.1.1" xmlns:xlink="http://www.w3.org/1999/xlink"
+      xsi:schemaLocation="http://www.opengis.net/wps/1.0.0 http://schemas.opengis.net/wps/1.0.0/wpsAll.xsd">
+      <ows:Identifier>groovy:nc_dump_area</ows:Identifier>
+      <wps:DataInputs>
+        <wps:Input>
+          <ows:Identifier>envelope</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>$envelope</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>exportTracks</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>on</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>exportMeasures</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>on</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>exportAreas</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>on</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>fromEpoch</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>$fromEpoch</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>toEpoch</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>$toEpoch</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
+          <ows:Identifier>emailNotification</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>ffyy@ff.fr</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+      </wps:DataInputs>
+  <wps:ResponseForm>
+    <wps:RawDataOutput>
+      <ows:Identifier>result</ows:Identifier>
+    </wps:RawDataOutput>
+  </wps:ResponseForm>
+</wps:Execute>""")
+  }
   @BeforeEach
   fun initEnv(@TempDir folder : Path) {
     workingDirectory = folder.toFile()
@@ -437,4 +506,70 @@ class TestMainVerticle {
         })
     }))
   }
+
+  @Test
+  fun dumpRecordsTest(vertx: Vertx, testContext: VertxTestContext) {
+    val webClient: WebClient = WebClient.create(vertx)
+    val deploymentCheckpoint = testContext.checkpoint()
+    val requestCheckpoint = testContext.checkpoint()
+    val fs = vertx.fileSystem()
+    // Copy example file into the temporary directory as it was uploaded
+    val filename = "org/noise_planet/onomap/track_a23261b3-b569-4363-95be-e5578d694238.zip"
+    // create test dirs
+    Paths.get(workingDirectory.absolutePath, "onomap_uploading").createDirectory()
+    Paths.get(workingDirectory.absolutePath, "onomap_archives").createDirectory()
+    // Copy test data file
+    val path =
+      Paths.get(workingDirectory.absolutePath, "onomap_uploading", "track_a23261b3-b569-4363-95be-e5578d694238.zip")
+    path.parent.createDirectories()
+    fs.copyBlocking(filename, path.absolutePathString())
+
+    val app = MainVerticle()
+    // launch web server and ask to process the file through WPS query
+    vertx.deployVerticle(app).onComplete(testContext.succeeding<String?>(Handler {
+      prepareDbForUnitTest(app.ds)
+      app.ds?.connection?.use { connection ->
+        assert(path.exists())
+        nc_parse().exec(connection, mapOf("processFileLimit" to 20) as Map<String, *>)
+      }
+      // HTTP server is ready
+      deploymentCheckpoint.flag()
+
+      val startLatitude =46.145837
+      val startLongitude = -1.158028
+      val stopLatitude = 46.152378
+      val stopLongitude = -1.150161
+      val dateStart = "01/01/2017"
+      val dateStop = "12/31/2017"
+      val sdf = SimpleDateFormat("dd/MM/yyyy")
+      val envelope = "Polygon ((${startLongitude} ${startLatitude}, $stopLongitude ${startLatitude}, $stopLongitude ${stopLatitude}, $startLongitude ${stopLatitude}, $startLongitude ${startLatitude}))"
+      webClient.post(ONOMAP_DEFAULT_PORT, "localhost", "/geoserver/wps?REQUEST=Execute&SERVICE=wps&VERSION=1.0.0&IDENTIFIER=groovy%3Anc_dump_area")
+        .sendBuffer(generateWPSDumpArea(envelope = envelope, sdf.parse(dateStart).time, sdf.parse(dateStop).time))
+        .onComplete(testContext.succeeding { resp ->
+          // We got a response from Vert.X http server
+          testContext.verify(ExecutionBlock {
+            // Check HTTP status code
+            assertThat(resp.statusCode(), equalTo(200))
+            // Check return result
+            val json = Json.decodeValue(resp.body())
+            val outputDir = File(workingDirectory, "onomap_area_dump")
+            val start = System.currentTimeMillis()
+            while (outputDir.listFiles().none { f -> f.name.lowercase().endsWith(".zip") } && System.currentTimeMillis() - start < 10000L) {
+              sleep(100)
+            }
+            val zipList = outputDir.listFiles().filter { f -> f.name.lowercase().endsWith(".zip") }
+            assertThat(zipList.size, equalTo(1))
+            val zipFile = zipList.first()
+            ZipInputStream(ByteArrayInputStream(zipFile.readBytes())).use { zis ->
+              val firstEntry = zis.nextEntry
+              assertInstanceOf<ZipEntry>(firstEntry)
+              assertThat(firstEntry.name, equalTo("tracks.geojson"))
+            }
+            requestCheckpoint.flag()
+            testContext.completeNow()
+          })
+        })
+    }))
+  }
+
 }

@@ -11,9 +11,15 @@ group = "org.noise-planet"
 version = "1.0.0-SNAPSHOT"
 
 repositories {
+  mavenCentral() {
+    content { excludeGroupByRegex("javax\\.media") }
+  }
   maven("https://maven.geotoolkit.org")
-  maven("https://repo.osgeo.org/repository/release/")
-  mavenCentral()
+  maven("https://repo.osgeo.org/repository/release/") {
+    content { includeGroupByRegex("org\\.geotools.*") }
+    content { includeGroupByRegex("jgridshift") }
+    content { includeGroupByRegex("org\\.apache.*") }
+  }
 }
 
 val vertxVersion = "5.0.0"
@@ -69,8 +75,4 @@ tasks.withType<Test> {
   testLogging {
     events = setOf(PASSED, SKIPPED, FAILED)
   }
-}
-
-tasks.withType<JavaExec> {
-  args = listOf("run", mainVerticleName, "--redeploy=$watchForChange", "--launcher-class=$launcherClassName", "--on-redeploy=$doOnChange")
 }

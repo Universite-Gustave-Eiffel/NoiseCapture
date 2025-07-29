@@ -32,10 +32,12 @@ package org.noise_planet.onomap
  import io.vertx.config.ConfigRetriever
  import io.vertx.core.AbstractVerticle
  import io.vertx.core.Promise
+ import io.vertx.core.http.HttpMethod
  import io.vertx.core.json.Json
  import io.vertx.ext.web.Router
  import io.vertx.ext.web.RoutingContext
  import io.vertx.ext.web.handler.BodyHandler
+ import io.vertx.ext.web.handler.CorsHandler
  import io.vertx.launcher.application.VertxApplication
  import kotlinx.coroutines.DelicateCoroutinesApi
  import net.opengis.ows11.Ows11Factory
@@ -62,6 +64,7 @@ package org.noise_planet.onomap
  import java.io.File
  import java.lang.Double
  import java.lang.Float
+ import java.lang.Thread.sleep
  import java.util.concurrent.atomic.AtomicLong
  import kotlin.Any
  import kotlin.Array
@@ -78,7 +81,7 @@ package org.noise_planet.onomap
 
 
 const val ONOMAP_DEFAULT_PORT = 8888
-
+const val DEFAULT_WPS_DELAYED_TIMEOUT = 10000L
 const val MS_DELAY_PROCESS_MEASUREMENTS = 5000L
 
 class MainVerticle : AbstractVerticle() {
@@ -134,6 +137,14 @@ class MainVerticle : AbstractVerticle() {
     val retriever = ConfigRetriever.create(vertx)
 
     val router = Router.router(vertx).apply {
+      route().handler(CorsHandler.create()
+        .allowedMethod(HttpMethod.GET)
+        .allowedMethod(HttpMethod.POST)
+        .allowedHeader("Content-Type")
+        .allowedHeader("Authorization")
+        .allowedHeader("Access-Control-Allow-Origin")
+        .allowCredentials(true) // if necessary to send cookies or other credentials
+      )
       post("/geoserver/wps").handler(BodyHandler.create()).handler(this@MainVerticle::noisecapture1WPS)
       get("/api/dumpData").handler(BodyHandler.create()).handler(this@MainVerticle::doDumpData)
       get("/api/dumpStats").handler(BodyHandler.create()).handler(this@MainVerticle::doDumpStats)
@@ -214,7 +225,17 @@ class MainVerticle : AbstractVerticle() {
     // Send response to client
     val encodedResult =
       if (scriptOutput is Map<*, *> && scriptOutput.containsKey("result")) {
-        scriptOutput["result"].toString()
+        val res = scriptOutput["result"]
+        var result = "\"delayed\""
+        if(res is Promise<*>) {
+          res.future().onComplete { ar ->
+            result = ar.result().toString()
+            log.info("Delayed processing ${context.request().uri()} result: $result")
+          }
+          result
+        } else {
+          res.toString()
+        }
       } else {
         Json.encode(scriptOutput)
       }
@@ -297,12 +318,14 @@ class MainVerticle : AbstractVerticle() {
             }
           }
         }
+        wpsInput.put("worker", vertx.createSharedWorkerExecutor("groovy"))
+        wpsInput.put("dataSource", ds as javax.sql.DataSource)
         ds?.connection.use { connection ->
           context.response().putHeader("Content-Type", "application/json")
           val scriptOutput = instance.invokeMethod("exec", listOf(connection, wpsInput))
           val encodedResult = encodeWpsResponse(context, scriptOutput)
           log.info("Executed $wpsProcess with result $encodedResult")
-          // Caller ask to not automatically call other wps process (for unit test)
+          // Caller ask not automatically call other wps process (for unit test)
           if(!wpsInput.containsKey("triggerWpsEvent") || wpsInput["triggerWpsEvent"] == true) {
             onEndCallWps(scriptName)
           }

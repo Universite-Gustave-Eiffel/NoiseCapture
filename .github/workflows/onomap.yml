@@ -26,24 +26,13 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
       - name: Building
-        run: ./gradlew :onomap:build -x test --info --stacktrace
+        run: ./gradlew build -Dorg.gradle.internal.http.socketTimeout=60000 -Dorg.gradle.internal.http.connectionTimeout=60000 -x test --build-cache --info --stacktrace
+        working-directory: onomap
       - name: Test
-        run: ./gradlew :onomap:test --info --stacktrace
+        run: ./gradlew test --info --build-cache --stacktrace
+        working-directory: onomap
         env:
           POSTGRES_HOST: localhost
-      - name: Clean
-        run: rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
-      - name: Cache
-        uses: actions/cache@v4
-        with:
-          path: |
-            $HOME/.m2/
-            $HOME/.gradle/caches/
-            $HOME/.gradle/wrapper/
-          key: ${{ runner.os }}-${{ hashFiles('**/lockfiles') }}
-      - name: Archive production artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: onomap
-          path: onomap/build/distributions/*.zip

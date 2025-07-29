@@ -19,4 +19,6 @@ onomap-geoserver/geoserver/out/
 *.hprof
 *.log
 .env
+pgbackrest.conf
+
 

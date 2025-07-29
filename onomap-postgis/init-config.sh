@@ -28,4 +28,12 @@ if ! grep -q "pgbackrest" "$pgconf"; then
   echo "max_wal_size = 16GB" >> "${pgconf}"
 fi
 
-pgbackrest --stanza=noisecapture --log-level-console=info stanza-create
+if [ -f "$PGBACKREST_CONFIGURATION_FILE" ]; then
+  echo "Copying pgbackrest configuration secret file"
+  cp "$PGBACKREST_CONFIGURATION_FILE" /etc/pgbackrest/pgbackrest.conf
+else
+  echo "Warning ! No pgbackrest configuration secret file file found !"
+fi
+
+# ignore error, if the stanza cannot be created, we could want to restore a stanza from a backup
+pgbackrest --stanza=noisecapture --log-level-console=info stanza-create || true

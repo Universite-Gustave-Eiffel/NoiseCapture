@@ -10,6 +10,12 @@ volumes:
     driver: local
   postgis-backup:
     driver: local
+  duplicati-config:
+    driver: local
+
+secrets:
+  postgis_pgbackrest_config:
+    file: ./pgbackrest.conf
 
 services:
   postgis:
@@ -24,6 +30,7 @@ services:
     restart: always
     shm_size: 2g
     environment:
+      PGBACKREST_CONFIGURATION_FILE: /run/secrets/postgis_pgbackrest_config
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-onomap}"
       METABASE_PASSWORD: "${METABASE_PASSWORD:-metabase}"
       POSTGRES_DB: noisecapture
@@ -35,6 +42,8 @@ services:
     volumes:
       - postgis-data:/var/lib/postgresql/data
       - postgis-backup:/var/lib/pgbackrest
+    secrets:
+      - postgis_pgbackrest_config
     deploy:
       resources:
         limits:
@@ -76,6 +85,22 @@ services:
       # Restrict to small dataset for test purposes (overload this env with .env file in production)
       GADM_URI: "${GADM_URI:-https://github.com/Universite-Gustave-Eiffel/NoiseCapture/raw/refs/heads/onomapv2/onomap/src/test/resources/org/noise_planet/onomap/ut_deps.geojson}"
       TIMEZONE_URI: "${TIMEZONE_URI:-https://github.com/Universite-Gustave-Eiffel/NoiseCapture/raw/refs/heads/onomapv2/onomap/src/test/resources/org/noise_planet/onomap/tz_world.shp}"
+  duplicati:
+    image: duplicati/duplicati
+    #depends_on:
+    #  onomap:
+    #    condition: service_started
+    environment:
+      PUID: 1001
+      PGID: 1001
+      TZ: Europe/Paris
+    volumes:
+      - onomap-data:/backup/onomap-data/
+      - postgis-backup:/backup/pgbackrest/
+      - duplicati-config:/config
+    ports:
+      - "8200:8200"   # Backup web interface, do not expose on the web
+    restart: always
   geoserver:
     build:
       context: ./onomap-geoserver
@@ -96,8 +121,8 @@ services:
       ROOT_WEBAPP_REDIRECT: true
       SKIP_DEMO_DATA: true
       POSTGRES_PORT: 5432
-      GEOSERVER_CSRF_WHITELIST: onomap-gs.noise-planet.org
-      PROXY_BASE_URL: https://onomap-gs.noise-planet.org/geoserver/
+      GEOSERVER_CSRF_WHITELIST: "${GEOSERVER_CSRF_WHITELIST:-onomap-gs.noise-planet.org}"
+      PROXY_BASE_URL: "${PROXY_BASE_URL:-https://onomap-gs.noise-planet.org/geoserver/}"
   metabase:
     image: metabase/metabase:latest
     restart: always

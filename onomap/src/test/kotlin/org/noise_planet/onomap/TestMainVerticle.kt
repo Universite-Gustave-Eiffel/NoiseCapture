@@ -554,11 +554,12 @@ class TestMainVerticle {
             val json = Json.decodeValue(resp.body())
             val outputDir = File(workingDirectory, "onomap_area_dump")
             val start = System.currentTimeMillis()
-            while (outputDir.listFiles().size == 0 && System.currentTimeMillis() - start < 10000L) {
+            while (outputDir.listFiles().none { f -> f.name.lowercase().endsWith(".zip") } && System.currentTimeMillis() - start < 10000L) {
               sleep(100)
             }
-            assertThat(File(workingDirectory, "onomap_area_dump").listFiles().size, equalTo(1))
-            val zipFile = outputDir.listFiles().first()
+            val zipList = outputDir.listFiles().filter { f -> f.name.lowercase().endsWith(".zip") }
+            assertThat(zipList.size, equalTo(1))
+            val zipFile = zipList.first()
             ZipInputStream(ByteArrayInputStream(zipFile.readBytes())).use { zis ->
               val firstEntry = zis.nextEntry
               assertInstanceOf<ZipEntry>(firstEntry)

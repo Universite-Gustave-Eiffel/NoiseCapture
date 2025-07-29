@@ -79,8 +79,6 @@ inputs = [
                          type: Boolean.class],
   exportAreas         : [name: 'exportAreas', title: 'Export post-processed values',
                          type: Boolean.class],
-  emailNotification   : [name: 'emailNotification', title: 'Send links to download content to this email',
-                         type: String.class],
   fromEpoch   : [name: 'fromEpoch', title: 'Filter from this utc epoch time',
                          type: Long.class, min:0, max:1],
   toEpoch   : [name: 'fromEpoch', title: 'Filter to this utc epoch time',
@@ -88,7 +86,7 @@ inputs = [
 ]
 
 outputs = [
-  result: [name: 'result', title: 'Created file', type: String.class]
+  result: [name: 'result', title: 'Html file', type: String.class]
 ]
 
 @Field
@@ -102,110 +100,6 @@ static Logger LOGGER  = LoggerFactory.getLogger("logger_nc_dump_area")
 @CompileStatic
 static def epochToRFCTime(long epochMillisecond) {
   return Instant.ofEpochMilli(epochMillisecond).atZone(ZoneId.of("UTC")).format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"))
-}
-
-/**
- *  Create mail session.
- *  @return mail session, may not be null.
- */
-@CompileStatic
-static Session createSession(Map<String, Object> input) {
-  String smtpProtocol = input.getOrDefault("smtpProtocol", null)
-  String smtpHost = input.getOrDefault("smtpHost", null)
-  int smtpPort = input.getOrDefault("smtpPort", 0) as Integer
-  String smtpPassword = input.getOrDefault("smtpPassword", null)
-  String smtpUsername = input.getOrDefault("smtpUsername", null)
-  boolean smtpDebug = input.getOrDefault("smtpDebug", false)
-
-  Properties props
-  try {
-    props = new Properties (System.getProperties());
-  } catch(SecurityException ex) {
-    props = new Properties()
-  }
-
-  String prefix = "mail.smtp"
-  if (smtpProtocol != null) {
-    props.put("mail.transport.protocol", smtpProtocol)
-    prefix = "mail." + smtpProtocol
-  }
-  if (smtpHost != null) {
-    props.put(prefix + ".host", smtpHost)
-  }
-  if (smtpPort > 0) {
-    props.put(prefix + ".port", String.valueOf(smtpPort))
-  }
-
-  Authenticator auth = null;
-  if(smtpPassword != null && smtpUsername != null) {
-    props.put(prefix + ".auth", "true")
-    auth = new Authenticator() {
-      protected PasswordAuthentication getPasswordAuthentication() {
-        return new PasswordAuthentication(smtpUsername, smtpPassword)
-      }
-    };
-  }
-  Session session = Session.getInstance(props, auth);
-  if (smtpProtocol != null) {
-    session.setProtocolForAddress("rfc822", smtpProtocol)
-  }
-  if (smtpDebug) {
-    session.setDebug(smtpDebug)
-  }
-  return session
-}
-
-
-@CompileStatic
-static InternetAddress[] parseAddress(String addressStr) {
-  try {
-    return InternetAddress.parse(addressStr, true)
-  } catch(AddressException e) {
-    LOGGER.error("Could not parse address ["+addressStr+"].", e)
-    return null
-  }
-}
-
-@CompileStatic
-static def sendEmail(Map input, String recipient, String from, String subject, String body) {
-  try {
-    MimeBodyPart part
-    try {
-      ByteArrayOutputStream os = new ByteArrayOutputStream()
-      Writer writer = new OutputStreamWriter(
-        MimeUtility.encode(os, "quoted-printable"), "UTF-8")
-      writer.write(body)
-      writer.close()
-      InternetHeaders headers = new InternetHeaders()
-      headers.setHeader("Content-Type", "text/html; charset=UTF-8")
-      headers.setHeader("Content-Transfer-Encoding", "quoted-printable")
-      part = new MimeBodyPart(headers, os.toByteArray())
-    } catch(Exception ex) {
-      StringBuffer sbuf = new StringBuffer(body)
-      for (int i = 0; i < sbuf.length(); i++) {
-        if (sbuf.charAt(i) >= 0x80) {
-          sbuf.setCharAt(i, '?' as char)
-        }
-      }
-      part = new MimeBodyPart()
-      part.setContent(sbuf.toString(), "text/html")
-    }
-
-    Session session = createSession(input)
-    Message msg = new MimeMessage(session)
-    Multipart mp = new MimeMultipart()
-    mp.addBodyPart(part)
-    msg.setContent(mp)
-    msg.setSentDate(new Date(System.currentTimeMillis()))
-    msg.setFrom(from)
-    msg.setSubject(subject, "UTF-8")
-    msg.setRecipients(Message.RecipientType.TO, parseAddress(recipient))
-    Transport.send(msg)
-  } catch(MessagingException e) {
-    LOGGER.error("Error occurred while sending e-mail notification.", e);
-  } catch(RuntimeException e) {
-    LOGGER.error("Error occurred while sending e-mail notification.", e);
-  }
 }
 
 /**
@@ -223,6 +117,157 @@ static def epochToRFCTime(long epochMillisec, String zone) {
   return Instant.ofEpochMilli(epochMillisec).atZone(zoneId).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
 }
 
+@CompileStatic
+static def getHtmlPageTemplate(String message, String filename) {
+  String downloadArea = ""
+  if(!filename.empty) {
+    downloadArea = """
+    <table class="button_block block-4" width="100%" border="0" cellpadding="10"
+           cellspacing="0" role="presentation"
+           style="mso-table-lspace:0;mso-table-rspace:0">
+        <tr>
+            <td class="pad">
+                <div class="alignment" align="center">
+                    <span class="button"
+                          style="background-color: #f14b11; border-bottom: 0px solid transparent; border-left: 0px solid transparent; border-radius: 50px; border-right: 0px solid transparent; border-top: 0px solid transparent; color: #ffffff; display: inline-block; font-family: Tahoma, Verdana, Segoe, sans-serif; font-size: 16px; font-weight: undefined; mso-border-alt: none; padding-bottom: 10px; padding-top: 10px; padding-left: 20px; padding-right: 20px; text-align: center; width: 50%; word-break: keep-all; letter-spacing: normal;"><span
+                            style="word-break: break-word; line-height: 32px;"><a href="$filename">Download</a></span></span>
+                </div>
+            </td>
+        </tr>
+    </table>"""
+  }
+  return  """<!DOCTYPE html>
+<html lang="en">
+<head><title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        * {
+            box-sizing: border-box
+        }
+        body {
+            margin: 0;
+            padding: 0
+        }
+        a[x-apple-data-detectors] {
+            color: inherit !important;
+            text-decoration: inherit !important
+        }
+        #MessageViewBody a {
+            color: inherit;
+            text-decoration: none
+        }
+        p {
+            line-height: inherit
+        }
+        .image_block img + div {
+            display: none
+        }
+        sub, sup {
+            font-size: 75%;
+            line-height: 0
+        }
+        @media (max-width: 530px) {
+            .stack .column {
+                width: 100%;
+                display: block
+            }
+        }
+    </style>
+</head>
+<body class="body"
+      style="background-color:#f14b11;margin:0;padding:0;-webkit-text-size-adjust:none;text-size-adjust:none">
+<table class="nl-container" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"
+       style="mso-table-lspace:0;mso-table-rspace:0;background-color:#f14b11">
+    <tbody>
+    <tr>
+        <td>
+            <table align="center"
+                   border="0" cellpadding="0" cellspacing="0" class="row row-1" role="presentation"
+                   style="mso-table-lspace:0;mso-table-rspace:0"
+                   width="100%">
+                <tbody>
+                <tr>
+                    <td>
+                        <table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0"
+                               role="presentation"
+                               style="mso-table-lspace:0;mso-table-rspace:0;color:#000;width:510px;margin:0 auto"
+                               width="510">
+                            <tbody>
+                            <tr>
+                                <td class="column column-1" width="100%"
+                                    style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top">
+                                    <div class="spacer_block block-1"
+                                         style="height:20px;line-height:20px;font-size:1px">&#8202;
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+            <table class="row row-2" align="center" width="100%" border="0" cellpadding="0" cellspacing="0"
+                   role="presentation" style="mso-table-lspace:0;mso-table-rspace:0">
+                <tbody>
+                <tr>
+                    <td>
+                        <table class="row-content stack"
+                               align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
+                               style="mso-table-lspace:0;mso-table-rspace:0;background-color:#fff;color:#000;width:510px;margin:0 auto"
+                               width="510">
+                            <tbody>
+                            <tr>
+                                <td class="column column-1" width="100%"
+                                    style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:30px;padding-left:30px;padding-right:30px;padding-top:30px;vertical-align:top">
+                                    <table class="text_block block-2" width="100%" border="0" cellpadding="10"
+                                           cellspacing="0" role="presentation"
+                                           style="mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
+                                        <tr>
+                                            <td class="pad">
+                                                <div style="font-family:sans-serif">
+                                                    <div class
+                                                         style="font-size:12px;font-family:Tahoma,Verdana,Segoe,sans-serif;mso-line-height-alt:14.399999999999999px;color:#181c27;line-height:1.2">
+                                                        <p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px">
+                                                            <span style="word-break: break-word; font-size: 30px;">Your Download is Ready</span>
+                                                        </p></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    <table class="text_block block-3" width="100%" border="0" cellpadding="0"
+                                           cellspacing="0" role="presentation"
+                                           style="mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
+                                        <tr>
+                                            <td class="pad"
+                                                style="padding-bottom:30px;padding-left:10px;padding-right:10px;padding-top:10px">
+                                                <div style="font-family:sans-serif">
+                                                    <div class
+                                                         style="font-size:12px;font-family:Tahoma,Verdana,Segoe,sans-serif;mso-line-height-alt:14.399999999999999px;color:#8d94a3;line-height:1.2">
+                                                        <p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px">
+                                                            <span style="word-break: break-word; font-size: 16px;">$message</span>
+                                                        </p></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                    $downloadArea
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>"""
+}
 /**
  * Create dump from database
  * @param connection SQL Connection
@@ -462,156 +507,18 @@ def exec(Connection connection, Map input) {
   // create unique zip file
   def uuid = UUID.randomUUID().toString().replace("-", "")
   File zipFileName = new File(dumpDir, "extract_${uuid}.zip.tmp")
+  final File htmlFileName = new File(dumpDir, "${uuid}.html")
+  try(def f = new FileWriter(htmlFileName)) {
+    f.write(getHtmlPageTemplate("Please wait.. Data extraction is in progress..", ""))
+  }
 
   Callable<String> task = new Callable<String>() {
     @Override
     String call() throws Exception {
       String res = getDump(input["dataSource"] as DataSource, zipFileName, input)
-      def body = """<!DOCTYPE html>
-<html lang="en">
-<head><title></title>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
-    <style>
-        * {
-            box-sizing: border-box
-        }
-        body {
-            margin: 0;
-            padding: 0
-        }
-        a[x-apple-data-detectors] {
-            color: inherit !important;
-            text-decoration: inherit !important
-        }
-        #MessageViewBody a {
-            color: inherit;
-            text-decoration: none
-        }
-        p {
-            line-height: inherit
-        }
-        .image_block img + div {
-            display: none
-        }
-        sub, sup {
-            font-size: 75%;
-            line-height: 0
-        }
-        @media (max-width: 530px) {
-            .stack .column {
-                width: 100%;
-                display: block
-            }
-        }
-    </style>
-</head>
-<body class="body"
-      style="background-color:#f14b11;margin:0;padding:0;-webkit-text-size-adjust:none;text-size-adjust:none">
-<table class="nl-container" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"
-       style="mso-table-lspace:0;mso-table-rspace:0;background-color:#f14b11">
-    <tbody>
-    <tr>
-        <td>
-            <table align="center"
-                   border="0" cellpadding="0" cellspacing="0" class="row row-1" role="presentation"
-                   style="mso-table-lspace:0;mso-table-rspace:0"
-                   width="100%">
-                <tbody>
-                <tr>
-                    <td>
-                        <table class="row-content stack" align="center" border="0" cellpadding="0" cellspacing="0"
-                               role="presentation"
-                               style="mso-table-lspace:0;mso-table-rspace:0;color:#000;width:510px;margin:0 auto"
-                               width="510">
-                            <tbody>
-                            <tr>
-                                <td class="column column-1" width="100%"
-                                    style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:5px;padding-top:5px;vertical-align:top">
-                                    <div class="spacer_block block-1"
-                                         style="height:20px;line-height:20px;font-size:1px">&#8202;
-                                    </div>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-            <table class="row row-2" align="center" width="100%" border="0" cellpadding="0" cellspacing="0"
-                   role="presentation" style="mso-table-lspace:0;mso-table-rspace:0">
-                <tbody>
-                <tr>
-                    <td>
-                        <table class="row-content stack"
-                               align="center" border="0" cellpadding="0" cellspacing="0" role="presentation"
-                               style="mso-table-lspace:0;mso-table-rspace:0;background-color:#fff;color:#000;width:510px;margin:0 auto"
-                               width="510">
-                            <tbody>
-                            <tr>
-                                <td class="column column-1" width="100%"
-                                    style="mso-table-lspace:0;mso-table-rspace:0;font-weight:400;text-align:left;padding-bottom:30px;padding-left:30px;padding-right:30px;padding-top:30px;vertical-align:top">
-                                    <table class="text_block block-2" width="100%" border="0" cellpadding="10"
-                                           cellspacing="0" role="presentation"
-                                           style="mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
-                                        <tr>
-                                            <td class="pad">
-                                                <div style="font-family:sans-serif">
-                                                    <div class
-                                                         style="font-size:12px;font-family:Tahoma,Verdana,Segoe,sans-serif;mso-line-height-alt:14.399999999999999px;color:#181c27;line-height:1.2">
-                                                        <p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px">
-                                                            <span style="word-break: break-word; font-size: 30px;">Your Download is Ready</span>
-                                                        </p></div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                    <table class="text_block block-3" width="100%" border="0" cellpadding="0"
-                                           cellspacing="0" role="presentation"
-                                           style="mso-table-lspace:0;mso-table-rspace:0;word-break:break-word">
-                                        <tr>
-                                            <td class="pad"
-                                                style="padding-bottom:30px;padding-left:10px;padding-right:10px;padding-top:10px">
-                                                <div style="font-family:sans-serif">
-                                                    <div class
-                                                         style="font-size:12px;font-family:Tahoma,Verdana,Segoe,sans-serif;mso-line-height-alt:14.399999999999999px;color:#8d94a3;line-height:1.2">
-                                                        <p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px">
-                                                            <span style="word-break: break-word; font-size: 16px;">Use the link below to download <strong>the NoiseCapture database dump</strong></span>
-                                                        </p></div>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                    <table class="button_block block-4" width="100%" border="0" cellpadding="10"
-                                           cellspacing="0" role="presentation"
-                                           style="mso-table-lspace:0;mso-table-rspace:0">
-                                        <tr>
-                                            <td class="pad">
-                                                <div class="alignment" align="center">
-                                                    <span class="button"
-                                                          style="background-color: #f14b11; border-bottom: 0px solid transparent; border-left: 0px solid transparent; border-radius: 50px; border-right: 0px solid transparent; border-top: 0px solid transparent; color: #ffffff; display: inline-block; font-family: Tahoma, Verdana, Segoe, sans-serif; font-size: 16px; font-weight: undefined; mso-border-alt: none; padding-bottom: 10px; padding-top: 10px; padding-left: 20px; padding-right: 20px; text-align: center; width: 50%; word-break: keep-all; letter-spacing: normal;"><span
-                                                            style="word-break: break-word; line-height: 32px;"><a href="https://data.noise-planet.org/extract/$res">Download</a></span></span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </td>
-                </tr>
-                </tbody>
-            </table>
-        </td>
-    </tr>
-    </tbody>
-</table>
-</body>
-</html>"""
-      sendEmail(input, input["emailNotification"] as String, input["emailFrom"] as String,
-        "Your data extraction is ready", body)
+      try(def f = new FileWriter(htmlFileName)) {
+        f.write(getHtmlPageTemplate("Click on the link below the download the NoiseCapture data", res))
+      }
       return res
     }
   }
@@ -619,9 +526,9 @@ def exec(Connection connection, Map input) {
   if ("worker" in input) {
     // Use special vert.x thread pool
     def future = input["worker"].executeBlocking(task)
-    return [result: future]
+    return [result: JsonOutput.toJson(htmlFileName)]
   } else {
     def future = Executors.newSingleThreadExecutor().submit(task)
-    return [result: future]
+    return [result: JsonOutput.toJson(htmlFileName)]
   }
 }

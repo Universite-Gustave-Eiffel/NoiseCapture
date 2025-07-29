@@ -53,7 +53,7 @@ class JdbcTestCase {
     Driver driver = Driver.load();
     OsgiDataSourceFactory dataSourceFactory = new OsgiDataSourceFactory(driver);
     Properties properties = new Properties();
-    String databasePath = "jdbc:h2:mem:junit"
+    String databasePath = "jdbc:h2:mem:junit"+System.currentTimeMillis()
     properties.setProperty(DataSourceFactory.JDBC_URL, databasePath)
     properties.setProperty(DataSourceFactory.JDBC_USER, user)
     properties.setProperty(DataSourceFactory.JDBC_PASSWORD, password)

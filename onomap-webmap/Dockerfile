@@ -6,8 +6,7 @@ RUN <<EOF
 EOF
 
 RUN <<EOF
-git clone --depth 1 -b dump_view --single-branch https://github.com/Universite-Gustave-Eiffel/NoisePlanet.git
-find /NoisePlanet -type f -name "*.html" -exec sed -i 's|https://data\.noise-planet\.org|http://localhost:8080|g' {} +
+git clone --depth 1 https://github.com/Universite-Gustave-Eiffel/NoisePlanet.git
 EOF
 
 COPY web/map_noisecapture/js/onomap.js /NoisePlanet/map_noisecapture/js/onomap.js

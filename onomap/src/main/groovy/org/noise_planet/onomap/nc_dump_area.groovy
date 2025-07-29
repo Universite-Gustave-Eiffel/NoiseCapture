@@ -526,9 +526,9 @@ def exec(Connection connection, Map input) {
   if ("worker" in input) {
     // Use special vert.x thread pool
     def future = input["worker"].executeBlocking(task)
-    return [result: JsonOutput.toJson(htmlFileName)]
+    return [result: JsonOutput.toJson(htmlFileName.getName())]
   } else {
     def future = Executors.newSingleThreadExecutor().submit(task)
-    return [result: JsonOutput.toJson(htmlFileName)]
+    return [result: JsonOutput.toJson(htmlFileName.getName())]
   }
 }

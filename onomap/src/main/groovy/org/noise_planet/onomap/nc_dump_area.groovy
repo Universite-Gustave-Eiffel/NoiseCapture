@@ -118,8 +118,12 @@ static def epochToRFCTime(long epochMillisec, String zone) {
 }
 
 @CompileStatic
-static def getHtmlPageTemplate(String message, String filename) {
+static def getHtmlPageTemplate(String message, String filename, boolean autorefresh) {
   String downloadArea = ""
+  String refreshCode = ""
+  if(autorefresh) {
+    refreshCode = "<meta http-equiv=\"refresh\" content=\"10\">"
+  }
   if(!filename.empty) {
     downloadArea = """
     <table class="button_block block-4" width="100%" border="0" cellpadding="10"
@@ -138,7 +142,8 @@ static def getHtmlPageTemplate(String message, String filename) {
   }
   return  """<!DOCTYPE html>
 <html lang="en">
-<head><title></title>
+<head><title>NoiseCapture area data extraction</title>
+    $refreshCode
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <style>
@@ -230,7 +235,8 @@ static def getHtmlPageTemplate(String message, String filename) {
                                                     <div class
                                                          style="font-size:12px;font-family:Tahoma,Verdana,Segoe,sans-serif;mso-line-height-alt:14.399999999999999px;color:#181c27;line-height:1.2">
                                                         <p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px">
-                                                            <span style="word-break: break-word; font-size: 30px;">Your Download is Ready</span>
+                                                            <span style="word-break: break-word; font-size: 30px;">NoiseCapture data extraction</span>
+                                                            ★ Add to favorite to not loose this web page
                                                         </p></div>
                                                 </div>
                                             </td>
@@ -509,7 +515,7 @@ def exec(Connection connection, Map input) {
   File zipFileName = new File(dumpDir, "extract_${uuid}.zip.tmp")
   final File htmlFileName = new File(dumpDir, "${uuid}.html")
   try(def f = new FileWriter(htmlFileName)) {
-    f.write(getHtmlPageTemplate("Please wait.. Data extraction is in progress..", ""))
+    f.write(getHtmlPageTemplate("Please wait.. Data extraction is in progress.. This web page refresh every 10 seconds", "", true))
   }
 
   Callable<String> task = new Callable<String>() {
@@ -517,7 +523,7 @@ def exec(Connection connection, Map input) {
     String call() throws Exception {
       String res = getDump(input["dataSource"] as DataSource, zipFileName, input)
       try(def f = new FileWriter(htmlFileName)) {
-        f.write(getHtmlPageTemplate("Click on the link below the download the NoiseCapture data", new File(res).name))
+        f.write(getHtmlPageTemplate("Click on the link below the download the NoiseCapture data", new File(res).name, false))
       }
       return res
     }

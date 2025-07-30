@@ -97,7 +97,7 @@ services:
     volumes:
       - onomap-data:/backup/onomap-data/
       - postgis-backup:/backup/pgbackrest/
-      - duplicati-config:/config
+      - duplicati-config:/data/
     ports:
       - "8200:8200"   # Backup web interface, do not expose on the web
     restart: always

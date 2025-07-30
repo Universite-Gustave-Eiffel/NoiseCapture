@@ -517,7 +517,7 @@ def exec(Connection connection, Map input) {
     String call() throws Exception {
       String res = getDump(input["dataSource"] as DataSource, zipFileName, input)
       try(def f = new FileWriter(htmlFileName)) {
-        f.write(getHtmlPageTemplate("Click on the link below the download the NoiseCapture data", res))
+        f.write(getHtmlPageTemplate("Click on the link below the download the NoiseCapture data", new File(res).name))
       }
       return res
     }

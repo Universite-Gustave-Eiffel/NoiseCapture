@@ -131,12 +131,11 @@ class DataBaseManagement {
           vertx.fileSystem().createTempDirectory("gadm").onComplete { res ->
             val tempDirectory = res.result()
             val fileName = url.path.substringAfterLast('/')
-            val fileExtension = fileName.substringAfterLast('.').lowercase()
             val dataFile = Path.of(tempDirectory, fileName)
             log.info("Table $dataTable is not in database download the file from $url to ${dataFile.pathString}..")
             url.downloadFile(dataFile.toFile(), DisplayProgressVisitor(1, true, 1.0, logger = log))
             // download additional files for specific formats
-            if(fileExtension.equals("shp",true)) {
+            if(fileName.endsWith("shp", true)) {
               val otherExt = arrayOf("dbf", "prj", "shx")
               otherExt.forEach { ext->
                 val otherUrl = URI.create(url.toString().substringBeforeLast(".") + "." + ext).toURL()
@@ -148,11 +147,11 @@ class DataBaseManagement {
             }
             log.info(FILE_DOWNLOADED_MESSAGE)
             ds.connection?.use { connection ->
-              if(fileExtension.equals("shp",true)) {
+              if(fileName.endsWith("shp", true)) {
                 SHPDriverFunction().importFile(connection, dataTable, dataFile.toFile(),
                   DisplayProgressVisitor(1, true, 1.0, logger = log))
-              } else if(fileExtension.equals("geojson",true) ||
-                fileExtension.equals("geojson.gz",true)) {
+              } else if(fileName.endsWith("geojson", true) ||
+                fileName.endsWith("geojson.gz", true)) {
                 val readerDriver = GeoJsonReaderDriver(
                   connection, dataFile.toFile(),
                   JsonEncoding.UTF8.name, true
@@ -242,12 +241,15 @@ class DataBaseManagement {
 
       // Check special data tables
       if (configuration?.getBoolean("download_data_tables", true) ?: true) {
-        checkDataTable(vertx, ds, "gadm28",
-          URI(configuration?.getString("GADM_URI",
-            DEFAULT_GADM_URI) ?: DEFAULT_GADM_URI).toURL())
-        checkDataTable(vertx, ds, "tz_world",
-          URI(configuration?.getString("TIMEZONE_URI",
-            DEFAULT_TIMEZONE_URI) ?: DEFAULT_TIMEZONE_URI).toURL())
+        vertx.setTimer(1000) {
+          // Run delayed background task
+          checkDataTable(vertx, ds, "gadm28",
+            URI(configuration?.getString("GADM_URI",
+              DEFAULT_GADM_URI) ?: DEFAULT_GADM_URI).toURL())
+          checkDataTable(vertx, ds, "tz_world",
+            URI(configuration?.getString("TIMEZONE_URI",
+              DEFAULT_TIMEZONE_URI) ?: DEFAULT_TIMEZONE_URI).toURL())
+        }
       }
     }
   }

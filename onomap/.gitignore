@@ -187,3 +187,5 @@ nbdist/
 build/
 
 data_dir/
+
+*.db

@@ -12,16 +12,16 @@ import io.vertx.junit5.VertxExtension
 import io.vertx.junit5.VertxTestContext
 import io.vertx.junit5.VertxTestContext.ExecutionBlock
 import io.vertx.kotlin.core.json.get
-import org.apache.commons.lang3.ArrayUtils
+import org.h2gis.utilities.JDBCUtilities
+import org.h2gis.utilities.TableLocation
+import org.h2gis.utilities.dbtypes.DBUtils
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.Matchers.closeTo
 import org.hamcrest.Matchers.hasEntry
-import org.hamcrest.Matchers.hasSize
 import org.hamcrest.core.IsEqual.equalTo
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertInstanceOf
-import org.junit.jupiter.api.assertNotNull
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.api.io.TempDir
 import org.noise_planet.onomap.sensitive.nc_parse
@@ -190,6 +190,12 @@ class TestMainVerticle {
           </wps:Data>
         </wps:Input>
         <wps:Input>
+          <ows:Identifier>exportRaw</ows:Identifier>
+          <wps:Data>
+            <wps:LiteralData>on</wps:LiteralData>
+          </wps:Data>
+        </wps:Input>
+        <wps:Input>
           <ows:Identifier>fromEpoch</ows:Identifier>
           <wps:Data>
             <wps:LiteralData>$fromEpoch</wps:LiteralData>
@@ -272,6 +278,15 @@ class TestMainVerticle {
 
   fun prepareDbForUnitTest(ds: DataSource?) {
     ds?.connection?.use { connection ->
+      val dbType = DBUtils.getDBType(connection)
+      // wait for availability of requested table gadm28 and TZ_WORLD
+      val start = System.currentTimeMillis()
+      while(!(JDBCUtilities.tableExists(connection, TableLocation.parse("tz_world", dbType)) && JDBCUtilities.tableExists(connection,
+          TableLocation.parse("gadm28", dbType)))
+        && System.currentTimeMillis() - start < 10000) {
+        // Still initializing the database
+        sleep(100)
+      }
       connection.createStatement().use { statement ->
         with(statement) {
           execute("DELETE FROM noisecapture_area")
@@ -561,9 +576,21 @@ class TestMainVerticle {
             assertThat(zipList.size, equalTo(1))
             val zipFile = zipList.first()
             ZipInputStream(ByteArrayInputStream(zipFile.readBytes())).use { zis ->
-              val firstEntry = zis.nextEntry
-              assertInstanceOf<ZipEntry>(firstEntry)
-              assertThat(firstEntry.name, equalTo("tracks.geojson"))
+              var entry = zis.nextEntry
+              assertInstanceOf<ZipEntry>(entry)
+              assertThat(entry.name, equalTo("tracks.geojson"))
+              entry = zis.nextEntry
+              assertInstanceOf<ZipEntry>(entry)
+              assertThat(entry.name, equalTo("points.geojson"))
+              entry = zis.nextEntry
+              assertInstanceOf<ZipEntry>(entry)
+              assertThat(entry.name, equalTo("areas.geojson"))
+              entry = zis.nextEntry
+              assertInstanceOf<ZipEntry>(entry)
+              assertThat(entry.name, equalTo("raw/"))
+              entry = zis.nextEntry
+              assertInstanceOf<ZipEntry>(entry)
+              assertThat(entry.name, equalTo("raw/track_a23261b3-b569-4363-95be-e5578d694238.zip"))
             }
             requestCheckpoint.flag()
             testContext.completeNow()

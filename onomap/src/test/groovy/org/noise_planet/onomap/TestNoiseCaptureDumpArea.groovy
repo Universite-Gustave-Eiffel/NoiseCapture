@@ -38,6 +38,7 @@ import org.noise_planet.onomap.sensitive.nc_feed_stats
 import org.noise_planet.onomap.sensitive.nc_parse
 import org.noise_planet.onomap.sensitive.nc_process
 
+import java.nio.file.Files
 import java.nio.file.Path
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Future
@@ -114,18 +115,28 @@ class TestNoiseCaptureDumpArea extends JdbcTestCase {
   @Test
   void testTracksExport(@TempDir Path folder) {
     // Parse file to database
-    new nc_parse().processFile(connection,
-      new File(TestNoiseCaptureDumpArea.getResource("track_f720018a-a5db-4859-bd7d-377d29356c6f.zip").file))
+    File rawFile = new File(TestNoiseCaptureDumpArea.getResource("track_f720018a-a5db-4859-bd7d-377d29356c6f.zip").file)
+    new nc_parse().processFile(connection, rawFile)
     // convert to hexagons
     assertEquals(21, new nc_process().process(connection, 10, 0))
     Sql.LOG.level = java.util.logging.Level.SEVERE
     Envelope env = new Envelope(12.384801, 12.392135, 43.104708, 43.11107)
 
-    def fileName = new nc_dump_area().getDump(dataSource, new File(folder.toFile(), "ut.zip.tmp"), [
-                                                              envelope: new GeometryFactory().toGeometry(env),
-                                                              exportTracks:1,
-                                                              exportMeasures:1,
-                                                              exportAreas:1])
+    // Copy input file into test dir
+    String uuid = "4362e1c5-c25d-4938-882c-c3a9c86de8f3"
+    def part1 = uuid.substring(0, 2)
+    def part2 = uuid.substring(2, 4)
+    def part3 = uuid.substring(4, 6)
+    def archivePath = Path.of(folder.toString(), "onomap_archive", part1, part2, part3, uuid, rawFile.name)
+    assertTrue(archivePath.toFile().parentFile.mkdirs())
+    Files.copy(Path.of(rawFile.toURI()), archivePath)
+
+    def fileName = new nc_dump_area().getDump(dataSource, new File(folder.toFile(), "ut.zip.tmp"), Path.of(folder.toString(), "onomap_archive").toFile(), [
+      envelope      : new GeometryFactory().toGeometry(env),
+      exportTracks  : 1,
+      exportMeasures: 1,
+      exportAreas   : 1,
+      exportRaw     : 1])
 
     assertTrue(new File(fileName).exists())
     new ZipInputStream(new FileInputStream(fileName)).withStream { zipInputStream ->
@@ -144,6 +155,9 @@ class TestNoiseCaptureDumpArea extends JdbcTestCase {
       assertEquals(-65335, result.features[0]["properties"]["cell_q"])
       assertEquals(236823, result.features[0]["properties"]["cell_r"])
       assertEquals("2016-10-12T08:38:58+02:00", result.features[0]["properties"]["first_measure_ISO_8601"])
+      assertEquals("raw/", zipInputStream.getNextEntry().getName())
+      assertEquals("raw/track_f720018a-a5db-4859-bd7d-377d29356c6f.zip", zipInputStream.getNextEntry().getName())
+
     }
     new File(fileName).delete()
   }

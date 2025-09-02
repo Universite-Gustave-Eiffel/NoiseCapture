@@ -121,7 +121,7 @@ static def getHtmlPageTemplate(String message, String filename, boolean autorefr
             <td class="pad">
                 <div class="alignment" align="center">
                     <span class="button"
-                          style="background-color: #f14b11; border-bottom: 0px solid transparent; border-left: 0px solid transparent; border-radius: 50px; border-right: 0px solid transparent; border-top: 0px solid transparent; color: #ffffff; display: inline-block; font-family: Tahoma, Verdana, Segoe, sans-serif; font-size: 16px; font-weight: undefined; mso-border-alt: none; padding-bottom: 10px; padding-top: 10px; padding-left: 20px; padding-right: 20px; text-align: center; width: 50%; word-break: keep-all; letter-spacing: normal;"><span
+                          style="background-color: #9BCBEE; border-bottom: 0px solid transparent; border-left: 0px solid transparent; border-radius: 50px; border-right: 0px solid transparent; border-top: 0px solid transparent; color: #ffffff; display: inline-block; font-family: Tahoma, Verdana, Segoe, sans-serif; font-size: 16px; font-weight: undefined; mso-border-alt: none; padding-bottom: 10px; padding-top: 10px; padding-left: 20px; padding-right: 20px; text-align: center; width: 50%; word-break: keep-all; letter-spacing: normal;"><span
                             style="word-break: break-word; line-height: 32px;"><a href="$filename">Download</a></span></span>
                 </div>
             </td>
@@ -169,9 +169,9 @@ static def getHtmlPageTemplate(String message, String filename, boolean autorefr
     </style>
 </head>
 <body class="body"
-      style="background-color:#f14b11;margin:0;padding:0;-webkit-text-size-adjust:none;text-size-adjust:none">
+      style="background-color:#9BCBEE;margin:0;padding:0;-webkit-text-size-adjust:none;text-size-adjust:none">
 <table class="nl-container" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation"
-       style="mso-table-lspace:0;mso-table-rspace:0;background-color:#f14b11">
+       style="mso-table-lspace:0;mso-table-rspace:0;background-color:#9BCBEE">
     <tbody>
     <tr>
         <td>
@@ -224,7 +224,8 @@ static def getHtmlPageTemplate(String message, String filename, boolean autorefr
                                                          style="font-size:12px;font-family:Tahoma,Verdana,Segoe,sans-serif;mso-line-height-alt:14.399999999999999px;color:#181c27;line-height:1.2">
                                                         <p style="margin:0;font-size:14px;text-align:center;mso-line-height-alt:16.8px">
                                                             <span style="word-break: break-word; font-size: 30px;">NoiseCapture data extraction</span>
-                                                            ★ Add to favorite to not loose this web page
+                                                            <br>
+                                                            <i>Tip: to avoid losing this page, you can add it to your favourites</i>
                                                         </p></div>
                                                 </div>
                                             </td>
@@ -535,7 +536,7 @@ def exec(Connection connection, Map input) {
   File zipFileName = new File(dumpDir, "extract_${uuid}.zip.tmp")
   final File htmlFileName = new File(dumpDir, "${uuid}.html")
   try(def f = new FileWriter(htmlFileName)) {
-    f.write(getHtmlPageTemplate("Please wait.. Data extraction is in progress.. This web page refresh every 10 seconds", "", true))
+    f.write(getHtmlPageTemplate("Please wait... Data extraction is in progress (This web page is refreshed every 10 seconds)", "", true))
   }
 
   Callable<String> task = new Callable<String>() {
@@ -543,7 +544,7 @@ def exec(Connection connection, Map input) {
     String call() throws Exception {
       String res = getDump(input["dataSource"] as DataSource, zipFileName, onomapArchiveDir, input)
       try(def f = new FileWriter(htmlFileName)) {
-        f.write(getHtmlPageTemplate("Click on the link below the download the NoiseCapture data", new File(res).name, false))
+        f.write(getHtmlPageTemplate("Click on the link below to download the NoiseCapture dataset", new File(res).name, false))
       }
       return res
     }

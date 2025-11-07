@@ -19,6 +19,7 @@ repositories {
     content { includeGroupByRegex("org\\.geotools.*") }
     content { includeGroupByRegex("jgridshift") }
     content { includeGroupByRegex("org\\.apache.*") }
+    content { includeGroupByRegex("javax\\.media") }
   }
 }
 

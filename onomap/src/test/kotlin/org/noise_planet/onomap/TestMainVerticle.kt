@@ -254,7 +254,7 @@ class TestMainVerticle {
         asyncFile.toBase64().onComplete { base64String ->
           // Record file has been fully converted into base 64
           // send a POST query to Vert.X http server
-          webClient.post(ONOMAP_DEFAULT_PORT, "localhost", "/geoserver/wps")
+          webClient.post(app.getPort(), "localhost", "/geoserver/wps")
             .sendBuffer(generateWPSUpload(base64String.result()))
             .onComplete(testContext.succeeding { resp ->
               // We got a response from Vert.X http server
@@ -326,7 +326,7 @@ class TestMainVerticle {
         assert(path.exists())
 
         // send a POST query to Vert.X http server
-        webClient.get(ONOMAP_DEFAULT_PORT, "localhost", "/api/parse")
+        webClient.get(app.getPort(), "localhost", "/api/parse")
           .send()
           .onComplete(testContext.succeeding { resp ->
             // We got a response from Vert.X http server
@@ -365,6 +365,83 @@ class TestMainVerticle {
   }
 
 
+  /*
+  regression test
+Nov 07, 2025 9:13:29 AM groovy.sql.Sql eachRow
+WARNING: Failed to execute: SELECT ST_INTERSECTS(ST_SETSRID(THE_GEOM, 4326), ST_GEOMFROMTEXT(:geom, 4326)) intersects,
+ filter_area FROM noisecapture_party WHERE pk_party = :pkparty because: Can't infer the SQL type to use for an instance
+  of org.locationtech.jts.geom.Polygon. Use setObject() with an explicit Types value to specify the type to use.
+[vert.x-eventloop-thread-1] WARN  2025-11-07 09:13:29 - track_ce0076d0-c253-458b-9d57-b55a875b2f1d.zip Message:
+ Can't infer the SQL type to use for an instance of org.locationtech.jts.geom.Polygon. Use setObject()
+ with an explicit Types value to specify the type to use.
+*/
+
+  @Test
+  fun parseWPSTestFence(vertx: Vertx, testContext: VertxTestContext) {
+    val webClient: WebClient = WebClient.create(vertx)
+    val deploymentCheckpoint = testContext.checkpoint()
+    val requestCheckpoint = testContext.checkpoint()
+    val fs = vertx.fileSystem()
+    // Copy example file into the temporary directory as it was uploaded
+    val filename = "org/noise_planet/onomap/track_noiseparty.zip"
+    // create test dirs
+    Paths.get(workingDirectory.absolutePath, "onomap_uploading").createDirectory()
+    Paths.get(workingDirectory.absolutePath, "onomap_archives").createDirectory()
+    // Copy test data file
+    val path =
+      Paths.get(workingDirectory.absolutePath, "onomap_uploading", "track_noiseparty.zip")
+    path.parent.createDirectories()
+    fs.copyBlocking(filename, path.absolutePathString())
+
+    val app = MainVerticle()
+    // launch web server and ask to process the file through WPS query
+    vertx.deployVerticle(app).onComplete(testContext.succeeding<String?>(Handler {
+      prepareDbForUnitTest(app.ds)
+      // HTTP server is ready
+      deploymentCheckpoint.flag()
+      // Open local file to create the WPS query with this file embedded into a xml text element
+      testContext.verify {
+        assert(path.exists())
+
+        // send a POST query to Vert.X http server
+        webClient.get(app.getPort(), "localhost", "/api/parse")
+          .send()
+          .onComplete(testContext.succeeding { resp ->
+            // We got a response from Vert.X http server
+            testContext.verify(ExecutionBlock {
+              // Check HTTP status code
+              assertThat(resp.statusCode(), equalTo(200))
+              // Check return result
+              assertThat(resp.bodyAsString().toInt(), equalTo(1))
+              // Check database content
+              app.ds?.connection?.use { connection ->
+                connection.createStatement().use { st ->
+                  st.executeQuery("SELECT COUNT(*) cpt FROM  noisecapture_track").use { rs ->
+                    assert(rs.next())
+                    assertThat(rs.getInt("cpt"), equalTo(1))
+                  }
+                  st.executeQuery("SELECT * FROM noisecapture_track").use { rs ->
+                    assert(rs.next())
+                    assertThat(rs.getString("device_manufacturer"), equalTo("Logicom"))
+                    assertThat(rs.getString("device_product"), equalTo("L-ITE502"))
+                    assertThat(rs.getString("device_model"), equalTo("L-ITE 502"))
+                    assertThat(rs.getInt("pleasantness"), equalTo(69))
+                    assertThat(rs.getDouble("time_length"), closeTo(84.0, 0.01))
+                    assertThat(rs.getDouble("noise_level"), closeTo(72.94, 0.01))
+                    assertThat(rs.getString("track_uuid"), equalTo("f7ff7498-ddfd-46a3-ab17-36a96c01ba1b"))
+                    assertThat(rs.getTimestamp("record_utc"), equalTo(Timestamp(1465474618000)))
+                  }
+                }
+              }
+              requestCheckpoint.flag()
+              testContext.completeNow()
+            })
+          })
+      }
+
+    }))
+  }
+
   @Test
   fun dumpStatsApiTest(vertx: Vertx, testContext: VertxTestContext) {
     val webClient: WebClient = WebClient.create(vertx)
@@ -396,7 +473,7 @@ class TestMainVerticle {
       testContext.verify {
 
         // send a POST query to Vert.X http server
-        webClient.get(ONOMAP_DEFAULT_PORT, "localhost", "/api/dumpStats")
+        webClient.get(app.getPort(), "localhost", "/api/dumpStats")
           .send()
           .onComplete(testContext.succeeding { resp ->
             // We got a response from Vert.X http server
@@ -449,7 +526,7 @@ class TestMainVerticle {
       // HTTP server is ready
       deploymentCheckpoint.flag()
         // send a POST query to Vert.X http server
-        webClient.post(ONOMAP_DEFAULT_PORT, "localhost", "/geoserver/wps?REQUEST=Execute&SERVICE=wps&VERSION=1.0.0&IDENTIFIER=groovy%3Anc_last_measures")
+        webClient.post(app.getPort(), "localhost", "/geoserver/wps?REQUEST=Execute&SERVICE=wps&VERSION=1.0.0&IDENTIFIER=groovy%3Anc_last_measures")
           .sendBuffer(generateWPSLastMeasures())
           .onComplete(testContext.succeeding { resp ->
             // We got a response from Vert.X http server
@@ -500,7 +577,7 @@ class TestMainVerticle {
       // HTTP server is ready
       deploymentCheckpoint.flag()
       // send a POST query to Vert.X http server
-      webClient.post(ONOMAP_DEFAULT_PORT, "localhost", "/geoserver/wps?REQUEST=Execute&SERVICE=wps&VERSION=1.0.0")
+      webClient.post(app.getPort(), "localhost", "/geoserver/wps?REQUEST=Execute&SERVICE=wps&VERSION=1.0.0")
         .sendBuffer(generateWpsGetAreaInfo())
         .onComplete(testContext.succeeding { resp ->
           // We got a response from Vert.X http server
@@ -558,7 +635,7 @@ class TestMainVerticle {
       val dateStop = "12/31/2017"
       val sdf = SimpleDateFormat("dd/MM/yyyy")
       val envelope = "Polygon ((${startLongitude} ${startLatitude}, $stopLongitude ${startLatitude}, $stopLongitude ${stopLatitude}, $startLongitude ${stopLatitude}, $startLongitude ${startLatitude}))"
-      webClient.post(ONOMAP_DEFAULT_PORT, "localhost", "/geoserver/wps?REQUEST=Execute&SERVICE=wps&VERSION=1.0.0&IDENTIFIER=groovy%3Anc_dump_area")
+      webClient.post(app.getPort(), "localhost", "/geoserver/wps?REQUEST=Execute&SERVICE=wps&VERSION=1.0.0&IDENTIFIER=groovy%3Anc_dump_area")
         .sendBuffer(generateWPSDumpArea(envelope = envelope, sdf.parse(dateStart).time, sdf.parse(dateStop).time))
         .onComplete(testContext.succeeding { resp ->
           // We got a response from Vert.X http server

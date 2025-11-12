@@ -169,9 +169,9 @@ class TestNoiseCaptureParse extends JdbcTestCase {
     assertEquals(1, sql.firstRow("SELECT COUNT(*) cpt FROM  noisecapture_track").get("cpt") as Integer)
     assertEquals("NONE", sql.firstRow("SELECT * FROM  noisecapture_user").profile)
     // Check records
-    assertEquals(107d, sql.firstRow("SELECT ORIENTATION FROM  noisecapture_point where time_date=:time_date",
+    assertEquals(107d, sql.firstRow("SELECT ORIENTATION FROM  noisecapture_point where time_date=:time_date::timestamptz",
       [time_date: new nc_parse().epochToRFCTime(1504245786780)]).orientation)
-    assertEquals(1.83d, sql.firstRow("SELECT SPEED FROM  noisecapture_point where time_date=:time_date",
+    assertEquals(1.83d, sql.firstRow("SELECT SPEED FROM  noisecapture_point where time_date=:time_date::timestamptz",
       [time_date: new nc_parse().epochToRFCTime(1504245786780)]).speed)
 
 
@@ -293,7 +293,7 @@ class TestNoiseCaptureParse extends JdbcTestCase {
       0, false))
 
     def pkTrack = sql.firstRow("SELECT pk_track FROM  noisecapture_track where track_uuid = '1c9d12ee-5a98-4176-bdc2-38afd1075aad'").get("pk_track")
-    assertEquals("POINT EMPTY", sql.firstRow("SELECT the_geom FROM  noisecapture_point where pk_track = " + pkTrack).get("the_geom").toString())
+    assertTrue(sql.firstRow("SELECT ST_ISEMPTY(the_geom) isempty FROM  noisecapture_point where pk_track = " + pkTrack).get("isempty") as Boolean)
   }
 
   @Test

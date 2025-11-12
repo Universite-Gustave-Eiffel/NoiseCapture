@@ -42,6 +42,7 @@ dependencies {
   implementation("org.postgresql:postgresql:42.7.2")
   implementation("io.vertx:vertx-web")
   implementation("org.orbisgis:h2gis:[2.2.3,3)")
+  implementation("org.orbisgis:postgis-jts:[2.2.3,3)")
   implementation("io.vertx:vertx-launcher-application")
   implementation("org.osgi:org.osgi.service.jdbc:[1.0.0,2)")
   implementation("io.vertx:vertx-config")

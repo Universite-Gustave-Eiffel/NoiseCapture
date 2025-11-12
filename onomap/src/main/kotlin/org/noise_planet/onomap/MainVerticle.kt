@@ -66,6 +66,7 @@ package org.noise_planet.onomap
  import java.lang.Float
  import java.lang.Thread.sleep
  import java.util.concurrent.atomic.AtomicLong
+ import javax.sql.DataSource
  import kotlin.Any
  import kotlin.Array
  import kotlin.Exception
@@ -86,7 +87,7 @@ const val MS_DELAY_PROCESS_MEASUREMENTS = 5000L
 
 class MainVerticle : AbstractVerticle() {
   val log: Logger = LoggerFactory.getLogger(MainVerticle::class.java)
-  var ds: HikariDataSource? = null
+  var ds: DataSource? = null
   private var port: Int = ONOMAP_DEFAULT_PORT
   // Jobs to process noisecapture measurements
   // such jobs must no process in parallel so it should be called only after the last call is complete

@@ -37,6 +37,7 @@ import org.h2.value.ValueVarchar
 import org.h2gis.functions.factory.H2GISFunctions
 import org.h2gis.functions.io.geojson.GeoJsonRead
 import org.h2gis.functions.io.shp.SHPRead
+import org.h2gis.postgis_jts.ConnectionWrapper
 import org.h2gis.utilities.JDBCUtilities
 import org.h2gis.utilities.dbtypes.DBTypes
 import org.h2gis.utilities.dbtypes.DBUtils
@@ -70,21 +71,14 @@ class JdbcTestCase {
     if(pgHostConfigurationDefined) {
       config.username = System.getenv("POSTGRES_USER") ?: "onomap"
       config.password = System.getenv("POSTGRES_PASSWORD") ?: "onomap"
-      config.maximumPoolSize = System.getenv("POSTGRES_MAXPOOL_SIZE") as Integer ?: 1
       config.dataSourceClassName = PGSimpleDataSource.getCanonicalName()
-      config.addDataSourceProperty(
-        "portNumbers",
-        System.getenv("POSTGRES_PORT") as Integer ?: 5432
-      )
-      config.addDataSourceProperty(
-        "databaseName",
-        System.getenv("POSTGRES_DB") ?: "noisecapture"
-      )
-      config.addDataSourceProperty(
-        "serverNames",
-        System.getenv("POSTGRES_HOST") ?: "localhost"
-      )
-      return new DataSourceWrapper(new HikariDataSource(config))
+      config.addDataSourceProperty("portNumbers",
+        System.getenv("POSTGRES_PORT") as Integer ?: 5432)
+      config.addDataSourceProperty("databaseName",
+        System.getenv("POSTGRES_DB") ?: "noisecapture")
+      config.addDataSourceProperty("serverNames",
+        System.getenv("POSTGRES_HOST") ?: "localhost")
+      return new HikariDataSource(config)
     } else {
       // Create H2 memory DataSource
       Driver driver = Driver.load();
@@ -98,7 +92,7 @@ class JdbcTestCase {
       if (debug) {
         properties.setProperty("TRACE_LEVEL_FILE", "3") // enable debug
       }
-      return JDBCUtilities.wrapSpatialDataSource(dataSourceFactory.createDataSource(properties))
+      return dataSourceFactory.createDataSource(properties)
     }
   }
 
@@ -133,16 +127,24 @@ class JdbcTestCase {
   @BeforeEach
   void initConnection() {
     dataSource = createDataSource("sa", "sa", false)
-    connection = dataSource.getConnection()
-    DBTypes dbType = DBUtils.getDBType(connection.unwrap(Connection.class))
-    isH2GISDatabase = dbType == DBTypes.H2
+    isH2GISDatabase = !(dataSource instanceof HikariDataSource)
     if(isH2GISDatabase) {
+      connection = JDBCUtilities.wrapConnection(dataSource.getConnection())
       H2GISFunctions.load(connection)
+    } else {
+      connection = new ConnectionWrapper(dataSource.getConnection())
     }
   }
 
   @AfterEach
   void closeConnection() throws SQLException {
     connection.close()
+    try {
+      // close connection pool, we are supposed to have a single connection pool
+      HikariDataSource hds = dataSource.unwrap(HikariDataSource.class)
+      hds.close()
+    } catch (SQLException e) {
+      // ignore
+    }
   }
 }

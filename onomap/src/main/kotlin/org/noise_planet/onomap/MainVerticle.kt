@@ -51,6 +51,7 @@ package org.noise_planet.onomap
  import org.geotools.wps.WPSConfiguration
  import org.geotools.xsd.Encoder
  import org.geotools.xsd.Parser
+ import org.h2gis.postgis_jts.ConnectionWrapper
  import org.locationtech.jts.geom.Geometry
  import org.locationtech.jts.io.WKTReader
  import org.noise_planet.onomap.database.DataBaseManagement
@@ -65,6 +66,7 @@ package org.noise_planet.onomap
  import java.lang.Double
  import java.lang.Float
  import java.lang.Thread.sleep
+ import java.sql.Connection
  import java.util.concurrent.atomic.AtomicLong
  import javax.sql.DataSource
  import kotlin.Any
@@ -87,7 +89,7 @@ const val MS_DELAY_PROCESS_MEASUREMENTS = 5000L
 
 class MainVerticle : AbstractVerticle() {
   val log: Logger = LoggerFactory.getLogger(MainVerticle::class.java)
-  var ds: DataSource? = null
+  var ds: HikariDataSource? = null
   private var port: Int = ONOMAP_DEFAULT_PORT
   // Jobs to process noisecapture measurements
   // such jobs must no process in parallel so it should be called only after the last call is complete
@@ -135,6 +137,17 @@ class MainVerticle : AbstractVerticle() {
     } catch (e: java.lang.Exception) {
       System.err.println("Failed to configure logger: " + e.message)
     }
+  }
+
+  @OptIn(DelicateCoroutinesApi::class)
+  override fun stop(stopPromise: Promise<Void>) {
+    super.stop(stopPromise)
+    // close connection pool
+    ds?.close()
+  }
+
+  fun getConnection() : Connection {
+    return ConnectionWrapper(ds?.connection)
   }
 
   @OptIn(DelicateCoroutinesApi::class)
@@ -189,7 +202,7 @@ class MainVerticle : AbstractVerticle() {
   }
 
   private fun doDumpData(context: RoutingContext) {
-    ds?.connection.use { connection ->
+    getConnection().use { connection ->
       val scriptOutput = nc_dump_records().exec(connection, mapOf("exportTracks" to true,
         "exportMeasures" to true,"exportAreas" to true, "dayFilter" to 1) as Map<String, *>)
       encodeWpsResponse(context, scriptOutput)
@@ -200,7 +213,7 @@ class MainVerticle : AbstractVerticle() {
    * Compute measurements statistics or return the previous cached result
    */
   private fun doDumpStats(context: RoutingContext) {
-    ds?.connection.use { connection ->
+    getConnection().use { connection ->
       val scriptOutput = nc_get_stats().exec(connection, emptyMap<String, Any>() as Map<String, *>)
       encodeWpsResponse(context, scriptOutput)
       cachedWpsResults[CacheKeys.nc_get_stats.name] = CachedWpsResult(System.currentTimeMillis(), scriptOutput)
@@ -217,7 +230,7 @@ class MainVerticle : AbstractVerticle() {
   }
 
   private fun doParse(context: RoutingContext) {
-    ds?.connection.use { connection ->
+    getConnection().use { connection ->
       val scriptOutput = nc_parse().exec(connection, mapOf("processFileLimit" to 20) as Map<String, *>)
       encodeWpsResponse(context, scriptOutput)
     }
@@ -327,7 +340,7 @@ class MainVerticle : AbstractVerticle() {
         }
         wpsInput.put("worker", vertx.createSharedWorkerExecutor("groovy"))
         wpsInput.put("dataSource", ds as javax.sql.DataSource)
-        ds?.connection.use { connection ->
+        getConnection().use { connection ->
           context.response().putHeader("Content-Type", "application/json")
           val scriptOutput = instance.invokeMethod("exec", listOf(connection, wpsInput))
           val encodedResult = encodeWpsResponse(context, scriptOutput)

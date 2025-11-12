@@ -72,7 +72,7 @@ private const val FILE_DOWNLOADED_MESSAGE = "File downloaded parse the data and 
 class DataBaseManagement {
   companion object {
     val log: Logger = LoggerFactory.getLogger(DataBaseManagement::class.java)
-    fun initDataBaseConfiguration(configuration: JsonObject?): DataSource {
+    fun initDataBaseConfiguration(configuration: JsonObject?): HikariDataSource {
       val config = HikariConfig()
       val pgHostConfigurationDefined : Boolean = configuration?.containsKey("POSTGRES_HOST") ?: false
       if(pgHostConfigurationDefined) {
@@ -111,7 +111,7 @@ class DataBaseManagement {
           }
         }
       }
-      return DataSourceWrapper(HikariDataSource(config))
+      return HikariDataSource(config)
     }
 
     /**

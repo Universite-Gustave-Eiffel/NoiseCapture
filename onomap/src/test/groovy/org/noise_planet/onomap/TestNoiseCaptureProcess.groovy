@@ -34,6 +34,9 @@ import org.noise_planet.onomap.sensitive.nc_feed_stats
 import org.noise_planet.onomap.sensitive.nc_parse
 import org.noise_planet.onomap.sensitive.nc_process
 
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.logging.Level
 
 import static org.junit.jupiter.api.Assertions.*
@@ -67,7 +70,7 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
     sql.execute("INSERT INTO noisecapture_user(user_uuid, date_creation) VALUES ('" + UUID.randomUUID() + "', current_date)")
     def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
       " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration) VALUES (" +
-      ":track_uuid, :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
+      ":track_uuid, :pk_user, :version_number, :record_utc::timestamptz, :pleasantness, :device_product, :device_model," +
       " :device_manufacturer, :noise_level, :time_length, :gain_calibration)", record)[0][0] as Integer
     // Add 3 points
     for (float level : levels) {
@@ -81,7 +84,7 @@ class TestNoiseCaptureProcess extends JdbcTestCase {
                     time_location: time]
       def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
         " accuracy, orientation, time_date, time_location) VALUES (ST_GEOMFROMTEXT(:the_geom, 4326)," +
-        " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location)", fields)[0][0] as Integer
+        " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date::timestamptz, :time_location::timestamptz)", fields)[0][0] as Integer
     }
     // Push track into process queue
     Map processQueue = [pk_track: recordId]

@@ -287,7 +287,7 @@ public String getDump(DataSource dataSource, File zipFileName, File onomapArchiv
   if("fromEpoch" in input) {
     fromEpoch = Math.max(0L, input["fromEpoch"] as Long)
   }
-  long toEpoch = Long.MAX_VALUE
+  long toEpoch = System.currentTimeMillis()
   if("toEpoch" in input) {
     toEpoch = Math.max(0L, input["toEpoch"] as Long)
   }

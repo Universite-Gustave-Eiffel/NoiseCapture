@@ -32,11 +32,24 @@ package org.noise_planet.onomap
 import groovy.transform.CompileStatic
 import org.h2.Driver
 import org.h2.util.OsgiDataSourceFactory
+import org.h2.value.Value
+import org.h2.value.ValueVarchar
 import org.h2gis.functions.factory.H2GISFunctions
+import org.h2gis.functions.io.geojson.GeoJsonRead
+import org.h2gis.functions.io.shp.SHPRead
+import org.h2gis.postgis_jts.ConnectionWrapper
 import org.h2gis.utilities.JDBCUtilities
+import org.h2gis.utilities.dbtypes.DBTypes
+import org.h2gis.utilities.dbtypes.DBUtils
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.osgi.service.jdbc.DataSourceFactory
+import com.zaxxer.hikari.HikariConfig
+import com.zaxxer.hikari.HikariDataSource
+import org.h2gis.postgis_jts.DataSourceWrapper
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import org.postgresql.ds.PGSimpleDataSource
 
 import javax.sql.DataSource
 import java.sql.Connection
@@ -47,51 +60,91 @@ import java.sql.Statement
 class JdbcTestCase {
   DataSource dataSource
   Connection connection
+  boolean isH2GISDatabase = false
+
+  static Logger LOG = LoggerFactory.getLogger(this.class.name)
 
   static DataSource createDataSource(String user, String password, boolean debug) throws SQLException {
-    // Create H2 memory DataSource
-    Driver driver = Driver.load();
-    OsgiDataSourceFactory dataSourceFactory = new OsgiDataSourceFactory(driver);
-    Properties properties = new Properties();
-    String databasePath = "jdbc:h2:mem:junit"+System.currentTimeMillis()
-    properties.setProperty(DataSourceFactory.JDBC_URL, databasePath)
-    properties.setProperty(DataSourceFactory.JDBC_USER, user)
-    properties.setProperty(DataSourceFactory.JDBC_PASSWORD, password)
-    if (debug) {
-      properties.setProperty("TRACE_LEVEL_FILE", "3") // enable debug
+    HikariConfig config = new HikariConfig()
+    boolean pgHostConfigurationDefined = System.getenv ("POSTGRES_HOST") ?: false
+
+    if(pgHostConfigurationDefined) {
+      config.username = System.getenv("POSTGRES_USER") ?: "onomap"
+      config.password = System.getenv("POSTGRES_PASSWORD") ?: "onomap"
+      config.dataSourceClassName = PGSimpleDataSource.getCanonicalName()
+      config.addDataSourceProperty("portNumbers",
+        System.getenv("POSTGRES_PORT") as Integer ?: 5432)
+      config.addDataSourceProperty("databaseName",
+        System.getenv("POSTGRES_DB") ?: "noisecapture")
+      config.addDataSourceProperty("serverNames",
+        System.getenv("POSTGRES_HOST") ?: "localhost")
+      return new HikariDataSource(config)
+    } else {
+      // Create H2 memory DataSource
+      Driver driver = Driver.load();
+      OsgiDataSourceFactory dataSourceFactory = new OsgiDataSourceFactory(driver);
+      Properties properties = new Properties();
+      String databasePath = "jdbc:h2:mem:junit"+System.currentTimeMillis()
+      LOG.warn("POSTGRES_HOST is not configured, fallback to H2GIS database: \n${databasePath}")
+      properties.setProperty(DataSourceFactory.JDBC_URL, databasePath)
+      properties.setProperty(DataSourceFactory.JDBC_USER, user)
+      properties.setProperty(DataSourceFactory.JDBC_PASSWORD, password)
+      if (debug) {
+        properties.setProperty("TRACE_LEVEL_FILE", "3") // enable debug
+      }
+      return dataSourceFactory.createDataSource(properties)
     }
-    return dataSourceFactory.createDataSource(properties)
   }
 
   void initDb() {
     Statement st = connection.createStatement()
     // Init schema
-    st.execute("CREATE DOMAIN IF NOT EXISTS TIMESTAMPTZ AS TIMESTAMP")
+    if(isH2GISDatabase) {
+      st.execute("CREATE DOMAIN IF NOT EXISTS TIMESTAMPTZ AS TIMESTAMP")
+    }
     st.execute(new File(TestNoiseCaptureHisto.class.getResource("init_db_common.sql").getFile()).text)
-    st.execute(new File(TestNoiseCaptureHisto.class.getResource("initdb_h2.sql").getFile()).text)
+    if(isH2GISDatabase) {
+      st.execute(new File(TestNoiseCaptureHisto.class.getResource("initdb_h2.sql").getFile()).text)
+    } else {
+      st.execute(new File(TestNoiseCaptureHisto.class.getResource("initdb_postgres.sql").getFile()).text)
+    }
   }
 
   void installGadmAndTimeZone() {
-    Statement st = connection.createStatement()
     // Load timezone file
-    st.execute("CALL SHPREAD('"+TestNoiseCaptureProcess.getResource("tz_world.shp").file+"', 'TZ_WORLD');")
-    st.execute("CREATE SPATIAL INDEX ON TZ_WORLD(THE_GEOM)")
+    if(!JDBCUtilities.tableExists(connection, "TZ_WORLD")) {
+      SHPRead.importTable(connection, TestNoiseCaptureProcess.getResource("tz_world.shp").file, ValueVarchar.get("TZ_WORLD"))
+      JDBCUtilities.createSpatialIndex(connection, "TZ_WORLD", "the_geom")
+    }
     // ut_deps has been derived from https://www.data.gouv.fr/fr/datasets/contours-des-departements-francais-issus-d-openstreetmap/ (c) osm
     // See ut_deps.txt for more details
-    st.execute("CALL GEOJSONREAD('"+TestNoiseCaptureProcess.getResource("ut_deps.geojson").file+"', 'GADM28');")
-    st.execute("CALL UPDATEGEOMETRYSRID('GADM28', 'THE_GEOM', 4326)")
-    st.execute("CREATE SPATIAL INDEX ON GADM28(THE_GEOM)")
+    if(!JDBCUtilities.tableExists(connection, "GADM28")) {
+      GeoJsonRead.importTable(connection, TestNoiseCaptureProcess.getResource("ut_deps.geojson").file, ValueVarchar.get("GADM28"))
+      JDBCUtilities.createSpatialIndex(connection, "GADM28", "the_geom")
+    }
   }
 
   @BeforeEach
   void initConnection() {
     dataSource = createDataSource("sa", "sa", false)
-    connection = JDBCUtilities.wrapConnection(dataSource.getConnection())
-    H2GISFunctions.load(connection)
+    isH2GISDatabase = !(dataSource instanceof HikariDataSource)
+    if(isH2GISDatabase) {
+      connection = JDBCUtilities.wrapConnection(dataSource.getConnection())
+      H2GISFunctions.load(connection)
+    } else {
+      connection = new ConnectionWrapper(dataSource.getConnection())
+    }
   }
 
   @AfterEach
   void closeConnection() throws SQLException {
     connection.close()
+    try {
+      // close connection pool, we are supposed to have a single connection pool
+      HikariDataSource hds = dataSource.unwrap(HikariDataSource.class)
+      hds.close()
+    } catch (SQLException e) {
+      // ignore
+    }
   }
 }

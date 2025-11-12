@@ -64,7 +64,7 @@ class TestNoiseCaptureGetStats extends JdbcTestCase {
 
         def recordId = sql.executeInsert("INSERT INTO noisecapture_track(track_uuid, pk_user, version_number, record_utc," +
                 " pleasantness, device_product, device_model, device_manufacturer, noise_level, time_length, gain_calibration) VALUES (" +
-                ":track_uuid, :pk_user, :version_number, :record_utc, :pleasantness, :device_product, :device_model," +
+                ":track_uuid, :pk_user, :version_number, :record_utc::timestamptz, :pleasantness, :device_product, :device_model," +
                 " :device_manufacturer, :noise_level, :time_length, :gain_calibration)", record)[0][0] as Integer
         // Add 3 points
         for(float level : levels) {
@@ -77,8 +77,8 @@ class TestNoiseCaptureGetStats extends JdbcTestCase {
                           time_date    : time,
                           time_location: time]
             def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
-                    " accuracy, orientation, time_date, time_location) VALUES (:the_geom," +
-                    " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date, :time_location)", fields)[0][0] as Integer
+                    " accuracy, orientation, time_date, time_location) VALUES (ST_GeomFromText(:the_geom)," +
+                    " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date::timestamptz, :time_location::timestamptz)", fields)[0][0] as Integer
         }
         // Push track into process queue
         Map processQueue = [pk_track: recordId]

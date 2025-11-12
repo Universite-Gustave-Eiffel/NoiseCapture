@@ -1,5 +1,5 @@
 # 1st Docker build stage: build the project with Maven
-FROM eclipse-temurin:latest AS builder
+FROM eclipse-temurin:21 AS builder
 
 # Default to UTF-8 file.encoding
 ENV LANG='en_US.UTF-8' LANGUAGE='en_US:en' LC_ALL='en_US.UTF-8'
@@ -8,7 +8,7 @@ WORKDIR /onomap
 COPY . /onomap/
 
 RUN <<EOF
-./gradlew assemble --no-daemon
+./gradlew assemble --no-daemon --info --build-cache --stacktrace --parallel
 mkdir onomap
 tar -xvf build/distributions/onomap-*.tar --strip-components=1  --directory onomap
 EOF

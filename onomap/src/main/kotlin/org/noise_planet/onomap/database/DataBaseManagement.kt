@@ -38,6 +38,7 @@ import kotlinx.coroutines.launch
 import org.h2gis.functions.factory.H2GISDBFactory
 import org.h2gis.functions.io.geojson.GeoJsonReaderDriver
 import org.h2gis.functions.io.shp.SHPDriverFunction
+import org.h2gis.postgis_jts.DataSourceWrapper
 import org.h2gis.utilities.JDBCUtilities
 import org.h2gis.utilities.TableLocation
 import org.h2gis.utilities.dbtypes.DBTypes
@@ -71,7 +72,7 @@ private const val FILE_DOWNLOADED_MESSAGE = "File downloaded parse the data and 
 class DataBaseManagement {
   companion object {
     val log: Logger = LoggerFactory.getLogger(DataBaseManagement::class.java)
-    fun initDataBaseConfiguration(configuration: JsonObject?): HikariDataSource {
+    fun initDataBaseConfiguration(configuration: JsonObject?): DataSource {
       val config = HikariConfig()
       val pgHostConfigurationDefined : Boolean = configuration?.containsKey("POSTGRES_HOST") ?: false
       if(pgHostConfigurationDefined) {
@@ -110,7 +111,7 @@ class DataBaseManagement {
           }
         }
       }
-      return HikariDataSource(config)
+      return DataSourceWrapper(HikariDataSource(config))
     }
 
     /**
@@ -158,7 +159,7 @@ class DataBaseManagement {
                 )
                 readerDriver.read(DisplayProgressVisitor(1, true,
                   1.0, logger = log), dataTable)
-                val dbType = DBUtils.getDBType(connection)
+                val dbType = DBUtils.getDBType(connection.unwrap(Connection::class.java))
                 val tableName = TableLocation.capsIdentifier(dataTable, dbType)
                 val geometryColumnName = TableLocation.capsIdentifier("the_geom", dbType)
                 connection.createStatement().execute("SELECT UPDATEGEOMETRYSRID('$tableName', '$geometryColumnName', 4326)")
@@ -183,9 +184,8 @@ class DataBaseManagement {
      * @param configuration The configuration object containing the database connection details and options.
      */
     @OptIn(DelicateCoroutinesApi::class)
-    fun checkDataBaseState(vertx: Vertx, ds: HikariDataSource?, configuration: JsonObject?) {
+    fun checkDataBaseState(vertx: Vertx, ds: DataSource?, configuration: JsonObject?) {
       ds?.connection?.use { connection ->
-        val dbType = DBUtils.getDBType(connection)
         val hasUserTable = JDBCUtilities.tableExists(connection, "noisecapture_user")
         val hasVersionTable = JDBCUtilities.tableExists(connection, "noisecapture_db_version")
         if (!hasVersionTable) {
@@ -208,7 +208,7 @@ class DataBaseManagement {
                   statement.execute(
                     fs.readFileBlocking("org/noise_planet/onomap/init_db_common.sql").toString("UTF-8")
                   )
-                  val dbType = DBUtils.getDBType(connection)
+                  val dbType = DBUtils.getDBType(connection.unwrap(Connection::class.java))
                   if(dbType.equals(DBTypes.H2)) {
                     statement.execute(
                       fs.readFileBlocking("org/noise_planet/onomap/initdb_h2.sql").toString("UTF-8")

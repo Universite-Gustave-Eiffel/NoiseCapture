@@ -66,6 +66,7 @@ package org.noise_planet.onomap
  import java.lang.Float
  import java.lang.Thread.sleep
  import java.util.concurrent.atomic.AtomicLong
+ import javax.sql.DataSource
  import kotlin.Any
  import kotlin.Array
  import kotlin.Exception
@@ -86,7 +87,8 @@ const val MS_DELAY_PROCESS_MEASUREMENTS = 5000L
 
 class MainVerticle : AbstractVerticle() {
   val log: Logger = LoggerFactory.getLogger(MainVerticle::class.java)
-  var ds: HikariDataSource? = null
+  var ds: DataSource? = null
+  private var port: Int = ONOMAP_DEFAULT_PORT
   // Jobs to process noisecapture measurements
   // such jobs must no process in parallel so it should be called only after the last call is complete
   val parsePendingJob = AtomicLong()
@@ -94,6 +96,10 @@ class MainVerticle : AbstractVerticle() {
   data class CachedWpsResult(val generationTime : Long, val data :  Any?)
   enum class CacheKeys {nc_get_stats}
   val cachedWpsResults = HashMap<String, CachedWpsResult>()
+
+  fun getPort() : Int {
+    return port
+  }
 
   companion object {
     @JvmStatic fun main(args : Array<String>) {
@@ -168,12 +174,13 @@ class MainVerticle : AbstractVerticle() {
           startPromise.fail(ex)
           return@compose null
         }
+        port = json.getInteger("ONOMAP_PORT", ONOMAP_DEFAULT_PORT)
         vertx.createHttpServer()
           .requestHandler(router)
-          .listen(json.getInteger("ONOMAP_PORT", ONOMAP_DEFAULT_PORT)).onComplete { http ->
+          .listen(port).onComplete { http ->
             if (http.succeeded()) {
               startPromise.complete()
-              log.info("HTTP server started on port ${json.getInteger("ONOMAP_PORT", ONOMAP_DEFAULT_PORT)}")
+              log.info("HTTP server started on port $port")
             } else {
               startPromise.fail(http.cause());
             }

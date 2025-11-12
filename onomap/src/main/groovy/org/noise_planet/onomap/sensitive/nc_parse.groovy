@@ -293,7 +293,7 @@ static Integer processFile(Connection connection, File zipFile, Map trackData = 
     GeometryFactory gf = new GeometryFactory()
     def geom = gf.toGeometry(trackEnvelope)
     sql.eachRow("SELECT ST_INTERSECTS(ST_SETSRID(THE_GEOM, 4326), ST_GEOMFROMTEXT(:geom, 4326)) intersects, filter_area FROM" +
-      " noisecapture_party WHERE pk_party = :pkparty", [pkparty: idParty, geom: geom]) { queryParty ->
+      " noisecapture_party WHERE pk_party = :pkparty", [pkparty: idParty, geom: geom.toText()]) { queryParty ->
       if (queryParty["filter_area"] && !queryParty["intersects"]) {
         sql.execute("UPDATE NOISECAPTURE_TRACK SET PK_PARTY = NULL WHERE PK_TRACK = :pktrack", [pktrack: recordId])
         idParty = null

@@ -225,6 +225,7 @@ class TestMainVerticle {
   fun initEnv(@TempDir folder : Path) {
     workingDirectory = folder.toFile()
     System.setProperty("workingDir", workingDirectory.absolutePath)
+    System.setProperty("POSTGRES_MAXPOOL_SIZE", "1") // do not generate 20 connections in each parallel unit test
     val resourceGadm = TestMainVerticle::class.java.getResource("ut_deps.geojson")
     if (resourceGadm != null) {
       System.setProperty("GADM_URI", resourceGadm.toURI().toString())
@@ -389,7 +390,7 @@ WARNING: Failed to execute: SELECT ST_INTERSECTS(ST_SETSRID(THE_GEOM, 4326), ST_
     Paths.get(workingDirectory.absolutePath, "onomap_archives").createDirectory()
     // Copy test data file
     val path =
-      Paths.get(workingDirectory.absolutePath, "onomap_uploading", "track_noiseparty.zip")
+      Paths.get(workingDirectory.absolutePath, "onomap_uploading", "track_f7gg7498-ddfd-46a3-ab17-44a96c01ba1b.zip")
     path.parent.createDirectories()
     fs.copyBlocking(filename, path.absolutePathString())
 
@@ -422,14 +423,14 @@ WARNING: Failed to execute: SELECT ST_INTERSECTS(ST_SETSRID(THE_GEOM, 4326), ST_
                   }
                   st.executeQuery("SELECT * FROM noisecapture_track").use { rs ->
                     assert(rs.next())
-                    assertThat(rs.getString("device_manufacturer"), equalTo("Logicom"))
-                    assertThat(rs.getString("device_product"), equalTo("L-ITE502"))
-                    assertThat(rs.getString("device_model"), equalTo("L-ITE 502"))
-                    assertThat(rs.getInt("pleasantness"), equalTo(69))
-                    assertThat(rs.getDouble("time_length"), closeTo(84.0, 0.01))
-                    assertThat(rs.getDouble("noise_level"), closeTo(72.94, 0.01))
-                    assertThat(rs.getString("track_uuid"), equalTo("f7ff7498-ddfd-46a3-ab17-36a96c01ba1b"))
-                    assertThat(rs.getTimestamp("record_utc"), equalTo(Timestamp(1465474618000)))
+                    assertThat(rs.getString("device_manufacturer"), equalTo("Xiaomi"))
+                    assertThat(rs.getString("device_product"), equalTo("houji_eea"))
+                    assertThat(rs.getString("device_model"), equalTo("23127PN0CG"))
+                    assertThat(rs.getInt("pleasantness"), equalTo(100))
+                    assertThat(rs.getDouble("time_length"), closeTo(40.0, 0.01))
+                    assertThat(rs.getDouble("noise_level"), closeTo(65.26, 0.01))
+                    assertThat(rs.getString("track_uuid"), equalTo("f7gg7498-ddfd-46a3-ab17-44a96c01ba1b"))
+                    assertThat(rs.getTimestamp("record_utc"), equalTo(Timestamp(1762503985000)))
                   }
                 }
               }

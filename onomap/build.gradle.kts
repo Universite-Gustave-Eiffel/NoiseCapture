@@ -14,7 +14,6 @@ repositories {
   mavenCentral() {
     content { excludeGroupByRegex("javax\\.media") }
   }
-  maven("https://maven.geotoolkit.org")
   maven("https://repo.osgeo.org/repository/release/") {
     content { includeGroupByRegex("org\\.geotools.*") }
     content { includeGroupByRegex("jgridshift") }

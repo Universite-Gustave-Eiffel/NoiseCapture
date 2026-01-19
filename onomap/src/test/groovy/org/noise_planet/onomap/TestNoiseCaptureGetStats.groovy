@@ -77,7 +77,7 @@ class TestNoiseCaptureGetStats extends JdbcTestCase {
                           time_date    : time,
                           time_location: time]
             def ptId = sql.executeInsert("INSERT INTO noisecapture_point(the_geom, pk_track, noise_level, speed," +
-                    " accuracy, orientation, time_date, time_location) VALUES (ST_GeomFromText(:the_geom)," +
+                    " accuracy, orientation, time_date, time_location) VALUES (:the_geom::geometry," +
                     " :pk_track, :noise_level, :speed, :accuracy, :orientation, :time_date::timestamptz, :time_location::timestamptz)", fields)[0][0] as Integer
         }
         // Push track into process queue

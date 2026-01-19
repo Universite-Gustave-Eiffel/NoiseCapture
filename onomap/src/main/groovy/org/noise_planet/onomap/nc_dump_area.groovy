@@ -334,7 +334,6 @@ public String getDump(DataSource dataSource, File zipFileName, File onomapArchiv
         " from noisecapture_point np where not ST_ISEMPTY(the_geom)  group by pk_track having st_area(ST_Transform(ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326), 3857)) < 1e8")
     }
     LOGGER.info("NOISECAPTURE_DUMP_TRACK_ENVELOPE {} rows inserted", inserted)
-    sql.commit()
     if (exportTracks) {
       long beginTracks = System.currentTimeMillis()
       String fileName = "tracks.geojson"

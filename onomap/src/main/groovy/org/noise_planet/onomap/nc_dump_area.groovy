@@ -310,7 +310,6 @@ public String getDump(DataSource dataSource, File zipFileName, File onomapArchiv
 
   // Process export of raw measures
   try(Connection connection = dataSource.getConnection()) {
-    connection.setAutoCommit(false)
     def sql = new Sql(connection)
     // Change result set type, this way the PostGIS driver use the db cursor with minimal memory usage
     sql.setResultSetType(ResultSet.TYPE_FORWARD_ONLY)
@@ -323,16 +322,20 @@ public String getDump(DataSource dataSource, File zipFileName, File onomapArchiv
     }
     // Create a table that contains track envelopes
     def lastpktrack = sql.firstRow("SELECT MAX(PK_TRACK) FROM NOISECAPTURE_DUMP_TRACK_ENVELOPE")[0] as Integer
+    int inserted
     if(lastpktrack != null) {
       // resume analyze of receivers extents
-      sql.execute("INSERT INTO NOISECAPTURE_DUMP_TRACK_ENVELOPE SELECT pk_track, " +
+      inserted = sql.executeUpdate ("INSERT INTO NOISECAPTURE_DUMP_TRACK_ENVELOPE SELECT pk_track, " +
         "ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom,  COUNT(np.pk_point) measure_count" +
         " from noisecapture_point np where pk_track > :maxpktrack and not ST_ISEMPTY(the_geom)  group by pk_track having st_area(ST_Transform(ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326), 3857)) < 1e8", [maxpktrack: lastpktrack])
+      LOGGER.info("NOISECAPTURE_DUMP_TRACK_ENVELOPE {} row(s) inserted", inserted)
     } else {
-      sql.execute("INSERT INTO NOISECAPTURE_DUMP_TRACK_ENVELOPE SELECT pk_track, " +
+      inserted = sql.executeUpdate("INSERT INTO NOISECAPTURE_DUMP_TRACK_ENVELOPE SELECT pk_track, " +
         "ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326) the_geom,  COUNT(np.pk_point) measure_count" +
         " from noisecapture_point np where not ST_ISEMPTY(the_geom)  group by pk_track having st_area(ST_Transform(ST_SETSRID(ST_EXTENT(ST_MAKEPOINT(ST_X(the_geom),ST_Y(the_geom))), 4326), 3857)) < 1e8")
     }
+    LOGGER.info("NOISECAPTURE_DUMP_TRACK_ENVELOPE {} rows inserted", inserted)
+    sql.commit()
     if (exportTracks) {
       long beginTracks = System.currentTimeMillis()
       String fileName = "tracks.geojson"

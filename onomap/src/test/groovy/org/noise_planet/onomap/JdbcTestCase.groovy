@@ -38,6 +38,7 @@ import org.h2gis.functions.factory.H2GISFunctions
 import org.h2gis.functions.io.geojson.GeoJsonRead
 import org.h2gis.functions.io.shp.SHPRead
 import org.h2gis.postgis_jts.ConnectionWrapper
+import org.h2gis.utilities.GeometryTableUtilities
 import org.h2gis.utilities.JDBCUtilities
 import org.h2gis.utilities.dbtypes.DBTypes
 import org.h2gis.utilities.dbtypes.DBUtils
@@ -121,6 +122,7 @@ class JdbcTestCase {
     if(!JDBCUtilities.tableExists(connection, "GADM28")) {
       GeoJsonRead.importTable(connection, TestNoiseCaptureProcess.getResource("ut_deps.geojson").file, ValueVarchar.get("GADM28"))
       JDBCUtilities.createSpatialIndex(connection, "GADM28", "the_geom")
+      GeometryTableUtilities.alterSRID(connection, "GADM28", "THE_GEOM", 4326)
     }
   }
 

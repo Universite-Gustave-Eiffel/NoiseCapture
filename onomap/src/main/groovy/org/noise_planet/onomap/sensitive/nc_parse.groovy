@@ -35,6 +35,7 @@ import org.codehaus.groovy.runtime.StackTraceUtils
 import org.locationtech.jts.geom.Coordinate
 import org.locationtech.jts.geom.Envelope
 import org.locationtech.jts.geom.GeometryFactory
+import org.locationtech.jts.io.WKTWriter
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -291,9 +292,9 @@ static Integer processFile(Connection connection, File zipFile, Map trackData = 
   // Remove pk_party if the track is out of bounds
   if (idParty != null && !trackEnvelope.isNull()) {
     GeometryFactory gf = new GeometryFactory()
-    def geom = gf.toGeometry(trackEnvelope)
-    geom.setSRID(4326)
-    sql.eachRow("SELECT ST_INTERSECTS(ST_SETSRID(THE_GEOM, 4326), :geom) intersects, filter_area FROM" +
+    WKTWriter wktWriter = new WKTWriter(2)
+    def geom = wktWriter.write(gf.toGeometry(trackEnvelope))
+    sql.eachRow("SELECT ST_INTERSECTS(ST_SETSRID(THE_GEOM, 4326), ST_GEOMFROMTEXT(:geom, 4326)) intersects, filter_area FROM" +
       " noisecapture_party WHERE pk_party = :pkparty", [pkparty: idParty, geom: geom]) { queryParty ->
       if (queryParty["filter_area"] && !queryParty["intersects"]) {
         sql.execute("UPDATE NOISECAPTURE_TRACK SET PK_PARTY = NULL WHERE PK_TRACK = :pktrack", [pktrack: recordId])

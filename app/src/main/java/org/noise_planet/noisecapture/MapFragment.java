@@ -27,6 +27,7 @@
 
 package org.noise_planet.noisecapture;
 
+import android.content.ActivityNotFoundException;
 import android.content.Intent;
 import android.location.Location;
 import android.net.Uri;
@@ -39,6 +40,7 @@ import android.view.ViewGroup;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 
 import java.io.File;
@@ -96,7 +98,11 @@ public class MapFragment extends Fragment {
                 @Override
                 public boolean shouldOverrideUrlLoading(WebView view, String url) {
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    startActivity(browserIntent);
+                    try {
+                        startActivity(browserIntent);
+                    } catch (ActivityNotFoundException e) {
+                        Toast.makeText(getContext(), "No app found to open this link", Toast.LENGTH_SHORT).show();
+                    }
                     return true;
                 }
             });

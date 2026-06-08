@@ -43,7 +43,6 @@ import android.webkit.WebViewClient;
 import android.widget.Toast;
 
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -97,14 +96,22 @@ public class MapFragment extends Fragment {
 
                 @Override
                 public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                    if (url == null) return false;
                     Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-                    try {
-                        startActivity(browserIntent);
-                    } catch (ActivityNotFoundException e) {
-                        Toast.makeText(getContext(), "No app found to open this link", Toast.LENGTH_SHORT).show();
+                    if (browserIntent.resolveActivity(getContext().getPackageManager()) != null) {
+                        try {
+                            startActivity(browserIntent);
+                            return true;
+                        } catch (ActivityNotFoundException e) {
+                            Toast.makeText(getContext(), R.string.webview_error_open_link, Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(getContext(), R.string.webview_error_unsupported_link, Toast.LENGTH_SHORT).show();
                     }
-                    return true;
+                    return false;
                 }
+
+
             });
             if(mapFragmentAvailableListener != null) {
                 mapFragmentAvailableListener.onMapFragmentAvailable(this);

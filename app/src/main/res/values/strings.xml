@@ -339,4 +339,6 @@ track.geojson 1s samples of measures. Using the geojson format (http://geojson.i
     <string name="result_laeq">LAeq</string>
     <string name="result_linechart_description">Temporal evolution of noise levels in dB(A)</string>
     <string name="result_tab_linechart">Time</string>
+    <string name="webview_error_unsupported_link">No app found to handle this type of link.</string>
+    <string name="webview_error_open_link">A web browser is required to open this link.</string>
 </resources>

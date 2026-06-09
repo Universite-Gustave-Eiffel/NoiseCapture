@@ -334,4 +334,6 @@ track.geojson échantillons mesurés chaque seconde au format geojson (http://ge
     <string name="result_laeq">LAeq</string>
     <string name="result_linechart_description">Évolution temporelle des niveaux de bruit en dB(A)</string>
     <string name="result_tab_linechart">Temps</string>
+    <string name="webview_error_unsupported_link">Aucune application trouvée pour gérer ce type de lien.</string>
+    <string name="webview_error_open_link">Un navigateur web est nécessaire pour ouvrir ce lien.</string>
 </resources>

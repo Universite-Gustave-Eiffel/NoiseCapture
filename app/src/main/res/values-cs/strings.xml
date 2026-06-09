@@ -335,4 +335,6 @@ track.geojson 1s vzorky měření. Použití formátu geojson (http://geojson.io
     <string name="result_laeq">LAeq</string>
     <string name="result_linechart_description">Časový vývoj hladin hluku v dB(A)</string>
     <string name="result_tab_linechart">Čas</string>
+    <string name="webview_error_unsupported_link">Nebyla nalezena žádná aplikace pro tento typ odkazu.</string>
+    <string name="webview_error_open_link">Pro otevření tohoto odkazu je vyžadován webový prohlížeč.</string>
 </resources>

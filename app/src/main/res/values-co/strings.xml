@@ -312,4 +312,6 @@ track.geojson: scadìglie misurate ogni segonda aduprendu u furmatu geojson (htt
     <string name="auto_calibration_guest">Calibrà u mo funinu à pàrtesi da un antru funinu digià calibratu cù NoiseCapture</string>
     <string name="calibration_manual_ref">U prucedimentu di calibrera necessiteghja l\'adopru d\'un apparechju di riferenza digià calibratu, cum\'è un sunòmetru. Si veca nant\'à a<a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">pàgina d\'aiutu </a>di l\'appiecazione da ottene di più infurmazioni.</string>
     <string name="calibration_manual_calibrator">U prucedimentu di calibrera necessiteghja l\'adopru d\'un calibratore acùsticu. Si veca nant\'à a <a href="org.noise_planet.noisecapture:///android_asset/html/help_FR.html#smartphone_calibration">pàgina d\'aiutu </a> di l\'appiecazione da ottene di più infurmazioni.</string>
-    </resources>
+    <string name="webview_error_unsupported_link">Nisun\'appiecazione trovata per trattà stu tipu di ligame.</string>
+    <string name="webview_error_open_link">Un navigatore web hè necessariu per apre stu ligame.</string>
+</resources>

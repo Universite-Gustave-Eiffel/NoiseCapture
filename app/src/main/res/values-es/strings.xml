@@ -336,4 +336,6 @@ Utilice su propio smartphone para calibrar otros smartphones.</string>
     <string name="result_laeq">LAeq</string>
     <string name="result_linechart_description">Evolución temporal de los niveles de ruido en dB(A)</string>
     <string name="result_tab_linechart">Tiempo</string>
+    <string name="webview_error_unsupported_link">No se encontró ninguna aplicación para manejar este tipo de enlace.</string>
+    <string name="webview_error_open_link">Se requiere un navegador web para abrir este enlace.</string>
 </resources>

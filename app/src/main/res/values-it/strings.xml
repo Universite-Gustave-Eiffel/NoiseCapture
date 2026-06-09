@@ -335,4 +335,6 @@ track.geojson Campioni da 1 secondo delle misurazioni. In formato geojson (http:
     <string name="result_laeq">LAeq</string>
     <string name="result_linechart_description">Evoluzione temporale dei livelli di rumore in dB(A)</string>
     <string name="result_tab_linechart">Tempo</string>
+    <string name="webview_error_unsupported_link">Nessuna applicazione trovata per gestire questo tipo di link.</string>
+    <string name="webview_error_open_link">È necessario un browser web per aprire questo link.</string>
 </resources>

@@ -70,14 +70,14 @@ function addMeasurementPoints(GeoJSONFeatures) {
 
 userMeasurementPoints.addTo(map);
 
-var onomap_tiles = L.tileLayer('https://onomap-gs.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_area_laeq@EPSG:900913@png/{z}/{x}/{y}.png', {
+var onomap_tiles = L.tileLayer('https://data.noise-planet.org/geoserver/gwc/service/tms/1.0.0/noisecapture:noisecapture_area@EPSG:900913@png/{z}/{x}/{y}.png', {
 tms: true,
 zIndex: 2,
 maxZoom: 19,
 minZoom: 14
 });
 
-var onomap_cluster = L.geoJSON.OnoMap('https://onomap-gs.noise-planet.org/geoserver/ows');
+var onomap_cluster = L.geoJSON.OnoMap('https://data.noise-planet.org/geoserver/ows');
 
 var onomap = L.featureGroup([onomap_tiles, onomap_cluster])
 
@@ -97,7 +97,7 @@ var legend = L.control({position: 'bottomleft'});
 legend.onAdd = function (map) {
 
     var div = L.DomUtil.create('div', 'info legend');
-    div.innerHTML = "<img src='https://onomap-gs.noise-planet.org/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=noisecapture:noisecapture_area&legend_options=fontName:Cerdana;fontAntiAliasing:true;fontColor:0x000033;fontSize:12;dpi:80&TRANSPARENT=true'/>";
+    div.innerHTML = "<img src='https://data.noise-planet.org/geoserver/gwc/service/wms?REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=noisecapture:noisecapture_area&legend_options=fontName:Cerdana;fontAntiAliasing:true;fontColor:0x000033;fontSize:12;dpi:80&TRANSPARENT=true'/>";
     return div;
 };
 

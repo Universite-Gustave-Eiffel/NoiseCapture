@@ -159,7 +159,7 @@ static Integer processFile(Connection connection, File zipFile, Map trackData = 
   String party_tag = meta.getProperty("noiseparty_tag")
   if (party_tag != null && !party_tag.isEmpty()) {
     // Fetch noise party id
-    def result = sql.firstRow("SELECT pk_party FROM  noisecapture_party where tag=:tag and (NOT filter_time OR (start_time <= :record_utc::timestamptz AND  end_time >= :record_utc::timestamptz))",
+    def result = sql.firstRow("SELECT pk_party FROM  noisecapture_party where UPPER(tag)=UPPER(:tag) and (NOT filter_time OR (start_time <= :record_utc::timestamptz AND  end_time >= :record_utc::timestamptz))",
       [tag: party_tag, record_utc: epochToRFCTime(Long.valueOf(meta.getProperty("record_utc")))])
     if (result != null) {
       idParty = result.pk_party as Integer

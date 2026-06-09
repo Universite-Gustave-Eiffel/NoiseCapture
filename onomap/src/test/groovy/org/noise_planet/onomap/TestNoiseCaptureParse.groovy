@@ -327,4 +327,18 @@ class TestNoiseCaptureParse extends JdbcTestCase {
     assertEquals("TYPE_USB_DEVICE", sql.firstRow("SELECT microphone_identifier::varchar microphone_identifier FROM  noisecapture_track").microphone_identifier as String)
     assertEquals("{\"description\":\"USB-Audio - Umik-1  Gain: 18dB2398\",\"location\":\"LOCATION_PERIPHERAL\",}", sql.firstRow("SELECT MICROPHONE_SETTINGS::varchar MICROPHONE_SETTINGS FROM  noisecapture_track").microphone_settings as String)
   }
+
+
+  /**
+   * Test if in the database the noisecapture party tag is lowercase
+   */
+  @Test
+  void testNoisePartyLowerCaseIssue() {
+    Sql sql = new Sql(connection)
+    def pkParty = new nc_parse().processFile(connection,
+      new File(TestNoiseCaptureParse.getResource("track_d635a922-1851-4af9-acc8-68a6a6220ed2.zip").file))
+    // Read db; check content
+    def result = sql.firstRow("SELECT tag FROM  noisecapture_party np where np.pk_party = :pkParty", [pkParty: pkParty])
+    assertEquals("VdeQ2026", result.tag)
+  }
 }

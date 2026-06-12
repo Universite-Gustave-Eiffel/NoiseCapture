@@ -30,7 +30,7 @@ fi
 
 if [ -f "$PGBACKREST_CONFIGURATION_FILE" ]; then
   echo "Linking pgbackrest configuration secret file"
-  ln -s "$PGBACKREST_CONFIGURATION_FILE" /etc/pgbackrest/pgbackrest.conf
+  ln -s -f "$PGBACKREST_CONFIGURATION_FILE" /etc/pgbackrest/pgbackrest.conf
 else
   echo "Warning ! No pgbackrest configuration secret file file found !"
 fi

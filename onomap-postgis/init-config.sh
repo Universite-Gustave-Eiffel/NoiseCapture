@@ -29,8 +29,8 @@ if ! grep -q "pgbackrest" "$pgconf"; then
 fi
 
 if [ -f "$PGBACKREST_CONFIGURATION_FILE" ]; then
-  echo "Copying pgbackrest configuration secret file"
-  cp "$PGBACKREST_CONFIGURATION_FILE" /etc/pgbackrest/pgbackrest.conf
+  echo "Linking pgbackrest configuration secret file"
+  ln -s "$PGBACKREST_CONFIGURATION_FILE" /etc/pgbackrest/pgbackrest.conf
 else
   echo "Warning ! No pgbackrest configuration secret file file found !"
 fi

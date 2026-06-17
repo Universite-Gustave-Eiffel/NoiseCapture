@@ -17,11 +17,16 @@ services:
   postgis-restore:
     build:
       context: ./onomap-postgis
-    command: pgbackrest --config=/run/secrets/postgis_pgbackrest_config --log-level-console=detail --stanza=noisecapture restore
+    command: pgbackrest --config=/etc/pgbackrest/pgbackrest.conf --log-level-console=detail --stanza=noisecapture restore
     environment:
       POSTGRES_DB: noisecapture
     volumes:
       - postgis-data:/var/lib/postgresql/data
       - postgis-backup:/var/lib/pgbackrest
     secrets:
-      - postgis_pgbackrest_config
+      - source: postgis_pgbackrest_config
+        target: /etc/pgbackrest/pgbackrest.conf
+        uid: '70'
+        gid: '70'
+        mode: 0440
+

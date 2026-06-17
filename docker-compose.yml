@@ -10,8 +10,6 @@ volumes:
     driver: local
   postgis-backup:
     driver: local
-  pgbackrest-config:
-    driver: local
   duplicati-config:
     driver: local
 
@@ -32,7 +30,6 @@ services:
     restart: always
     shm_size: 2g
     environment:
-      PGBACKREST_CONFIGURATION_FILE: /run/secrets/postgis_pgbackrest_config
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-onomap}"
       METABASE_PASSWORD: "${METABASE_PASSWORD:-metabase}"
       POSTGRES_DB: noisecapture
@@ -44,9 +41,12 @@ services:
     volumes:
       - postgis-data:/var/lib/postgresql/data
       - postgis-backup:/var/lib/pgbackrest # if stanza store the backup locally (not recommended)
-      - pgbackrest-config:/etc/pgbackrest # store your special pgbackrest.conf copied from /run/secrets/postgis_pgbackrest_config
     secrets:
-      - postgis_pgbackrest_config
+      - source: postgis_pgbackrest_config
+        target: /etc/pgbackrest/pgbackrest.conf
+        uid: '70'
+        gid: '70'
+        mode: 0440
     deploy:
       resources:
         limits:

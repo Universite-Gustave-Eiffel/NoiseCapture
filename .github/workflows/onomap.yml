@@ -33,13 +33,10 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
       - name: Building
-        run: ./gradlew build -Dorg.gradle.internal.http.socketTimeout=60000 -Dorg.gradle.internal.http.connectionTimeout=60000 -x test --build-cache --info --stacktrace
-        working-directory: onomap
+        run: ./gradlew :onomap:build -Dorg.gradle.internal.http.socketTimeout=60000 -Dorg.gradle.internal.http.connectionTimeout=60000 -x test --build-cache --info --stacktrace
       - name: Test with H2GIS
-        run: ./gradlew test --rerun-tasks --info
-        working-directory: onomap
+        run: ./gradlew :onomap:test --rerun-tasks --info
       - name: Test with POSTGIS
-        run: ./gradlew test --rerun-tasks --info
-        working-directory: onomap
+        run: ./gradlew :onomap:test --rerun-tasks --info
         env:
           POSTGRES_HOST: localhost

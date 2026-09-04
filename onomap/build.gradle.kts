@@ -1,10 +1,9 @@
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 plugins {
-  kotlin("jvm") version "2.1.21" // Kotlin version to use
+  kotlin("jvm")
   groovy
   application
-  id("biz.aQute.bnd.builder") version "6.1.0" // To generate MANIFEST file
 }
 
 group = "org.noise-planet"
@@ -54,7 +53,7 @@ dependencies {
   implementation("com.ongres.scram:client:2.1")
   implementation("org.geotools.xsd:gt-xsd-wps:[22.2,23)")
   implementation("org.geotools.xsd:gt-xsd-core:[22.2,23)")
-  implementation(group = "org.slf4j", name = "slf4j-log4j12", version = "[2, 3)")
+  implementation("org.slf4j:slf4j-log4j12:[2, 3)")
   implementation("org.apache.logging.log4j:log4j-core:[2.24.3, 3)")
   testImplementation("org.slf4j:slf4j-simple:[2.0.17,3)")
   testImplementation("io.vertx:vertx-junit5")

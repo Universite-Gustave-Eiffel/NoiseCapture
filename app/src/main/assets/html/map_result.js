@@ -81,7 +81,7 @@ var onomap_cluster = L.geoJSON.OnoMap('https://data.noise-planet.org/geoserver/o
 
 var onomap = L.featureGroup([onomap_tiles, onomap_cluster])
 
-var osm = L.tileLayer('https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+var osm = L.tileLayer('https://basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png?key=cb1_2gey_1_b3058d86b69f389b5b039989', {
     attribution: '&copy; <a href="https://osm.org/copyright">OpenStreetMap</a> contributors',
     maxZoom: 19,
     zIndex: 1

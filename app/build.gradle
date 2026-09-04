@@ -32,8 +32,8 @@ android {
     defaultConfig {
         applicationId "org.noise_planet.noisecapture"
         minSdkVersion 15
-        targetSdkVersion 35
-        compileSdk 35
+        targetSdkVersion 37
+        compileSdk 37
         versionCode 66
         versionName "1.3.2"
         // Store build date in apk
@@ -51,7 +51,7 @@ android {
     buildTypes {
         release {
             minifyEnabled true
-            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             signingConfig signingConfigs.debug
             if (new File(signingFilePath).exists()) {
                 signingConfig signingConfigs.release

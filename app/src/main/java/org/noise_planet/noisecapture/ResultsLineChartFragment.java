@@ -27,6 +27,7 @@
 
 package org.noise_planet.noisecapture;
 
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -68,6 +69,9 @@ public class ResultsLineChartFragment extends Fragment {
     private static final int MAX_VALUES_Y_DISPLAY = 30;
     private View view;
     private LineChart timeLevelChart;
+    private LeqStats.LeqOccurrences leqOccurrences;
+    private List<Integer> timeData;
+    private List<Float> splData;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -77,13 +81,18 @@ public class ResultsLineChartFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        if(view == null) {
-            // Inflate the layout for this fragment
-            view = inflater.inflate(R.layout.fragment_result_noisetime, container, false);
-            timeLevelChart = view.findViewById(R.id.timeLineChart);
-            initLevelChart();
-        }
+        view = inflater.inflate(R.layout.fragment_result_noisetime, container, false);
+        timeLevelChart = view.findViewById(R.id.timeLineChart);
+        initLevelChart();
+        updateChart();
         return view;
+    }
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        view = null;
+        timeLevelChart = null;
     }
 
     public LineChart getTimeLevelChart() {
@@ -91,6 +100,9 @@ public class ResultsLineChartFragment extends Fragment {
     }
 
     public void initLevelChart() {
+        if(timeLevelChart == null) {
+            return;
+        }
         Legend l = timeLevelChart.getLegend();
         l.setTextColor(Color.WHITE);
         timeLevelChart.setScaleEnabled(false);
@@ -98,7 +110,13 @@ public class ResultsLineChartFragment extends Fragment {
         timeLevelChart.getXAxis().setPosition(XAxis.XAxisPosition.BOTTOM);
         timeLevelChart.setHighlightPerDragEnabled(false);
         timeLevelChart.setHighlightPerTapEnabled(false);
-        timeLevelChart.setDescription(view.getContext().getString(R.string.result_linechart_description));
+        Context context = getContext();
+        if (context == null && view != null) {
+            context = view.getContext();
+        }
+        if (context != null) {
+            timeLevelChart.setDescription(context.getString(R.string.result_linechart_description));
+        }
         timeLevelChart.setDescriptionColor(Color.WHITE);
         timeLevelChart.setDescriptionTextSize(12);
         XAxis xAxis = timeLevelChart.getXAxis();
@@ -112,6 +130,23 @@ public class ResultsLineChartFragment extends Fragment {
     }
 
     public void setTimeLevelData(LeqStats.LeqOccurrences leqOccurrences, List<Integer> timeData, List<Float> splData) {
+        this.leqOccurrences = leqOccurrences;
+        this.timeData = timeData;
+        this.splData = splData;
+        updateChart();
+    }
+
+    private void updateChart() {
+        if (timeLevelChart == null || leqOccurrences == null || timeData == null || splData == null) {
+            return;
+        }
+        Context context = getContext();
+        if (context == null && view != null) {
+            context = view.getContext();
+        }
+        if (context == null) {
+            return;
+        }
         LineData lineData = new LineData();
         lineData.setDrawValues(true);
         List<Entry> entries = new ArrayList<>(timeData.size());
@@ -127,7 +162,7 @@ public class ResultsLineChartFragment extends Fragment {
             float currentLevel = splData.get(i);
             entries.add(new Entry(currentLevel, i));
             int secondsElapsed = timeData.get(i);
-            Date date = new Date(secondsElapsed * 1000);
+            Date date = new Date(secondsElapsed * 1000L);
             String labelString;
             if(secondsElapsed < 60) {
                 labelString = dateFormatSecondsLength.format(date);
@@ -138,25 +173,25 @@ public class ResultsLineChartFragment extends Fragment {
             }
             xVals.add(labelString);
         }
-        LineDataSet laeqDataset = new LineDataSet(entries, view.getContext().getString(R.string.result_laeq));
+        LineDataSet laeqDataset = new LineDataSet(entries, context.getString(R.string.result_laeq));
         laeqDataset.setDrawCircles(false);
         laeqDataset.setDrawValues(true);
         laeqDataset.setColor(Color.WHITE);
-        Drawable drawable = ContextCompat.getDrawable(view.getContext(), R.drawable.fade_linegraph);
+        Drawable drawable = ContextCompat.getDrawable(context, R.drawable.fade_linegraph);
         laeqDataset.setFillDrawable(drawable);
         laeqDataset.setDrawFilled(true);
         // Statistical lines
         double la10 = leqOccurrences.getLa10();
         LineDataSet la10LineDataSet = new LineDataSet(Arrays.asList(new Entry( (float)la10, 0),
                 new Entry((float)la10,laeqDataset.getEntryCount() - 1)),
-                view.getContext().getString(R.string.measurement_dba_la10));
+                context.getString(R.string.measurement_dba_la10));
         la10LineDataSet.setDrawCircles(false);
         la10LineDataSet.setColor(Color.RED);
         la10LineDataSet.setDrawValues(false);
         double la90 = leqOccurrences.getLa90();
         LineDataSet la90LineDataSet = new LineDataSet(Arrays.asList(new Entry( (float)la90, 0),
                 new Entry((float)la90,laeqDataset.getEntryCount() - 1)),
-                view.getContext().getString(R.string.measurement_dba_la90));
+                context.getString(R.string.measurement_dba_la90));
         la90LineDataSet.setDrawCircles(false);
         la90LineDataSet.setColor(Color.GREEN);
         la90LineDataSet.setDrawValues(false);

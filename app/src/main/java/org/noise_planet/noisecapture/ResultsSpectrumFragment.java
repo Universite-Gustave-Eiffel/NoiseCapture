@@ -62,6 +62,8 @@ public class ResultsSpectrumFragment extends Fragment {
 
     private View view;
     BarChart sChart;
+    private List<Float> splHistogram;
+    private String[] ltob;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -71,22 +73,35 @@ public class ResultsSpectrumFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        if(view == null) {
-            // Inflate the layout for this fragment
-            view = inflater.inflate(R.layout.fragment_result_spectrum, container, false);
-            sChart = view.findViewById(R.id.spectrumChart);
-            initSpectrumChart(sChart);
-            Legend ls = sChart.getLegend();
-            ls.setEnabled(false); // Hide legend
-        }
+        view = inflater.inflate(R.layout.fragment_result_spectrum, container, false);
+        sChart = view.findViewById(R.id.spectrumChart);
+        initSpectrumChart(sChart);
+        Legend ls = sChart.getLegend();
+        ls.setEnabled(false); // Hide legend
+        updateChart();
         return view;
     }
 
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        view = null;
+        sChart = null;
+    }
+
     public void setDataS(List<Float> splHistogram, String[] ltob) {
+        this.splHistogram = splHistogram;
+        this.ltob = ltob;
+        updateChart();
+    }
+
+    private void updateChart() {
+        if (sChart == null || splHistogram == null || ltob == null) {
+            return;
+        }
 
         ArrayList<String> xVals = new ArrayList<String>();
         Collections.addAll(xVals, ltob);
-
 
         ArrayList<BarEntry> yVals1 = new ArrayList<BarEntry>();
 

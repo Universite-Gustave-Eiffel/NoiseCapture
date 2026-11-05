@@ -241,8 +241,16 @@ public class Results extends MainActivity {
 
     private void setupViewPager(ViewPagerExt viewPager) {
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
-        resultsLineChartFragment = new ResultsLineChartFragment();
-        resultsSpectrumFragment = new ResultsSpectrumFragment();
+        resultsLineChartFragment = (ResultsLineChartFragment) getSupportFragmentManager().findFragmentByTag(
+                "android:switcher:" + viewPager.getId() + ":0");
+        if (resultsLineChartFragment == null) {
+            resultsLineChartFragment = new ResultsLineChartFragment();
+        }
+        resultsSpectrumFragment = (ResultsSpectrumFragment) getSupportFragmentManager().findFragmentByTag(
+                "android:switcher:" + viewPager.getId() + ":1");
+        if (resultsSpectrumFragment == null) {
+            resultsSpectrumFragment = new ResultsSpectrumFragment();
+        }
         adapter.addFragment(resultsLineChartFragment, getString(R.string.result_tab_linechart));
         adapter.addFragment(resultsSpectrumFragment, getString(R.string.measurement_tab_spectrum));
         viewPager.setAdapter(adapter);
@@ -363,6 +371,9 @@ public class Results extends MainActivity {
 
     // Set computed data in chart
     private void setRNEData(List<Double> classRangeValue) {
+        if (rneChart == null) {
+            return;
+        }
         ArrayList<Entry> yVals1 = new ArrayList<Entry>();
 
         // IMPORTANT: In a PieChart, no values (Entry) should have the same
@@ -421,6 +432,9 @@ public class Results extends MainActivity {
     }
 
     private void setNEIData() {
+        if (neiChart == null) {
+            return;
+        }
 
         ArrayList<Entry> yVals1 = new ArrayList<Entry>();
 
@@ -571,6 +585,12 @@ public class Results extends MainActivity {
 
         @Override
         public void run() {
+            if (activity == null || activity.isFinishing()) {
+                return;
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed()) {
+                return;
+            }
 
             final OneSecondLeqVisitor leqVisitor = new OneSecondLeqVisitor();
 
@@ -584,7 +604,9 @@ public class Results extends MainActivity {
                 } catch (InterruptedException e) {
                     return;
                 }
-                AsyncTask.execute(new LoadMeasurements(activity));
+                if (!activity.isFinishing() && (Build.VERSION.SDK_INT < Build.VERSION_CODES.JELLY_BEAN_MR1 || !activity.isDestroyed())) {
+                    AsyncTask.execute(new LoadMeasurements(activity));
+                }
                 return;
             }
 
@@ -603,45 +625,76 @@ public class Results extends MainActivity {
             activity.runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
+                    if (activity.isFinishing()) {
+                        return;
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1 && activity.isDestroyed()) {
+                        return;
+                    }
                     activity.setRNEData(leqOccurrences.getUserDefinedOccurrences());
                     activity.setNEIData();
-                    activity.resultsLineChartFragment.setTimeLevelData(leqOccurrences,
-                            leqVisitor.splSecond, leqVisitor.splValues);
-                    activity.resultsSpectrumFragment.setDataS(splHistogram, ltob);
+                    if (activity.resultsLineChartFragment != null) {
+                        activity.resultsLineChartFragment.setTimeLevelData(leqOccurrences,
+                                leqVisitor.splSecond, leqVisitor.splValues);
+                    }
+                    if (activity.resultsSpectrumFragment != null) {
+                        activity.resultsSpectrumFragment.setDataS(splHistogram, ltob);
+                    }
 
                     TextView minText = (TextView) activity.findViewById(R.id.textView_value_Min_SL);
-                    minText.setText(String.format(Locale.getDefault(), "%.01f", leqVisitor.leqStats
-                            .getLeqMin()));
+                    if (minText != null) {
+                        minText.setText(String.format(Locale.getDefault(), "%.01f", leqVisitor.leqStats
+                                .getLeqMin()));
+                    }
 
-                    activity.findViewById(R.id.textView_color_Min_SL).setBackgroundColor(activity
-                            .NE_COLORS[getNEcatColors(leqVisitor.leqStats.getLeqMin())]);
+                    View colorMin = activity.findViewById(R.id.textView_color_Min_SL);
+                    if (colorMin != null) {
+                        colorMin.setBackgroundColor(activity
+                                .NE_COLORS[getNEcatColors(leqVisitor.leqStats.getLeqMin())]);
+                    }
 
                     TextView maxText = (TextView) activity.findViewById(R.id.textView_value_Max_SL);
-                    maxText.setText(String.format(Locale.getDefault(), "%.01f", leqVisitor.leqStats
-                            .getLeqMax()));
+                    if (maxText != null) {
+                        maxText.setText(String.format(Locale.getDefault(), "%.01f", leqVisitor.leqStats
+                                .getLeqMax()));
+                    }
 
-                    activity.findViewById(R.id.textView_color_Max_SL)
-                            .setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqVisitor.leqStats.getLeqMax())]);
+                    View colorMax = activity.findViewById(R.id.textView_color_Max_SL);
+                    if (colorMax != null) {
+                        colorMax.setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqVisitor.leqStats.getLeqMax())]);
+                    }
 
                     TextView la10Text = (TextView) activity.findViewById(R.id.textView_value_LA10);
-                    la10Text.setText(String.format(Locale.getDefault(), "%.01f", leqOccurrences.getLa10()));
+                    if (la10Text != null) {
+                        la10Text.setText(String.format(Locale.getDefault(), "%.01f", leqOccurrences.getLa10()));
+                    }
 
-                    activity.findViewById(R.id.textView_color_LA10)
-                            .setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqOccurrences.getLa10())]);
+                    View colorLa10 = activity.findViewById(R.id.textView_color_LA10);
+                    if (colorLa10 != null) {
+                        colorLa10.setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqOccurrences.getLa10())]);
+                    }
 
                     TextView la50Text = (TextView) activity.findViewById(R.id.textView_value_LA50);
-                    la50Text.setText(String.format(Locale.getDefault(), "%.01f", leqOccurrences.getLa50()));
+                    if (la50Text != null) {
+                        la50Text.setText(String.format(Locale.getDefault(), "%.01f", leqOccurrences.getLa50()));
+                    }
 
-                    activity.findViewById(R.id.textView_color_LA50)
-                            .setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqOccurrences.getLa50())]);
+                    View colorLa50 = activity.findViewById(R.id.textView_color_LA50);
+                    if (colorLa50 != null) {
+                        colorLa50.setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqOccurrences.getLa50())]);
+                    }
 
                     TextView la90Text = (TextView) activity.findViewById(R.id.textView_value_LA90);
-                    la90Text.setText(String.format(Locale.getDefault(), "%.01f", leqOccurrences.getLa90()));
+                    if (la90Text != null) {
+                        la90Text.setText(String.format(Locale.getDefault(), "%.01f", leqOccurrences.getLa90()));
+                    }
 
-                    activity.findViewById(R.id.textView_color_LA90)
-                            .setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqOccurrences.getLa90())]);
+                    View colorLa90 = activity.findViewById(R.id.textView_color_LA90);
+                    if (colorLa90 != null) {
+                        colorLa90.setBackgroundColor(activity.NE_COLORS[getNEcatColors(leqOccurrences.getLa90())]);
+                    }
 
-                    if(activity.resultsLineChartFragment.getTimeLevelChart() != null) {
+                    if(activity.resultsLineChartFragment != null && activity.resultsLineChartFragment.getTimeLevelChart() != null) {
                         activity.resultsLineChartFragment.getTimeLevelChart().animateX(1500);
                     }
                     if(activity.neiChart != null) {

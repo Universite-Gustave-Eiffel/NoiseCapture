@@ -37,14 +37,20 @@ import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
-
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -111,7 +117,28 @@ public class MapFragment extends Fragment {
                     return false;
                 }
 
+                @Override
+                public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && request != null) {
+                        WebResourceResponse response = handleRequest(request.getUrl(), request.getRequestHeaders());
+                        if (response != null) {
+                            return response;
+                        }
+                    }
+                    return super.shouldInterceptRequest(view, request);
+                }
 
+                @Override
+                @SuppressWarnings("deprecation")
+                public WebResourceResponse shouldInterceptRequest(WebView view, String url) {
+                    if (url != null) {
+                        WebResourceResponse response = handleRequest(Uri.parse(url), null);
+                        if (response != null) {
+                            return response;
+                        }
+                    }
+                    return super.shouldInterceptRequest(view, url);
+                }
             });
             if(mapFragmentAvailableListener != null) {
                 mapFragmentAvailableListener.onMapFragmentAvailable(this);
@@ -121,15 +148,93 @@ public class MapFragment extends Fragment {
     }
 
     /**
+     * Intercepts HTTP/HTTPS requests from the WebView and injects the "Referer" header
+     * set to "<a href="https://noise-planet.org">noise-planet.org</a>". Required for map tile providers (such as CartoDB API)
+     * enforcing HTTP Referrer domain whitelisting.
+     *
+     * @param uri The requested resource URI
+     * @param requestHeaders Headers sent by the WebView
+     * @return The intercepted WebResourceResponse with custom Referer header, or null to let WebView handle it
+     */
+    private WebResourceResponse handleRequest(Uri uri, Map<String, String> requestHeaders) {
+        if (uri == null) {
+            return null;
+        }
+        String scheme = uri.getScheme();
+        if (scheme == null || (!scheme.equalsIgnoreCase("http") && !scheme.equalsIgnoreCase("https"))) {
+            return null;
+        }
+        try {
+            URL url = new URL(uri.toString());
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setInstanceFollowRedirects(true);
+            connection.setConnectTimeout(10000);
+            connection.setReadTimeout(10000);
+
+            if (requestHeaders != null) {
+                for (Map.Entry<String, String> entry : requestHeaders.entrySet()) {
+                    connection.setRequestProperty(entry.getKey(), entry.getValue());
+                }
+            }
+            connection.setRequestProperty("Referer", "https://noise-planet.org");
+
+            int responseCode = connection.getResponseCode();
+            String contentType = connection.getContentType();
+            String mimeType = "application/octet-stream";
+            String encoding = null;
+            if (contentType != null) {
+                String[] parts = contentType.split(";");
+                mimeType = parts[0].trim();
+                for (int i = 1; i < parts.length; i++) {
+                    String part = parts[i].trim();
+                    if (part.toLowerCase().startsWith("charset=")) {
+                        encoding = part.substring("charset=".length()).trim();
+                    }
+                }
+            }
+
+            InputStream inputStream = (responseCode >= 400) ? connection.getErrorStream() : connection.getInputStream();
+            if (inputStream == null) {
+                return null;
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                Map<String, String> responseHeaders = new HashMap<>();
+                for (Map.Entry<String, List<String>> field : connection.getHeaderFields().entrySet()) {
+                    if (field.getKey() != null && !field.getValue().isEmpty()) {
+                        responseHeaders.put(field.getKey(), field.getValue().get(0));
+                    }
+                }
+                String message = connection.getResponseMessage();
+                if (message == null || message.isEmpty()) {
+                    message = "OK";
+                }
+                return new WebResourceResponse(mimeType, encoding, responseCode, message, responseHeaders, inputStream);
+            } else {
+                return new WebResourceResponse(mimeType, encoding, inputStream);
+            }
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /**
      * @return The WebView control
      */
     public WebView getWebView() {
         return leaflet;
     }
 
+    /**
+     * Loads a URL into the WebView with the "Referer" header set to "https://noise-planet.org".
+     *
+     * @param url The URL to load
+     */
     public void loadUrl(String url) {
         if(leaflet != null) {
-            leaflet.loadUrl(url);
+            Map<String, String> headers = new HashMap<>();
+            headers.put("Referer", "https://noise-planet.org");
+            leaflet.loadUrl(url, headers);
         }
     }
 
